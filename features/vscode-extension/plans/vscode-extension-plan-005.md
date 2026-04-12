@@ -1,12 +1,3 @@
-Great—this is the right moment to turn the feature model into something **implementable and incremental**.
-
-You asked for a proper doc of the corresponding type. This is clearly an **implementation plan**, derived from the design you just created.
-
-Here is your **plan document** 👇
-
----
-
-````markdown id="workflow-plan-005-group-by-feature"
 ---
 type: plan
 id: workflow-plan-005-group-by-feature
@@ -298,12 +289,3 @@ Feature B
 * Integrate Feature grouping into UI (toolbar toggle)
 * Add "Focus Feature" mode
 * Connect feature status filtering
-
-```
-
----
-
-If you want, next we can refine something very impactful:
-
-👉 **how the toolbar + ViewState interact with this feature grouping** (this is where UX becomes really powerful).
-```

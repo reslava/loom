@@ -1,10 +1,3 @@
-Perfect—this is exactly the right moment to “lock the thinking” into a reusable plan step.
-
-Here is your **`workflow-plan-004-step.md`** ready to save and reuse later 👇
-
----
-
-````markdown
 ---
 type: plan
 id: workflow-plan-004-step
@@ -336,10 +329,3 @@ This will enable:
 * grouping by feature
 * focus mode
 * hierarchical navigation
-
-```
-
----
-
-If you want, next we can turn that **Feature model** into a clean spec (it’s the key to unlocking the most powerful view).
-```

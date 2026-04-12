@@ -1,6 +1,6 @@
 ---
 type: design
-id: workflow-toolbar-viewstate
+id: workflow-toolbar-viewstate-design
 title: "Toolbar & ViewState Interaction Model"
 status: draft
 created: 2026-04-11

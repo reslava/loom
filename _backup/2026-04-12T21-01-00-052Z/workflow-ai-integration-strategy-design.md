@@ -1,6 +1,6 @@
 ---
 type: design
-id: ai-integration
+id: ai-integration-strategy-design
 title: "AI Integration & Handshake Protocol"
 status: draft
 created: 2026-04-11

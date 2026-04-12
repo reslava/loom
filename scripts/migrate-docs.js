@@ -11,6 +11,7 @@ const path = require('path');
 
 // Configuration
 const WORKSPACE_ROOT = path.resolve(__dirname, '..');
+//const WORKSPACE_ROOT = 'J:\src\reslava-workflow-vsix\workflow-design.md';
 const MIGRATION_PLAN_PATH = path.join(WORKSPACE_ROOT, '.wf/migration-plan.json');
 const BACKUP_DIR = path.join(WORKSPACE_ROOT, '_backup', new Date().toISOString().replace(/[:.]/g, '-'));
 

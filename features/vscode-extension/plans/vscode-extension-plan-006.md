@@ -1,13 +1,6 @@
-Perfect—this is where design becomes **real VSCode UX**.
-
-This is clearly an **implementation plan**, and I’ll structure it so you can build it incrementally without breaking things.
-
----
-
-````markdown id="workflow-plan-006-toolbar-implementation"
 ---
 type: plan
-id: workflow-plan-006-toolbar-implementation
+id: workflow-plan-006-toolbar
 title: "Implement VSCode Toolbar (View Controls & Actions)"
 status: active
 created: 2026-04-11
@@ -318,12 +311,3 @@ Behavior:
 * Implement QuickPick-based grouping selector (better UX)
 * Add Focus Feature command
 * Persist ViewState (workspace storage)
-
-```
-
----
-
-If you want next, we can make this even more real:
-
-👉 define **exact package.json contributions (full working example)** + icons + polished UX (this is where it starts feeling like a real product).
-```

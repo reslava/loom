@@ -1,6 +1,6 @@
 ---
 type: design
-id: workflow-design-v2
+id: workflow-design
 title: "AI-native Development Workflow System — Design (v2)"
 status: draft
 created: 2026-04-11

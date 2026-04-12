@@ -1,0 +1,26 @@
+{
+  "operations": [
+    { "action": "move", "source": "workflow-idea.md", "dest": "features/core-engine/core-engine-idea.md" },
+    { "action": "move", "source": "workflow-design.md", "dest": "features/core-engine/core-engine-design.md" },
+    { "action": "move", "source": "workflow-plan-001.md", "dest": "features/core-engine/plans/core-engine-plan-001.md" },
+    { "action": "move", "source": "workflow-plan-002.md", "dest": "features/core-engine/plans/core-engine-plan-002.md" },
+    { "action": "move", "source": "workflow-plan-003.md", "dest": "features/core-engine/plans/core-engine-plan-003.md" },
+    { "action": "move", "source": "workflow-feature-model-design.md", "dest": "features/core-engine/core-engine-feature-model-design.md" },
+    { "action": "move", "source": "workflow-app-version-design.md", "dest": "features/core-engine/core-engine-app-version-design.md" },
+    { "action": "move", "source": "workflow-run-command-design.md", "dest": "features/core-engine/core-engine-run-command-design.md" },
+    
+    { "action": "move", "source": "workflow-ai-integration-strategy-design.md", "dest": "features/ai-integration/ai-integration-design.md" },
+    { "action": "move", "source": "workflow-chat-mode-titles-design.md", "dest": "features/ai-integration/ai-integration-chat-titles-design.md" },
+    
+    { "action": "move", "source": "workflow-toolbar-viewstate-design.md", "dest": "features/vscode-extension/vscode-extension-toolbar-design.md" },
+    { "action": "move", "source": "workflow-user-personalization-design.md", "dest": "features/vscode-extension/vscode-extension-user-personalization-design.md" },
+    { "action": "move", "source": "workflow-plan-004.md", "dest": "features/vscode-extension/plans/vscode-extension-plan-004.md" },
+    { "action": "move", "source": "workflow-plan-004-step-3.md", "dest": "features/vscode-extension/plans/vscode-extension-plan-004-step-3.md" },
+    { "action": "move", "source": "workflow-plan-005-group-by-feature.md", "dest": "features/vscode-extension/plans/vscode-extension-plan-005.md" },
+    { "action": "move", "source": "workflow-plan-006-toolbar-plan.md", "dest": "features/vscode-extension/plans/vscode-extension-plan-006.md" },
+    
+    { "action": "move", "source": "workflow-docs-directories-design.md", "dest": "features/docs-infra/docs-infra-directories-design.md" },
+    
+    { "action": "move", "source": "workflow-new-chat-doc-type.md", "dest": "features/_archive/new-chat-doc-type-idea.md" }
+  ]
+}

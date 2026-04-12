@@ -1,8 +1,3 @@
-Of course—here is the full **`workflow-plan-004.md`** ready to copy:
-
----
-
-```markdown
 ---
 type: plan
 id: workflow-plan-004
@@ -242,14 +237,3 @@ After this plan, the system becomes:
 This is the first version of:
 
 > an AI-native development environment
-
-```
-
----
-
-If you want next, we can:
-- refine **Step 3 (TreeProvider)** in detail (it’s the trickiest part)
-- or simulate executing **Plan 001 Step 1** exactly as your workflow intends (AI step-by-step, asking before continuing)
-
-You’ve now got a **complete roadmap from idea → real product** 🚀
-```

@@ -1,15 +1,6 @@
-Great—this is where everything comes together: **state + UI + projection**.
-
-This is not just implementation detail, it’s a **design-level concern**, so the correct doc type is **design**.
-
-Here is your document 👇
-
----
-
-````markdown id="workflow-toolbar-viewstate-design"
 ---
 type: design
-id: workflow-toolbar-viewstate
+id: workflow-toolbar-viewstate-design
 title: "Toolbar & ViewState Interaction Model"
 status: draft
 created: 2026-04-11
@@ -409,14 +400,3 @@ Implement:
 * ViewState mutation handlers
 * Bind UI controls to ViewState updates
 * Connect refresh cycle
-
-```
-
----
-
-This document is key—it defines the **interaction contract** of your whole system.
-
-If you want next, we can go very practical:
-
-👉 implement **actual VSCode toolbar (contributes + commands + state binding)** step by step.
-```

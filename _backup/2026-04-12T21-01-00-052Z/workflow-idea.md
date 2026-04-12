@@ -1,6 +1,6 @@
 ---
 type: idea
-id: workflow-idea-v2
+id: workflow-idea
 title: "Document-Driven AI Workflow System (Refined Vision)"
 status: draft
 created: 2026-04-11

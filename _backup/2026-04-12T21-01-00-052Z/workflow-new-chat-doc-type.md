@@ -1,3 +1,16 @@
+---
+type: idea
+id: workflow-new-chat-doc-type
+title: "Document-Driven AI Workflow System (Refined Vision)"
+status: draft
+created: 2026-04-11
+version: 1.0.0
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
+
 ### 💬 New Idea: Informal Chat Documents (`-chat.md`)
 
 This is an interesting one. Let me give you my honest take.

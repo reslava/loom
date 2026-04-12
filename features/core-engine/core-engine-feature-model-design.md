@@ -1,11 +1,6 @@
-Here is your **design document** ready to save and reuse 👇
-
----
-
-````markdown id="workflow-feature-model-design"
 ---
 type: design
-id: workflow-feature-model
+id: workflow-feature-model-design
 title: "Workflow Feature Model"
 status: draft
 created: 2026-04-11
@@ -377,12 +372,3 @@ Integrate Feature model into ViewModel:
 * implement `groupByFeature`
 * support feature-based filtering
 * enable focus mode in TreeProvider
-
-```
-
----
-
-When you’re ready, next step is very powerful:
-
-👉 implement `groupByFeature` using this model (this is where everything “clicks” visually).
-```

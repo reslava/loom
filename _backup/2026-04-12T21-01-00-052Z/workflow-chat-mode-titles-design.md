@@ -1,6 +1,6 @@
 ---
 type: design
-id: workflow-chat-mode-titles
+id: workflow-chat-mode-titles-design
 title: "Optional Inline Titles for Chat Mode Conversations"
 status: draft
 created: 2026-04-11

@@ -1,6 +1,6 @@
 ---
 type: design
-id: workflow-feature-model
+id: workflow-feature-model-design
 title: "Workflow Feature Model"
 status: draft
 created: 2026-04-11
