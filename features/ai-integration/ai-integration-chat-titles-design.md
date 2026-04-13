@@ -1,175 +1,154 @@
 ---
 type: design
-id: workflow-chat-mode-titles-design
-title: "Optional Inline Titles for Chat Mode Conversations"
-status: draft
-created: 2026-04-11
+id: ai-integration-chat-docs-design
+title: "Chat Documents — Lightweight AI Conversation Files"
+status: active
+created: 2026-04-13
 version: 1.0.0
-tags: [ai, chat, design, documentation, ux]
-parent_id: workflow-design-v2
+tags: [ai, chat, ux, filesystem, archive]
+parent_id: workflow-ai-integration-strategy-design
 child_ids: []
-requires_load: [AI_INTEGRATION.md, design-template.md]
+requires_load: []
 ---
 
-# Optional Inline Titles for Chat Mode Conversations
+# Chat Documents — Lightweight AI Conversation Files
 
 ## Goal
 
-Define an optional, AI-assisted convention for adding short, scannable titles to `## User:` and `## AI:` headers within `design.md` conversation logs. This improves navigability of long design discussions without adding friction to the primary writing experience.
+Introduce an informal, file-based chat document type (`-chat.md`) that captures AI conversations outside the structured workflow state machine. These chats provide searchable, versionable history without polluting core documents, and can be promoted or used as context for workflow actions.
 
 ## Context
 
-The default conversation log format (`## User:` followed by free-form text) is lightweight and frictionless. However, as a design document grows to 50+ turns, it becomes difficult to quickly locate specific decision points or topic shifts.
+The workflow system currently embeds all AI conversation within `design.md` files. While this is ideal for feature-specific decision logs, it is too heavy for:
+- Exploratory brainstorming before an idea exists.
+- Quick questions about a plan.
+- Off-topic discussions.
 
-The system already includes:
-- **`design-ctx.md`**: A periodic, comprehensive summary generated at checkpoints.
-- **VS Code outline view**: Can parse Markdown headers.
+Users need a lightweight scratchpad that still benefits from Reslava's core values: file-based, searchable, Git-versioned, and AI-aware.
 
-**What's missing** is **real-time, in-line scannability** during active conversation. This feature addresses that gap by allowing the AI to optionally prepend a short title to section headers when a topic shift or significant decision occurs.
+# CHAT
 
-## Proposed Convention
-
-### Format
-
-When appropriate, the AI may modify the `## User:` or `## AI:` header to include a short title, separated by an em dash:
-
-```markdown
-## User — Deciding on Database Technology
-[Long user message exploring PostgreSQL vs SQLite...]
-
-## AI — Recommendation for PostgreSQL
-[Detailed AI analysis and recommendation...]
-
-## User:
-[Quick follow-up question.]
+## Rafa:
+We need a new chat document type. Informal, no frontmatter required, just `# CHAT` and `## User:` / `## AI:` blocks. These files should live in a `chats/` directory and be usable as context for commands like refining a design or creating an idea. After use, they should be archived with metadata.
 
 ## AI:
-[Brief answer.]
+Agreed. This fills a real gap without adding complexity to the core engine. Let's define the specifics.
+
+### 1. Directory Structure
+
+```
+workspace-root/
+├── .wf/                                         # System configuration
+├── chats/                                       # Active, unused chat files
+│   └── 2026-04-13-auth-debate.md
+├── features/                                    # Active features
+├── _archive/                                    # All archived content
+│   ├── features/                                # Archived features
+│   │   ├── done/
+│   │   ├── cancelled/
+│   │   ├── postponed/
+│   │   └── superseded/
+│   └── chats/                                   # Archived (used) chats
+│       └── 2026-04/
+│           └── 2026-04-13-auth-debate.md
+├── references/
+└── src/
 ```
 
-**Rules:**
-- The base header `## User:` or `## AI:` is always present.
-- The title is optional and added only by the AI (not required from the user).
-- The delimiter is an **em dash** (`—`) to avoid Markdown link syntax ambiguity.
-- Titles should be **3–6 words**, concise, and descriptive of the chunk's primary topic or outcome.
+### 2. Chat File Format
 
-### When to Add a Title
+Chat files **do not require frontmatter**. They contain only a `# CHAT` heading followed by conversation blocks.
 
-| Scenario | Add Title? |
-|----------|------------|
-| User message is > ~200 words or introduces a new topic. | Yes (AI adds to `## User` header). |
-| AI response contains a significant decision, recommendation, or complex explanation. | Yes (AI adds to `## AI` header). |
-| Short, conversational back-and-forth (e.g., clarification, simple Q&A). | No. |
+Headers use the configured user name and AI model name when available, falling back to generic defaults.
 
-The AI determines appropriateness based on content length and semantic shifts. Users are never required to write titles themselves.
-
-### Relationship to Existing Structure
-
-This convention is **additive and backward-compatible**:
-- Existing documents without titles remain valid.
-- The AI may add titles when editing existing headers during a `REFINE_DESIGN` event (optional cleanup).
-- The VS Code extension may parse these titles for an enhanced outline view, but fallback gracefully.
-
-## AI Behavior Specification
-
-The system prompt for **Chat Mode** (see `AI_INTEGRATION.md`) will include the following instruction:
-
-```text
-### Conversation Header Titles (Optional)
-
-To improve scannability of long conversations, you may optionally prepend a short title to `## User:` or `## AI:` headers using an em dash.
-
-**Format:** `## User — Short Title` or `## AI — Short Title`
-
-**When to add a title:**
-- For the `## User:` header: if the user's message is long (over ~200 words) or clearly starts a new topic, add a concise 3–6 word title summarizing the user's input.
-- For the `## AI:` header: if your response is substantial, contains a key decision, or explains a complex concept, add a concise title summarizing your response.
-
-**When NOT to add a title:**
-- Short questions/answers.
-- Clarifications or minor follow-ups.
-
-**Example:**
-## User — Database Technology Choice
-(Long user message...)
-
-## AI — PostgreSQL Recommended
-(Long AI response...)
-
-## User:
-(Short question)
-
-## AI:
-(Short answer)
-```
-
-## Benefits
-
-| Benefit | Description |
-|---------|-------------|
-| **Scannability** | Users can scroll through a long design doc and quickly grasp the conversation arc. |
-| **AI Comprehension** | Titles act as strong attention anchors when the AI re-reads the document in future sessions. |
-| **Zero User Effort** | The user never writes titles; the AI handles it automatically when helpful. |
-| **Complements `design-ctx.md`** | Provides real-time landmarks during active conversation, while `design-ctx.md` provides periodic summaries. |
-| **Future Extensibility** | Titles can be parsed by the VS Code extension to generate an interactive outline sidebar. |
-
-## Trade-offs & Mitigations
-
-| Concern | Mitigation |
-|---------|------------|
-| AI may generate inaccurate or unhelpful titles. | Prompt engineering includes examples; user can manually edit if needed. |
-| Titles add visual clutter to short exchanges. | Titles are only added for substantial chunks; short exchanges remain clean. |
-| Parser ambiguity with square brackets. | Em dash delimiter avoids conflict with Markdown link syntax. |
-
-## Example Conversation Snippet
-
+**Template:**
 ```markdown
 # CHAT
 
-## User — Initial Problem Statement
-We need to implement user authentication. I'm considering JWT vs session-based auth.
-Our app is a single-page React app with a Node.js backend. What are the trade-offs?
+## {{UserName}}:
+<!-- User message here -->
 
-## AI — JWT vs Session Analysis
-JWT offers stateless scalability and works well with SPAs, but token revocation is harder.
-Sessions are simpler to invalidate but require server-side storage.
-For your stack, JWT with short-lived tokens and refresh rotation is a common pattern.
-
-## User:
-What about security? I've heard JWT can be risky if not implemented correctly.
-
-## AI — JWT Security Best Practices
-You're right. Key risks include: storing tokens in localStorage (XSS), not validating signatures, and using weak secrets.
-Recommendations: use HttpOnly cookies, short expiration, and a proper refresh token flow.
-
-## User — Decision: JWT with HttpOnly Cookies
-Let's go with JWT, stored in HttpOnly cookies, with a 15-minute access token and 7-day refresh token.
-I'll document this in the design.
-
-## AI — Decision Recorded
-Great. I'll note that the design now specifies JWT with HttpOnly cookies.
-Would you like me to propose a `REFINE_DESIGN` event to update the frontmatter version?
+## {{AIModel}}:
+<!-- AI response here -->
 ```
 
-## Implementation Plan
+**Example (with personalization):**
+```markdown
+# CHAT
 
-1. **Update `AI_INTEGRATION.md`** to include the optional title instruction in the Chat Mode system prompt.
-2. **Update `design-template.md`** to include a comment about optional titles (e.g., `<!-- AI may add short titles to headers for long sections: ## User — Title -->`).
-3. **(Optional) VS Code Extension Enhancement**: Parse titled headers to provide an outline view or quick-jump functionality.
-4. **No changes required** to core engine, reducers, or filesystem layer.
+## Rafa:
+I think we should use JWT for authentication.
 
-## Open Questions
+## DeepSeek Chat (deepseek-chat):
+JWT is a solid choice for stateless authentication. Consider using short-lived access tokens and refresh rotation for security.
+```
 
-- Should the AI ever modify existing headers to add titles retrospectively (e.g., during `REFINE_DESIGN` cleanup)?
-  - *Initial stance:* No. Keep it as a real-time conversational aid. Retrospective cleanup is a separate, manual (or future automated) task.
+If `workflow.user.name` is not set, the header defaults to `## User:`. If the AI model name is unknown, it defaults to `## AI:`.
+
+### 3. Commands
+
+All commands are invoked via the CLI (`wf`) or VS Code context menus.
+
+| Command | Purpose |
+|---------|---------|
+| `wf chat new [--title "Topic"]` | Creates a new chat file in `chats/` with a timestamped filename. Opens it in the editor. |
+| `wf promote <chat-file> --to idea [--feature <name>]` | Creates a new `idea.md` from the chat content. Moves chat to `_archive/chats/`. |
+| `wf refine-using-chat <target-doc> <chat-file>` | Uses the chat as context to refine the target document (design or plan). Moves chat to archive. |
+| `wf append-chat <chat-file> --to <target-doc>` | Appends the chat content (or a summary) to the target document's `# CHAT` section. Moves chat to archive. |
+| `wf chat archive <chat-file>` | Manually archives a chat without using it (e.g., when it's no longer relevant). |
+
+### 4. Archived Chat Metadata
+
+When a chat is moved to `_archive/chats/`, the system injects a minimal frontmatter block at the top of the file to preserve provenance.
+
+```yaml
+---
+archived_at: 2026-04-13T10:30:00Z
+archived_by: "Rafa"
+used_in:
+  type: "design"
+  id: "payment-system-design"
+  path: "features/payment-system/payment-system-design.md"
+action: "refine"
+summary: "Discussed JWT vs OAuth, decided on JWT with refresh tokens."
+---
+```
+
+| Field | Description |
+|-------|-------------|
+| `archived_at` | ISO 8601 timestamp of archival. |
+| `archived_by` | User name from `workflow.user.name`. |
+| `used_in` | Target document that consumed this chat. |
+| `action` | How the chat was used: `promote`, `refine`, `append`, or `manual`. |
+| `summary` | One-sentence AI-generated summary of the chat's outcome. |
+
+### 5. VS Code Integration
+
+- **Tree View:** A "Chats" node displays all files in `chats/`.
+- **Context Menus:**
+  - Right-click a chat → "Use to refine design..." → prompts for target document.
+  - Right-click a chat → "Promote to idea..." → prompts for feature name.
+  - Right-click a chat → "Archive chat..."
+- **Command Palette:** All `wf chat` commands are available.
+
+### 6. Implementation Notes
+
+- **No new state machine.** Chats are files, not workflow documents. They do not participate in derived state or validation.
+- **AI Summary Generation:** When archiving, the system may optionally call the configured AI model to generate the `summary` field. If the AI is unavailable, the field is left blank or populated with a placeholder.
+- **File Watching:** The `chats/` directory is watched for changes to keep the tree view updated.
+
+### 7. Future Enhancements
+
+- **Chat Search:** `wf chats search "JWT"` using the archived metadata summaries.
+- **Chat Templates:** Predefined prompts for common scenarios (e.g., "Refine Design", "Brainstorm Feature").
+- **Multi-Chat Context:** Support providing multiple chat files to a single command.
 
 ## Decision
 
-- **Adopt the optional inline title convention for Chat Mode.**
-- AI will add titles only when content is substantial or topic-shifting.
-- Titles use em dash delimiter: `## User — Title`.
-- No user action required; AI handles automatically.
+Adopt the chat document type as described. Implementation is deferred until after the core engine (Plans 001-003) is stable, but the design is now locked in.
 
-## Next Step
+## Next Steps
 
-Update `AI_INTEGRATION.md` and `design-template.md` to reflect this convention.
+- (Post-MVP) Implement `wf chat` commands.
+- (Post-MVP) Add "Chats" node to VS Code tree view.
+- (Post-MVP) Implement archive metadata injection.

@@ -26,6 +26,9 @@ workspace-root/
 │       └── features.json                        # Cached feature aggregates
 │                                                # Invalidated per-feature when any .md file changes
 │
+├── chats/                                       # Active, unused chat files
+│   └── 2026-04-13-auth-debate.md                # Informal AI conversations (no frontmatter required)
+│
 ├── features/                                    # All active features live here
 │   │
 │   ├── payment-system/                          # Feature folder (name = feature ID)
@@ -60,11 +63,16 @@ workspace-root/
 │   │   │   └── user-auth-plan-001.md
 │   │   └── ...
 │   │
-│   └── _archive/                                # Completed / abandoned features
-│       ├── done/                                # shipped
-│       ├── cancelled/                           # decided not to pursue
-│       ├── postponed/                           # good idea, wrong time
-│       └── superseded/                          # replaced by a different feature or design
+│   └── _archive/                                # Completed / abandoned features and chats
+│       ├── features/                            # Archived features
+│       │   ├── done/                            # shipped
+│       │   ├── cancelled/                       # decided not to pursue
+│       │   ├── postponed/                       # good idea, wrong time
+│       │   └── superseded/                      # replaced by a different feature or design
+│       │
+│       └── chats/                               # Archived (used) chats
+│           └── 2026-04/                         # Organized by month
+│               └── 2026-04-13-auth-debate.md    # Injected with archival metadata frontmatter
 │
 ├── references/                                  # Global references shared by all features
 │   ├── style-guide.md
@@ -91,6 +99,11 @@ workspace-root/
 | Plan | `*-plan-*.md` | `payment-system-plan-001.md` |
 | Context summary | `*-ctx.md` | `payment-system-ctx.md` |
 | Session checkpoint | `*-ctx-{date}.md` | `payment-system-ctx-2026-04-12.md` |
+| Chat (informal AI conversation) | `YYYY-MM-DD-topic.md` | `2026-04-13-auth-debate.md` |
+
+**Chat naming notes:**
+- Active chats live in `chats/` with a timestamp prefix for easy sorting.
+- After being consumed by a command (e.g., `wf refine-using-chat`), they are moved to `_archive/chats/YYYY-MM/` and injected with archival metadata.
 
 ---
 
@@ -121,6 +134,17 @@ The root ctx is always "latest summary." The `ctx/` subfolder is the historical 
 
 ---
 
+## Chat Files: Lightweight AI Conversations
+
+Chat files provide an informal, file-based scratchpad for AI conversations outside the structured workflow state machine.
+
+| Directory | Purpose | Lifecycle |
+|-----------|---------|-----------|
+| `chats/` (workspace root) | Active, unused chat files | Created manually or via `wf chat new`. No frontmatter required. |
+| `_archive/chats/YYYY-MM/` | Archived chats after being used | Moved automatically when consumed by a workflow command. Injected with metadata frontmatter (see `ai-integration-chat-docs-design.md`). |
+
+---
+
 ## Important Files Explained
 
 | Path | Purpose |
@@ -131,12 +155,14 @@ The root ctx is always "latest summary." The `ctx/` subfolder is the historical 
 | `.wf/schemas/workflow-schema.json` | JSON Schema for `workflow.yml` — enables inline validation in VS Code. |
 | `.wf/prompts/SESSION_START.md` | Bootstrap prompt to initialize AI context in external chat tools. |
 | `.wf/cache/` | Local derived state cache (Git-ignored). Invalidated per-feature on any `.md` change. |
+| `chats/` | Active, informal AI conversation files. |
 | `features/<feature>/` | One directory per feature. Folder name = feature ID. |
 | `features/<feature>/*-design.md` | PRIMARY design — anchor document, defines the feature root. Required. |
 | `features/<feature>/*-design-{topic}.md` | SUPPORTING design — scoped sub-topic. Optional, many allowed. |
 | `features/<feature>/plans/` | Optional subdirectory for plan documents (keeps feature root tidy). |
 | `features/<feature>/ctx/` | Manual session checkpoints — historical archive, never auto-overwritten. |
-| `features/_archive/` | Manually moved completed features — hidden from active tree view by default. |
+| `features/_archive/features/` | Manually moved completed features — hidden from active tree view by default. |
+| `features/_archive/chats/` | Archived chats that have been consumed by workflow commands. |
 | `references/` | Global documents shared across features (not tied to any specific feature). |
 
 ---
