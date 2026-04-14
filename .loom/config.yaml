@@ -1,0 +1,14 @@
+# ~/.loom/config.yaml
+# Global registry of all REslava Loom workspaces
+# Paths are relative to the directory containing this config file (~/.loom/)
+
+active_loom: "../looms/reslava-loom"
+
+looms:
+  - name: "default"
+    path: "../looms/reslava-loom"
+    created: "2026-04-14T10:00:00Z"
+
+  - name: "test"
+    path: "../looms/test-loom"
+    created: "2026-04-14T11:00:00Z"
