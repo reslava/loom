@@ -133,69 +133,213 @@ program.parse(process.argv);
 
 ---
 
-## Step 2 — Implement `loom status` Command
+## Step 2 — Implement `loom status` Command (Enhanced with Dependency Visibility)
 
 **File:** `packages/cli/src/commands/status.ts`
 
-```typescript
-import chalk from 'chalk';
-import { loadThread } from '../../../fs/src/loadThread';
-import { getThreadStatus, getThreadPhase } from '../../../core/src/derived';
-import { getActiveLoomRoot } from '../../../fs/src/utils';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+The `loom status` command displays derived state for a thread or all threads. It now actively parses plan steps and evaluates the "Blocked by" column to surface dependencies and suggest the next actionable step.
 
+### 2.1 Core Types for Step Parsing
+
+```typescript
+interface StepStatus {
+  order: number;
+  description: string;
+  done: boolean;
+  blockedBy: string[];
+  isBlocked: boolean;
+}
+
+interface PlanStepDisplay extends StepStatus {
+  symbol: string;      // ✅, 🔄, 🔳, 🔒
+  blockerDetails: string;
+}
+```
+
+### 2.2 Parsing the Steps Table from Markdown
+
+```typescript
+function parseStepsFromPlan(plan: PlanDoc): StepStatus[] {
+  const content = plan.content;
+  const steps: StepStatus[] = [];
+  
+  // Find the steps table: between "# Steps" and the next "---" or "##"
+  const stepsMatch = content.match(/# Steps\n\n([\s\S]*?)(?=\n---|\n##|$)/);
+  if (!stepsMatch) return steps;
+  
+  const table = stepsMatch[1];
+  const lines = table.split('\n').filter(l => l.includes('|') && !l.includes('|---') && !l.includes('Done | #'));
+  
+  for (const line of lines) {
+    const cols = line.split('|').map(c => c.trim()).filter(Boolean);
+    if (cols.length < 5) continue;
+    
+    // Columns: Done, #, Step, Files touched, Blocked by
+    const doneSymbol = cols[0];
+    const order = parseInt(cols[1]);
+    const description = cols[2];
+    const blockedByRaw = cols[4] || '—';
+    
+    const done = doneSymbol === '✅';
+    const blockedBy = blockedByRaw === '—' ? [] : blockedByRaw.split(',').map(s => s.trim());
+    
+    steps.push({ order, description, done, blockedBy, isBlocked: false });
+  }
+  
+  return steps;
+}
+```
+
+### 2.3 Evaluating Blocked Status
+
+```typescript
+function evaluateBlocked(
+  step: StepStatus,
+  allSteps: StepStatus[],
+  allPlans: PlanDoc[]
+): boolean {
+  if (step.blockedBy.length === 0) return false;
+  
+  for (const blocker of step.blockedBy) {
+    // Internal step dependency: "Step 3"
+    const stepMatch = blocker.match(/^Step\s+(\d+)$/i);
+    if (stepMatch) {
+      const stepNum = parseInt(stepMatch[1]);
+      const targetStep = allSteps.find(s => s.order === stepNum);
+      if (targetStep && !targetStep.done) return true;
+      continue;
+    }
+    
+    // Cross-plan dependency: "multi-workspace-plan-001"
+    if (blocker.includes('-plan-')) {
+      const targetPlan = allPlans.find(p => p.id === blocker);
+      if (targetPlan && targetPlan.status !== 'done') return true;
+      continue;
+    }
+  }
+  
+  return false;
+}
+```
+
+### 2.4 Displaying Steps with Dependency Information
+
+```typescript
+function displayPlanSteps(plan: PlanDoc, allPlans: PlanDoc[]): void {
+  const steps = parseStepsFromPlan(plan);
+  const evaluatedSteps = steps.map(s => ({
+    ...s,
+    isBlocked: evaluateBlocked(s, steps, allPlans)
+  }));
+  
+  console.log(`\n📋 Active Plan: ${plan.id}`);
+  console.log(`   Status: ${plan.status}`);
+  console.log(`   Progress: ${evaluatedSteps.filter(s => s.done).length}/${steps.length} steps done\n`);
+  console.log('   Steps:');
+  
+  for (const step of evaluatedSteps) {
+    let symbol: string;
+    if (step.done) symbol = '✅';
+    else if (step.isBlocked) symbol = '🔒';
+    else symbol = '🔳';
+    
+    console.log(`   ${symbol} ${step.order}. ${step.description}`);
+    if (step.isBlocked && step.blockedBy.length > 0) {
+      console.log(`      ⚠️ Blocked by: ${step.blockedBy.join(', ')}`);
+    }
+  }
+  
+  // Find next actionable step
+  const nextStep = evaluatedSteps.find(s => !s.done && !s.isBlocked);
+  if (nextStep) {
+    console.log(`\n   💡 Next step: Step ${nextStep.order} — ${nextStep.description}`);
+  } else {
+    const blockedSteps = evaluatedSteps.filter(s => !s.done && s.isBlocked);
+    if (blockedSteps.length > 0) {
+      console.log(`\n   ⚠️ All remaining steps are blocked. Resolve blockers first:`);
+      for (const bs of blockedSteps) {
+        console.log(`      - Step ${bs.order}: waiting for ${bs.blockedBy.join(', ')}`);
+      }
+    } else if (evaluatedSteps.every(s => s.done)) {
+      console.log(`\n   🎉 All steps complete! Run \`loom finish-plan ${plan.id}\` to mark as done.`);
+    }
+  }
+}
+```
+
+### 2.5 Cross-Plan Dependency Summary
+
+```typescript
+function displayCrossPlanDependencies(thread: Thread): void {
+  const waitingPlans = thread.plans.filter(p => {
+    if (p.status !== 'draft' && p.status !== 'active') return false;
+    const steps = parseStepsFromPlan(p);
+    if (steps.length === 0) return false;
+    const firstStep = steps[0];
+    return firstStep.blockedBy.some(b => b.includes('-plan-'));
+  });
+  
+  if (waitingPlans.length > 0) {
+    console.log('\n📋 Other Plans:');
+    for (const plan of waitingPlans) {
+      const steps = parseStepsFromPlan(plan);
+      const blockers = steps[0]?.blockedBy.filter(b => b.includes('-plan-')) || [];
+      console.log(`   - ${plan.id} (status: ${plan.status}) — Waiting for: ${blockers.join(', ')}`);
+    }
+  }
+}
+```
+
+### 2.6 Integration into `statusCommand`
+
+```typescript
 export async function statusCommand(threadId?: string, options?: any): Promise<void> {
   const loomRoot = getActiveLoomRoot();
-  const threadsDir = path.join(loomRoot, 'threads');
-
+  
   if (threadId) {
-    // Single thread status
     const thread = await loadThread(threadId);
     const status = getThreadStatus(thread);
     const phase = getThreadPhase(thread);
     
-    console.log(chalk.bold(`🧵 Thread: ${thread.id}`));
+    console.log(chalk.bold(`\n🧵 Thread: ${thread.id}`));
     console.log(`   Status: ${colorStatus(status)}`);
     console.log(`   Phase:  ${phase}`);
     console.log(`   Design: ${thread.design.title} (v${thread.design.version})`);
-    console.log(`   Plans:  ${thread.plans.length} (${thread.plans.filter(p => p.status === 'done').length} done)`);
+    
+    const activePlan = thread.plans.find(p => 
+      p.status === 'implementing' || p.status === 'active'
+    );
+    
+    if (activePlan) {
+      displayPlanSteps(activePlan, thread.plans);
+    }
+    
+    displayCrossPlanDependencies(thread);
     
     if (options.verbose) {
-      for (const plan of thread.plans) {
-        const doneSteps = plan.steps.filter(s => s.done).length;
-        console.log(`     - ${plan.id}: ${plan.status} (${doneSteps}/${plan.steps.length} steps)`);
-      }
+      // Show all plans
     }
   } else {
-    // List all threads
-    const entries = await fs.readdir(threadsDir);
-    for (const entry of entries) {
-      const threadPath = path.join(threadsDir, entry);
-      const stat = await fs.stat(threadPath);
-      if (stat.isDirectory() && entry !== '_archive') {
-        try {
-          const thread = await loadThread(entry);
-          const status = getThreadStatus(thread);
-          console.log(`${entry.padEnd(20)} ${colorStatus(status)}`);
-        } catch {
-          console.log(`${entry.padEnd(20)} ${chalk.gray('[invalid]')}`);
-        }
-      }
-    }
-  }
-}
-
-function colorStatus(status: string): string {
-  switch (status) {
-    case 'DONE': return chalk.green(status);
-    case 'IMPLEMENTING': return chalk.blue(status);
-    case 'ACTIVE': return chalk.yellow(status);
-    case 'CANCELLED': return chalk.red(status);
-    default: return status;
+    // List all threads (existing logic)
   }
 }
 ```
+
+### 2.7 Testing the Enhanced Status
+
+**Manual Test Cases:**
+
+1. **No blockers:** All steps show 🔳. Next step suggested.
+2. **Internal blocker:** Step 4 shows 🔒 and "Blocked by: Step 3".
+3. **Cross-plan blocker:** First step shows 🔒 and "Blocked by: multi-workspace-plan-001".
+4. **All steps done:** Suggests finishing the plan.
+5. **All remaining blocked:** Shows summary of blockers.
+
+### 2.8 Future Enhancements (Post-MVP)
+
+- VS Code tree view icons for blocked steps (🔒).
+- `loom unblocked` command to list all actionable steps across threads.
+- Prevent `loom complete-step` from marking a blocked step as done (validation).
 
 ---
 

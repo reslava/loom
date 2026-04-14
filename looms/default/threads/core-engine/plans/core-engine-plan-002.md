@@ -5,7 +5,7 @@ title: "Filesystem Integration — Markdown Load and Save"
 status: draft
 created: 2026-04-10
 updated: 2026-04-14
-version: 2
+version: 1
 design_version: 3
 tags: [loom, core, filesystem, markdown, io]
 parent_id: core-engine-design
@@ -32,7 +32,8 @@ Connect the core Loom engine to the filesystem using Markdown files as the datab
 This includes:
 - loading documents from disk
 - parsing frontmatter
-- saving updated documents
+- saving updated documents with atomic writes
+- robust error handling for common filesystem failures
 - mapping folder structure to the Thread model
 
 This step transforms the system from in‑memory logic into a persistent, real‑world workflow engine.
@@ -43,71 +44,179 @@ This step transforms the system from in‑memory logic into a persistent, real�
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Setup filesystem utilities | `packages/fs/src/utils.ts` | `core-engine-plan-001` |
-| 🔳 | 2 | Implement `loadDoc` (Markdown + frontmatter) | `packages/fs/src/load.ts` |
-| 🔳 | 3 | Implement `saveDoc` (Markdown writer) | `packages/fs/src/save.ts` |
-| 🔳 | 4 | Implement `loadThread` | `packages/fs/src/loadThread.ts` |
-| 🔳 | 5 | Implement `saveThread` | `packages/fs/src/saveThread.ts` |
-| 🔳 | 6 | Integrate with core engine | `packages/fs/src/runEvent.ts` |
-| 🔳 | 7 | Test with real thread folder | `looms/test/threads/example/` |
+| 🔳 | 1 | Setup filesystem utilities (with robust loom resolution) | `packages/fs/src/utils.ts` | — |
+| 🔳 | 2 | Implement `loadDoc` (Markdown + frontmatter + validation) | `packages/fs/src/load.ts` | Step 1 |
+| 🔳 | 3 | Implement `saveDoc` (atomic Markdown writer) | `packages/fs/src/save.ts` | Step 1 |
+| 🔳 | 4 | Implement `loadThread` | `packages/fs/src/loadThread.ts` | Steps 2, 3 |
+| 🔳 | 5 | Implement `saveThread` | `packages/fs/src/saveThread.ts` | Steps 2, 3 |
+| 🔳 | 6 | Integrate with core engine (`runEvent`) | `packages/fs/src/runEvent.ts` | Steps 4, 5 |
+| 🔳 | 7 | Test with real thread folder | `looms/test/threads/example/` | All |
 
 ---
 
-## Step 1 — Setup Filesystem Utilities
+## Step 1 — Setup Filesystem Utilities (with Robust Loom Resolution)
 
 **File:** `packages/fs/src/utils.ts`
 
-Define helpers for path resolution and directory operations.
+Define helpers for path resolution, directory operations, and—most critically—the `getActiveLoomRoot()` function that correctly resolves the active Loom workspace in both mono‑loom and multi‑loom modes.
 
 ```typescript
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as os from 'os';
+import * as yaml from 'yaml';
 
+/**
+ * Resolves the absolute path to the currently active Loom workspace root.
+ *
+ * Resolution order:
+ * 1. Check if a global registry exists at ~/.loom/config.yaml.
+ *    If yes, and it has an active_loom, and that path exists → return it.
+ * 2. Walk up from the current working directory, looking for a .loom/ directory.
+ *    If found, return the directory containing .loom/.
+ * 3. If neither is found, throw a clear error with remediation steps.
+ *
+ * @throws {Error} If no Loom workspace can be located.
+ */
 export function getActiveLoomRoot(): string {
-  // First check for global registry (~/.loom/config.yaml)
-  // If not found, look for .loom/ in current directory or ancestors
-  // Fallback to process.cwd()
-  // (Implementation details to be filled)
-  return process.cwd();
+    // 1. Try global registry (multi‑loom mode)
+    const registryPath = path.join(os.homedir(), '.loom', 'config.yaml');
+    if (fs.existsSync(registryPath)) {
+        const registryContent = fs.readFileSync(registryPath, 'utf8');
+        const registry = yaml.parse(registryContent) as LoomRegistry | null;
+        if (registry?.active_loom) {
+            const configDir = path.dirname(registryPath);
+            const activePath = path.resolve(configDir, registry.active_loom);
+            if (fs.existsSync(activePath)) {
+                return activePath;
+            }
+        }
+    }
+
+    // 2. Walk up from cwd looking for .loom/ (mono‑loom mode)
+    let currentDir = process.cwd();
+    while (true) {
+        const loomDir = path.join(currentDir, '.loom');
+        if (fs.existsSync(loomDir)) {
+            return currentDir;
+        }
+
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+            // Reached filesystem root
+            break;
+        }
+        currentDir = parentDir;
+    }
+
+    // 3. No loom found
+    throw new Error(
+        'No Loom workspace found.\n\n' +
+        'If you are in a project that uses Loom, ensure it has a .loom/ directory.\n' +
+        'If you want to create a new Loom workspace, run:\n' +
+        '  loom init\n' +
+        'If you have multiple looms, ensure one is active:\n' +
+        '  loom list\n' +
+        '  loom switch <name>'
+    );
 }
 
+export interface LoomEntry {
+    name: string;
+    path: string;
+    created: string;
+}
+
+export interface LoomRegistry {
+    active_loom: string | null;
+    looms: LoomEntry[];
+}
+
+/**
+ * Resolves the absolute path to a specific thread.
+ */
 export function resolveThreadPath(threadId: string): string {
-  const loomRoot = getActiveLoomRoot();
-  return path.join(loomRoot, 'threads', threadId);
+    const loomRoot = getActiveLoomRoot();
+    return path.join(loomRoot, 'threads', threadId);
 }
 
+/**
+ * Ensures a directory exists, creating it recursively if necessary.
+ */
 export async function ensureDir(dirPath: string): Promise<void> {
-  await fs.ensureDir(dirPath);
+    await fs.ensureDir(dirPath);
 }
 
-export function generatePlanId(threadId: string, existingPlans: string[]): string {
-  const prefix = `${threadId}-plan-`;
-  const numbers = existingPlans
-    .map(p => p.match(/-plan-(\d+)\.md$/)?.[1])
-    .filter(Boolean)
-    .map(Number);
-  const next = numbers.length ? Math.max(...numbers) + 1 : 1;
-  return `${prefix}${String(next).padStart(3, '0')}`;
+/**
+ * Generates the next available plan ID for a thread.
+ */
+export function generatePlanId(threadId: string, existingPlanIds: string[]): string {
+    const prefix = `${threadId}-plan-`;
+    const numbers = existingPlanIds
+        .map(p => p.match(/-plan-(\d+)\.md$/)?.[1])
+        .filter(Boolean)
+        .map(Number);
+    const next = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
+    return `${prefix}${String(next).padStart(3, '0')}`;
 }
 ```
 
+**Edge Cases Handled:**
+
+| Scenario | Behavior |
+|----------|----------|
+| User is in a deep subdirectory of a multi‑loom project | Global registry returns the loom root. ✅ |
+| User is in a deep subdirectory of a mono‑loom project | Walks up and finds `.loom/`. ✅ |
+| Global registry exists but active loom path is broken | Falls back to walking up from cwd. ✅ |
+| No loom can be located | Throws a helpful error with remediation steps. ✅ |
+| User has both a global registry and a local `.loom/` | Global registry takes precedence. ✅ |
+
 ---
 
-## Step 2 — Implement `loadDoc` (Markdown + frontmatter)
+## Step 2 — Implement `loadDoc` (Markdown + frontmatter + validation)
 
 **File:** `packages/fs/src/load.ts`
 
-Use `gray-matter` to parse frontmatter and content.
+Use `gray-matter` to parse frontmatter and content. Includes custom error classes and required field validation.
 
 ```typescript
 import matter from 'gray-matter';
 import * as fs from 'fs-extra';
 import { Document } from '../../core/src/types';
 
+export class FrontmatterParseError extends Error {
+  constructor(
+    public filePath: string,
+    public rawFrontmatter: string,
+    message: string
+  ) {
+    super(`Invalid frontmatter in ${filePath}: ${message}`);
+    this.name = 'FrontmatterParseError';
+  }
+}
+
 export async function loadDoc(filePath: string): Promise<Document> {
   const content = await fs.readFile(filePath, 'utf8');
-  const parsed = matter(content);
   
+  let parsed;
+  try {
+    parsed = matter(content);
+  } catch (e) {
+    throw new FrontmatterParseError(filePath, '', `YAML syntax error: ${e.message}`);
+  }
+
+  // Validate required fields
+  const requiredFields = ['type', 'id', 'status', 'created', 'version'];
+  for (const field of requiredFields) {
+    if (!parsed.data[field]) {
+      throw new FrontmatterParseError(
+        filePath,
+        JSON.stringify(parsed.data),
+        `Missing required field: ${field}`
+      );
+    }
+  }
+
   const doc = {
     ...parsed.data,
     content: parsed.content,
@@ -124,37 +233,78 @@ export async function loadDoc(filePath: string): Promise<Document> {
 
 function parseStepsTable(content: string): any[] {
   // Parse the markdown table in the Steps section
-  // Return array of { order, description, done, files_touched }
+  // Return array of { order, description, done, files_touched, blockedBy }
   // (Implementation to be filled)
   return [];
 }
 ```
 
+**Test Note:** Run `npm install gray-matter` in `packages/fs`. After implementing, `npm run build` should compile without errors.
+
 ---
 
-## Step 3 — Implement `saveDoc` (Markdown writer)
+## Step 3 — Implement `saveDoc` (Atomic Markdown Writer)
 
 **File:** `packages/fs/src/save.ts`
 
-Serialize document back to Markdown, preserving readability.
+Serialize document back to Markdown using atomic write (temp file + rename) to prevent data corruption.
 
 ```typescript
 import matter from 'gray-matter';
 import * as fs from 'fs-extra';
+import * as path from 'path';
+import * as os from 'os';
 import { Document } from '../../core/src/types';
+
+export class FileWriteError extends Error {
+  constructor(public filePath: string, originalError: Error) {
+    super(`Failed to write ${filePath}: ${originalError.message}`);
+    this.name = 'FileWriteError';
+  }
+}
+
+export class FilePermissionError extends Error {
+  constructor(public filePath: string) {
+    super(`Permission denied writing to ${filePath}`);
+    this.name = 'FilePermissionError';
+  }
+}
 
 export async function saveDoc(doc: Document, filePath: string): Promise<void> {
   const { content, _path, ...frontmatter } = doc as any;
-  
-  // For plan documents, regenerate steps table
+
+  // Generate markdown content
   let bodyContent = content;
   if (doc.type === 'plan' && doc.steps) {
     bodyContent = generateStepsTable(doc.steps, content);
   }
 
   const output = matter.stringify(bodyContent, frontmatter);
+
+  // Ensure parent directory exists
   await fs.ensureDir(path.dirname(filePath));
-  await fs.writeFile(filePath, output);
+
+  // Atomic write: write to temp file, then rename
+  const tempPath = path.join(
+    os.tmpdir(),
+    `loom-${Date.now()}-${path.basename(filePath)}.tmp`
+  );
+
+  try {
+    await fs.writeFile(tempPath, output, { mode: 0o644 });
+    await fs.rename(tempPath, filePath);
+  } catch (e) {
+    // Clean up temp file if it exists
+    await fs.remove(tempPath).catch(() => {});
+    
+    if (e.code === 'EACCES' || e.code === 'EPERM') {
+      throw new FilePermissionError(filePath);
+    }
+    if (e.code === 'ENOSPC') {
+      throw new FileWriteError(filePath, new Error('Disk full'));
+    }
+    throw new FileWriteError(filePath, e);
+  }
 }
 
 function generateStepsTable(steps: any[], originalContent: string): string {
@@ -163,6 +313,8 @@ function generateStepsTable(steps: any[], originalContent: string): string {
   return originalContent;
 }
 ```
+
+**Atomic Write Guarantee:** The original file is never left in a partially written state. If the rename fails, the original remains untouched. If the temp write fails, no changes occur.
 
 ---
 
@@ -188,11 +340,19 @@ export async function loadThread(threadId: string): Promise<Thread> {
   const files = await findMarkdownFiles(threadPath);
   
   for (const file of files) {
-    const doc = await loadDoc(file);
-    docs.push(doc);
+    try {
+      const doc = await loadDoc(file);
+      docs.push(doc);
+    } catch (e) {
+      if (e instanceof FrontmatterParseError) {
+        console.warn(`Skipping ${file}: ${e.message}`);
+      } else {
+        throw e;
+      }
+    }
   }
 
-  const design = docs.find(d => d.type === 'design' && d.role === 'primary') as any;
+  const design = docs.find(d => d.type === 'design' && (d as any).role === 'primary') as any;
   if (!design) {
     throw new Error(`No primary design found for thread '${threadId}'`);
   }
@@ -275,7 +435,7 @@ function determinePathForDoc(doc: any, threadId: string): string {
 
 ---
 
-## Step 6 — Integrate with Core Engine
+## Step 6 — Integrate with Core Engine (`runEvent`)
 
 **File:** `packages/fs/src/runEvent.ts`
 
@@ -309,6 +469,7 @@ Write a test script that:
 - Loads the example thread
 - Applies an event (e.g., `ACTIVATE_DESIGN`)
 - Verifies the file was updated correctly
+- Simulates a disk full error and confirms atomic write prevents corruption
 
 ---
 
