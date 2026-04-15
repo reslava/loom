@@ -12,6 +12,7 @@ import { startPlanCommand } from './commands/startPlan';
 import { completeStepCommand } from './commands/completeStep';
 import { summariseCommand } from './commands/summarise';
 import { weaveIdeaCommand } from './commands/weave';
+import { finalizeCommand } from './commands/finalize';
 
 const program = new Command();
 
@@ -87,9 +88,18 @@ program
   .action(summariseCommand);
   
 program
-    .command('weave idea <title>')
+    .command('weave')
+    .description('Weave a new document')
+    .command('idea <title>')
     .description('Create a new idea document')
     .option('--thread <name>', 'Place the idea in a specific thread folder')
-    .action(weaveIdeaCommand);  
+    .action((title, options) => {
+        weaveIdeaCommand(title, options);
+    });
+
+program
+    .command('finalize <temp-id>')
+    .description('Finalize a draft document and generate its permanent ID')
+    .action(finalizeCommand);    
 
 program.parse(process.argv);

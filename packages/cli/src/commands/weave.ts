@@ -5,21 +5,18 @@ import { getActiveLoomRoot } from '../../../fs/dist/utils';
 import { generateTempId, toKebabCaseId } from '../../../core/dist/idUtils';
 import { createBaseFrontmatter, serializeFrontmatter } from '../../../core/dist/frontmatterUtils';
 
-export async function weaveIdeaCommand(title: string, options: { thread?: string }): Promise<void> {
+export async function weaveIdeaCommand(ideaTitle: string, options: { thread?: string }): Promise<void> {
     const loomRoot = getActiveLoomRoot();
     const threadsDir = path.join(loomRoot, 'threads');
-    const threadName = options.thread || toKebabCaseId(title);
+    const threadName = options.thread || toKebabCaseId(ideaTitle);
     const threadPath = path.join(threadsDir, threadName);
 
     await fs.ensureDir(threadPath);
 
-    // Generate temporary ID for the draft idea
     const tempId = generateTempId('idea');
+    const frontmatter = createBaseFrontmatter('idea', tempId, ideaTitle);
 
-    // Create frontmatter using the centralized utility
-    const frontmatter = createBaseFrontmatter('idea', tempId, title);
-
-    const content = `# ${title}
+    const content = `# ${ideaTitle}
 
 ## Problem
 <!-- What pain or gap does this idea address? -->
@@ -37,7 +34,6 @@ export async function weaveIdeaCommand(title: string, options: { thread?: string
 <!-- design | spike | discard -->
 `;
 
-    // Serialize using the canonical serializer
     const frontmatterYaml = serializeFrontmatter(frontmatter);
     const output = `${frontmatterYaml}\n${content}`;
     const filePath = path.join(threadPath, `${tempId}.md`);

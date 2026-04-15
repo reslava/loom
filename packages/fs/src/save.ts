@@ -63,7 +63,7 @@ export async function saveDoc(doc: Document, filePath: string): Promise<void> {
     path.dirname(filePath),
     `.loom-tmp-${Date.now()}-${path.basename(filePath)}.tmp`
   );
-  console.log('[DEBUG] Serialized frontmatter:\n', frontmatterStr);
+  
   try {
     await fs.writeFile(tempPath, output, { mode: 0o644 });
     try {
