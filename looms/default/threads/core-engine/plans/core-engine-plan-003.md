@@ -37,7 +37,7 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` |
+| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` |
 | 🔳 | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` |
 | 🔳 | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` |
 | 🔳 | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` |

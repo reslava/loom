@@ -5,6 +5,8 @@ import { setupCommand } from './commands/setup';
 import { switchCommand } from './commands/switch';
 import { listCommand } from './commands/list';
 import { currentCommand } from './commands/current';
+import { statusCommand } from './commands/status';
+import { validateCommand } from './commands/validate';
 
 const program = new Command();
 
@@ -40,5 +42,21 @@ program
   .command('current')
   .description('Show the currently active loom')
   .action(currentCommand);
+
+program
+  .command('status [thread-id]')
+  .description('Show derived state of threads')
+  .option('--verbose', 'Show detailed status including plan steps')
+  .option('--json', 'Output as JSON')
+  .option('--tokens', 'Show token usage (placeholder)')
+  .action(statusCommand);  
+
+program
+  .command('validate [thread-id]')
+  .description('Validate document integrity')
+  .option('--all', 'Validate all threads')
+  .option('--fix', 'Attempt to fix issues (not yet implemented)')
+  .option('--verbose', 'Show detailed issues for all threads')
+  .action(validateCommand);  
 
 program.parse(process.argv);

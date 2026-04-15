@@ -11,6 +11,7 @@ child_ids: []
 requires_load: []
 target_release: "1.0.0"
 actual_release: null
+role: primary
 ---
 
 # {Title}
