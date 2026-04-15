@@ -62,4 +62,4 @@ docs/internal/
 
 # --- Claude ---
 CLAUDE.md
-.claude/
+.claude/*.tsbuildinfo
