@@ -13,6 +13,7 @@ import { completeStepCommand } from './commands/completeStep';
 import { summariseCommand } from './commands/summarise';
 import { weaveIdeaCommand } from './commands/weave';
 import { finalizeCommand } from './commands/finalize';
+import { renameCommand } from './commands/rename';
 
 const program = new Command();
 
@@ -101,5 +102,10 @@ program
     .command('finalize <temp-id>')
     .description('Finalize a draft document and generate its permanent ID')
     .action(finalizeCommand);    
+
+program
+    .command('rename <old-id> <new-title>')
+    .description('Rename a finalized document and update all references')
+    .action(renameCommand);    
 
 program.parse(process.argv);

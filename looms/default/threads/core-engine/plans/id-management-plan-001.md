@@ -34,10 +34,10 @@ Implement automatic ID generation, temporary draft IDs, and the `loom rename` co
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
 | ✅ | 1 | Create ID utilities (kebab-case, uniqueness check) | `packages/core/src/idUtils.ts` | — |
-| 🔳 | 2 | Update `loom weave` to create temporary IDs | `packages/cli/src/commands/weave.ts` | Step 1 |
-| 🔳 | 3 | Implement `loom finalize` command | `packages/cli/src/commands/finalize.ts` | Steps 1, 2 |
-| 🔳 | 4 | Implement `loom rename` command with reference updating | `packages/cli/src/commands/rename.ts` | Step 1 |
-| 🔳 | 5 | Add file watcher diagnostics for ID mismatches | `packages/vscode/src/diagnostics.ts` (deferred) | — |
+| ✅ | 2 | Update `loom weave` to create temporary IDs | `packages/cli/src/commands/weave.ts` | Step 1 |
+| ✅ | 3 | Implement `loom finalize` command | `packages/cli/src/commands/finalize.ts` | Steps 1, 2 |
+| ✅ | 4 | Implement `loom rename` command with reference updating | `packages/cli/src/commands/rename.ts` | Step 1 |
+| ⏳ | 5 | Add file watcher diagnostics for ID mismatches (deferred to VS Code extension) | `packages/vscode/src/diagnostics.ts` (deferred) | — |
 | 🔳 | 6 | Enhance `loom repair` to fix ID issues | `packages/cli/src/commands/repair.ts` | Step 1 |
 | 🔳 | 7 | Test with sample documents | `tests/id-management.test.ts` | All |
 
