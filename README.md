@@ -1,10 +1,10 @@
-# 🧵 REslava Loom
+# 🧵 Loom
 
 **Weave ideas into features with AI.**
 
 **Document-driven. Event-sourced. Git-native. AI-agnostic.**
 
-Stop losing context when working with AI. REslava Loom turns your Markdown files into a structured, versionable workflow engine that weaves human intent with AI execution.
+Stop losing context when working with AI. Loom turns your Markdown files into a structured, versionable workflow engine that weaves human intent with AI execution.
 
 > ⚠️ **Early Development** — This project is in active design and initial implementation. The core engine is being built. See [Roadmap](#current-status--roadmap) for current status.
 
@@ -83,8 +83,8 @@ The project is in **Phase 1: Core Engine Implementation**.
 ### Development Setup
 
 ```bash
-git clone https://github.com/reslava/reslava-loom.git
-cd reslava-loom
+git clone https://github.com/reslava/loom.git
+cd loom
 npm install
 npm run build
 ```
