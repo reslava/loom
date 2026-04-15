@@ -2,7 +2,7 @@
 type: plan
 id: core-engine-plan-003
 title: "CLI Interface — The `loom` Command"
-status: draft
+status: done
 created: 2026-04-10
 updated: 2026-04-14
 version: 2
@@ -45,7 +45,7 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 | ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` |
 | ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` |
 | ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` |
-| 🔳 | 9 | Test CLI with real looms | `looms/test/` |
+| ✅ | 9 | Test CLI with real looms | `looms/test/` |
 
 ---
 

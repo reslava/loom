@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import yaml from 'js-yaml';
 import { Document } from '../../core/dist/types';
+import { serializeFrontmatter } from './serializeFrontmatter';
 
 export class FileWriteError extends Error {
   constructor(public filePath: string, originalError: Error) {
@@ -53,21 +53,9 @@ export async function saveDoc(doc: Document, filePath: string): Promise<void> {
     bodyContent = generateStepsTable(steps, content);
   }
 
-  // Use js-yaml directly for precise control over array formatting
-  const frontmatterStr = yaml.dump(frontmatter, {
-    flowLevel: 1,
-    lineWidth: -1,
-    noRefs: true,
-    replacer: (key: any, value: any) => {
-      if (Array.isArray(value)) {
-        // Force this array to be dumped in flow style
-        return { value, flowLevel: 1 };
-      }
-      return value;
-    },
-  } as any);
-  
-  const output = `---\n${frontmatterStr}---\n\n${bodyContent}`;
+  // Use our own canonical serializer
+  const frontmatterStr = serializeFrontmatter(frontmatter);
+  const output = `${frontmatterStr}\n${bodyContent}`;
 
   await fs.ensureDir(path.dirname(filePath));
 
@@ -75,7 +63,7 @@ export async function saveDoc(doc: Document, filePath: string): Promise<void> {
     path.dirname(filePath),
     `.loom-tmp-${Date.now()}-${path.basename(filePath)}.tmp`
   );
-
+  console.log('[DEBUG] Serialized frontmatter:\n', frontmatterStr);
   try {
     await fs.writeFile(tempPath, output, { mode: 0o644 });
     try {

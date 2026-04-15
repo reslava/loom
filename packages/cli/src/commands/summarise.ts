@@ -1,9 +1,10 @@
 import chalk from 'chalk';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import matter from 'gray-matter';
 import { loadThread } from '../../../fs/dist/loadThread';
 import { getActiveLoomRoot } from '../../../fs/dist/utils';
-import matter from 'gray-matter';
+import { serializeFrontmatter } from '../../../fs/dist/serializeFrontmatter';
 
 /**
  * Extracts the content of a section by its heading.
@@ -112,7 +113,8 @@ ${thread.plans.map(p => `- ${p.id} (status: ${p.status}, progress: ${p.steps?.fi
 *Generated: ${now}*
 `;
 
-    const output = matter.stringify(summaryBody, summaryFrontmatter);
+    const frontmatterStr = serializeFrontmatter(summaryFrontmatter);
+    const output = `${frontmatterStr}\n${summaryBody}`;
     await fs.writeFile(ctxPath, output);
 
     console.log(chalk.green(`🧵 Context summary generated at ${ctxPath}`));
