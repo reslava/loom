@@ -1,6 +1,6 @@
 import { Thread, WorkflowEvent, DesignDoc, PlanDoc } from './types';
-import { designReducer } from './designReducer';
-import { planReducer } from './planReducer';
+import { designReducer } from './reducers/designReducer';
+import { planReducer } from './reducers/planReducer';
 
 /**
  * Applies a workflow event to a thread, updating documents and handling cross-document effects.
