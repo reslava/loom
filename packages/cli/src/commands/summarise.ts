@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { summarise } from '../../../app/dist/summarise';
-import { loadThread } from '../../../fs/dist/loadThread';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
+import { loadThread, getActiveLoomRoot } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export async function summariseCommand(threadId: string, options: { force?: boolean }): Promise<void> {

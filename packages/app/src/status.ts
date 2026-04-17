@@ -1,6 +1,4 @@
-import { getActiveLoomRoot } from '../../fs/dist/utils';
-import { loadThread } from '../../fs/dist/loadThread';
-import { buildLinkIndex } from '../../fs/dist/buildLinkIndex';
+import { getActiveLoomRoot, loadThread, buildLinkIndex } from '../../fs/dist';
 import { getThreadStatus, getThreadPhase } from '../../core/dist/derived';
 import { LinkIndex } from '../../core/dist/linkIndex';
 import { PlanDoc } from '../../core/dist/entities/plan';

@@ -1,5 +1,4 @@
-import { loadThread } from '../../fs/dist/loadThread';
-import { saveThread } from '../../fs/dist/saveThread';
+import { loadThread, saveThread } from '../../fs/dist';
 import { applyEvent } from '../../core/dist/applyEvent';
 import { WorkflowEvent } from '../../core/dist/types';
 import { Thread } from '../../core/dist/types';

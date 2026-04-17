@@ -1,5 +1,5 @@
-import { loadThread } from '../../fs/dist/loadThread';
-import { getActiveLoomRoot } from '../../fs/dist/utils';
+import { loadThread } from '../../fs/dist';
+import { getActiveLoomRoot } from '../../fs/dist';
 import { serializeFrontmatter } from '../../core/dist/frontmatterUtils';
 import * as fs from 'fs-extra';
 import * as path from 'path';

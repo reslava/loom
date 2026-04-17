@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { runEvent } from '../../../app/dist/runEvent';
-import { loadThread as loadThreadFs } from '../../../fs/dist/loadThread';
-import { saveThread } from '../../../fs/dist/saveThread';
+import { loadThread as loadThreadFs, saveThread } from '../../../fs/dist';
 
 // Helper to bind dependencies for runEvent
 const runEventWithDeps = (threadId: string, event: any) => 

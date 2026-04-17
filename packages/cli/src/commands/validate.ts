@@ -1,8 +1,6 @@
 import chalk from 'chalk';
 import { validate } from '../../../app/dist/validate';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
-import { buildLinkIndex } from '../../../fs/dist/buildLinkIndex';
-import { loadDoc } from '../../../fs/dist/load';
+import { getActiveLoomRoot, buildLinkIndex, loadDoc } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 interface ValidateOptions {

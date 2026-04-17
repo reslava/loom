@@ -1,8 +1,7 @@
 import chalk from 'chalk';
 import { completeStep } from '../../../app/dist/completeStep';
-import { loadThread } from '../../../fs/dist/loadThread';
+import { loadThread, saveThread } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
-import { saveThread } from '../../../fs/dist/saveThread';
 
 // Bind dependencies for runEvent
 const runEventBound = (threadId: string, event: any) =>

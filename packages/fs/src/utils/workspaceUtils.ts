@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as yaml from 'yaml';
-import { ConfigRegistry } from '../../core/dist/registry';
+import { ConfigRegistry } from '../../../core/dist/registry';
 
 export interface LoomEntry {
     name: string;

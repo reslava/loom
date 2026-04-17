@@ -1,4 +1,4 @@
-import { getActiveLoomRoot } from '../../fs/dist/utils';
+import { getActiveLoomRoot } from '../../fs/dist';
 import { generateTempId, toKebabCaseId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter, serializeFrontmatter } from '../../core/dist/frontmatterUtils';
 import * as fs from 'fs-extra';

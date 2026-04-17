@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { weaveIdea } from '../../../app/dist/weave';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
+import { getActiveLoomRoot } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export async function weaveIdeaCommand(title: string, options: { thread?: string }): Promise<void> {

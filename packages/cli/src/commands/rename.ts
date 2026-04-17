@@ -1,9 +1,6 @@
 import chalk from 'chalk';
 import { rename } from '../../../app/dist/rename';
-import { loadDoc } from '../../../fs/dist/load';
-import { saveDoc } from '../../../fs/dist/save';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
-import { findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../../fs/dist/pathUtils';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export async function renameCommand(oldId: string, newTitle: string): Promise<void> {

@@ -1,4 +1,4 @@
-import { loadThread } from '../../fs/dist/loadThread';
+import { loadThread } from '../../fs/dist';
 import { PlanDoc } from '../../core/dist/entities/plan';
 import { WorkflowEvent } from '../../core/dist/types';
 import { Thread } from '../../core/dist/types';

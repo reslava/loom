@@ -1,9 +1,6 @@
-import { loadDoc } from '../../fs/dist/load';
-import { saveDoc } from '../../fs/dist/save';
-import { getActiveLoomRoot } from '../../fs/dist/utils';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../fs/dist';
 import { generatePermanentId } from '../../core/dist/idUtils';
 import { Document, PlanDoc } from '../../core/dist/types';
-import { findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../fs/dist/pathUtils';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 

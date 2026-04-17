@@ -1,8 +1,6 @@
 import chalk from 'chalk';
 import { status } from '../../../app/dist/status';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
-import { loadThread } from '../../../fs/dist/loadThread';
-import { buildLinkIndex } from '../../../fs/dist/buildLinkIndex';
+import { getActiveLoomRoot, loadThread, buildLinkIndex } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 function colorStatus(status: string): string {

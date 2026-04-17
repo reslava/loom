@@ -1,9 +1,6 @@
 import chalk from 'chalk';
 import { finalize } from '../../../app/dist/finalize';
-import { loadDoc } from '../../../fs/dist/load';
-import { saveDoc } from '../../../fs/dist/save';
-import { getActiveLoomRoot } from '../../../fs/dist/utils';
-import { findDocumentById, gatherAllDocumentIds } from '../../../fs/dist/pathUtils';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export async function finalizeCommand(tempId: string): Promise<void> {

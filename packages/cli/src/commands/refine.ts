@@ -1,7 +1,6 @@
 import chalk from 'chalk';
 import { runEvent } from '../../../app/dist/runEvent';
-import { loadThread } from '../../../fs/dist/loadThread';
-import { saveThread } from '../../../fs/dist/saveThread';
+import { loadThread, saveThread } from '../../../fs/dist';
 
 export async function refineCommand(threadId: string): Promise<void> {
     try {
