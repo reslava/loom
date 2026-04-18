@@ -9,6 +9,7 @@ tags: [linking, index, validation, performance]
 parent_id: core-engine-design
 child_ids: [link-index-plan-001]
 requires_load: [core-engine-design]
+role: supporting
 target_release: "0.2.0"
 actual_release: null
 ---

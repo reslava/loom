@@ -1,13 +1,13 @@
 ---
 type: idea
-id: core-engine-idea
+id: workflow-idea
 title: "Document-Driven AI Workflow System (Refined Vision)"
 status: draft
 created: 2026-04-11
 version: 2.0.0
 tags: [workflow, ai, architecture, markdown, vscode, meta-tool]
 parent_id: workflow-idea
-child_ids: [workflow-design-v2, workflow-feature-model-design, workflow-run-command-design]
+child_ids: [workflow-design-v2, workflow-feature-model, workflow-run-command-design]
 requires_load: [workflow-design-v2]
 ---
 
