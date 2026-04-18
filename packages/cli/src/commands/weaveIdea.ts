@@ -1,13 +1,13 @@
 import chalk from 'chalk';
 import { weaveIdea } from '../../../app/dist';
-import { getActiveLoomRoot } from '../../../fs/dist';
+import { getActiveLoomRoot, saveDoc } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export async function weaveIdeaCommand(title: string, options: { thread?: string }): Promise<void> {
     try {
         const result = await weaveIdea(
             { title, thread: options.thread },
-            { getActiveLoomRoot, fs }
+            { getActiveLoomRoot, saveDoc, fs }
         );
         console.log(chalk.green(`🧵 Idea woven at ${result.filePath}`));
         console.log(chalk.gray(`   Temporary ID: ${result.tempId}`));

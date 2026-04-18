@@ -13,7 +13,7 @@ import { completeStepCommand } from './commands/completeStep';
 import { summariseCommand } from './commands/summarise';
 import { finalizeCommand } from './commands/finalize';
 import { renameCommand } from './commands/rename';
-import { weaveIdeaCommand } from './commands/weave';
+import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
 
