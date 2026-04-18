@@ -42,7 +42,7 @@ That said, there are a handful of real bugs, several architectural inconsistenci
 
 ### 2. Confirmed Bugs [ALL FIXED ✅]
 
-#### 2.1 `ConfigRegistry.removeLoom` — Index Off-by-One After Splice
+#### ✅ 2.1 `ConfigRegistry.removeLoom` — Index Off-by-One After Splice
 
 **File:** `packages/core/src/registry.ts`
 
@@ -66,7 +66,7 @@ if (this.registry.active_loom === removedLoom?.path) {
 }
 ```
 
-#### 2.2 `weaveDesign.ts` — Raw Regex Frontmatter Parsing
+#### ✅ 2.2 `weaveDesign.ts` — Raw Regex Frontmatter Parsing
 
 **File:** `packages/app/src/weaveDesign.ts`
 
@@ -81,7 +81,7 @@ This bypasses the canonical YAML frontmatter parser (`gray-matter`), skips valid
 
 **Fix:** Use `loadDoc` + `saveDoc` for idea auto-finalization, the same way `finalize.ts` does it.
 
-#### 2.3 `app/src/validate.ts` — Validation Utilities Not Used
+#### ✅ 2.3 `app/src/validate.ts` — Validation Utilities Not Used
 
 `validation-utils-plan-001` was marked `✅ done`, but `packages/app/src/validate.ts` re-implements the same helpers inline:
 
@@ -97,7 +97,7 @@ These are identical to (or minor variants of) the functions in `packages/core/sr
 
 **Fix:** Import from `core/dist/validation` in `app/src/validate.ts` and delete the local copies.
 
-#### 2.4 `entities/thread.ts` — Import at End of File (Structural Issue)
+#### ✅ 2.4 `entities/thread.ts` — Import at End of File (Structural Issue)
 
 **File:** `packages/core/src/entities/thread.ts`
 
@@ -133,7 +133,10 @@ The current `workspaceUtils.ts` implementation prioritizes mono-loom (cwd walk-u
 
 This decision needs to be made explicit — it is currently an implicit behavior that will surprise VS Code extension users who switch looms and then open a project folder.
 
-#### 3.3 `weavePlan` Has Two Implementations
+#### ✅3.3 `weavePlan` Has Two Implementations
+
+##### Rafa:
+- `app-use-cases-completion-plan.md` has the old way, code is correct
 
 There are two `weavePlan` functions:
 - `packages/app/src/weavePlan.ts` — uses `saveDoc` from fs
@@ -234,14 +237,14 @@ The `vscode-extension-toolbar-design.md` describes a loom selector in the toolba
 
 | Priority | Action | Effort | Risk if Skipped |
 |----------|--------|--------|-----------------|
-| 1 | Fix `ConfigRegistry.removeLoom` bug | 5 min | Low (unused in current flows) |
+| 1 ✅| Fix `ConfigRegistry.removeLoom` bug | 5 min | Low (unused in current flows) |
 | 2 | Fix `weaveDesign` raw regex frontmatter parsing | 1h | Medium — will affect any idea with `:` in title |
 | 3 | Remove `'chat'` from `DocumentType` union (until implemented) | 10 min | Low-medium — type unsafety |
 | 4 | Fix `app/src/validate.ts` to use `core/validation.ts` functions | 30 min | Low (correctness only) |
 | 5 | Add `role: 'primary'` default in `weaveDesign` (already done) / enforce in `loadDoc` | 30 min | Medium — missing role = invisible thread in VS Code |
 | 6 | Execute `move-thread-to-entities-plan-001` | 1h | Low now, grows as VS Code adds consumers |
 | 7 | Execute `cli-delegate-directory-creation-plan-001` | 1h | Low |
-| 8 | Document the `getActiveLoomRoot` priority order explicitly | 15 min | Medium — will confuse multi-loom VS Code users |
+| 8 ✅| Document the `getActiveLoomRoot` priority order explicitly | 15 min | Medium — will confuse multi-loom VS Code users |
 
 Items 6, 7, 8 are already in the roadmap (`vscode-roadmap-reference.md`). Items 1–5 are bugs/gaps not yet tracked.
 
