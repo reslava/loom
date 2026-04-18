@@ -2,7 +2,7 @@
 type: plan
 id: loom-management-app-extraction-plan-001
 title: "Extract Loom Management Commands to Application Layer"
-status: draft
+status: done
 created: 2026-04-17
 version: 1
 tags: [app, cli, refactor, management]
@@ -38,7 +38,7 @@ Move all orchestration logic for loom workspace management commands (`init`, `se
 | ✅ | 4 | Extract `list` use‑case from CLI | `app/src/list.ts`, `cli/src/commands/list.ts` | — |
 | ✅ | 5 | Extract `current` use‑case from CLI | `app/src/current.ts`, `cli/src/commands/current.ts` | — |
 | ✅ | 6 | Update `app/src/index.ts` barrel exports | `app/src/index.ts` | Steps 1‑5 |
-| 🔳 | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
+| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
 
 ---
 

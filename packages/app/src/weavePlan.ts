@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { getActiveLoomRoot } from '../../fs/dist';
 import { loadThread } from '../../fs/dist';
+import { saveDoc } from '../../fs/dist';
 import { generatePlanId } from '../../fs/dist';
 import { createBaseFrontmatter, serializeFrontmatter } from '../../core/dist';
 import { generatePlanBody } from '../../core/dist';
@@ -16,9 +17,18 @@ export interface WeavePlanInput {
 export interface WeavePlanDeps {
     getActiveLoomRoot: typeof getActiveLoomRoot;
     loadThread: typeof loadThread;
+    saveDoc: typeof saveDoc;
     fs: typeof fs;
 }
 
+/**
+ * Creates a new plan document from a finalized design.
+ * If the design is not already 'done', it is automatically finalized.
+ *
+ * @param input - The thread ID and optional title/goal.
+ * @param deps - Filesystem and repository dependencies.
+ * @returns A promise resolving to the plan ID, file path, and auto‑finalize flag.
+ */
 export async function weavePlan(
     input: WeavePlanInput,
     deps: WeavePlanDeps
@@ -40,11 +50,8 @@ export async function weavePlan(
         // Determine the design file path
         const designPath = (design as any)._path || path.join(loomRoot, 'threads', input.threadId, `${design.id}.md`);
         
-        // Re-serialize and save the design
-        const designContent = design.content;
-        const frontmatterYaml = serializeFrontmatter(updatedDesign);
-        const output = `${frontmatterYaml}\n${designContent}`;
-        await deps.fs.writeFile(designPath, output);
+        // Use saveDoc to properly serialize (excludes _path, steps)
+        await deps.saveDoc(updatedDesign, designPath);
         
         design = updatedDesign;
         autoFinalizedDesign = true;
