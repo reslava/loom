@@ -2,7 +2,7 @@
 type: plan
 id: move-thread-to-entities-plan-001
 title: "Move Thread and Derived Types to entities/thread.ts"
-status: draft
+status: done
 created: 2026-04-18
 version: 1
 tags: [core, entities, refactor]
@@ -32,10 +32,10 @@ Complete domain restructuring by moving `Thread`, `ThreadStatus`, and `ThreadPha
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Create `entities/thread.ts` with `Thread`, `ThreadStatus`, `ThreadPhase` | `packages/core/src/entities/thread.ts` | — |
-| 🔳 | 2 | Update `types.ts` to re‑export from `entities/thread` | `packages/core/src/types.ts` | Step 1 |
-| 🔳 | 3 | Update all imports to use `entities/thread` directly (optional) | `packages/*/src/**/*.ts` | Step 1 |
-| 🔳 | 4 | Run full build and test suite | All packages | Step 3 |
+| ✅ | 1 | Create `entities/thread.ts` with `Thread`, `ThreadStatus`, `ThreadPhase` | `packages/core/src/entities/thread.ts` | — |
+| ✅ | 2 | Update `types.ts` to re‑export from `entities/thread` | `packages/core/src/types.ts` | Step 1 |
+| ✅ | 3 | Update all imports to use `entities/thread` directly (optional) | `packages/*/src/**/*.ts` | Step 1 |
+| ✅ | 4 | Run full build and test suite | All packages | Step 3 |
 
 ---
 

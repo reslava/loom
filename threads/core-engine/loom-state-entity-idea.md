@@ -2,7 +2,7 @@
 type: idea
 id: loom-state-entity-idea
 title: "LoomState — First‑Class State Entity"
-status: deferred
+status: active
 created: 2026-04-18
 version: 1
 tags: [state, architecture, caching, deferred]
