@@ -2,7 +2,7 @@
 type: plan
 id: loom-state-entity-plan-001
 title: "Implement LoomState Entity and getState Use‑Case"
-status: active
+status: done
 created: 2026-04-19
 version: 1
 tags: [state, core, app, cli, refactor]
@@ -32,11 +32,11 @@ Introduce a centralized `LoomState` entity that represents the complete derived 
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Create `entities/state.ts` with `LoomState` interface | `packages/core/src/entities/state.ts` | — |
-| 🔳 | 2 | Create `app/src/getState.ts` use‑case | `packages/app/src/getState.ts` | Step 1 |
-| 🔳 | 3 | Refactor CLI `status` command to use `getState` | `packages/cli/src/commands/status.ts` | Step 2 |
-| 🔳 | 4 | Update `app/src/index.ts` barrel export | `packages/app/src/index.ts` | Step 2 |
-| 🔳 | 5 | Run full test suite | All packages, `tests/*` | Step 3 |
+| ✅ | 1 | Create `entities/state.ts` with `LoomState` interface | `packages/core/src/entities/state.ts` | — |
+| ✅ | 2 | Create `app/src/getState.ts` use‑case | `packages/app/src/getState.ts` | Step 1 |
+| ✅ | 3 | Refactor CLI `status` command to use `getState` | `packages/cli/src/commands/status.ts` | Step 2 |
+| ✅ | 4 | Update `app/src/index.ts` barrel export | `packages/app/src/index.ts` | Step 2 |
+| ✅ | 5 | Run full test suite | All packages, `tests/*` | Step 3 |
 
 ---
 

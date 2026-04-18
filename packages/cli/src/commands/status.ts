@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getState } from '../../../app/dist/getState';
+import { getState, GetStateInput } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadThread, buildLinkIndex } from '../../../fs/dist';
 import { ConfigRegistry } from '../../../core/dist/registry';
 import * as fs from 'fs-extra';
@@ -8,6 +8,7 @@ import { getThreadStatus, getThreadPhase } from '../../../core/dist/derived';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import { buildLinkIndex as buildIndex } from '../../../fs/dist';
+import { ThreadStatus } from '../../../core/dist/entities/thread';
 
 function colorStatus(status: string): string {
     switch (status) {
@@ -95,13 +96,60 @@ function displayPlanDetails(plan: PlanDoc, index: LinkIndex): void {
     }
 }
 
+function parseFilterFlag(filterStr?: string): GetStateInput['threadFilter'] | undefined {
+    if (!filterStr) return undefined;
+    
+    const filter: GetStateInput['threadFilter'] = {};
+    const parts = filterStr.split(',');
+    
+    for (const part of parts) {
+        const [key, value] = part.split('=');
+        if (!key || !value) continue;
+        
+        switch (key.trim()) {
+            case 'status':
+                filter.status = value.split('|').map(s => s.trim()) as ThreadStatus[];
+                break;
+            case 'phase':
+                filter.phase = value.split('|').map(s => s.trim());
+                break;
+            case 'id':
+                filter.idPattern = value.trim();
+                break;
+        }
+    }
+    
+    return Object.keys(filter).length > 0 ? filter : undefined;
+}
+
+function parseSortFlag(sortStr?: string): GetStateInput['sortBy'] {
+    if (!sortStr) return undefined;
+    const sortBy = sortStr.split(':')[0].trim();
+    return sortBy === 'id' ? 'id' : undefined;
+}
+
+function parseSortOrder(sortStr?: string): GetStateInput['sortOrder'] {
+    if (!sortStr) return undefined;
+    const parts = sortStr.split(':');
+    return parts.length > 1 && parts[1].trim() === 'desc' ? 'desc' : 'asc';
+}
+
 export async function statusCommand(
     threadId?: string,
-    options?: { verbose?: boolean; json?: boolean; tokens?: boolean }
+    options?: { verbose?: boolean; json?: boolean; tokens?: boolean; filter?: string; sort?: string }
 ): Promise<void> {
     try {
         const registry = new ConfigRegistry();
-        const state = await getState({ getActiveLoomRoot, loadThread, buildLinkIndex, registry, fs });
+        
+        // Parse filter and sort options
+        const threadFilter = parseFilterFlag(options?.filter);
+        const sortBy = parseSortFlag(options?.sort);
+        const sortOrder = parseSortOrder(options?.sort);
+        
+        const state = await getState(
+            { getActiveLoomRoot, loadThread, buildLinkIndex, registry, fs },
+            { threadFilter, sortBy, sortOrder }
+        );
 
         if (options?.json) {
             console.log(JSON.stringify(state, null, 2));
@@ -143,10 +191,18 @@ export async function statusCommand(
             return;
         }
 
-        // List all threads
-        console.log(chalk.bold(`\n🧵 Loom: ${state.loomName} (${state.mode})\n`));
+        // List all threads (filtered and sorted)
+        console.log(chalk.bold(`\n🧵 Loom: ${state.loomName} (${state.mode})`));
+        if (options?.filter) {
+            console.log(chalk.gray(`   Filter: ${options.filter}`));
+        }
+        if (options?.sort) {
+            console.log(chalk.gray(`   Sort: ${options.sort}`));
+        }
+        console.log('');
+        
         if (state.threads.length === 0) {
-            console.log(chalk.yellow('No threads found.'));
+            console.log(chalk.yellow('No threads found matching the criteria.'));
             return;
         }
 

@@ -53,12 +53,14 @@ program
   .action(currentCommand);
 
 program
-  .command('status [thread-id]')
-  .description('Show derived state of threads')
-  .option('--verbose', 'Show detailed status including plan steps')
-  .option('--json', 'Output as JSON')
-  .option('--tokens', 'Show token usage (placeholder)')
-  .action(statusCommand);  
+    .command('status [thread-id]')
+    .description('Show derived state of threads')
+    .option('--verbose', 'Show detailed status including plan steps')
+    .option('--json', 'Output as JSON')
+    .option('--tokens', 'Show token usage (placeholder)')
+    .option('--filter <criteria>', 'Filter threads (e.g., status=active|implementing,phase=planning)')
+    .option('--sort <order>', 'Sort threads (e.g., id:asc, id:desc)')
+    .action(statusCommand);
 
 program
   .command('validate [thread-id]')
