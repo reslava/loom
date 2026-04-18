@@ -2,7 +2,7 @@
 type: plan
 id: app-use-cases-completion-plan
 title: "Complete Application Layer Use‑Cases and Thin CLI Wrappers"
-status: draft
+status: done
 created: 2026-04-17
 version: 1
 tags: [app, cli, refactor, use-cases]
@@ -36,9 +36,9 @@ Move all remaining orchestration logic out of the CLI layer into dedicated `app`
 | ✅ | 2 | Implement `weaveDesign` use‑case | `app/src/weaveDesign.ts` | Step 1 |
 | ✅ | 3 | Implement `weavePlan` use‑case | `app/src/weavePlan.ts` | Step 1 |
 | ✅ | 4 | Add `weave design` and `weave plan` CLI commands | `cli/src/commands/weaveDesign.ts`, `cli/src/commands/weavePlan.ts`, `cli/src/index.ts` | Steps 2, 3 |
-| 🔳 | 5 | Refactor remaining CLI commands to use `app` layer exclusively | `cli/src/commands/*.ts` | Step 1 |
-| 🔳 | 6 | Update `app/src/index.ts` barrel exports | `app/src/index.ts` | Steps 1‑4 |
-| 🔳 | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
+| ✅ | 5 | Refactor remaining CLI commands to use `app` layer exclusively | `cli/src/commands/*.ts` | Step 1 |
+| ✅ | 6 | Update `app/src/index.ts` barrel exports | `app/src/index.ts` | Steps 1‑4 |
+| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
 
 ---
 
