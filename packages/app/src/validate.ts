@@ -1,6 +1,7 @@
 import { getActiveLoomRoot } from '../../fs/dist';
 import { buildLinkIndex } from '../../fs/dist';
 import { loadDoc } from '../../fs/dist';
+import { findMarkdownFiles } from '../../fs/dist';
 import { LinkIndex } from '../../core/dist/linkIndex';
 import { Document } from '../../core/dist/entities/document';
 import { DesignDoc } from '../../core/dist/entities/design';
@@ -30,22 +31,6 @@ export interface ValidateDeps {
 export interface ValidationResult {
     id: string;
     issues: string[];
-}
-
-async function findMarkdownFiles(dir: string): Promise<string[]> {
-    const result: string[] = [];
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory() && entry.name !== '_archive') {
-            result.push(...await findMarkdownFiles(fullPath));
-        } else if (entry.isFile() && entry.name.endsWith('.md')) {
-            result.push(fullPath);
-        }
-    }
-    
-    return result;
 }
 
 async function validateThread(

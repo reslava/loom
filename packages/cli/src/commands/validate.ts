@@ -4,6 +4,7 @@ import * as path from 'path';
 import { getActiveLoomRoot } from '../../../fs/dist';
 import { buildLinkIndex } from '../../../fs/dist';
 import { loadDoc } from '../../../fs/dist';
+import { findMarkdownFiles } from '../../../fs/dist';
 import { Document, DesignDoc, PlanDoc } from '../../../core/dist';
 import {
     validateParentExists,
@@ -17,22 +18,6 @@ interface ValidateOptions {
     all?: boolean;
     fix?: boolean;
     verbose?: boolean;
-}
-
-async function findMarkdownFiles(dir: string): Promise<string[]> {
-    const result: string[] = [];
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory() && entry.name !== '_archive') {
-            result.push(...await findMarkdownFiles(fullPath));
-        } else if (entry.isFile() && entry.name.endsWith('.md')) {
-            result.push(fullPath);
-        }
-    }
-    
-    return result;
 }
 
 async function validateThreadWithIndex(
@@ -67,18 +52,15 @@ async function validateThreadWithIndex(
     }
 
     for (const doc of docs) {
-        // Validate parent_id
         if (doc.parent_id && !validateParentExists(doc, index)) {
             issues.push(`Broken parent_id: ${doc.id} → ${doc.parent_id}`);
         }
 
-        // Validate child_ids
         const dangling = getDanglingChildIds(doc, index);
         for (const childId of dangling) {
             issues.push(`Dangling child_id: ${doc.id} → ${childId}`);
         }
 
-        // Design-specific validation
         if (doc.type === 'design') {
             const roleIssue = validateDesignRole(doc as DesignDoc);
             if (roleIssue) {
@@ -86,11 +68,9 @@ async function validateThreadWithIndex(
             }
         }
 
-        // Plan-specific validation
         if (doc.type === 'plan') {
             const plan = doc as PlanDoc;
             
-            // Check design_version matches parent design
             if (plan.parent_id) {
                 const parentDesign = docs.find(d => d.id === plan.parent_id) as DesignDoc;
                 if (parentDesign && plan.design_version !== parentDesign.version) {
@@ -98,7 +78,6 @@ async function validateThreadWithIndex(
                 }
             }
 
-            // Validate step blockers
             const blockerIssues = validateStepBlockers(plan, index);
             issues.push(...blockerIssues.map(i => i.message));
         }
