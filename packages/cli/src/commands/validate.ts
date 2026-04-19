@@ -10,8 +10,7 @@ import {
     validateParentExists,
     getDanglingChildIds,
     validateDesignRole,
-    validateStepBlockers,
-    ValidationIssue
+    validateStepBlockers    
 } from '../../../core/dist/validation';
 
 interface ValidateOptions {
