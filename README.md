@@ -6,15 +6,16 @@
 
 Stop losing context when working with AI. Loom turns your Markdown files into a structured, versionable workflow engine that weaves human intent with AI execution.
 
-> ⚠️ **Early Development** — This project is in active design and initial implementation. The core engine is being built. See [Roadmap](#current-status--roadmap) for current status.
+> 🚀 **Stable CLI — v0.1.0 is here!**  
+> The core workflow engine is complete. A VS Code extension is in active development.
 
 ---
 
 ## Why This Exists
 
-AI-assisted development is stuck in the **Chat Era**. You prompt, the AI generates, you copy-paste, and context is lost. Threads drift. Plans go stale. There's no single source of truth.
+AI-assisted development is stuck in the **Chat Era**. You prompt, the AI generates, you copy-paste, and context is lost. Features drift. Plans go stale. There's no single source of truth.
 
-REslava Loom replaces ephemeral chat with **persistent documents** that act as both specification and conversation log:
+Loom replaces ephemeral chat with **persistent documents** that act as both specification and conversation log:
 
 - **Clear separation** between idea, design, planning, and execution.
 - **Automatic staleness detection** when designs change.
@@ -41,7 +42,7 @@ Thread: Payment System
 
 ---
 
-## Key Features (Planned / In Progress)
+## Key Features (CLI v0.1.0)
 
 | Feature | Description |
 |---------|-------------|
@@ -52,70 +53,95 @@ Thread: Payment System
 | 🧩 **Built-in Effects** | Automate linting, deployment, notifications with `run_command`, etc. |
 | 🖥️ **VS Code Native** | Tree view, file decorations, toolbar commands. Fits your existing workflow. |
 | 🔌 **AI Agnostic** | Works with DeepSeek, OpenAI, Anthropic, or local models (Ollama). |
-| 🧵 **Multi-Loom Support** | Manage multiple independent workspaces with `loom switch`. |
+| 🧵 **Mono & Multi‑Loom** | Work locally in a single project or manage multiple looms globally. |
+| 📊 **Rich Filtering & Sorting** | `loom status --filter status=active --sort id:asc` |
+| 🔗 **Blocker Resolution** | See exactly which steps are blocked and what's next. |
 
 ---
 
-## Current Status & Roadmap
+## Quick Start
 
-The project is in **Phase 1: Core Engine Implementation**.
-
-- [x] Comprehensive design documentation
-- [x] Document templates and workflow configuration schema
-- [x] AI integration protocol and handshake design
-- [x] Multi-loom workspace architecture and vocabulary alignment
-- [x] Core engine (reducers, derived state, event applier)
-- [x] Filesystem layer (Markdown load/save)
-- [x] CLI interface (`loom` command)
-- [ ] VS Code extension (tree view, commands)
-- [ ] Native AI client integration
-
----
-
-## Getting Started (For Contributors)
-
-### Prerequisites
-
-- Node.js 18+
-- VS Code
-- (Optional) DeepSeek or OpenAI API key for AI features
-
-### Development Setup
+### 1. Install
 
 ```bash
-git clone https://github.com/reslava/loom.git
-cd loom
-npm install
-npm run build
+npm install -g @reslava/loom
 ```
 
-To test the extension:
-- Press `F5` in VS Code to launch the Extension Development Host.
-- Open a workspace and run `Loom: Initialize`.
+### 2. Initialize a Workspace
 
----
-
-## Quick CLI Example
-
+**Mono‑loom (inside your project):**
 ```bash
-# Initialize your first loom
+cd my-project
 loom init
-
-# Weave a new idea
-loom weave idea "Add Dark Mode"
-
-# Start a chat session
-loom chat new --title "Auth strategy debate"
-
-# Refine a design using a chat
-loom refine-with-chat threads/auth/auth-design.md chats/security-chat.md
-
-# Check thread status
-loom status auth
-
-# Switch to a test loom
-loom switch test
 ```
+
+**Multi‑loom (global workspace):**
+```bash
+loom init-multi
+```
+
+### 3. Weave Your First Idea
+
+```bash
+loom weave idea "Add Dark Mode"
+```
+
+### 4. Check Status
+
+```bash
+loom status
+loom status --verbose
+loom status --json
+```
+
+### 5. Explore Commands
+
+```bash
+loom --help
+loom weave --help
+```
+
+---
+
+## Example Workflow
+
+```bash
+# Create an idea
+loom weave idea "User Authentication" --thread auth
+
+# Auto‑finalize and create a design
+loom weave design auth
+
+# Auto‑finalize design and create a plan
+loom weave plan auth
+
+# Start working on the plan
+loom start-plan auth-plan-001
+
+# Complete steps
+loom complete-step auth-plan-001 --step 1
+loom complete-step auth-plan-001 --step 2
+
+# See progress and next action
+loom status auth --verbose
+```
+
+---
+
+## Architecture
+
+Loom is built on a clean, layered architecture:
+
+```
+CLI / VS Code  →  app (use‑cases)  →  core (domain) + fs (infrastructure)
+```
+
+- **`core`**: Pure domain logic (entities, reducers, validation, filters).
+- **`app`**: Orchestration use‑cases with dependency injection.
+- **`fs`**: Infrastructure adapters (filesystem, serialization, indexing).
+- **`cli`**: Thin delivery layer (command parsing, console output).
+
+This separation makes Loom testable, maintainable, and ready for multiple frontends.
 
 ---
 
@@ -127,43 +153,9 @@ loom switch test
 | [**WORKFLOW_YML.md**](./docs/WORKFLOW_YML.md) | Custom workflow configuration reference. |
 | [**EFFECTS.md**](./docs/EFFECTS.md) | Catalog of built-in effects. |
 | [**AI_INTEGRATION.md**](./docs/AI_INTEGRATION.md) | AI handshake protocol and native client design. |
-| [**DOCUMENTATION_GUIDE.md**](./docs/DOCUMENTATION_GUIDE.md) | Writing conventions and structure. |
-| [**CONFIGURATION.md**](./docs/CONFIGURATION.md) | Complete reference for all VS Code settings. |
 | [**CLI Commands Reference**](./references/cli-commands-reference.md) | Every `loom` command documented. |
 | [**VS Code Commands Reference**](./references/vscode-commands-reference.md) | All `Loom:` commands and keybindings. |
 | [**Workspace Structure Reference**](./references/workspace-directory-structure-reference.md) | Directory layout and file naming conventions. |
-| [**Templates**](./.loom/templates/) | Base templates for `idea`, `design`, `plan`, `ctx`. |
-
----
-
-## Example: Custom Blog Post Workflow
-
-REslava Loom is not limited to software development. Here's a `workflow.yml` for a blog pipeline:
-
-```yaml
-name: "Blog Pipeline"
-documents:
-  - type: draft
-    file_pattern: "draft-*.md"
-    statuses: [writing, review, approved]
-    initial_status: writing
-  - type: published_post
-    file_pattern: "published/*.md"
-    statuses: [live, archived]
-    initial_status: live
-
-events:
-  - name: PUBLISH
-    applies_to: draft
-    from_status: approved
-    to_status: live
-    effects:
-      - run_command:
-          command: "bundle exec jekyll build"
-          cwd: "{{workspaceRoot}}"
-```
-
-When a draft is approved, the static site rebuilds automatically.
 
 ---
 
