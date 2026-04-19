@@ -101,7 +101,7 @@ export async function statusCommand(
             );
 
             if (activePlan && options?.verbose) {
-                const index = await buildIndex();
+                const index = state.index;  // <-- Use the index from state
                 const steps = activePlan.steps || [];
                 const doneCount = steps.filter(s => s.done).length;
 
@@ -142,7 +142,7 @@ export async function statusCommand(
             }
 
             if (activePlan && !options?.verbose) {
-                const index = await buildIndex();
+                const index = state.index;  // <-- Use the index from state
                 const nextStep = findNextStep(activePlan as PlanDoc, index);
                 if (nextStep) {
                     console.log(chalk.gray(`\n   💡 Next step: Step ${nextStep.order} — ${nextStep.description}`));

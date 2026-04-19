@@ -32,23 +32,14 @@ export interface GetStateDeps {
     fs: typeof fs;
 }
 
-/**
- * Retrieves the complete derived state of the active loom, with optional filtering and sorting.
- *
- * @param deps - Filesystem, thread loading, and registry dependencies.
- * @param input - Optional filtering and sorting parameters.
- * @returns A promise resolving to the full LoomState.
- */
 export async function getState(deps: GetStateDeps, input?: GetStateInput): Promise<LoomState> {
     const loomRoot = deps.getActiveLoomRoot();
     const registry = deps.registry;
     
-    // Determine mode and loom name
     const isMono = registry.isMonoLoom();
     const mode: LoomMode = isMono ? 'mono' : 'multi';
     const loomName = isMono ? '(local)' : (registry.getActiveLoomName() || 'unknown');
     
-    // Load all threads
     const threadsDir = path.join(loomRoot, 'threads');
     const allThreads: Thread[] = [];
     
@@ -62,13 +53,12 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
                     const thread = await deps.loadThread(entry);
                     allThreads.push(thread);
                 } catch (e) {
-                    // Skip invalid threads; they will be reported by validate
+                    // Skip invalid threads
                 }
             }
         }
     }
     
-    // Apply filters if provided
     let filteredThreads = allThreads;
     if (input?.threadFilter) {
         const { status, phase, idPattern } = input.threadFilter;
@@ -83,16 +73,13 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         }
     }
     
-    // Apply sorting if requested
     if (input?.sortBy === 'id') {
         filteredThreads = sortThreadsById(filteredThreads, input.sortOrder !== 'desc');
     }
-    // Note: sorting by 'created' requires storing thread creation date; not yet implemented.
     
-    // Build link index for statistics (based on filtered threads)
+    // Build link index once
     const index = await deps.buildLinkIndex();
     
-    // Calculate summary statistics based on the filtered thread set
     const totalThreads = filteredThreads.length;
     const activeThreads = filteredThreads.filter(t => getThreadStatus(t) === 'ACTIVE').length;
     const implementingThreads = filteredThreads.filter(t => getThreadStatus(t) === 'IMPLEMENTING').length;
@@ -118,6 +105,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         mode,
         loomName,
         threads: filteredThreads,
+        index,
         generatedAt: new Date().toISOString(),
         summary: {
             totalThreads,

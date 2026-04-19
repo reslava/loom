@@ -1,4 +1,5 @@
 import { Thread } from './thread';
+import { LinkIndex } from '../linkIndex';
 
 export type LoomMode = 'mono' | 'multi';
 
@@ -14,6 +15,9 @@ export interface LoomState {
     
     /** All threads in the active loom. */
     threads: Thread[];
+    
+    /** The link index built during state generation. */
+    index: LinkIndex;
     
     /** Timestamp when this state was generated. */
     generatedAt: string;
