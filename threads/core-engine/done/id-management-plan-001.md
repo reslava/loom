@@ -2,7 +2,7 @@
 type: plan
 id: id-management-plan-001
 title: "Implement Automatic Document ID Management"
-status: draft
+status: done
 created: 2026-04-15
 version: 1
 design_version: 1

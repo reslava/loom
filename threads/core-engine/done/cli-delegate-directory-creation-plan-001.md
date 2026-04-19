@@ -2,7 +2,7 @@
 type: plan
 id: cli-delegate-directory-creation-plan-001
 title: "Delegate Directory Creation in CLI to Application Layer"
-status: draft
+status: done
 created: 2026-04-18
 version: 1
 tags: [cli, app, refactor]
@@ -32,11 +32,11 @@ Ensure **all** filesystem directory creation logic resides in the `app` layer, n
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Update `app/src/init.ts` to handle all directory creation | `app/src/init.ts` | — |
-| 🔳 | 2 | Update `app/src/setup.ts` to handle all directory creation | `app/src/setup.ts` | — |
-| 🔳 | 3 | Refactor `cli/src/commands/init.ts` to remove direct `fs` calls | `cli/src/commands/init.ts` | Step 1 |
-| 🔳 | 4 | Refactor `cli/src/commands/setup.ts` to remove direct `fs` calls | `cli/src/commands/setup.ts` | Step 2 |
-| 🔳 | 5 | Run full test suite | All packages | Steps 1‑4 |
+| ✅ | 1 | Update `app/src/init.ts` to handle all directory creation | `app/src/init.ts` | — |
+| ✅ | 2 | Update `app/src/setup.ts` to handle all directory creation | `app/src/setup.ts` | — |
+| ✅ | 3 | Refactor `cli/src/commands/init.ts` to remove direct `fs` calls | `cli/src/commands/init.ts` | Step 1 |
+| ✅ | 4 | Refactor `cli/src/commands/setup.ts` to remove direct `fs` calls | `cli/src/commands/setup.ts` | Step 2 |
+| ✅ | 5 | Run full test suite | All packages | Steps 1‑4 |
 
 ---
 

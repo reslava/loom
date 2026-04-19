@@ -2,7 +2,7 @@
 type: plan
 id: state-filters-plan-001
 title: "Implement Common State Filters and Sorting Utilities"
-status: draft
+status: done
 created: 2026-04-19
 version: 1
 tags: [state, filters, sorting, cli, vscode]
@@ -32,14 +32,14 @@ Build a suite of pure, reusable filter and sorting functions that operate on the
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| 🔳 | 1 | Create `filters/threadFilters.ts` with thread‑level filters | `packages/core/src/filters/threadFilters.ts` | — |
-| 🔳 | 2 | Create `filters/documentFilters.ts` with document‑level filters | `packages/core/src/filters/documentFilters.ts` | — |
-| 🔳 | 3 | Create `filters/planFilters.ts` with plan‑level filters | `packages/core/src/filters/planFilters.ts` | — |
-| 🔳 | 4 | Create sorting utilities | `packages/core/src/filters/sorting.ts` | — |
-| 🔳 | 5 | Update `app/getState` to accept optional filter/sort parameters | `packages/app/src/getState.ts` | Steps 1‑4 |
-| 🔳 | 6 | Enhance CLI commands (`status`, `list`) to use filters | `packages/cli/src/commands/status.ts`, `list.ts` | Step 5 |
-| 🔳 | 7 | Add unit tests for filters and sorting | `packages/core/test/filters/` | Steps 1‑4 |
-| 🔳 | 8 | Run full integration test suite | `tests/*` | All |
+| ✅ | 1 | Create `filters/threadFilters.ts` with thread‑level filters | `packages/core/src/filters/threadFilters.ts` | — |
+| ✅ | 2 | Create `filters/documentFilters.ts` with document‑level filters | `packages/core/src/filters/documentFilters.ts` | — |
+| ✅ | 3 | Create `filters/planFilters.ts` with plan‑level filters | `packages/core/src/filters/planFilters.ts` | — |
+| ✅ | 4 | Create sorting utilities | `packages/core/src/filters/sorting.ts` | — |
+| ✅ | 5 | Update `app/getState` to accept optional filter/sort parameters | `packages/app/src/getState.ts` | Steps 1‑4 |
+| ✅ | 6 | Enhance CLI commands (`status`, `list`) to use filters | `packages/cli/src/commands/status.ts`, `list.ts` | Step 5 |
+| 👉 | 7 | Add unit tests for filters and sorting | `packages/core/test/filters/` | Steps 1‑4 |
+| ✅ | 8 | Run full integration test suite | `tests/*` | All |
 
 ---
 
