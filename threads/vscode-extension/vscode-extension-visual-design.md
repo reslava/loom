@@ -116,6 +116,55 @@ Right‑clicking a node reveals context‑specific actions.
 
 All actions delegate to the corresponding `app` use‑case.
 
+Rafa, you're right. `ViewState` is referenced but never defined. Here is the complete section to add to `vscode-extension-visual-design.md`. It should be placed after the **Tree View** section and before the **Toolbar** section.
+
+---
+
+### 📄 New Section: `2.5 ViewState`
+
+```markdown
+### 2.5 ViewState
+
+`ViewState` is the mutable UI state object that controls how the tree view is rendered. It is managed by the `ViewStateManager` and persisted in VS Code's `workspaceState`.
+
+```typescript
+interface ViewState {
+    /** Current grouping mode for the tree view. */
+    grouping: 'type' | 'thread' | 'status' | 'release';
+    
+    /** Optional text filter applied to node labels. */
+    textFilter?: string;
+    
+    /** Array of statuses to include in the tree. */
+    statusFilter: string[];
+    
+    /** Whether to show archived (done/deferred) documents. */
+    showArchived: boolean;
+    
+    /** ID of the currently focused thread (for focus mode). */
+    focusedThreadId?: string;
+}
+
+const defaultViewState: ViewState = {
+    grouping: 'thread',
+    textFilter: '',
+    statusFilter: ['active', 'implementing', 'draft'],
+    showArchived: false,
+};
+```
+
+**Field Descriptions:**
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `grouping` | `'type' \| 'thread' \| 'status' \| 'release'` | How tree nodes are grouped at the root level. |
+| `textFilter` | `string \| undefined` | Case‑insensitive substring filter applied to node labels. |
+| `statusFilter` | `string[]` | Whitelist of document statuses to display. |
+| `showArchived` | `boolean` | When `true`, documents in `done/` and `deferred/` directories are included. |
+| `focusedThreadId` | `string \| undefined` | When set, only the specified thread is displayed (focus mode). |
+
+**Persistence:** The `ViewState` is saved to `workspaceState` under the key `loom.viewState`. Changes made via the toolbar automatically persist and are restored when VS Code reopens.
+
 ## 3. Toolbar
 
 The view title bar contains controls for grouping, filtering, and primary actions.
@@ -135,7 +184,7 @@ Clicking "Group By" opens a QuickPick with options:
 - **Status** – Group by workflow status.
 - **Release** – Group by target release version.
 
-The selection updates the `ViewState` and refreshes the tree.
+> The selection updates `ViewState.grouping` and refreshes the tree.
 
 ### 3.3 Filter Controls
 
