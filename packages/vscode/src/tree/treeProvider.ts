@@ -11,6 +11,7 @@ import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
 import { getThreadStatus } from '@reslava-loom/core/dist/derived';
 import { ViewStateManager } from '../view/viewStateManager';
 import { GroupingMode } from '../view/viewState';
+import { getDocumentIcon, getThreadIcon, getPlanIcon } from '../icons';
 
 export interface TreeNode extends vscode.TreeItem {
     children?: TreeNode[];
@@ -158,7 +159,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const status = getThreadStatus(thread);
         const node = new vscode.TreeItem(thread.id, vscode.TreeItemCollapsibleState.Collapsed);
         node.description = status;
-        node.iconPath = this.getThreadIcon(status);
+        node.iconPath = getThreadIcon(status);
         node.contextValue = 'thread';
         node.tooltip = `${thread.design.title} (v${thread.design.version})`;
 
@@ -211,7 +212,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private createDocumentNode(doc: Document, contextValue: string): TreeNode {
         const node = new vscode.TreeItem(doc.title || doc.id, vscode.TreeItemCollapsibleState.None);
         node.description = doc.status;
-        node.iconPath = this.getDocumentIcon(doc.type);
+        node.iconPath = getDocumentIcon(doc.type);
         node.contextValue = contextValue;
         node.tooltip = `${doc.type} • ${doc.status}`;
 
@@ -233,7 +234,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const totalSteps = plan.steps?.length ?? 0;
         node.description = plan.staled ? `${plan.status} ⚠️ stale` : plan.status;
         node.tooltip = `${plan.status} • ${doneSteps}/${totalSteps} steps`;
-        node.iconPath = this.getPlanIcon(plan.status);
+        node.iconPath = getPlanIcon(plan.status);
         node.contextValue = 'plan';
 
         const filePath = (plan as any)._path;
@@ -246,32 +247,5 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
 
         return { ...node, doc: plan, children: [] };
-    }
-
-    private getThreadIcon(status: string): vscode.ThemeIcon {
-        switch (status) {
-            case 'IMPLEMENTING': return new vscode.ThemeIcon('sync~spin');
-            case 'DONE':         return new vscode.ThemeIcon('pass-filled');
-            case 'CANCELLED':    return new vscode.ThemeIcon('error');
-            default:             return new vscode.ThemeIcon('folder');
-        }
-    }
-
-    private getDocumentIcon(type: string): vscode.ThemeIcon {
-        switch (type) {
-            case 'design': return new vscode.ThemeIcon('file');
-            case 'idea':   return new vscode.ThemeIcon('lightbulb');
-            case 'ctx':    return new vscode.ThemeIcon('note');
-            default:       return new vscode.ThemeIcon('file');
-        }
-    }
-
-    private getPlanIcon(status: string): vscode.ThemeIcon {
-        switch (status) {
-            case 'implementing': return new vscode.ThemeIcon('sync~spin');
-            case 'done':         return new vscode.ThemeIcon('pass-filled');
-            case 'blocked':      return new vscode.ThemeIcon('warning');
-            default:             return new vscode.ThemeIcon('list-flat');
-        }
     }
 }

@@ -20,7 +20,7 @@
         {
           "id": "loom",
           "title": "Loom",
-          "icon": "resources/loom-monochrome-vscode.svg"
+          "icon": "media/loom-icon.svg"
         }
       ]
     },
@@ -33,19 +33,62 @@
       ]
     },
     "commands": [
-      { "command": "loom.refresh", "title": "Loom: Refresh", "icon": "$(refresh)" },
-      { "command": "loom.weaveIdea", "title": "Loom: Weave Idea", "icon": "$(add)" },
-      { "command": "loom.weaveDesign", "title": "Loom: Weave Design", "icon": "$(file-add)" },
-      { "command": "loom.weavePlan", "title": "Loom: Weave Plan", "icon": "$(checklist)" },
-      { "command": "loom.setGrouping", "title": "Loom: Set Grouping", "icon": "$(list-tree)" }
+      {
+        "command": "loom.refresh",
+        "title": "Loom: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "loom.weaveIdea",
+        "title": "Loom: Weave Idea",
+        "category": "Loom",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "loom.weaveDesign",
+        "title": "Loom: Weave Design",
+        "category": "Loom",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "loom.weavePlan",
+        "title": "Loom: Weave Plan",
+        "category": "Loom",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "loom.setGrouping",
+        "title": "Loom: Set Grouping",
+        "icon": "$(list-tree)"
+      }
     ],
     "menus": {
       "view/title": [
-        { "command": "loom.weaveIdea", "when": "view == loom.threads", "group": "navigation@1" },
-        { "command": "loom.weaveDesign", "when": "view == loom.threads", "group": "navigation@2" },
-        { "command": "loom.weavePlan", "when": "view == loom.threads", "group": "navigation@3" },
-        { "command": "loom.setGrouping", "when": "view == loom.threads", "group": "navigation@4" },
-        { "command": "loom.refresh", "when": "view == loom.threads", "group": "navigation@5" }
+        {
+          "command": "loom.weaveIdea",
+          "when": "view == loom.threads",
+          "group": "navigation@1"
+        },
+        {
+          "command": "loom.weaveDesign",
+          "when": "view == loom.threads",
+          "group": "navigation@2"
+        },
+        {
+          "command": "loom.weavePlan",
+          "when": "view == loom.threads",
+          "group": "navigation@3"
+        },
+        {
+          "command": "loom.setGrouping",
+          "when": "view == loom.threads",
+          "group": "navigation@4"
+        },
+        {
+          "command": "loom.refresh",
+          "when": "view == loom.threads",
+          "group": "navigation@5"
+        }
       ]
     }
   },

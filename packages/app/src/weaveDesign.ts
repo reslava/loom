@@ -28,9 +28,6 @@ interface IdeaInfo {
     content: string;
 }
 
-/**
- * Finds any idea document in the thread directory (temporary or finalized).
- */
 async function findIdeaFile(threadPath: string, deps: WeaveDesignDeps): Promise<IdeaInfo | null> {
     const entries = await deps.fs.readdir(threadPath, { withFileTypes: true });
     for (const entry of entries) {
@@ -53,9 +50,6 @@ async function findIdeaFile(threadPath: string, deps: WeaveDesignDeps): Promise<
     return null;
 }
 
-/**
- * Finalizes a temporary idea using loadDoc/saveDoc.
- */
 async function finalizeIdea(
     ideaPath: string,
     threadPath: string,
@@ -92,10 +86,6 @@ async function finalizeIdea(
     return { newId: permanentId, title: idea.title };
 }
 
-/**
- * Creates a new design document from an existing idea.
- * If the idea is not yet finalized, it is automatically finalized first.
- */
 export async function weaveDesign(
     input: WeaveDesignInput,
     deps: WeaveDesignDeps
@@ -103,26 +93,32 @@ export async function weaveDesign(
     const loomRoot = deps.getActiveLoomRoot();
     const threadPath = path.join(loomRoot, 'threads', input.threadId);
     
+    // Ensure the thread directory exists
     await deps.fs.ensureDir(threadPath);
     
+    // Look for an existing idea
     const idea = await findIdeaFile(threadPath, deps);
-    if (!idea) {
-        throw new Error(`No idea found in thread '${input.threadId}'. Run 'loom weave idea' first.`);
-    }
     
-    let ideaId = idea.id;
-    let ideaTitle = idea.title;
+    let parentId: string | null = null;
+    let designTitle = input.title || input.threadId;
     let autoFinalized = false;
     
-    if (ideaId.startsWith('new-')) {
-        const finalized = await finalizeIdea(idea.filePath, threadPath, deps);
-        ideaId = finalized.newId;
-        ideaTitle = finalized.title;
-        autoFinalized = true;
+    if (idea) {
+        let ideaId = idea.id;
+        let ideaTitle = idea.title;
+        
+        if (ideaId.startsWith('new-')) {
+            const finalized = await finalizeIdea(idea.filePath, threadPath, deps);
+            ideaId = finalized.newId;
+            ideaTitle = finalized.title;
+            autoFinalized = true;
+        }
+        
+        parentId = ideaId;
+        designTitle = input.title || ideaTitle;
     }
     
-    const designTitle = input.title || ideaTitle;
-    
+    // Generate design ID (no parent required)
     const existingIds = new Set<string>();
     const entries = await deps.fs.readdir(threadPath);
     for (const entry of entries) {
@@ -132,7 +128,7 @@ export async function weaveDesign(
     }
     
     const permanentId = generatePermanentId(designTitle, 'design', existingIds);
-    const frontmatter = createBaseFrontmatter('design', permanentId, designTitle, ideaId);
+    const frontmatter = createBaseFrontmatter('design', permanentId, designTitle, parentId);
     (frontmatter as any).role = 'primary';
     
     const content = generateDesignBody(designTitle, 'User');
