@@ -15,13 +15,3 @@ export interface Thread {
     contexts: CtxDoc[];
     allDocs: Document[];
 }
-
-/**
- * Temporary helper to maintain backward compatibility during migration.
- * Returns the first design in the array (or the one with role: 'primary' if present).
- * @deprecated Will be removed in Phase 3.
- */
-export function getPrimaryDesign(thread: Thread): DesignDoc | undefined {
-    const primary = thread.designs.find(d => d.role === 'primary');
-    return primary || thread.designs[0];
-}
