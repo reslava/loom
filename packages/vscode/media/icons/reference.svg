@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- book shadow base -->
+  <rect x="2" y="7" width="28" height="20" rx="2.5" fill="#7D4620"/>
+  <!-- left page -->
+  <rect x="2.5" y="7.5" width="13" height="19" rx="2" fill="#E8791A"/>
+  <!-- right page -->
+  <rect x="16.5" y="7.5" width="13" height="19" rx="2" fill="#C07A3C"/>
+  <!-- spine -->
+  <rect x="14.5" y="6" width="3" height="22" rx="1.5" fill="#7D4620"/>
+  <rect x="15" y="6" width="2" height="22" rx="1" fill="#9C5E2E"/>
+  <!-- left page lines -->
+  <line x1="5.5" y1="12" x2="13.5" y2="12" stroke="#FFC85A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="5.5" y1="15" x2="13.5" y2="15" stroke="#FFC85A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="5.5" y1="18" x2="13.5" y2="18" stroke="#FFC85A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="5.5" y1="21" x2="11" y2="21" stroke="#FFC85A" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- right page lines (slightly muted) -->
+  <line x1="18.5" y1="12" x2="26.5" y2="12" stroke="#E8791A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18.5" y1="15" x2="26.5" y2="15" stroke="#E8791A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18.5" y1="18" x2="26.5" y2="18" stroke="#E8791A" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18.5" y1="21" x2="24" y2="21" stroke="#E8791A" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- top cover curve shadow -->
+  <path d="M 2.5 7.5 Q 8 6 15.5 7 Q 23 6 29.5 7.5" fill="none" stroke="#9C5E2E" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

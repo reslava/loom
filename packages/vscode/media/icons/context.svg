@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- document shadow -->
+  <rect x="4" y="3" width="20" height="26" rx="2.5" fill="#9C5E2E"/>
+  <!-- document face -->
+  <rect x="4.5" y="3.5" width="19" height="25" rx="2" fill="#E8791A"/>
+  <!-- folded corner -->
+  <polygon points="18.5,3.5 23.5,8.5 18.5,8.5" fill="#7D4620"/>
+  <polygon points="18.5,3.5 23.5,8.5 23.5,3.5" fill="#C07A3C"/>
+  <!-- text lines (unfocused) -->
+  <line x1="7.5" y1="12" x2="16" y2="12" stroke="#C07A3C" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+  <line x1="7.5" y1="14.5" x2="18" y2="14.5" stroke="#C07A3C" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+  <!-- highlighted band (context window) -->
+  <rect x="6.5" y="17" width="13" height="6" rx="1.2" fill="#F5A820" opacity="0.85"/>
+  <!-- highlighted text lines -->
+  <line x1="8" y1="19.2" x2="18" y2="19.2" stroke="#7D3A08" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="8" y1="21.5" x2="15" y2="21.5" stroke="#7D3A08" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- bottom line (unfocused) -->
+  <line x1="7.5" y1="25" x2="16" y2="25" stroke="#C07A3C" stroke-width="1.3" stroke-linecap="round" opacity="0.6"/>
+  <!-- focus bracket left -->
+  <path d="M 5.5 16 L 4 16 L 4 24 L 5.5 24" fill="none" stroke="#FFC85A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- focus bracket right -->
+  <path d="M 20.5 16 L 22 16 L 22 24 L 20.5 24" fill="none" stroke="#FFC85A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

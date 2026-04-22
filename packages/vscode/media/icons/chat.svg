@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- back bubble (right, lighter) -->
+  <rect x="11" y="10" width="17" height="12" rx="4" fill="#9C5E2E"/>
+  <polygon points="14,22 11,27 18,22" fill="#9C5E2E"/>
+  <!-- back bubble shine lines -->
+  <line x1="14" y1="14.5" x2="25" y2="14.5" stroke="#C07A3C" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="14" y1="17.5" x2="22" y2="17.5" stroke="#C07A3C" stroke-width="1.4" stroke-linecap="round"/>
+  <!-- front bubble (left, main) -->
+  <rect x="4" y="5" width="17" height="12" rx="4" fill="#E8791A"/>
+  <polygon points="7,17 4,22 12,17" fill="#E8791A"/>
+  <!-- front bubble lines -->
+  <line x1="7.5" y1="9.5" x2="17.5" y2="9.5" stroke="#FFC85A" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="7.5" y1="12.5" x2="15.5" y2="12.5" stroke="#FFC85A" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
