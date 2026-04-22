@@ -2,7 +2,7 @@
 type: plan
 id: ai-promote-plan-001
 title: "AI Promote — Chat to Idea"
-status: draft
+status: done
 created: 2026-04-22
 version: 1
 tags: [ai, chat, idea, promote, vscode]
@@ -39,10 +39,10 @@ This closes the first complete AI loop: **chat → AI reply → promote → idea
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ⬜ | 1 | `app/promoteIdea` use-case — calls AI, parses response, saves idea doc | `app/src/promoteIdea.ts` | — |
-| ⬜ | 2 | `loom.promoteIdea` command | `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 1 |
-| ⬜ | 3 | Add inline button on chat nodes in tree view | `vscode/package.json` | 2 |
-| ⬜ | 4 | Build + smoke test | `scripts/build-all.sh` | 3 |
+| ✅ | 1 | `app/promoteIdea` use-case — calls AI, parses response, saves idea doc | `app/src/promoteIdea.ts` | — |
+| ✅ | 2 | `loom.promoteIdea` command | `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 1 |
+| ✅ | 3 | Add inline button on chat nodes in tree view | `vscode/package.json` | 2 |
+| ✅ | 4 | Build + smoke test | `scripts/build-all.sh` | 3 |
 
 ## Notes
 

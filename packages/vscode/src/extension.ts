@@ -15,6 +15,7 @@ import { showGroupingSelector } from './commands/grouping';
 import { setTextFilter, toggleArchived } from './commands/filter';
 import { chatNewCommand } from './commands/chatNew';
 import { chatReplyCommand } from './commands/chatReply';
+import { promoteIdeaCommand } from './commands/promoteIdea';
 import { setIconBaseUri } from './icons';
 import { updateDiagnostics } from './diagnostics';
 
@@ -59,7 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('loom.setTextFilter', () => setTextFilter(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.chatReply', () => chatReplyCommand())
+        vscode.commands.registerCommand('loom.chatReply', () => chatReplyCommand()),
+        vscode.commands.registerCommand('loom.promoteIdea', () => promoteIdeaCommand(treeProvider))
     );
 
     context.subscriptions.push(

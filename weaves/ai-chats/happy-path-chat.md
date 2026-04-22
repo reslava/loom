@@ -297,3 +297,26 @@ What I'd do: add a short `## Revision Notes` section at the bottom of plan-004 r
 
 Ready to do that?
 
+## Rafa:
+About next `Step 6 Add file watcher with link index incremental updates` 
+Is worth enough implementing it having the debounce time and the complexity and issues that incremental index will bring to the system?
+
+## AI:
+
+No. The incremental index update path is not worth implementing now.
+
+The file watcher is already in `extension.ts` and does the right thing: on any `.md` change under `weaves/`, it debounces 300ms then calls `treeProvider.refresh()`, which calls `getState()`, which does a full `buildLinkIndex` + load all weaves. That's the "full rebuild on change" path described in `vscode-extension-visual-design.md` §5.
+
+**Why incremental is not worth it yet:**
+
+1. **The full rebuild is fast enough.** `buildLinkIndex` scans all `.md` frontmatter in `weaves/`. For a typical Loom workspace (dozens to low-hundreds of files) this is well under 50ms. The 300ms debounce already absorbs burst edits. You'll never notice it.
+
+2. **Incremental adds real complexity.** `updateIndexForFile` has the `docId-from-filename` bug I flagged in the analysis doc — it would silently break if filename and frontmatter `id` diverge. Getting it right means loading the doc anyway, which removes most of the performance benefit.
+
+3. **The visual design already deferred it.** The design explicitly says: "This optimization is deferred and will only be pursued if performance data justifies the added complexity." That's the right call.
+
+4. **The watcher is already correct as-is.** The glob is `**/weaves/**/*.md` (already fixed), debounce is 300ms, and the refresh path is the same reliable `getState()` call everything else uses.
+
+**My recommendation:** Skip step 6 as a separate implementation task. The watcher is done. Mark it ✅ and move to step 7 (diagnostics). The only thing worth adding to step 6 is the `updateIndexForFile` doc-id fix before using it in diagnostics — but that's a one-liner fix, not a redesign.
+
+Agree?

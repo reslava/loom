@@ -19,9 +19,9 @@ This document outlines the recommended execution order for the remaining plans a
 | :--- | :--- | :--- | :--- | :--- |
 | **1** | ✅`move-thread-to-entities-plan-001.md` | Refactor | None | Completes domain restructuring; low‑risk, high‑clarity improvement. |
 | **2** | ✅`cli-delegate-directory-creation-plan-001.md` | Refactor | None (or Step 1) | Ensures CLI fully delegates to `app` layer; prevents architectural leak. |
-| **3** | `vscode-extension-plan-004.md` | Feature | Steps 1‑2 | Builds the core extension structure and tree view. |
-| **4** | `vscode-extension-plan-005.md` | Feature | `vscode-extension-plan-004` | Adds thread‑based grouping to the tree view. |
-| **5** | `vscode-extension-plan-006.md` | Feature | `vscode-extension-plan-004`, `vscode-extension-plan-005` | Implements toolbar controls and actions. |
+| **3** | ✅`vscode-extension-plan-004.md` | Feature | Steps 1‑2 | Builds the core extension structure and tree view. |
+| **4** | ✅`vscode-extension-plan-005.md` | Feature | `vscode-extension-plan-004` | Adds thread‑based grouping to the tree view. |
+| **5** | ✅`vscode-extension-plan-006.md` | Feature | `vscode-extension-plan-004`, `vscode-extension-plan-005` | Implements toolbar controls and actions. |
 | **6** | `cli-error-standardization-idea.md` | Polish (Deferred) | None | Improves CLI UX; can be done anytime, even after initial VS Code release. |
 
 ---
