@@ -9,7 +9,7 @@ import { IdeaDoc } from '../../core/dist';
 
 export interface WeaveIdeaInput {
     title: string;
-    thread?: string;
+    weave?: string;
 }
 
 export interface WeaveIdeaDeps {
@@ -18,23 +18,16 @@ export interface WeaveIdeaDeps {
     fs: typeof fs;
 }
 
-/**
- * Creates a new idea document in the active loom.
- *
- * @param input - The title and optional thread name.
- * @param deps - Filesystem and document saving dependencies.
- * @returns A promise resolving to the temporary ID and file path.
- */
 export async function weaveIdea(
     input: WeaveIdeaInput,
     deps: WeaveIdeaDeps
 ): Promise<{ tempId: string; filePath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const threadsDir = path.join(loomRoot, 'threads');
-    const threadName = input.thread || toKebabCaseId(input.title);
-    const threadPath = path.join(threadsDir, threadName);
+    const weavesDir = path.join(loomRoot, 'weaves');
+    const weaveName = input.weave || toKebabCaseId(input.title);
+    const weavePath = path.join(weavesDir, weaveName);
 
-    await deps.fs.ensureDir(threadPath);
+    await deps.fs.ensureDir(weavePath);
 
     const tempId = generateTempId('idea');
     const frontmatter = createBaseFrontmatter('idea', tempId, input.title);
@@ -45,7 +38,7 @@ export async function weaveIdea(
         content,
     } as IdeaDoc;
 
-    const filePath = path.join(threadPath, `${tempId}.md`);
+    const filePath = path.join(weavePath, `${tempId}.md`);
     await deps.saveDoc(doc, filePath);
 
     return { tempId, filePath };

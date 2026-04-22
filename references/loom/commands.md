@@ -10,7 +10,3 @@ Please always reply in English for this entire conversation.
 
 only filenames
 git status --porcelain | awk '{print $2}' | xargs -I {} basename {}
-
-- Talk English for the entire conversation
-- Use always full files
-- Do not give me git commit until I ask you for it

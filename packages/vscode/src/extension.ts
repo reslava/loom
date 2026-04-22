@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('🧵 Loom extension activated');
 
     // Initialize icon base URI for custom icons
-    // setIconBaseUri(context.extensionUri);
+     setIconBaseUri(context.extensionUri);
 
     const viewStateManager = new ViewStateManager(context.workspaceState);
     const treeProvider = new LoomTreeProvider(viewStateManager);

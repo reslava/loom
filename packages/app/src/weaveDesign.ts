@@ -28,6 +28,9 @@ interface IdeaInfo {
     content: string;
 }
 
+/**
+ * Finds any idea document in the weave directory (temporary or finalized).
+ */
 async function findIdeaFile(weavePath: string, deps: WeaveDesignDeps): Promise<IdeaInfo | null> {
     const entries = await deps.fs.readdir(weavePath, { withFileTypes: true });
     for (const entry of entries) {
@@ -50,6 +53,9 @@ async function findIdeaFile(weavePath: string, deps: WeaveDesignDeps): Promise<I
     return null;
 }
 
+/**
+ * Finalizes a temporary idea using loadDoc/saveDoc.
+ */
 async function finalizeIdea(
     ideaPath: string,
     weavePath: string,
@@ -86,6 +92,11 @@ async function finalizeIdea(
     return { newId: permanentId, title: idea.title };
 }
 
+/**
+ * Creates a new design document.
+ * If an idea exists in the weave, it is used as the parent (and auto‑finalized if temporary).
+ * If no idea exists, the design is created with no parent.
+ */
 export async function weaveDesign(
     input: WeaveDesignInput,
     deps: WeaveDesignDeps
@@ -95,6 +106,7 @@ export async function weaveDesign(
     
     await deps.fs.ensureDir(weavePath);
     
+    // Look for an existing idea
     const idea = await findIdeaFile(weavePath, deps);
     
     let parentId: string | null = null;
@@ -105,6 +117,7 @@ export async function weaveDesign(
         let ideaId = idea.id;
         let ideaTitle = idea.title;
         
+        // Auto‑finalize if the idea has a temporary ID
         if (ideaId.startsWith('new-')) {
             const finalized = await finalizeIdea(idea.filePath, weavePath, deps);
             ideaId = finalized.newId;
@@ -115,6 +128,7 @@ export async function weaveDesign(
         parentId = ideaId;
         designTitle = input.title || ideaTitle;
     }
+    // If no idea exists, parentId remains null (standalone design)
     
     const existingIds = new Set<string>();
     const entries = await deps.fs.readdir(weavePath);
@@ -126,7 +140,7 @@ export async function weaveDesign(
     
     const permanentId = generatePermanentId(designTitle, 'design', existingIds);
     const frontmatter = createBaseFrontmatter('design', permanentId, designTitle, parentId);
-    (frontmatter as any).role = 'primary';
+    (frontmatter as any).role = 'primary'; // Default role; can be removed later
     
     const content = generateDesignBody(designTitle, 'User');
     

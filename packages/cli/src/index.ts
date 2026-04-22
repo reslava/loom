@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
-import { initCommand, initMultiCommand } from './commands/init';
+import { initCommand } from './commands/init';
 import { setupCommand } from './commands/setup';
 import { switchCommand } from './commands/switch';
 import { listCommand } from './commands/list';
@@ -22,29 +22,20 @@ const program = new Command();
 program
     .name('loom')
     .description('REslava Loom — Weave ideas into features with AI')
-    .version('0.1.0');
+    .version('0.2.0');
 
-// ----------------------------------------------------------------------------
-// Init Command (Mono‑Loom)
-// ----------------------------------------------------------------------------
 program
     .command('init')
     .description('Initialize a mono‑loom workspace in the current directory')
     .option('--force', 'Overwrite existing configuration')
     .action(initCommand);
 
-// ----------------------------------------------------------------------------
-// Init-Multi Command (Global Multi‑Loom)
-// ----------------------------------------------------------------------------
 program
     .command('init-multi')
     .description('Initialize the global multi‑loom workspace at ~/looms/default')
     .option('--force', 'Overwrite existing configuration')
-    .action((options) => initMultiCommand(options));
+    .action(initCommand); // Uses same command with different defaults
 
-// ----------------------------------------------------------------------------
-// Setup Command
-// ----------------------------------------------------------------------------
 program
     .command('setup <name>')
     .description('Create a new named Loom workspace')
@@ -52,91 +43,61 @@ program
     .option('--no-switch', 'Do not set as active loom after creation')
     .action(setupCommand);
 
-// ----------------------------------------------------------------------------
-// Switch Command
-// ----------------------------------------------------------------------------
 program
     .command('switch <name>')
     .description('Switch the active loom context')
     .action(switchCommand);
 
-// ----------------------------------------------------------------------------
-// List Command
-// ----------------------------------------------------------------------------
 program
     .command('list')
     .description('List all registered looms')
     .action(listCommand);
 
-// ----------------------------------------------------------------------------
-// Current Command
-// ----------------------------------------------------------------------------
 program
     .command('current')
     .description('Show the currently active loom')
     .action(currentCommand);
 
-// ----------------------------------------------------------------------------
-// Status Command
-// ----------------------------------------------------------------------------
 program
-    .command('status [thread-id]')
-    .description('Show derived state of threads')
+    .command('status [weave-id]')
+    .description('Show derived state of weaves')
     .option('--verbose', 'Show detailed status including plan steps')
     .option('--json', 'Output as JSON')
     .option('--tokens', 'Show token usage (placeholder)')
-    .option('--filter <criteria>', 'Filter threads (e.g., status=active|implementing,phase=planning)')
-    .option('--sort <order>', 'Sort threads (e.g., id:asc, id:desc)')
+    .option('--filter <criteria>', 'Filter weaves (e.g., status=active|implementing,phase=planning)')
+    .option('--sort <order>', 'Sort weaves (e.g., id:asc, id:desc)')
     .action(statusCommand);
 
-// ----------------------------------------------------------------------------
-// Validate Command
-// ----------------------------------------------------------------------------
 program
-    .command('validate [thread-id]')
+    .command('validate [weave-id]')
     .description('Validate document integrity')
-    .option('--all', 'Validate all threads')
+    .option('--all', 'Validate all weaves')
     .option('--fix', 'Attempt to fix issues (not yet implemented)')
-    .option('--verbose', 'Show detailed issues')
+    .option('--verbose', 'Show detailed issues for all weaves')
     .action(validateCommand);
 
-// ----------------------------------------------------------------------------
-// Refine Design Command
-// ----------------------------------------------------------------------------
 program
-    .command('refine-design <thread-id>')
+    .command('refine-design <weave-id>')
     .description('Fire REFINE_DESIGN event')
     .action(refineCommand);
 
-// ----------------------------------------------------------------------------
-// Start Plan Command
-// ----------------------------------------------------------------------------
 program
     .command('start-plan <plan-id>')
     .description('Fire START_PLAN event')
     .action(startPlanCommand);
 
-// ----------------------------------------------------------------------------
-// Complete Step Command
-// ----------------------------------------------------------------------------
 program
     .command('complete-step <plan-id>')
     .description('Mark a plan step as done')
     .requiredOption('--step <n>', 'Step number to complete')
     .action(completeStepCommand);
 
-// ----------------------------------------------------------------------------
-// Summarise Context Command
-// ----------------------------------------------------------------------------
 program
-    .command('summarise-context <thread-id>')
+    .command('summarise-context <weave-id>')
     .description('Generate or regenerate -ctx.md summary')
     .option('--force', 'Overwrite existing summary')
     .action(summariseCommand);
 
-// ----------------------------------------------------------------------------
-// Weave Commands (nested)
-// ----------------------------------------------------------------------------
 const weaveCmd = program
     .command('weave')
     .description('Weave a new document');
@@ -145,32 +106,26 @@ weaveCmd
     .command('idea <title>')
     .description('Create a new idea document')
     .option('--weave <name>', 'Place the idea in a specific weave folder')
-    .action((title, options) => weaveIdeaCommand(title, options));
+    .action(weaveIdeaCommand);
 
 weaveCmd
-    .command('design <thread-id>')
+    .command('design <weave-id>')
     .description('Create a new design document from an existing idea')
     .option('--title <title>', 'Custom title for the design')
-    .action((weaveId, options) => weaveDesignCommand(weaveId, options));
+    .action(weaveDesignCommand);
 
 weaveCmd
-    .command('plan <thread-id>')
+    .command('plan <weave-id>')
     .description('Create a new plan from a finalized design')
     .option('--title <title>', 'Custom title for the plan')
     .option('--goal <goal>', 'Goal description for the plan')
-    .action((weaveId, options) => weavePlanCommand(weaveId, options));
+    .action(weavePlanCommand);
 
-// ----------------------------------------------------------------------------
-// Finalize Command
-// ----------------------------------------------------------------------------
 program
     .command('finalize <temp-id>')
     .description('Finalize a draft document and generate its permanent ID')
     .action(finalizeCommand);
 
-// ----------------------------------------------------------------------------
-// Rename Command
-// ----------------------------------------------------------------------------
 program
     .command('rename <old-id> <new-title>')
     .description('Rename a finalized document and update all references')
