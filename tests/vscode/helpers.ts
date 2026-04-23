@@ -46,14 +46,8 @@ export function seedDoneDoc(weaveId: string, planId: string): void {
     const doneDir = path.join(weavePath, 'done');
     fs.mkdirSync(doneDir, { recursive: true });
 
-    // Mark the plan done in place (keep it in plans/ so weave.plans stays populated)
-    const planPath = path.join(weavePath, 'plans', `${planId}.md`);
-    if (fs.existsSync(planPath)) {
-        const content = fs.readFileSync(planPath, 'utf8').replace('status: implementing', 'status: done');
-        fs.writeFileSync(planPath, content);
-    }
-
     // Add done doc to done/ (tree provider links it to the plan via parent_id)
+    // Plan stays as-is in plans/ so the default status filter (active/implementing/draft) keeps it visible
     fs.writeFileSync(
         path.join(doneDir, `${planId}-done.md`),
         `---\ntype: done\nid: ${planId}-done\ntitle: "Done — ${planId}"\nstatus: final\ncreated: 2026-04-23\nversion: 1\ntags: []\nparent_id: ${planId}\nchild_ids: []\nrequires_load: []\n---\n\n## What was built\nTest implementation.\n`
