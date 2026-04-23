@@ -2,7 +2,7 @@
 type: plan
 id: vscode-extension-plan-008
 title: "VS Code Polish — Idea Inline Buttons & Minor UX Fixes"
-status: draft
+status: implementing
 created: 2026-04-23
 version: 1
 tags: [vscode, polish, ux, inline-buttons]
@@ -22,7 +22,7 @@ Fix small UX issues identified during real usage of the extension.
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| | 1 | Fix idea node inline buttons — remove `Weave Design`, keep only `Promote To Design`. Set `contextValue = 'idea'` on idea tree nodes; update `package.json` `when` clause for `loom.weaveDesign` to exclude `viewItem == idea` | `packages/vscode/src/tree/treeProvider.ts`, `packages/vscode/package.json` | — |
+| ✅ | 1 | Fix idea node inline buttons — remove `Weave Design`, keep only `Promote To Design`. Set `contextValue = 'idea'` on idea tree nodes; update `package.json` `when` clause for `loom.weaveDesign` to exclude `viewItem == idea` | `packages/vscode/src/tree/treeProvider.ts`, `packages/vscode/package.json` | — |
 
 ## Notes
 

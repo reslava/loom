@@ -249,11 +249,6 @@
           "group": "inline@1"
         },
         {
-          "command": "loom.weaveDesign",
-          "when": "view == loom.threads && viewItem =~ /^idea/",
-          "group": "inline@2"
-        },
-        {
           "command": "loom.weavePlan",
           "when": "view == loom.threads && viewItem =~ /^(primary-design|design)$/",
           "group": "inline@1"
