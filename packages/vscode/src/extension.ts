@@ -25,7 +25,12 @@ import { closePlanCommand } from './commands/closePlan';
 import { setIconBaseUri } from './icons';
 import { updateDiagnostics } from './diagnostics';
 
-export function activate(context: vscode.ExtensionContext) {
+export interface LoomExtensionAPI {
+    treeProvider: LoomTreeProvider;
+    getAiEnabled: () => boolean;
+}
+
+export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     console.log('🧵 Loom extension activated');
 
     // Initialize icon base URI for custom icons
@@ -76,9 +81,11 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node))
     );
 
+    let aiEnabled = false;
     function syncAiContext(): void {
         const apiKey = vscode.workspace.getConfiguration('reslava-loom.ai').get<string>('apiKey') ?? '';
-        vscode.commands.executeCommand('setContext', 'loom.aiEnabled', apiKey.length > 0);
+        aiEnabled = apiKey.length > 0;
+        vscode.commands.executeCommand('setContext', 'loom.aiEnabled', aiEnabled);
     }
     syncAiContext();
     context.subscriptions.push(
@@ -99,6 +106,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(watcher);
 
     setImmediate(() => syncAndRefresh());
+
+    return { treeProvider, getAiEnabled: () => aiEnabled };
 }
 
 export function deactivate() {}

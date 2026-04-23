@@ -41,6 +41,9 @@ run_test tests/do-step.test.ts
 # Step 7: summarise use-case (mock AI)
 run_test tests/summarise.test.ts
 
+# Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 1, no VS Code process)
+run_test tests/workspace-workflow.test.ts
+
 # Legacy integration tests
 run_test tests/id-management.test.ts
 run_test tests/multi-loom.test.ts

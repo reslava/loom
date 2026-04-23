@@ -2,7 +2,7 @@
 type: plan
 id: vscode-tests-plan-001
 title: "VS Code Extension Tests — Real Workspace at j:/temp/loom"
-status: draft
+status: done
 created: 2026-04-23
 version: 1
 tags: [tests, vscode, extension, e2e, workspace, j-temp]
@@ -24,15 +24,15 @@ fast, scriptable). Phase 2 adds Extension Host tests for tree view and commands.
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| | 1 | Create `tests/workspace-utils.ts` — helper that bootstraps `j:/temp/loom`: writes `.loom/workflow.yml`, creates `weaves/` directory, optionally seeds a weave with idea + design + plan at known paths | `tests/workspace-utils.ts` (new) | |
-| | 2 | Add `tests/workspace-workflow.test.ts` (Phase 1) — using `j:/temp/loom` as `loomRoot`, run app use-cases directly: `loadWeave`, `completeStep`, `closePlan`, `doStep`; assert correct file layout and document contents | `tests/workspace-workflow.test.ts` (new) | Step 1 |
-| | 3 | Assert `done/` folder layout after `closePlan`: `done/{plan-id}.md` exists with `status: done`, `done/{plan-id}-done.md` exists with AI body, `plans/{plan-id}.md` deleted | `tests/workspace-workflow.test.ts` | Steps 1–2 |
-| | 4 | Assert tree data layer with real workspace — instantiate `loadWeave` + `getState` with `j:/temp/loom` and verify weave, plans, dones, chats are correctly surfaced (no VS Code dependency, pure data layer) | `tests/workspace-workflow.test.ts` | Steps 1–2 |
-| | 5 | Add `@vscode/test-electron` dependency and `tests/vscode/` directory — set up Extension Host test runner pointing at `j:/temp/loom` as workspace | `packages/vscode/package.json`, `tests/vscode/index.ts` (new), `tests/vscode/runTests.ts` (new) | Step 1 |
-| | 6 | Extension Host test: verify tree renders weave → primary design → Plans section → plan node → done child (using `getChildren`) | `tests/vscode/tree.test.ts` (new) | Step 5 |
-| | 7 | Extension Host test: `loom.aiEnabled` context key is false when no API key, true when key present; AI menu items absent/present accordingly | `tests/vscode/aiContext.test.ts` (new) | Step 5 |
-| | 8 | Extension Host test: `loom.completeStep` marks step done in file, plan auto-closes when all steps complete | `tests/vscode/commands.test.ts` (new) | Step 5 |
-| | 9 | Add `scripts/test-vscode.sh` and document how to run Extension Host tests | `scripts/test-vscode.sh` (new) | Steps 5–8 |
+| ✅ | 1 | Create `tests/workspace-utils.ts` — helper that bootstraps `j:/temp/loom`: writes `.loom/workflow.yml`, creates `weaves/` directory, optionally seeds a weave with idea + design + plan at known paths | `tests/workspace-utils.ts` (new) | |
+| ✅ | 2 | Add `tests/workspace-workflow.test.ts` (Phase 1) — using `j:/temp/loom` as `loomRoot`, run app use-cases directly: `loadWeave`, `completeStep`, `closePlan`, `doStep`; assert correct file layout and document contents | `tests/workspace-workflow.test.ts` (new) | Step 1 |
+| ✅ | 3 | Assert `done/` folder layout after `closePlan`: `done/{plan-id}.md` exists with `status: done`, `done/{plan-id}-done.md` exists with AI body, `plans/{plan-id}.md` deleted | `tests/workspace-workflow.test.ts` | Steps 1–2 |
+| ✅ | 4 | Assert tree data layer with real workspace — instantiate `loadWeave` + `getState` with `j:/temp/loom` and verify weave, plans, dones, chats are correctly surfaced (no VS Code dependency, pure data layer) | `tests/workspace-workflow.test.ts` | Steps 1–2 |
+| ✅ | 5 | Add `@vscode/test-electron` dependency and `tests/vscode/` directory — set up Extension Host test runner pointing at `j:/temp/loom` as workspace | `packages/vscode/package.json`, `tests/vscode/index.ts` (new), `tests/vscode/runTests.ts` (new) | Step 1 |
+| ✅ | 6 | Extension Host test: verify tree renders weave → primary design → Plans section → plan node → done child (using `getChildren`) | `tests/vscode/tree.test.ts` (new) | Step 5 |
+| ✅ | 7 | Extension Host test: `loom.aiEnabled` context key is false when no API key, true when key present; AI menu items absent/present accordingly | `tests/vscode/aiContext.test.ts` (new) | Step 5 |
+| ✅ | 8 | Extension Host test: `loom.completeStep` marks step done in file, plan auto-closes when all steps complete | `tests/vscode/commands.test.ts` (new) | Step 5 |
+| ✅ | 9 | Add `scripts/test-vscode.sh` and document how to run Extension Host tests | `scripts/test-vscode.sh` (new) | Steps 5–8 |
 
 ## Notes
 
