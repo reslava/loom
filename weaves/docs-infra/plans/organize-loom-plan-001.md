@@ -24,20 +24,20 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
-| 🔳 | 1 | Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md` | 2 files | Exact copies exist in correct locations |
-| 🔳 | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model |
-| 🔳 | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions |
-| 🔳 | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy |
+| ✅ | 1 | Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md` | 2 files | Exact copies exist in correct locations |
+| ✅ | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model |
+| ✅ | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions |
+| ✅ | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy |
 
 ### Pass 2 — Move Misplaced Files
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
-| 🔳 | 5 | Move `core-engine/core-engine-feature-model-design.md` → `workflow/workflow-feature-model-design.md` (overwrites v1 that was archived in step 3) | 1 file | v2 is the canonical version; fix `updated` field and `parent_id → workflow-design-v2` |
-| 🔳 | 6 | Move `core-engine/core-engine-app-version-design.md` → `workflow/workflow-app-version-design.md` | 1 file | id already correct (`workflow-app-version-design`) |
-| 🔳 | 7 | Move `core-engine/done/workflow-user-personalization-design.md` → `workflow/done/workflow-user-personalization-design.md` | 1 file | — |
-| 🔳 | 8 | Move `canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md` → `core-engine/canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md`; delete `canonical-frontmatter-serializer/` weave | 1 file + dir | Thread in core-engine |
-| 🔳 | 9 | Move `tests/references/fs-extra-esm-reference.md` → `core-engine/references/fs-extra-esm-reference.md`; delete `tests/` weave | 1 file + dir | Single-file weave absorbed into core-engine |
+| ✅ | 5 | Move `core-engine/core-engine-feature-model-design.md` → `workflow/workflow-feature-model-design.md` (overwrites v1 that was archived in step 3) | 1 file | v2 is the canonical version; fix `updated` field and `parent_id → workflow-design-v2` |
+| ✅ | 6 | Move `core-engine/core-engine-app-version-design.md` → `workflow/workflow-app-version-design.md` | 1 file | id already correct (`workflow-app-version-design`) |
+| ✅ | 7 | Move `core-engine/done/workflow-user-personalization-design.md` → `workflow/done/workflow-user-personalization-design.md` | 1 file | — |
+| ✅ | 8 | Move `canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md` → `core-engine/canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md`; delete `canonical-frontmatter-serializer/` weave | 1 file + dir | Thread in core-engine |
+| ✅ | 9 | Move `tests/references/fs-extra-esm-reference.md` → `core-engine/references/fs-extra-esm-reference.md`; delete `tests/` weave | 1 file + dir | Single-file weave absorbed into core-engine |
 
 ### Pass 3 — Frontmatter Fixes
 
