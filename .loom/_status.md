@@ -9,17 +9,14 @@
 local mode
 
 ## Active weave
-vscode-extension
+`weaves/core-engine`
 
 ## Active design
-weaves/vscode-extension/vscode-extension-design.md
+`weave-and-thread-design.md`
 
 ## Active plan
-> `vscode-extension-plan-004.md` | Feature | Step 5 (commands) | Builds the core extension structure and tree view. Steps 1-4 done. |
-- `vscode-extension-plan-005.md` | Feature | `vscode-extension-plan-004` | Adds thread‑based grouping to the tree view. |
-- `vscode-extension-plan-006.md` | Feature | `vscode-extension-plan-004`, `vscode-extension-plan-005` | Implements toolbar controls and actions. |
-- `cli-error-standardization-idea.md` | Polish (Deferred) | None | Improves CLI UX; can be done anytime, even after initial VS Code release. |
-
+> `weaves/docs-infra/plans/organize-loom-plan-001.md`
+- `weave-and-thread-plan-001.md` Phase 7, 8, 9
 
 ## Last session
 2026-04-23 — Implemented core-tests-plan-001 (all 8 steps): DoneDoc entity tests,
