@@ -8,7 +8,7 @@ version: 2
 tags: [loom, workspace, cli, mvp]
 parent_id: null
 child_ids: [multi-workspace-plan-001]
-requires_load: [multi-workspace-design]
+requires_load: []
 target_release: "0.2.0"
 actual_release: null
 ---

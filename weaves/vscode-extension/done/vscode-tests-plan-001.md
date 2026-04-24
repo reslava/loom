@@ -8,8 +8,7 @@ version: 1
 tags: [tests, vscode, extension, e2e, workspace, j-temp]
 parent_id: vscode-extension-design
 child_ids: []
-requires_load: [vscode-extension-design, weaves/tests/references/fs-extra-esm-reference.md]
-design_version: 1
+requires_load: [vscode-extension-design, weaves/core-engine/references/fs-extra-esm-reference.md]
 ---
 
 # VS Code Extension Tests — Real Workspace at j:/temp/loom

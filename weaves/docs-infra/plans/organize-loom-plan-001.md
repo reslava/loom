@@ -2,7 +2,7 @@
 type: plan
 id: organize-loom-plan-001
 title: "Organize Loom Docs — Frontmatter Repair & Thread Assignment"
-status: draft
+status: done
 created: 2026-04-24
 version: 2
 tags: [migration, docs-infra, threads, frontmatter]
@@ -67,8 +67,8 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
-| 🔳 | 24 | Run `loom status` (or `loadWeave`) against each weave; all must load without errors | all weaves | — |
-| 🔳 | 25 | Confirm `weaves/` has no stale references in `requires_load` pointing to moved files | all weaves | Update paths if needed |
+| ✅ | 24 | Run `loom status` (or `loadWeave`) against each weave; all must load without errors | all weaves | All 6 weaves ACTIVE; chat files skipped as expected |
+| ✅ | 25 | Confirm `weaves/` has no stale references in `requires_load` pointing to moved files | all weaves | Fixed 3 stale refs: weave-and-thread-design (anchor-free), vscode-tests-plan-001 (tests/ path), multi-workspace-mvp-design (archived v1) |
 
 ## Outcome
 

@@ -8,8 +8,7 @@ version: 3
 tags: [domain-model, graph, terminology, directory-structure]
 parent_id: core-engine-design
 child_ids: []
-requires_load: [anchor-free-threads-design]
-supersedes: [anchor-free-threads-design]
+requires_load: []
 ---
 
 # Weave and Thread — The True Graph Model
