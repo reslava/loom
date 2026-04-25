@@ -4,18 +4,25 @@ import { saveDoc } from '@reslava-loom/fs/dist';
 import * as fs from 'fs-extra';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
-export async function chatNewCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
+export async function chatNewCommand(
+    treeProvider: LoomTreeProvider,
+    treeView: vscode.TreeView<TreeNode>,
+    node?: TreeNode
+): Promise<void> {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!workspaceRoot) {
         vscode.window.showErrorMessage('No workspace open.');
         return;
     }
 
-    const weaveId = node?.weaveId ?? await vscode.window.showInputBox({
+    const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
+    const weaveId = selectedNode?.weaveId ?? await vscode.window.showInputBox({
         prompt: 'Weave ID for this chat',
         placeHolder: 'e.g., payment-system',
     });
     if (!weaveId) return;
+
+    const threadId = selectedNode?.threadId;
 
     const title = await vscode.window.showInputBox({
         prompt: 'Chat title (optional)',
@@ -24,7 +31,7 @@ export async function chatNewCommand(treeProvider: LoomTreeProvider, node?: Tree
 
     try {
         const result = await chatNew(
-            { weaveId, title: title || undefined },
+            { weaveId, threadId, title: title || undefined },
             { loomRoot: workspaceRoot, saveDoc, fs }
         );
         const doc = await vscode.workspace.openTextDocument(result.filePath);

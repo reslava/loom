@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
-const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'ai-chats', 'ctx', 'references', '_archive']);
+const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'chats', 'ctx', 'references', '_archive']);
 
 /**
  * Returns thread subdirectory names within a weave folder.
@@ -11,29 +11,9 @@ const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'ai-chats', 'ctx', 'refe
 export async function listThreadDirs(weavePath: string): Promise<string[]> {
     if (!await fs.pathExists(weavePath)) return [];
     const entries = await fs.readdir(weavePath, { withFileTypes: true });
-    const threadDirs: string[] = [];
-
-    for (const entry of entries) {
-        if (!entry.isDirectory() || RESERVED_SUBDIR_NAMES.has(entry.name)) continue;
-        const threadPath = path.join(weavePath, entry.name);
-        const threadId = entry.name;
-
-        const threadFiles = await fs.readdir(threadPath).catch(() => [] as string[]);
-        if (threadFiles.includes(`${threadId}-idea.md`) || threadFiles.includes(`${threadId}-design.md`)) {
-            threadDirs.push(threadId);
-            continue;
-        }
-
-        const plansPath = path.join(threadPath, 'plans');
-        if (await fs.pathExists(plansPath)) {
-            const planFiles = await fs.readdir(plansPath).catch(() => [] as string[]);
-            if (planFiles.some(f => f.endsWith('.md'))) {
-                threadDirs.push(threadId);
-            }
-        }
-    }
-
-    return threadDirs;
+    return entries
+        .filter(e => e.isDirectory() && !RESERVED_SUBDIR_NAMES.has(e.name))
+        .map(e => e.name);
 }
 
 /**

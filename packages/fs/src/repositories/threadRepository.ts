@@ -54,7 +54,7 @@ export async function loadThread(
 
     const plans = await loadMdFiles<PlanDoc>(path.join(threadPath, 'plans'), 'plan');
     const dones = await loadMdFiles<DoneDoc>(path.join(threadPath, 'done'), 'done');
-    const chats = await loadMdFiles<ChatDoc>(path.join(threadPath, 'ai-chats'), 'chat');
+    const chats = await loadMdFiles<ChatDoc>(path.join(threadPath, 'chats'), 'chat');
 
     // Constraint warnings
     const rootFiles = await fs.readdir(threadPath).catch(() => [] as string[]);
@@ -94,7 +94,7 @@ function docPathInThread(doc: Document, threadPath: string, threadId: string): s
         case 'design': return path.join(threadPath, `${threadId}-design.md`);
         case 'plan':   return path.join(threadPath, 'plans', `${doc.id}.md`);
         case 'done':   return path.join(threadPath, 'done', `${doc.id}.md`);
-        case 'chat':   return path.join(threadPath, 'ai-chats', `${doc.id}.md`);
+        case 'chat':   return path.join(threadPath, 'chats', `${doc.id}.md`);
         default: throw new Error(`Unknown doc type for thread: ${doc.type}`);
     }
 }

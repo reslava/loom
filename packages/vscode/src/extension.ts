@@ -15,6 +15,10 @@ import { showGroupingSelector } from './commands/grouping';
 import { setTextFilter, toggleArchived } from './commands/filter';
 import { chatNewCommand } from './commands/chatNew';
 import { chatReplyCommand } from './commands/chatReply';
+import { weaveCreateCommand } from './commands/weaveCreate';
+import { threadCreateCommand } from './commands/threadCreate';
+import { deleteItemCommand } from './commands/deleteItem';
+import { archiveItemCommand } from './commands/archiveItem';
 import { promoteToIdeaCommand } from './commands/promoteToIdea';
 import { promoteToDesignCommand } from './commands/promoteToDesign';
 import { promoteToPlanCommand } from './commands/promoteToPlan';
@@ -56,12 +60,21 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     }
 
     context.subscriptions.push(
+        treeView.onDidChangeSelection(e => {
+            const node = e.selection[0] as TreeNode | undefined;
+            vscode.commands.executeCommand('setContext', 'loom.selectedWeaveId', node?.weaveId ?? '');
+        })
+    );
+
+    context.subscriptions.push(
         vscode.commands.registerCommand('loom.refresh', syncAndRefresh),
+        vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider)),
+        vscode.commands.registerCommand('loom.threadCreate', () => threadCreateCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.weaveDesign', (node?: TreeNode) => weaveDesignCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.weavePlan', (node?: TreeNode) => weavePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.finalize', (node?: TreeNode) => finalizeCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.rename', () => renameCommand(treeProvider)),
+        vscode.commands.registerCommand('loom.rename', (node?: TreeNode) => renameCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refineDesign', (node?: TreeNode) => refineCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.startPlan', (node?: TreeNode) => startPlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.completeStep', (node?: TreeNode) => completeStepCommand(treeProvider, node)),
@@ -70,7 +83,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.setGrouping', () => showGroupingSelector(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.setTextFilter', () => setTextFilter(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
-        vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.chatReply', () => chatReplyCommand()),
         vscode.commands.registerCommand('loom.promoteToIdea', () => promoteToIdeaCommand(treeProvider)),
         vscode.commands.registerCommand('loom.promoteToDesign', () => promoteToDesignCommand(treeProvider)),
@@ -78,7 +91,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.refineIdea', () => refineIdeaCommand(treeProvider)),
         vscode.commands.registerCommand('loom.refinePlan', () => refinePlanCommand(treeProvider)),
         vscode.commands.registerCommand('loom.doStep', (node?: TreeNode) => doStepCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node))
+        vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.delete', (node?: TreeNode) => deleteItemCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.archive', (node?: TreeNode) => archiveItemCommand(treeProvider, node))
     );
 
     let aiEnabled = false;

@@ -37,9 +37,9 @@ export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkI
         }
     }
 
-    // Load weave-level chats from ai-chats/
+    // Load weave-level chats from chats/
     const chats: ChatDoc[] = [];
-    const chatsDir = path.join(weavePath, 'ai-chats');
+    const chatsDir = path.join(weavePath, 'chats');
     if (await fs.pathExists(chatsDir)) {
         const chatFiles = (await fs.readdir(chatsDir)).filter(f => f.endsWith('.md'));
         for (const f of chatFiles) {
@@ -58,8 +58,6 @@ export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkI
         ...chats,
     ];
 
-    if (allDocs.length === 0) return null;
-
     return { id: weaveId, threads, looseFibers, chats, allDocs };
 }
 
@@ -76,7 +74,7 @@ export async function saveWeave(loomRoot: string, weave: Weave): Promise<void> {
     }
 
     for (const chat of weave.chats) {
-        const filePath = (chat as any)._path ?? path.join(weavePath, 'ai-chats', `${chat.id}.md`);
+        const filePath = (chat as any)._path ?? path.join(weavePath, 'chats', `${chat.id}.md`);
         await saveDoc(chat, filePath);
     }
 }

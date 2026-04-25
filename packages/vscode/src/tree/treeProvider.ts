@@ -101,6 +101,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             })
             .filter(w => {
                 if (!statusFilter.length) return true;
+                if (w.allDocs.length === 0) return true;
                 return w.allDocs.some(d => statusFilter.includes(d.status));
             });
     }
@@ -182,7 +183,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private createWeaveNode(weave: Weave): TreeNode {
         const status = getWeaveStatus(weave);
-        const node = new vscode.TreeItem(weave.id, vscode.TreeItemCollapsibleState.Collapsed);
+        const children = this.getWeaveChildren(weave);
+        const state = children.length > 0
+            ? vscode.TreeItemCollapsibleState.Collapsed
+            : vscode.TreeItemCollapsibleState.None;
+        const node = new vscode.TreeItem(weave.id, state);
         node.description = status;
         node.iconPath = getWeaveIcon(status);
         node.contextValue = 'weave';
@@ -191,11 +196,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ? `${primaryThread.design.title} (v${primaryThread.design.version})`
             : weave.id;
 
-        return {
-            ...node,
-            weaveId: weave.id,
-            children: this.getWeaveChildren(weave),
-        };
+        return { ...node, weaveId: weave.id, children };
     }
 
     private getWeaveChildren(weave: Weave): TreeNode[] {
@@ -226,7 +227,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private createThreadNode(thread: Thread, weaveId: string): TreeNode {
         const status = getThreadStatus(thread);
-        const node = new vscode.TreeItem(thread.id, vscode.TreeItemCollapsibleState.Collapsed);
+        const children = this.getThreadChildren(thread, weaveId);
+        const state = children.length > 0
+            ? vscode.TreeItemCollapsibleState.Collapsed
+            : vscode.TreeItemCollapsibleState.None;
+        const node = new vscode.TreeItem(thread.id, state);
         node.description = thread.design?.title ?? status;
         node.iconPath = getThreadIcon(status);
         node.contextValue = 'thread';
@@ -234,12 +239,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ? `${thread.design.title} (v${thread.design.version})`
             : thread.id;
 
-        return {
-            ...node,
-            weaveId,
-            threadId: thread.id,
-            children: this.getThreadChildren(thread, weaveId),
-        };
+        return { ...node, weaveId, threadId: thread.id, children };
     }
 
     private getThreadChildren(thread: Thread, weaveId: string): TreeNode[] {

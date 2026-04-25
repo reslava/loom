@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
 import { rename } from '@reslava-loom/app/dist/rename';
-import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '@reslava-loom/fs/dist';
+import { loadDoc, saveDoc, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '@reslava-loom/fs/dist';
 import * as fs from 'fs-extra';
 import { LoomTreeProvider } from '../tree/treeProvider';
 
-export async function renameCommand(treeProvider: LoomTreeProvider): Promise<void> {
+export async function renameCommand(treeProvider: LoomTreeProvider, node?: any): Promise<void> {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!workspaceRoot) {
         vscode.window.showErrorMessage('No workspace open.');
         return;
     }
 
-    const oldId = await vscode.window.showInputBox({
+    const oldId = node?.doc?.id ?? await vscode.window.showInputBox({
         prompt: 'Document ID to rename',
         placeHolder: 'e.g., payment-system-design',
     });

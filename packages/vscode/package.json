@@ -40,6 +40,30 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "loom.weaveCreate",
+        "title": "New Weave",
+        "category": "Loom",
+        "icon": { "light": "media/icons/weave.svg", "dark": "media/icons/weave.svg" }
+      },
+      {
+        "command": "loom.threadCreate",
+        "title": "Weave Thread",
+        "category": "Loom",
+        "icon": { "light": "media/icons/thread.svg", "dark": "media/icons/thread.svg" }
+      },
+      {
+        "command": "loom.delete",
+        "title": "Delete",
+        "category": "Loom",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "loom.archive",
+        "title": "Archive",
+        "category": "Loom",
+        "icon": { "light": "media/icons/archive.svg", "dark": "media/icons/archive.svg" }
+      },
+      {
         "command": "loom.weaveIdea",
         "title": "Weave Idea",
         "category": "Loom",
@@ -119,7 +143,7 @@
       },
       {
         "command": "loom.chatNew",
-        "title": "New Chat",
+        "title": "Weave Chat",
         "category": "Loom",
         "icon": { "light": "media/icons/chat.svg", "dark": "media/icons/chat.svg" }
       },
@@ -175,6 +199,11 @@
     "configuration": {
       "title": "Loom",
       "properties": {
+        "reslava-loom.user.name": {
+          "type": "string",
+          "default": "",
+          "description": "Your display name used in chat and document headers (e.g. 'Rafa')."
+        },
         "reslava-loom.ai.provider": {
           "type": "string",
           "enum": ["deepseek", "openai"],
@@ -202,44 +231,54 @@
     "menus": {
       "view/title": [
         {
-          "command": "loom.chatNew",
+          "command": "loom.weaveCreate",
           "when": "view == loom.threads",
           "group": "navigation@0"
         },
         {
-          "command": "loom.weaveIdea",
-          "when": "view == loom.threads",
+          "command": "loom.threadCreate",
+          "when": "view == loom.threads && loom.selectedWeaveId",
           "group": "navigation@1"
         },
         {
-          "command": "loom.weaveDesign",
-          "when": "view == loom.threads",
+          "command": "loom.chatNew",
+          "when": "view == loom.threads && loom.selectedWeaveId",
           "group": "navigation@2"
         },
         {
-          "command": "loom.weavePlan",
+          "command": "loom.weaveIdea",
           "when": "view == loom.threads",
           "group": "navigation@3"
         },
         {
-          "command": "loom.setGrouping",
+          "command": "loom.weaveDesign",
           "when": "view == loom.threads",
           "group": "navigation@4"
         },
         {
-          "command": "loom.setTextFilter",
+          "command": "loom.weavePlan",
           "when": "view == loom.threads",
           "group": "navigation@5"
         },
         {
-          "command": "loom.toggleArchived",
+          "command": "loom.setGrouping",
           "when": "view == loom.threads",
           "group": "navigation@6"
         },
         {
-          "command": "loom.refresh",
+          "command": "loom.setTextFilter",
           "when": "view == loom.threads",
           "group": "navigation@7"
+        },
+        {
+          "command": "loom.toggleArchived",
+          "when": "view == loom.threads",
+          "group": "navigation@8"
+        },
+        {
+          "command": "loom.refresh",
+          "when": "view == loom.threads",
+          "group": "navigation@9"
         }
       ],
       "view/item/context": [
@@ -327,6 +366,21 @@
           "command": "loom.closePlan",
           "when": "view == loom.threads && viewItem =~ /^plan-(implementing|done)$/ && loom.aiEnabled",
           "group": "inline@3"
+        },
+        {
+          "command": "loom.rename",
+          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|plan|chat|done|ctx|loose)/",
+          "group": "inline@8"
+        },
+        {
+          "command": "loom.archive",
+          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|chat|done|ctx|loose)/",
+          "group": "inline@9"
+        },
+        {
+          "command": "loom.delete",
+          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|plan|chat|done|ctx|loose)/",
+          "group": "inline@10"
         }
       ]
     }

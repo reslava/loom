@@ -6,6 +6,7 @@ import { ChatDoc } from '../../core/dist';
 
 export interface ChatNewInput {
     weaveId: string;
+    threadId?: string;
     title?: string;
 }
 
@@ -19,18 +20,21 @@ export async function chatNew(
     input: ChatNewInput,
     deps: ChatNewDeps
 ): Promise<{ id: string; filePath: string }> {
-    const weavePath = path.join(deps.loomRoot, 'weaves', input.weaveId);
-    await deps.fs.ensureDir(weavePath);
+    const chatsDir = input.threadId
+        ? path.join(deps.loomRoot, 'weaves', input.weaveId, input.threadId, 'chats')
+        : path.join(deps.loomRoot, 'weaves', input.weaveId, 'chats');
+    await deps.fs.ensureDir(chatsDir);
 
-    const existingFiles = await deps.fs.readdir(weavePath).catch(() => [] as string[]);
+    const existingFiles = await deps.fs.readdir(chatsDir).catch(() => [] as string[]);
     const existingChatIds = existingFiles
         .filter(f => f.match(/-chat-\d+\.md$/))
         .map(f => f.replace(/\.md$/, ''));
 
-    const chatId = generateChatId(input.weaveId, existingChatIds);
-    const title = input.title || `${input.weaveId} Chat`;
+    const scopeId = input.threadId ?? input.weaveId;
+    const chatId = generateChatId(scopeId, existingChatIds);
+    const title = input.title || `${scopeId} Chat`;
 
-    const frontmatter = createBaseFrontmatter('chat', chatId, title, input.weaveId);
+    const frontmatter = createBaseFrontmatter('chat', chatId, title, scopeId);
     const doc: ChatDoc = {
         ...frontmatter,
         type: 'chat',
@@ -38,7 +42,7 @@ export async function chatNew(
         content: '# CHAT\n\n## Rafa:\n',
     };
 
-    const filePath = path.join(weavePath, `${chatId}.md`);
+    const filePath = path.join(chatsDir, `${chatId}.md`);
     await deps.saveDoc(doc, filePath);
 
     return { id: chatId, filePath };
