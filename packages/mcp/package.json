@@ -1,0 +1,20 @@
+{
+  "name": "@reslava-loom/mcp",
+  "version": "0.4.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@reslava-loom/app": "file:../app",
+    "@reslava-loom/fs": "file:../fs",
+    "@reslava-loom/core": "file:../core",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "fs-extra": "^11.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.0.0",
+    "@types/fs-extra": "^11.0.4"
+  }
+}

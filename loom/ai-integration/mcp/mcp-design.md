@@ -2,7 +2,7 @@
 type: design
 id: mcp-design
 title: "Loom MCP Server — Exposing Loom State to AI Agents"
-status: draft
+status: active
 created: 2026-04-25
 version: 1
 tags: [ai, mcp, integration, agent, loom]

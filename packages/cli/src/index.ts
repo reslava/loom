@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
+import * as path from 'path';
 import { initCommand } from './commands/init';
 import { setupCommand } from './commands/setup';
 import { switchCommand } from './commands/switch';
@@ -134,5 +135,18 @@ program
     .command('rename <old-id> <new-title>')
     .description('Rename a finalized document and update all references')
     .action(renameCommand);
+
+program
+    .command('mcp')
+    .description('Start the Loom MCP server (stdio transport)')
+    .action(() => {
+        const mcpEntry = path.resolve(__dirname, '../../mcp/dist/index.js');
+        try {
+            require(mcpEntry);
+        } catch (e: any) {
+            console.error('Loom MCP server not built. Run: ./scripts/build-all.sh');
+            process.exit(1);
+        }
+    });
 
 program.parse(process.argv);

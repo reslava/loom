@@ -21,7 +21,7 @@ if [ "$LINT" = true ]; then
 fi
 
 echo "🧹 Cleaning dist folders..."
-rm -rf packages/core/dist packages/fs/dist packages/app/dist packages/cli/dist
+rm -rf packages/core/dist packages/fs/dist packages/app/dist packages/cli/dist packages/mcp/dist
 
 echo "📦 Building core..."
 cd packages/core && npx tsc --build --force
@@ -40,5 +40,8 @@ npm link --force
 
 echo "📦 Building vscode..."
 cd ../vscode && npx tsc --build --force
+
+echo "📦 Building mcp..."
+cd ../mcp && npx tsc --build --force
 
 echo "✅ Build complete. 'loom' command is ready."

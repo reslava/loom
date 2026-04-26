@@ -2,7 +2,7 @@
 type: plan
 id: mcp-plan-001
 title: "Loom MCP Server — Implementation Plan"
-status: draft
+status: implementing
 created: 2026-04-25
 version: 1
 tags: [ai, mcp, integration, agent, loom]
