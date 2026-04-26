@@ -103,7 +103,7 @@ export async function weaveDesign(
     deps: WeaveDesignDeps
 ): Promise<{ id: string; filePath: string; autoFinalized: boolean }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const weavePath = path.join(loomRoot, 'weaves', input.weaveId);
+    const weavePath = path.join(loomRoot, 'loom', input.weaveId);
 
     if (input.threadId) {
         const threadPath = path.join(weavePath, input.threadId);

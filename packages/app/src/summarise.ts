@@ -46,7 +46,7 @@ export async function summarise(
     }
 
     const loomRoot = deps.getActiveLoomRoot(deps.loomRoot);
-    const ctxPath = path.join(loomRoot, 'weaves', input.weaveId, `${input.weaveId}-ctx.md`);
+    const ctxPath = path.join(loomRoot, 'loom', input.weaveId, `${input.weaveId}-ctx.md`);
 
     if (!input.force && deps.fs.existsSync(ctxPath)) {
         const raw = await deps.fs.readFile(ctxPath, 'utf8');

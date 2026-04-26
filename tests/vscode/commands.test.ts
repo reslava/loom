@@ -43,7 +43,7 @@ suite('completeStep Command (Extension Host)', () => {
         assert.strictEqual(result.autoCompleted, false, 'Plan must not auto-complete after step 1 of 2');
 
         // Plan stays in thread layout: {weavePath}/{threadId}/plans/{planId}.md
-        const planPath = path.join(WORKSPACE_ROOT, 'weaves', weaveId, threadId, 'plans', `${planId}.md`);
+        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveId, threadId, 'plans', `${planId}.md`);
         assert.ok(fileExists(planPath), 'Plan file must still exist in thread plans/');
         const content = fs.readFileSync(planPath, 'utf8');
         assert.ok(content.includes('✅'), 'Plan file must contain a done step marker');
@@ -63,7 +63,7 @@ suite('completeStep Command (Extension Host)', () => {
         assert.strictEqual(result.plan.status, 'done', 'Plan status must be "done"');
 
         // completeStep does NOT move the file — that is closePlan's job.
-        const planPath = path.join(WORKSPACE_ROOT, 'weaves', weaveId, threadId, 'plans', `${planId}.md`);
+        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveId, threadId, 'plans', `${planId}.md`);
         assert.ok(fileExists(planPath), 'Plan file must still be in thread plans/ after auto-complete');
         const content = fs.readFileSync(planPath, 'utf8');
         assert.ok(content.includes('status: done'), 'Plan file must have status: done');

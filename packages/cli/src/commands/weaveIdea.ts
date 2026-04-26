@@ -10,7 +10,7 @@ import { IdeaDoc } from '../../../core/dist';
 
 export async function weaveIdeaCommand(title: string, options: { weave?: string; thread?: string; loose?: boolean }): Promise<void> {
     const loomRoot = getActiveLoomRoot();
-    const weavesDir = path.join(loomRoot, 'weaves');
+    const weavesDir = path.join(loomRoot, 'loom');
     const weaveName = options.weave || toKebabCaseId(title);
     const weavePath = path.join(weavesDir, weaveName);
 

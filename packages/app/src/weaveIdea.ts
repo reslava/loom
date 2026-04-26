@@ -24,7 +24,7 @@ export async function weaveIdea(
     deps: WeaveIdeaDeps
 ): Promise<{ tempId: string; filePath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const weavesDir = path.join(loomRoot, 'weaves');
+    const weavesDir = path.join(loomRoot, 'loom');
     const weaveName = input.weave || toKebabCaseId(input.title);
     const weavePath = path.join(weavesDir, weaveName);
 

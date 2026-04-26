@@ -82,7 +82,7 @@ export async function promoteToIdea(
     const title = titleMatch[1].trim();
     const body = firstNewline === -1 ? '' : reply.slice(firstNewline + 1).trim();
 
-    const weavePath = path.join(deps.loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
     await deps.fs.ensureDir(weavePath);
 
     const existingFiles = await deps.fs.readdir(weavePath).catch(() => [] as string[]);

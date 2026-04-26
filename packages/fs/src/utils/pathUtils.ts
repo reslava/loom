@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
-const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'chats', 'ctx', 'references', '_archive']);
+const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'chats', 'ctx', 'refs', '.archive']);
 
 /**
  * Returns thread subdirectory names within a weave folder.
@@ -25,7 +25,7 @@ export async function findMarkdownFiles(dir: string): Promise<string[]> {
     
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory() && entry.name !== '_archive') {
+        if (entry.isDirectory() && entry.name !== '.archive') {
             result.push(...await findMarkdownFiles(fullPath));
         } else if (entry.isFile() && entry.name.endsWith('.md')) {
             result.push(fullPath);
@@ -57,7 +57,7 @@ export async function findDocumentById(loomRoot: string, id: string): Promise<st
  * Returns the absolute path if found, otherwise null.
  */
 export async function findThreadPath(loomRoot: string, weaveId: string): Promise<string | null> {
-    const threadsDir = path.join(loomRoot, 'weaves');
+    const threadsDir = path.join(loomRoot, 'loom');
     const threadPath = path.join(threadsDir, weaveId);
     
     if (await fs.pathExists(threadPath)) {

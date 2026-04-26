@@ -28,7 +28,7 @@ async function seedThread(
     threadId: string,
     planStatus = 'implementing',
 ): Promise<void> {
-    const threadPath = path.join(loomRoot, 'weaves', weaveId, threadId);
+    const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
     const planId = `${threadId}-plan-001`;
 
     const designFm = makeFrontmatter({
@@ -63,7 +63,7 @@ async function seedDoneInThread(
     threadId: string,
     planId: string,
 ): Promise<void> {
-    const donePath = path.join(loomRoot, 'weaves', weaveId, threadId, 'done');
+    const donePath = path.join(loomRoot, 'loom', weaveId, threadId, 'done');
     const doneId = `${planId}-done`;
     const fm = makeFrontmatter({
         type: 'done',
@@ -91,7 +91,7 @@ async function seedLooseFiber(
         version: 1,
     });
     await fs.outputFile(
-        path.join(loomRoot, 'weaves', weaveId, `${docId}.md`),
+        path.join(loomRoot, 'loom', weaveId, `${docId}.md`),
         `${fm}\n## Summary\nLoose fiber.\n`,
     );
 }
@@ -168,7 +168,7 @@ async function testLoadWeaveWithThreads() {
         // Write a loose fiber so weave is non-empty
         await seedLooseFiber(loomRoot, weaveId, 'docs-infra-idea');
         // Create reserved subdirs with .md files
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const legacyPlanFm = makeFrontmatter({ type: 'plan', id: 'docs-infra-plan-001', title: 'Plan', status: 'draft', created: '2026-04-23', version: 1 });
         await fs.outputFile(path.join(weavePath, 'plans', 'docs-infra-plan-001.md'), `${legacyPlanFm}\n## Steps\n| Done | # | Step | Files | Blocked by |\n|------|---|------|-------|------------|\n| 🔳 | 1 | Step | src/ | — |\n`);
 

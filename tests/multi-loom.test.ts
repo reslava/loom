@@ -90,8 +90,8 @@ async function testMultiLoom() {
     assert(result.exitCode === 0, `loom init failed: ${result.stderr}`);
     assert(result.stdout.includes('initialized'), 'Missing initialized message');
     assert(existsSync(path.join(initPath, '.loom')), '.loom dir not created');
-    assert(existsSync(path.join(initPath, 'weaves')), 'weaves dir not created');
-    assert(existsSync(path.join(initPath, 'references')), 'references dir not created');
+    assert(existsSync(path.join(initPath, 'loom')), 'loom dir not created');
+    assert(existsSync(path.join(initPath, 'loom', 'refs')), 'loom/refs dir not created');
     console.log('    ✅ loom init creates correct directory structure');
 
     // --- Cleanup ---

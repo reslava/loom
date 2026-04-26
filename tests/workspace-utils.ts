@@ -6,11 +6,11 @@ import { serializeFrontmatter } from '../packages/core/dist/index.js';
 export const WORKSPACE_ROOT = 'j:/temp/loom';
 
 export async function setupWorkspace(): Promise<string> {
-    // Remove only weaves/ so j:/temp/loom is stable for manual inspection
-    await remove(path.join(WORKSPACE_ROOT, 'weaves'));
+    // Remove only loom/ so j:/temp/loom is stable for manual inspection
+    await remove(path.join(WORKSPACE_ROOT, 'loom'));
     await ensureDir(path.join(WORKSPACE_ROOT, '.loom'));
     await outputFile(path.join(WORKSPACE_ROOT, '.loom', 'workflow.yml'), 'version: 1\n');
-    await ensureDir(path.join(WORKSPACE_ROOT, 'weaves'));
+    await ensureDir(path.join(WORKSPACE_ROOT, 'loom'));
     return WORKSPACE_ROOT;
 }
 
@@ -30,7 +30,7 @@ export async function seedWeaveWithThread(
     threadId: string,
     options?: { planStatus?: string; steps?: number }
 ): Promise<{ weavePath: string; threadPath: string; planId: string }> {
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     const threadPath = path.join(weavePath, threadId);
     // Plan IDs use weaveId prefix so use-cases can extract weaveId via planId.split('-plan-')[0]
     const planId = `${weaveId}-plan-001`;
@@ -88,7 +88,7 @@ export async function seedThread(
     threadId: string,
     options?: { planStatus?: string; steps?: number }
 ): Promise<{ threadPath: string; planId: string }> {
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     const threadPath = path.join(weavePath, threadId);
     const planId = `${weaveId}-${threadId}-plan-001`;
     const stepCount = options?.steps ?? 1;
@@ -143,7 +143,7 @@ export async function seedLooseFiber(
     weaveId: string,
     fiberId: string
 ): Promise<{ fiberPath: string }> {
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     const fiberPath = path.join(weavePath, `${fiberId}.md`);
 
     const fm = serializeFrontmatter({
@@ -170,7 +170,7 @@ export async function seedDoneInThread(
     threadId: string,
     planId: string
 ): Promise<{ donePath: string }> {
-    const donePath = path.join(loomRoot, 'weaves', weaveId, threadId, 'done', `${planId}-done.md`);
+    const donePath = path.join(loomRoot, 'loom', weaveId, threadId, 'done', `${planId}-done.md`);
 
     const fm = serializeFrontmatter({
         type: 'done',

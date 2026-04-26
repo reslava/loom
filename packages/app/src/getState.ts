@@ -38,7 +38,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     const mode: LoomMode = isMono ? 'mono' : 'multi';
     const loomName = isMono ? '(local)' : (registry.getActiveLoomName() || 'unknown');
     
-    const weavesDir = path.join(loomRoot, 'weaves');
+    const weavesDir = path.join(loomRoot, 'loom');
     const allWeaves: Weave[] = [];
     
     const index = await deps.buildLinkIndex(loomRoot);
@@ -48,7 +48,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         for (const entry of entries) {
             const weavePath = path.join(weavesDir, entry);
             const stat = await deps.fs.stat(weavePath);
-            if (stat.isDirectory() && entry !== '_archive') {
+            if (stat.isDirectory() && entry !== '.archive') {
                 try {
                     const weave = await deps.loadWeave(loomRoot, entry, index);
                     if (weave) {

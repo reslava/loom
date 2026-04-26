@@ -12,17 +12,17 @@ export async function archiveItemCommand(treeProvider: LoomTreeProvider, node?: 
     try {
         const filePath = (node.doc as any)?._path as string | undefined;
         if (filePath) {
-            const archiveDir = path.join(path.dirname(filePath), '_archive');
+            const archiveDir = path.join(path.dirname(filePath), '.archive');
             await fs.ensureDir(archiveDir);
             await fs.move(filePath, path.join(archiveDir, path.basename(filePath)), { overwrite: false });
         } else if (node.contextValue === 'thread' && node.weaveId && node.threadId) {
-            const src = path.join(workspaceRoot, 'weaves', node.weaveId, node.threadId);
-            const dst = path.join(workspaceRoot, 'weaves', node.weaveId, '_archive', node.threadId);
+            const src = path.join(workspaceRoot, 'loom', node.weaveId, node.threadId);
+            const dst = path.join(workspaceRoot, 'loom', node.weaveId, '.archive', node.threadId);
             await fs.ensureDir(path.dirname(dst));
             await fs.move(src, dst, { overwrite: false });
         } else if (node.contextValue === 'weave' && node.weaveId) {
-            const src = path.join(workspaceRoot, 'weaves', node.weaveId);
-            const dst = path.join(workspaceRoot, 'weaves', '_archive', node.weaveId);
+            const src = path.join(workspaceRoot, 'loom', node.weaveId);
+            const dst = path.join(workspaceRoot, 'loom', '.archive', node.weaveId);
             await fs.ensureDir(path.dirname(dst));
             await fs.move(src, dst, { overwrite: false });
         } else {

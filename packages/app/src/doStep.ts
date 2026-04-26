@@ -70,7 +70,7 @@ export async function doStep(
 
     const aiResponse = await deps.aiClient.complete(messages);
 
-    const weavePath = path.join(deps.loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
     const chatsDir = path.join(weavePath, 'ai-chats');
     await deps.fs.ensureDir(chatsDir);
 

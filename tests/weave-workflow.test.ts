@@ -8,7 +8,7 @@ async function testWeaveWorkflow() {
     console.log('🧵 Running weave workflow tests...\n');
 
     const globalLoomPath = path.join(os.homedir(), 'looms', 'default');
-    const weavePath = path.join(globalLoomPath, 'weaves', 'workflow-test');
+    const weavePath = path.join(globalLoomPath, 'loom', 'workflow-test');
     
     await fs.remove(weavePath);
     await fs.ensureDir(weavePath);

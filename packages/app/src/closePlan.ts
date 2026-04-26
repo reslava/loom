@@ -77,7 +77,7 @@ export async function closePlan(
 
     const aiBody = await deps.aiClient.complete(messages);
 
-    const weavePath = path.join(deps.loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
     const threadPath = thread ? path.join(weavePath, thread.id) : null;
     const doneDirPath = threadPath ? path.join(threadPath, 'done') : path.join(weavePath, 'done');
     await deps.fs.ensureDir(doneDirPath);

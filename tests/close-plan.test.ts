@@ -39,7 +39,7 @@ async function testClosePlan() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'cp-weave';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
@@ -75,7 +75,7 @@ async function testClosePlan() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'cp-weave2';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
 
         await createPlanDoc(weavePath, planId, {
@@ -99,7 +99,7 @@ async function testClosePlan() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'cp-weave3';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         await fs.ensureDir(path.join(weavePath, 'plans'));
         // write a dummy file so weave is not empty
         await fs.outputFile(path.join(weavePath, `${weaveId}-design.md`), `---
@@ -130,7 +130,7 @@ requires_load: []
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'cp-weave4';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
 

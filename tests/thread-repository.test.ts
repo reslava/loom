@@ -88,7 +88,7 @@ async function testLoadThread() {
     {
         const weaveId = 'core-engine';
         const threadId = 'state-management';
-        const threadPath = path.join(loomRoot, 'weaves', weaveId, threadId);
+        const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
 
         await writeThreadIdea(threadPath, threadId);
         await writeThreadDesign(threadPath, threadId);
@@ -115,7 +115,7 @@ async function testLoadThread() {
     {
         const weaveId = 'core-engine';
         const threadId = 'event-bus';
-        const threadPath = path.join(loomRoot, 'weaves', weaveId, threadId);
+        const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
 
         await writeThreadPlan(threadPath, `${threadId}-plan-001`, 'draft');
 
@@ -143,7 +143,7 @@ async function testSaveThread() {
     {
         const weaveId = 'vscode-extension';
         const threadId = 'tree-view';
-        const threadPath = path.join(loomRoot, 'weaves', weaveId, threadId);
+        const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
 
         await writeThreadDesign(threadPath, threadId);
         await writeThreadPlan(threadPath, `${threadId}-plan-001`);

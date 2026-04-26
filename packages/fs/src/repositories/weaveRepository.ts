@@ -11,7 +11,7 @@ import { loadThread, saveThread } from './threadRepository';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 
 export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkIndex): Promise<Weave | null> {
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     if (!await fs.pathExists(weavePath)) {
         throw new Error(`Weave directory not found: ${weavePath}`);
     }
@@ -62,7 +62,7 @@ export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkI
 }
 
 export async function saveWeave(loomRoot: string, weave: Weave): Promise<void> {
-    const weavePath = path.join(loomRoot, 'weaves', weave.id);
+    const weavePath = path.join(loomRoot, 'loom', weave.id);
 
     for (const thread of weave.threads) {
         await saveThread(loomRoot, weave.id, thread);

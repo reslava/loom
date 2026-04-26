@@ -67,7 +67,7 @@ export async function updateDiagnostics(
 
 async function buildDocIdMap(): Promise<Map<string, vscode.Uri>> {
     const map = new Map<string, vscode.Uri>();
-    const files = await vscode.workspace.findFiles('weaves/**/*.md');
+    const files = await vscode.workspace.findFiles('loom/**/*.md');
     for (const uri of files) {
         try {
             const doc = await loadDoc(uri.fsPath) as any;

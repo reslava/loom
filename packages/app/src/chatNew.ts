@@ -21,8 +21,8 @@ export async function chatNew(
     deps: ChatNewDeps
 ): Promise<{ id: string; filePath: string }> {
     const chatsDir = input.threadId
-        ? path.join(deps.loomRoot, 'weaves', input.weaveId, input.threadId, 'chats')
-        : path.join(deps.loomRoot, 'weaves', input.weaveId, 'chats');
+        ? path.join(deps.loomRoot, 'loom', input.weaveId, input.threadId, 'chats')
+        : path.join(deps.loomRoot, 'loom', input.weaveId, 'chats');
     await deps.fs.ensureDir(chatsDir);
 
     const existingFiles = await deps.fs.readdir(chatsDir).catch(() => [] as string[]);

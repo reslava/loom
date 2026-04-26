@@ -68,7 +68,7 @@ async function testSummarise() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'sum-weave';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         await createDesignDoc(weavePath, weaveId, { threadId: weaveId });
 
         const planId = `${weaveId}-plan-001`;
@@ -112,7 +112,7 @@ async function testSummarise() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'sum-weave2';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         await createDesignDoc(weavePath, weaveId, { threadId: weaveId });
 
         const loadWeaveOrThrow = async (root: string, id: string) => {
@@ -146,7 +146,7 @@ async function testSummarise() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'sum-weave3';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         await createDesignDoc(weavePath, weaveId, { threadId: weaveId });
 
         const loadWeaveOrThrow = async (root: string, id: string) => {
@@ -178,7 +178,7 @@ async function testSummarise() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'sum-weave4';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         await createDesignDoc(weavePath, weaveId, { threadId: weaveId });
 
         const loadWeaveOrThrow = async (root: string, id: string) => {

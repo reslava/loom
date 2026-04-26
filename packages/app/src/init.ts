@@ -33,9 +33,8 @@ export async function initLocal(
     deps.fs.ensureDirSync(path.join(localPath, '.loom', 'cache'));
     deps.fs.ensureDirSync(path.join(localPath, '.loom', 'prompts'));
     deps.fs.ensureDirSync(path.join(localPath, '.loom', 'schemas'));
-    deps.fs.ensureDirSync(path.join(localPath, 'weaves'));
-    deps.fs.ensureDirSync(path.join(localPath, 'chats'));
-    deps.fs.ensureDirSync(path.join(localPath, 'references'));
+    deps.fs.ensureDirSync(path.join(localPath, 'loom'));
+    deps.fs.ensureDirSync(path.join(localPath, 'loom', 'refs'));
 
     return { path: localPath };
 }
@@ -56,9 +55,8 @@ export async function initMulti(
     deps.fs.ensureDirSync(path.join(defaultPath, '.loom', 'cache'));
     deps.fs.ensureDirSync(path.join(defaultPath, '.loom', 'prompts'));
     deps.fs.ensureDirSync(path.join(defaultPath, '.loom', 'schemas'));
-    deps.fs.ensureDirSync(path.join(defaultPath, 'weaves'));
-    deps.fs.ensureDirSync(path.join(defaultPath, 'chats'));
-    deps.fs.ensureDirSync(path.join(defaultPath, 'references'));
+    deps.fs.ensureDirSync(path.join(defaultPath, 'loom'));
+    deps.fs.ensureDirSync(path.join(defaultPath, 'loom', 'refs'));
 
     deps.registry.cleanup();
     

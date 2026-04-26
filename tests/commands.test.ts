@@ -58,7 +58,7 @@ async function testCommands() {
     console.log('🧵 Running CLI commands tests...\n');
 
     const globalLoomPath = path.join(os.homedir(), 'looms', 'default');
-    const weavePath = path.join(globalLoomPath, 'weaves', 'example');
+    const weavePath = path.join(globalLoomPath, 'loom', 'example');
     const threadId = 'example';
     await fs.remove(weavePath);
 
@@ -120,7 +120,7 @@ async function testCompleteStepUseCase() {
     // Thread-based layout: plan in {weaveId}/{threadId}/plans/
     const weaveId = 'cs-weave';
     const threadId = 'cs-feature';
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     // Plan ID uses weaveId prefix so completeStep can extract weaveId via planId.split('-plan-')[0]
     const planId = `${weaveId}-plan-001`;
 

@@ -8,7 +8,7 @@ async function testIdManagement() {
     console.log('🧵 Running ID management tests...\n');
 
     const globalLoomPath = path.join(os.homedir(), 'looms', 'default');
-    const weavePath = path.join(globalLoomPath, 'weaves', 'id-test');
+    const weavePath = path.join(globalLoomPath, 'loom', 'id-test');
     
     await fs.remove(weavePath);
     await fs.ensureDir(weavePath);

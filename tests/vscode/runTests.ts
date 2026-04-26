@@ -7,7 +7,7 @@ async function main() {
     const workspacePath = 'j:/temp/loom';
     fs.mkdirSync(path.join(workspacePath, '.loom'), { recursive: true });
     fs.writeFileSync(path.join(workspacePath, '.loom', 'workflow.yml'), 'version: 1\n');
-    fs.mkdirSync(path.join(workspacePath, 'weaves'), { recursive: true });
+    fs.mkdirSync(path.join(workspacePath, 'loom'), { recursive: true });
 
     // extensionDevelopmentPath: the vscode package (has package.json + dist/)
     const extensionDevelopmentPath = path.resolve(__dirname, '..', '..', '..', 'packages', 'vscode');

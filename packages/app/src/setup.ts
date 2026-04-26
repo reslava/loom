@@ -28,9 +28,8 @@ export async function setupLoom(
     deps.fs.ensureDirSync(path.join(loomPath, '.loom', 'prompts'));
     deps.fs.ensureDirSync(path.join(loomPath, '.loom', 'schemas'));
     deps.fs.ensureDirSync(path.join(loomPath, '.loom', 'cache'));
-    deps.fs.ensureDirSync(path.join(loomPath, 'chats'));
-    deps.fs.ensureDirSync(path.join(loomPath, 'weaves'));
-    deps.fs.ensureDirSync(path.join(loomPath, 'references'));
+    deps.fs.ensureDirSync(path.join(loomPath, 'loom'));
+    deps.fs.ensureDirSync(path.join(loomPath, 'loom', 'refs'));
 
     try {
         deps.registry.addLoom(input.name, loomPath);

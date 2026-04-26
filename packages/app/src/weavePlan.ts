@@ -26,7 +26,7 @@ export async function weavePlan(
     input: WeavePlanInput,
     deps: WeavePlanDeps
 ): Promise<{ id: string; filePath: string }> {
-    const weavePath = path.join(deps.loomRoot, 'weaves', input.weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', input.weaveId);
 
     if (input.threadId) {
         const threadPath = path.join(weavePath, input.threadId);

@@ -46,7 +46,7 @@ async function testDoStep() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'ds-weave';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
@@ -72,7 +72,7 @@ async function testDoStep() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'ds-weave2';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
@@ -89,7 +89,7 @@ async function testDoStep() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'ds-weave3';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
@@ -121,7 +121,7 @@ async function testDoStep() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'ds-weave4';
-        const weavePath = path.join(loomRoot, 'weaves', weaveId);
+        const weavePath = path.join(loomRoot, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
 

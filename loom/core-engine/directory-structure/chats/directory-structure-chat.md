@@ -171,3 +171,20 @@ Done. `.archive/` confirmed — good call.
 - Phase 6 (steps 27–30): Final audit grep + full test + commit
 
 Key ordering decision: code changes go before file moves so the test suite catches path regressions immediately after the rename.
+
+## Rafa:
+
+Do `weaves/core-engine/directory-structure/plans/directory-structure-plan-001.md`
+Phase 1, 2, 3, commit
+
+## Rafa: 
+
+as we already agreed `.archive` is the final name and exists in 3 levels 
+1. project (loom)
+2. workstream (weave)
+3. thread
+now they are correct
+
+continue with commit
+
+reply inside this doc

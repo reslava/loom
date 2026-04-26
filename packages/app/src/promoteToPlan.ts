@@ -82,7 +82,7 @@ export async function promoteToPlan(
     const title = titleMatch[1].trim();
     const body = firstNewline === -1 ? '' : reply.slice(firstNewline + 1).trim();
 
-    const plansDir = path.join(deps.loomRoot, 'weaves', weaveId, 'plans');
+    const plansDir = path.join(deps.loomRoot, 'loom', weaveId, 'plans');
     await deps.fs.ensureDir(plansDir);
 
     const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);

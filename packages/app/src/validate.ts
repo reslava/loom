@@ -38,7 +38,7 @@ async function validateWeave(
     deps: Pick<ValidateDeps, 'loadDoc' | 'fs'>
 ): Promise<ValidationResult> {
     const issues: string[] = [];
-    const weavePath = path.join(loomRoot, 'weaves', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
     
     if (!await deps.fs.pathExists(weavePath)) {
         return { id: weaveId, issues: ['Weave directory not found'] };
@@ -93,7 +93,7 @@ export async function validate(
     deps: ValidateDeps
 ): Promise<{ results: ValidationResult[]; index: LinkIndex }> {
     const loomRoot = deps.getActiveLoomRoot(deps.loomRoot);
-    const weavesDir = path.join(loomRoot, 'weaves');
+    const weavesDir = path.join(loomRoot, 'loom');
     const index = await deps.buildLinkIndex(loomRoot);
     const results: ValidationResult[] = [];
 
@@ -105,7 +105,7 @@ export async function validate(
         for (const entry of entries) {
             const weavePath = path.join(weavesDir, entry);
             const stat = await deps.fs.stat(weavePath);
-            if (stat.isDirectory() && entry !== '_archive') {
+            if (stat.isDirectory() && entry !== '.archive') {
                 try {
                     results.push(await validateWeave(entry, index, loomRoot, deps));
                 } catch {

@@ -113,7 +113,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.workspace.onDidChangeWorkspaceFolders(() => syncAndRefresh())
     );
 
-    const watcher = vscode.workspace.createFileSystemWatcher('**/weaves/**/*.md');
+    const watcher = vscode.workspace.createFileSystemWatcher('**/loom/**/*.md');
     const debouncedRefresh = debounce(() => treeProvider.refresh(), 300);
     context.subscriptions.push(watcher.onDidCreate(debouncedRefresh));
     context.subscriptions.push(watcher.onDidChange(debouncedRefresh));

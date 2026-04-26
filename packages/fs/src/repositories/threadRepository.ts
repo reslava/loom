@@ -38,7 +38,7 @@ export async function loadThread(
     threadId: string,
     index?: LinkIndex,
 ): Promise<Thread> {
-    const threadPath = path.join(loomRoot, 'weaves', weaveId, threadId);
+    const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
 
     let idea: IdeaDoc | undefined;
     const ideaPath = path.join(threadPath, `${threadId}-idea.md`);
@@ -100,7 +100,7 @@ function docPathInThread(doc: Document, threadPath: string, threadId: string): s
 }
 
 export async function saveThread(loomRoot: string, weaveId: string, thread: Thread): Promise<void> {
-    const threadPath = path.join(loomRoot, 'weaves', weaveId, thread.id);
+    const threadPath = path.join(loomRoot, 'loom', weaveId, thread.id);
     for (const doc of thread.allDocs) {
         const filePath = (doc as any)._path ?? docPathInThread(doc, threadPath, thread.id);
         await saveDoc(doc, filePath);
