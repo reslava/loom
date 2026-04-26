@@ -66,3 +66,58 @@ I have already created `packages/mcp`
 ### TODO
 - Install `@modelcontextprotocol/sdk`
 - Do `mcp-plan-001.md` Phase 1, 2, commit
+
+## AI:
+
+Phase 1+2 committed — `e00c0e8`.
+
+**Phase 1 (steps 1–5):**
+- `packages/mcp/package.json` + `tsconfig.json`
+- `src/server.ts` — factory with stubs for tools/prompts; resource dispatch
+- `src/index.ts` — stdio entry point, reads `LOOM_ROOT`
+- `loom mcp` wired in CLI; `packages/mcp` added to `build-all.sh` + root `tsconfig.json`
+
+**Phase 2 (steps 6–10) — 5 resources live:**
+| Resource | Returns |
+|----------|---------|
+| `loom://state` | Full `getState()` — supports `?weaveId=` filter |
+| `loom://status` | Raw `.loom/_status.md` text |
+| `loom://link-index` | `buildLinkIndex()` serialized |
+| `loom://diagnostics` | Broken `parent_id`s + dangling `child_id`s |
+| `loom://summary` | Health counts (weaves, plans, stale, blocked) |
+
+Build clean. Tests passing (1 pre-existing failure unrelated to MCP).
+
+Next: Phase 3 (document reading resources — `loom://docs/{id}`, `loom://thread-context/{weaveId}/{threadId}`, `loom://plan/{id}`, `loom://requires-load/{id}`).
+
+## Rafa:
+
+- Do Phase 3, 4, commit
+
+## AI:
+
+Phase 3+4 committed.
+
+**Phase 3 (steps 11–14) — 4 document reading resources live:**
+
+| Resource | Returns |
+|----------|---------|
+| `loom://docs/{id}` | Raw markdown of any doc by id |
+| `loom://thread-context/{weaveId}/{threadId}` | Bundled: ctx summary + idea + design + active plan + requires_load refs |
+| `loom://plan/{id}` | Plan frontmatter + parsed steps table as JSON |
+| `loom://requires-load/{id}` | Recursive requires_load union as JSON array |
+
+**Phase 4 (steps 15–20) — 6 document authoring tools live:**
+
+| Tool | Delegates to |
+|------|-------------|
+| `loom_create_idea` | `weaveIdea` app use case |
+| `loom_create_design` | `weaveDesign` app use case |
+| `loom_create_plan` | `weavePlan` app use case |
+| `loom_update_doc` | direct load/save, increments `version` |
+| `loom_append_to_chat` | raw file append (preserves frontmatter) |
+| `loom_create_chat` | `chatNew` app use case |
+
+Build clean. Tests passing (1 pre-existing failure unrelated to MCP).
+
+Next: Phase 5 (workflow transition tools — `loom_start_plan`, `loom_complete_step`, `loom_close_plan`, `loom_promote`, `loom_finalize_doc`, `loom_archive`, `loom_rename`).

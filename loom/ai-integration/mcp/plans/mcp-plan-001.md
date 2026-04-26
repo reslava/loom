@@ -39,11 +39,11 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 1 | Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`) | `packages/mcp/package.json` | — |
-| ☐ | 2 | Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references` | `packages/mcp/tsconfig.json` | 1 |
-| ☐ | 3 | Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now) | `packages/mcp/src/server.ts` | 2 |
-| ☐ | 4 | Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server | `packages/mcp/src/index.ts` | 3 |
-| ☐ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 |
+| ✅ | 1 | Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`) | `packages/mcp/package.json` | — |
+| ✅ | 2 | Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references` | `packages/mcp/tsconfig.json` | 1 |
+| ✅ | 3 | Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now) | `packages/mcp/src/server.ts` | 2 |
+| ✅ | 4 | Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server | `packages/mcp/src/index.ts` | 3 |
+| ✅ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 |
 
 **Notes:**
 - Transport: `StdioServerTransport` from `@modelcontextprotocol/sdk/server/stdio.js`
@@ -56,11 +56,11 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 6 | Implement `loom://state` resource — calls `getState(deps)` with optional `?weaveId=` and `?threadId=` query params; serializes to JSON; if `threadId` provided and no `weaveId`, error | `packages/mcp/src/resources/state.ts` | 5 |
-| ☐ | 7 | Implement `loom://status` resource — reads `.loom/_status.md` raw text; returns `{ content, deprecated: true }` with note that this endpoint will be removed in Stage 2 | `packages/mcp/src/resources/status.ts` | 5 |
-| ☐ | 8 | Implement `loom://link-index` resource — calls `buildLinkIndex(root)` and serializes the index map as JSON | `packages/mcp/src/resources/linkIndex.ts` | 5 |
-| ☐ | 9 | Implement `loom://diagnostics` resource — runs `getState`, iterates all docs, collects broken `parent_id`s, dangling `child_ids`, orphaned docs (docs with a non-existent `parent_id`); returns structured array | `packages/mcp/src/resources/diagnostics.ts` | 6 |
-| ☐ | 10 | Implement `loom://summary` resource — pulls `state.summary` counts (totalWeaves, activeWeaves, implementingWeaves, totalPlans, stalePlans, blockedSteps); returns JSON | `packages/mcp/src/resources/summary.ts` | 6 |
+| ✅ | 6 | Implement `loom://state` resource — calls `getState(deps)` with optional `?weaveId=` and `?threadId=` query params; serializes to JSON; if `threadId` provided and no `weaveId`, error | `packages/mcp/src/resources/state.ts` | 5 |
+| ✅ | 7 | Implement `loom://status` resource — reads `.loom/_status.md` raw text; returns `{ content, deprecated: true }` with note that this endpoint will be removed in Stage 2 | `packages/mcp/src/resources/status.ts` | 5 |
+| ✅ | 8 | Implement `loom://link-index` resource — calls `buildLinkIndex(root)` and serializes the index map as JSON | `packages/mcp/src/resources/linkIndex.ts` | 5 |
+| ✅ | 9 | Implement `loom://diagnostics` resource — runs `getState`, iterates all docs, collects broken `parent_id`s, dangling `child_ids`, orphaned docs (docs with a non-existent `parent_id`); returns structured array | `packages/mcp/src/resources/diagnostics.ts` | 6 |
+| ✅ | 10 | Implement `loom://summary` resource — pulls `state.summary` counts (totalWeaves, activeWeaves, implementingWeaves, totalPlans, stalePlans, blockedSteps); returns JSON | `packages/mcp/src/resources/summary.ts` | 6 |
 
 **Notes:**
 - Resources are registered via `server.resource(uri, handler)`
@@ -73,10 +73,10 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 11 | Implement `loom://docs/{id}` resource — uses `findDocumentById(root, id)` to resolve path; loads raw markdown; returns `{ uri, mimeType: 'text/plain', text }` | `packages/mcp/src/resources/docs.ts` | 5 |
-| ☐ | 12 | Implement `loom://thread-context/{weaveId}/{threadId}` resource — loads (in priority order): (1) fresh ctx summary if present, (2) idea + design + active plan, (3) all `requires_load` refs. Accepts optional `?mode=` param (idea/design/plan/implementing) — when set, filters included reference docs using their `load_when` field (v1: include all if `load_when` not yet implemented; add filter once `load-when-plan-001` is done). Bundles into single markdown with `## {type}: {id}` section headers. | `packages/mcp/src/resources/threadContext.ts` | 5 |
-| ☐ | 13 | Implement `loom://plan/{id}` resource — loads the plan doc via `findDocumentById`; returns JSON with frontmatter + parsed `steps` array (using `parseStepsTable`) | `packages/mcp/src/resources/plan.ts` | 5 |
-| ☐ | 14 | Implement `loom://requires-load/{id}` resource — loads the doc, reads its `requires_load` array, recursively fetches each listed doc (deduplicated), returns the union as a JSON array of `{ id, path, content }` objects | `packages/mcp/src/resources/requiresLoad.ts` | 11 |
+| ✅ | 11 | Implement `loom://docs/{id}` resource — uses `findDocumentById(root, id)` to resolve path; loads raw markdown; returns `{ uri, mimeType: 'text/plain', text }` | `packages/mcp/src/resources/docs.ts` | 5 |
+| ✅ | 12 | Implement `loom://thread-context/{weaveId}/{threadId}` resource — loads (in priority order): (1) fresh ctx summary if present, (2) idea + design + active plan, (3) all `requires_load` refs. Accepts optional `?mode=` param (idea/design/plan/implementing) — when set, filters included reference docs using their `load_when` field (v1: include all if `load_when` not yet implemented; add filter once `load-when-plan-001` is done). Bundles into single markdown with `## {type}: {id}` section headers. | `packages/mcp/src/resources/threadContext.ts` | 5 |
+| ✅ | 13 | Implement `loom://plan/{id}` resource — loads the plan doc via `findDocumentById`; returns JSON with frontmatter + parsed `steps` array (using `parseStepsTable`) | `packages/mcp/src/resources/plan.ts` | 5 |
+| ✅ | 14 | Implement `loom://requires-load/{id}` resource — loads the doc, reads its `requires_load` array, recursively fetches each listed doc (deduplicated), returns the union as a JSON array of `{ id, path, content }` objects | `packages/mcp/src/resources/requiresLoad.ts` | 11 |
 
 **Notes:**
 - `loom://thread-context` is the highest-value resource for agents — it is what replaces the manual "read all these files" step
@@ -90,12 +90,12 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 15 | `loom_create_idea` — args: `weaveId`, `threadId?`, `title`, `content`; delegates to `weaveIdea` app use case; returns `{ id, filePath }` | `packages/mcp/src/tools/createIdea.ts` | 5 |
-| ☐ | 16 | `loom_create_design` — args: `weaveId`, `threadId`, `title`, `content`; delegates to `weaveDesign`; returns `{ id, filePath }` | `packages/mcp/src/tools/createDesign.ts` | 5 |
-| ☐ | 17 | `loom_create_plan` — args: `weaveId`, `threadId`, `title`, `steps[]` (each: `{ order, description }`); delegates to `weavePlan`; returns `{ id, filePath }` | `packages/mcp/src/tools/createPlan.ts` | 5 |
-| ☐ | 18 | `loom_update_doc` — args: `id`, `content` (markdown body, no frontmatter); loads the doc via `findDocumentById`, preserves frontmatter, replaces body, saves; returns `{ id, filePath }` | `packages/mcp/src/tools/updateDoc.ts` | 11 |
-| ☐ | 19 | `loom_append_to_chat` — args: `id`, `role` (`"AI"` or `"Rafa"`), `body`; loads the chat doc, appends `\n\n## {role}:\n{body}`, saves; returns `{ id, filePath }` | `packages/mcp/src/tools/appendToChat.ts` | 18 |
-| ☐ | 20 | `loom_create_chat` — args: `weaveId`, `threadId?`, `title?`; delegates to `chatNew` app use case; returns `{ id, filePath }` | `packages/mcp/src/tools/createChat.ts` | 5 |
+| ✅ | 15 | `loom_create_idea` — args: `weaveId`, `threadId?`, `title`, `content`; delegates to `weaveIdea` app use case; returns `{ id, filePath }` | `packages/mcp/src/tools/createIdea.ts` | 5 |
+| ✅ | 16 | `loom_create_design` — args: `weaveId`, `threadId`, `title`, `content`; delegates to `weaveDesign`; returns `{ id, filePath }` | `packages/mcp/src/tools/createDesign.ts` | 5 |
+| ✅ | 17 | `loom_create_plan` — args: `weaveId`, `threadId`, `title`, `steps[]` (each: `{ order, description }`); delegates to `weavePlan`; returns `{ id, filePath }` | `packages/mcp/src/tools/createPlan.ts` | 5 |
+| ✅ | 18 | `loom_update_doc` — args: `id`, `content` (markdown body, no frontmatter); loads the doc via `findDocumentById`, preserves frontmatter, replaces body, saves; returns `{ id, filePath }` | `packages/mcp/src/tools/updateDoc.ts` | 11 |
+| ✅ | 19 | `loom_append_to_chat` — args: `id`, `role` (`"AI"` or `"Rafa"`), `body`; loads the chat doc, appends `\n\n## {role}:\n{body}`, saves; returns `{ id, filePath }` | `packages/mcp/src/tools/appendToChat.ts` | 18 |
+| ✅ | 20 | `loom_create_chat` — args: `weaveId`, `threadId?`, `title?`; delegates to `chatNew` app use case; returns `{ id, filePath }` | `packages/mcp/src/tools/createChat.ts` | 5 |
 
 **Notes:**
 - Tool return shape: `{ content: [{ type: 'text', text: JSON.stringify(result) }] }`

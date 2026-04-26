@@ -12,6 +12,18 @@ import { handleStatusResource } from './resources/status';
 import { handleLinkIndexResource } from './resources/linkIndex';
 import { handleDiagnosticsResource } from './resources/diagnostics';
 import { handleSummaryResource } from './resources/summary';
+import { handleDocsResource } from './resources/docs';
+import { handleThreadContextResource } from './resources/threadContext';
+import { handlePlanResource } from './resources/plan';
+import { handleRequiresLoadResource } from './resources/requiresLoad';
+import * as createIdea from './tools/createIdea';
+import * as createDesign from './tools/createDesign';
+import * as createPlan from './tools/createPlan';
+import * as updateDoc from './tools/updateDoc';
+import * as appendToChat from './tools/appendToChat';
+import * as createChat from './tools/createChat';
+
+const TOOLS = [createIdea, createDesign, createPlan, updateDoc, appendToChat, createChat];
 
 export function createLoomMcpServer(root: string): Server {
     const server = new Server(
@@ -26,6 +38,10 @@ export function createLoomMcpServer(root: string): Server {
             { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph (parent_id / child_ids)', mimeType: 'application/json' },
             { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
             { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
+            { uri: 'loom://docs/{id}', name: 'Document', description: 'Raw markdown of any Loom document by id', mimeType: 'text/plain' },
+            { uri: 'loom://thread-context/{weaveId}/{threadId}', name: 'Thread Context', description: 'Bundled context for a thread: ctx summary, idea, design, active plan, requires_load refs', mimeType: 'text/plain' },
+            { uri: 'loom://plan/{id}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
+            { uri: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
         ],
     }));
 
@@ -46,14 +62,33 @@ export function createLoomMcpServer(root: string): Server {
         if (uri === 'loom://summary') {
             return handleSummaryResource(root);
         }
+        if (uri.startsWith('loom://docs/')) {
+            return handleDocsResource(root, uri);
+        }
+        if (uri.startsWith('loom://thread-context/')) {
+            return handleThreadContextResource(root, uri);
+        }
+        if (uri.startsWith('loom://plan/')) {
+            return handlePlanResource(root, uri);
+        }
+        if (uri.startsWith('loom://requires-load/')) {
+            return handleRequiresLoadResource(root, uri);
+        }
         throw new Error(`Unknown resource URI: ${uri}`);
     });
 
-    // Tools (Phase 4-6 — not yet implemented)
-    server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [] }));
-    server.setRequestHandler(CallToolRequestSchema, async () => ({
-        content: [{ type: 'text' as const, text: 'No tools implemented yet.' }],
+    server.setRequestHandler(ListToolsRequestSchema, async () => ({
+        tools: TOOLS.map(t => t.toolDef),
     }));
+
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
+        const { name, arguments: args } = request.params;
+        const tool = TOOLS.find(t => t.toolDef.name === name);
+        if (!tool) {
+            throw new Error(`Unknown tool: ${name}`);
+        }
+        return tool.handle(root, (args ?? {}) as Record<string, unknown>);
+    });
 
     // Prompts (Phase 7 — not yet implemented)
     server.setRequestHandler(ListPromptsRequestSchema, async () => ({ prompts: [] }));
