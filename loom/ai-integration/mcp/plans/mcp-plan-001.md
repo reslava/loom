@@ -108,13 +108,13 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 21 | `loom_start_plan` — args: `id`; loads plan, validates status is `draft` or `active`, calls `startPlan` app use case; returns updated plan | `packages/mcp/src/tools/startPlan.ts` | 5 |
-| ☐ | 22 | `loom_complete_step` — args: `planId`, `stepNumber`; loads plan, marks step done in the steps table (idempotent — no error if already done), saves; returns updated steps | `packages/mcp/src/tools/completeStep.ts` | 5 |
-| ☐ | 23 | `loom_close_plan` — args: `id`, `summary?`; calls `closePlan` app use case; returns `{ planId, doneDocId, doneDocPath }` | `packages/mcp/src/tools/closePlan.ts` | 5 |
-| ☐ | 24 | `loom_promote` — args: `sourceId`, `targetType` (`"idea"` \| `"design"` \| `"plan"`); dispatches to the appropriate promote use case (`promoteToIdea`, `promoteToDesign`, `promoteToPlan`); returns new doc `{ id, filePath }` | `packages/mcp/src/tools/promote.ts` | 5 |
-| ☐ | 25 | `loom_finalize_doc` — args: `id`; calls `finalize` app use case (moves `-temp` doc to final form); returns `{ oldId, newId, filePath }` | `packages/mcp/src/tools/finalizeDoc.ts` | 5 |
-| ☐ | 26 | `loom_archive` — args: `id`; delegates to `archiveItem` (moves doc/thread/weave dir to `_archive/`); returns `{ id, archivedPath }` | `packages/mcp/src/tools/archive.ts` | 5 |
-| ☐ | 27 | `loom_rename` — args: `oldId`, `newTitle`; delegates to `rename` app use case; returns `{ oldId, newId, updatedCount }` | `packages/mcp/src/tools/rename.ts` | 5 |
+| ✅ | 21 | `loom_start_plan` — args: `id`; loads plan, validates status is `draft` or `active`, calls `startPlan` app use case; returns updated plan | `packages/mcp/src/tools/startPlan.ts` | 5 |
+| ✅ | 22 | `loom_complete_step` — args: `planId`, `stepNumber`; loads plan, marks step done in the steps table (idempotent — no error if already done), saves; returns updated steps | `packages/mcp/src/tools/completeStep.ts` | 5 |
+| ✅ | 23 | `loom_close_plan` — args: `id`, `summary?`; calls `closePlan` app use case; returns `{ planId, doneDocId, doneDocPath }` | `packages/mcp/src/tools/closePlan.ts` | 5 |
+| ✅ | 24 | `loom_promote` — args: `sourceId`, `targetType` (`"idea"` \| `"design"` \| `"plan"`); dispatches to the appropriate promote use case (`promoteToIdea`, `promoteToDesign`, `promoteToPlan`); returns new doc `{ id, filePath }` | `packages/mcp/src/tools/promote.ts` | 5 |
+| ✅ | 25 | `loom_finalize_doc` — args: `id`; calls `finalize` app use case (moves `-temp` doc to final form); returns `{ oldId, newId, filePath }` | `packages/mcp/src/tools/finalizeDoc.ts` | 5 |
+| ✅ | 26 | `loom_archive` — args: `id`; delegates to `archiveItem` (moves doc/thread/weave dir to `_archive/`); returns `{ id, archivedPath }` | `packages/mcp/src/tools/archive.ts` | 5 |
+| ✅ | 27 | `loom_rename` — args: `oldId`, `newTitle`; delegates to `rename` app use case; returns `{ oldId, newId, updatedCount }` | `packages/mcp/src/tools/rename.ts` | 5 |
 
 **Notes:**
 - Each tool description must explicitly state its preconditions (e.g., "`loom_complete_step`: call only on plans with status `implementing`") so the agent uses them correctly
@@ -126,11 +126,11 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
-| ☐ | 28 | `loom_find_doc` — args: `id`; calls `findDocumentById(root, id)`; returns `{ id, filePath }` or error if not found | `packages/mcp/src/tools/findDoc.ts` | 5 |
-| ☐ | 29 | `loom_search_docs` — args: `query`, `type?`, `weaveId?`; loads full state (optionally scoped), filters docs whose `id`, `title`, or `content` contains `query` (case-insensitive); returns array of `{ id, type, weaveId, threadId?, filePath, excerpt }` | `packages/mcp/src/tools/searchDocs.ts` | 6 |
-| ☐ | 30 | `loom_get_blocked_steps` — no args; loads state + link index; runs `isStepBlocked` for every plan step; returns array of `{ planId, stepNumber, stepDescription, blockedBy }` | `packages/mcp/src/tools/getBlockedSteps.ts` | 6 |
-| ☐ | 31 | `loom_get_stale_plans` — no args; loads state; returns array of `{ planId, threadId, weaveId, designVersion, planDesignVersion }` for plans where `plan.design_version < thread.design.version` | `packages/mcp/src/tools/getStalePlans.ts` | 6 |
-| ☐ | 32 | `loom_get_stale_docs` — generalised stale check: returns all docs (ctx, ideas, designs) whose parent (via `parent_id`) or parent thread/weave has been updated since the doc's `created` date; includes stale plans. Agent uses this to know what needs refreshing. | `packages/mcp/src/tools/getStaleDocs.ts` | 6 |
+| ✅ | 28 | `loom_find_doc` — args: `id`; calls `findDocumentById(root, id)`; returns `{ id, filePath }` or error if not found | `packages/mcp/src/tools/findDoc.ts` | 5 |
+| ✅ | 29 | `loom_search_docs` — args: `query`, `type?`, `weaveId?`; loads full state (optionally scoped), filters docs whose `id`, `title`, or `content` contains `query` (case-insensitive); returns array of `{ id, type, weaveId, threadId?, filePath, excerpt }` | `packages/mcp/src/tools/searchDocs.ts` | 6 |
+| ✅ | 30 | `loom_get_blocked_steps` — no args; loads state + link index; runs `isStepBlocked` for every plan step; returns array of `{ planId, stepNumber, stepDescription, blockedBy }` | `packages/mcp/src/tools/getBlockedSteps.ts` | 6 |
+| ✅ | 31 | `loom_get_stale_plans` — no args; loads state; returns array of `{ planId, threadId, weaveId, designVersion, planDesignVersion }` for plans where `plan.design_version < thread.design.version` | `packages/mcp/src/tools/getStalePlans.ts` | 6 |
+| ✅ | 32 | `loom_get_stale_docs` — generalised stale check: returns all docs (ctx, ideas, designs) whose parent (via `parent_id`) or parent thread/weave has been updated since the doc's `created` date; includes stale plans. Agent uses this to know what needs refreshing. | `packages/mcp/src/tools/getStaleDocs.ts` | 6 |
 | ☐ | 33 | `loom_refresh_ctx` — args: `weaveId`, `threadId?`; triggers ctx regeneration via sampling (loads idea+design+recent chats, asks host agent for a summary, saves to `{thread}/ctx/{ctx-id}.md` or `{weave}/ctx.md`); returns `{ ctxId, filePath }` | `packages/mcp/src/tools/refreshCtx.ts` | 38 |
 
 ---

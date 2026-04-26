@@ -121,3 +121,39 @@ Phase 3+4 committed.
 Build clean. Tests passing (1 pre-existing failure unrelated to MCP).
 
 Next: Phase 5 (workflow transition tools — `loom_start_plan`, `loom_complete_step`, `loom_close_plan`, `loom_promote`, `loom_finalize_doc`, `loom_archive`, `loom_rename`).
+
+## Rafa:
+
+- Do Phase 5, 6, commit
+
+## AI:
+
+Phase 5+6 committed.
+
+**Phase 5 (steps 21–27) — 7 workflow transition tools live:**
+
+| Tool | Notes |
+|------|-------|
+| `loom_start_plan` | Fires `START_IMPLEMENTING_PLAN` event via `runEvent` |
+| `loom_complete_step` | Delegates to `completeStep` app use case |
+| `loom_close_plan` | Delegates to `closePlan`; stub AI client uses `notes` param or placeholder until Phase 8 sampling |
+| `loom_promote` | Dispatches to `promoteToIdea/Design/Plan`; stub AI client until Phase 8 |
+| `loom_finalize_doc` | Delegates to `finalize` app use case |
+| `loom_archive` | Direct `fs.move` to `.archive/` (no app use case existed) |
+| `loom_rename` | Delegates to `rename` app use case (updates all references) |
+
+**Phase 6 (steps 28–32) — 5 search & query tools live:**
+
+| Tool | Notes |
+|------|-------|
+| `loom_find_doc` | `findDocumentById` → `{ id, filePath }` |
+| `loom_search_docs` | Case-insensitive id/title/content search; optional type + weave filter |
+| `loom_get_blocked_steps` | Iterates implementing plans, runs `isStepBlocked` per step |
+| `loom_get_stale_plans` | `getStalePlans()` per weave |
+| `loom_get_stale_docs` | Stale plans + docs whose parent was updated after doc created |
+
+Step 33 (`loom_refresh_ctx`) skipped — blocked by Phase 8 (sampling).
+
+Build clean. Tests passing (1 pre-existing failure unrelated to MCP).
+
+Next: Phase 7 (prompts) or Phase 8 (sampling) — your call.

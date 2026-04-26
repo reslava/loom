@@ -22,8 +22,24 @@ import * as createPlan from './tools/createPlan';
 import * as updateDoc from './tools/updateDoc';
 import * as appendToChat from './tools/appendToChat';
 import * as createChat from './tools/createChat';
+import * as startPlan from './tools/startPlan';
+import * as completeStep from './tools/completeStep';
+import * as closePlan from './tools/closePlan';
+import * as promote from './tools/promote';
+import * as finalizeDoc from './tools/finalizeDoc';
+import * as archive from './tools/archive';
+import * as rename from './tools/rename';
+import * as findDoc from './tools/findDoc';
+import * as searchDocs from './tools/searchDocs';
+import * as getBlockedSteps from './tools/getBlockedSteps';
+import * as getStalePlans from './tools/getStalePlans';
+import * as getStaleDocs from './tools/getStaleDocs';
 
-const TOOLS = [createIdea, createDesign, createPlan, updateDoc, appendToChat, createChat];
+const TOOLS = [
+    createIdea, createDesign, createPlan, updateDoc, appendToChat, createChat,
+    startPlan, completeStep, closePlan, promote, finalizeDoc, archive, rename,
+    findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs,
+];
 
 export function createLoomMcpServer(root: string): Server {
     const server = new Server(
