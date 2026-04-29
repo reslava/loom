@@ -1,3 +1,15 @@
+---
+type: chat
+id: loom-install-chat
+title: "Loom Install Chat"
+status: active
+created: 2026-04-27
+version: 1
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
 # CHAT
 
 ## Rafa:
@@ -270,3 +282,20 @@ Next: step 10 — walkthrough in `package.json`. Go?
 ## Rafa:
 
 Do 10-13
+
+## AI:
+
+Steps 10, 11, 13 ✅ — step 12 (test at `j:/temp`) is yours.
+
+**Walkthrough** added to `package.json` (`contributes.walkthroughs`) — 4 steps with `completionEvents` wired to the 5 context keys. Three walkthrough commands registered: `loom.install.openCliTerminal`, `loom.install.runInstall`, `loom.install.openAiSettings`.
+
+**Committed** `7a73e5d` — 19 files, 1718 insertions.
+
+**To test (step 12):**
+```bash
+code --install-extension j:/src/loom/packages/vscode/loom-vscode-0.1.0.vsix --force
+```
+Fully restart VS Code, open `j:/temp`. Expected:
+- Notification: *"Initialize Loom in this workspace?"* (since `.loom/` was deleted)
+- Walkthrough visible in "Get Started" tab (Help → Get Started → filter "Loom")
+- Click Initialize or run `loom install` in terminal → tree populates

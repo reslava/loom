@@ -1,3 +1,15 @@
+---
+type: chat
+id: mcp-test-chat
+title: "Mcp Test Chat"
+status: active
+created: 2026-04-27
+version: 1
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
 # CHAT
 
 ## Rafa:

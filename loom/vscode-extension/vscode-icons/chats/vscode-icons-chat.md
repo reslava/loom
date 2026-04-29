@@ -1,3 +1,15 @@
+---
+type: chat
+id: vscode-icons-chat
+title: "Vscode Icons Chat"
+status: active
+created: 2026-04-20
+version: 1
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
 # CHAT
 
 ## Rafa:

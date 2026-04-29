@@ -1,3 +1,15 @@
+---
+type: chat
+id: next4-chat
+title: "Next4 Chat"
+status: active
+created: 2026-04-23
+version: 1
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
 # CHAT
 
 ## Rafa:

@@ -1,3 +1,15 @@
+---
+type: chat
+id: directory-structure-chat
+title: "Directory Structure Chat"
+status: active
+created: 2026-04-26
+version: 1
+tags: []
+parent_id: null
+child_ids: []
+requires_load: []
+---
 # CHAT
 
 ## Rafa:
