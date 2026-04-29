@@ -2,7 +2,7 @@
 type: plan
 id: vscode-mcp-refactor-plan-001
 title: "Refactor VS Code Extension to Use MCP — Plan 001"
-status: implementing
+status: done
 created: 2026-04-27
 version: 1
 tags: [vscode, mcp, implementation]

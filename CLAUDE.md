@@ -27,13 +27,6 @@ design documents. The `packages/` directory contains the implementation.
 
 ---
 
-## Stage
-
-**Stage 2 — MCP Active.** All state is served through MCP. No manual `_status.md` file.
-Claude Code and CLI both route through MCP for all state reads and mutations.
-
----
-
 ## Architecture
 
 ```
@@ -169,18 +162,7 @@ Claude Code should honour this: read the listed docs before responding.
 
 ---
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-  MCP tools (Stage 2)
-
-  Toggle: comment out this entire block (from the opening comment to the
-  closing comment) to fall back to Stage 1 manual mode at any time.
-═══════════════════════════════════════════════════════════════════════════ -->
-
-## MCP tools (Stage 2)
-
-> **Fallback toggle:** To revert to Stage 1 manual mode, comment out this
-> entire section. The manual workflow (direct file edits following frontmatter
-> conventions) remains valid as a fallback at all times.
+## MCP tools
 
 > **MCP host availability:** the Loom MCP server only runs inside hosts that
 > implement the MCP client protocol — **Claude Code (CLI), the Claude desktop
@@ -224,9 +206,7 @@ Add this to `{workspace}/.claude/mcp.json` (project-scoped) or `~/.claude.json` 
 - **All Loom state mutations must go through MCP tools** — create doc, mark step done, rename, archive, promote. Never edit weave markdown files directly to change state — doing so bypasses reducers, link index, and plan-step validation.
 - Use `loom://thread-context` before starting any thread work. It bundles everything the agent needs (idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
-- `loom_generate_*` tools require sampling support from the MCP client (Claude Code only). If sampling is unavailable, use `loom_create_*` tools manually.
-
-<!-- end MCP tools (Stage 2) -->
+- `loom_generate_*` tools require sampling support from the MCP client. If sampling is unavailable, use `loom_create_*` tools manually.
 
 ---
 
@@ -273,12 +253,10 @@ This makes MCP usage visible. If you don't see these prefixes, either MCP is not
    - Next incomplete step with instructions
    - Pre-filled `loom_complete_step` call ready to execute
 
-**No manual `.loom/_status.md` file** — MCP's `loom://state` resource is the only source of truth.
-
 After the `do-next-step` call, if context is loaded, output this block and **STOP**:
 
 ```
-📋 Session start  [Stage 2 — MCP]
+📋 Session start
 > Active weave:  {weave-id}
 > Active plan:   {plan title} — Step {N}
 - Next step: {step description}
@@ -313,11 +291,10 @@ STOP — waiting for go
 
 ## Applied learning
 
-- `CLAUDE.md` is gitignored — changes are local only, never committed.
 - Ask Rafa if something is not clear before proceeding.
 - Clean approach always preferred — state the extra cost, never silently patch.
 - Reducers must stay pure — no filesystem or VS Code calls inside reducer functions.
 - `buildLinkIndex` must be called once per `getState`, then passed to `loadThread` — never N+1.
 - Cross-plan blockers in `isStepBlocked`: missing plan = blocked, existing plan = not blocked (best-effort).
 - `generatePlanId` regex matches plan IDs not filenames — no `.md` suffix in the pattern.
-- Stage 2: `getState()` is internal to MCP — extension must never call it directly. All state through MCP resources.
+- `getState()` is internal to MCP — extension must never call it directly. All state through MCP resources.

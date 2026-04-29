@@ -2,7 +2,7 @@
 type: chat
 id: vscode-mcp-refactor-chat
 title: "Vscode Mcp Refactor Chat"
-status: active
+status: done
 created: 2026-04-29
 version: 1
 tags: []

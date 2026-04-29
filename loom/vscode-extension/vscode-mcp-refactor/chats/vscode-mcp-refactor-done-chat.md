@@ -661,3 +661,72 @@ Next: waiting for direction on the `loom install` follow-up plan.
 1. MCP is unavailable from `Claude VSCode extension`. Correct? Add this to CLAUDE.md.
 2. Update `loom install`
 3. Commit
+
+## AI:
+
+### 1. MCP host availability — confirmed and added
+
+Yes, **the Claude VS Code extension does not host MCP today.** MCP is implemented in Claude Code (CLI), the Claude desktop app, and other MCP-capable agents (Cursor, Continue, etc.). The Claude VS Code extension can't reach `loom://` resources or `loom_*` tools — sessions running there must fall back to direct file edits with the `⚠️ MCP unavailable — editing file directly` prefix. (Important not to confuse this with Loom's *own* VS Code extension in `packages/vscode/`, which is itself an MCP client talking to the Loom MCP server — unrelated to whether the Claude extension hosts MCP.)
+
+Added a "MCP host availability" note to [CLAUDE.md](../../../../CLAUDE.md) under "MCP tools (Stage 2)".
+
+### 2. `loom install` — updated
+
+[`packages/app/src/installWorkspace.ts`](../../../../packages/app/src/installWorkspace.ts):
+
+- **Template (`LOOM_CLAUDE_MD`)** now mirrors the three Loom-generic additions from this session:
+  - "Chat docs are the conversation surface" rule (with the *why*)
+  - "MCP visibility (required)" subsection (the 🔧 / 📡 / ⚠️ prefix rules)
+  - 3-step session-start protocol (load `loom-ctx.md` → read `loom://state?status=active,implementing` → call `do-next-step`)
+  - "MCP host availability" note (Claude VS Code extension can't host MCP)
+- **New seed: `loom/loom-ctx.md`** — `installWorkspace` now writes a starter ctx doc (concept + architecture one-liner + glossary + rules) on install. Skipped if exists, overwritten with `--force`.
+- **Result type** gained `loomCtxWritten`. CLI prints a new line: `loom/loom-ctx.md       written/already exists`.
+
+Build is clean (`./scripts/build-all.sh` succeeded).
+
+### 3. Commit — done
+
+`560038c` — `feat: global ctx doc, sampling-based DoStep plan, loom install template parity`
+
+Files in this commit:
+- `CLAUDE.md` — MCP host availability note + 3-step session-start
+- `loom/loom-ctx.md` — new global ctx doc
+- `loom/refs/loom.md` — vision/concept ref
+- `loom/vscode-extension/vscode-mcp-refactor/plans/vscode-mcp-refactor-plan-002.md` — DoStep plan
+- `packages/app/src/installWorkspace.ts` — template + ctx seed
+- `packages/cli/src/commands/install.ts` — print new line for `loom-ctx.md`
+- `loom/vscode-extension/vscode-mcp-refactor/chats/vscode-mcp-refactor-done-chat.md` — this chat
+
+Excluded from this commit (pre-existing dirty files unrelated to today's work): `references/toolbar-icons-map-reference.md` deletion, edits to `vscode-mcp-refactor-chat.md` and `vscode-mcp-refactor-plan-001.md`, the `loom-vscode-0.1.0.vsix` rebuild, and the untracked `loom/vscode-extension/refs/` folder. Let me know if any of those should be commited too.
+
+Next: waiting for direction. Likely options — start plan-002 step 1 (sampling handler in `mcp-client.ts`), or first draft a follow-up plan in the `loom-install` thread to capture the propagation rule going forward.
+
+## Rafa:
+
+- Clean up `stage 1` and `stage 2` from CLAUDE.md and `loom install` if contain any reference to them
+I think we are now in `stage 2` mcp and we could clean up all references to old `stage 1` and also `stage 2` by just making mcp the Loom way of work. Agree?
+
+- .vsix should be gitignored? if so include it
+- commit all
+
+## AI:
+
+**Agreed on all three.** Replies and actions:
+
+### Stage 1 / Stage 2 cleanup — done
+
+Agreed completely — MCP is just how Loom works now, not a "stage". Removed from CLAUDE.md and the `loom install` template:
+
+- Removed the entire "## Stage" section from CLAUDE.md
+- Renamed "## MCP tools (Stage 2)" → "## MCP tools" in both files
+- Removed the "Fallback toggle" blockquote (manual mode as a named stage no longer makes sense)
+- Removed `<!-- end MCP tools (Stage 2) -->` comment
+- Cleaned `[Stage 2 — MCP]` from the session-start output block → just `📋 Session start`
+- Removed the stale "CLAUDE.md is gitignored" Applied learning bullet (it's not gitignored — it's tracked)
+- Removed `Stage 2: getState() is internal to MCP…` → just `getState() is internal to MCP…`
+
+### `.vsix` gitignore — `.vsix` was already in `.gitignore` (`*.vsix` line 16), but the file was previously committed and therefore tracked
+
+Untracked it with `git rm --cached packages/vscode/loom-vscode-0.1.0.vsix`. It now shows as a staged deletion + untracked (gitignored) file going forward.
+
+### Commit — committing now 

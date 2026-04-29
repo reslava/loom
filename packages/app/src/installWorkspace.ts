@@ -44,7 +44,7 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 
 ---
 
-## MCP tools (Stage 2)
+## MCP tools
 
 > **MCP host availability:** the Loom MCP server only runs inside hosts that
 > implement the MCP client protocol — **Claude Code (CLI), the Claude desktop
@@ -83,7 +83,7 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 - **All Loom state mutations must go through MCP tools** — create doc, mark step done, rename, archive, promote. Never edit weave markdown files directly to change state.
 - Use \`loom://thread-context\` before starting any thread work.
 - \`do-next-step\` prompt is the primary workflow driver: call it with the active planId to get context + step instruction.
-- \`loom_generate_*\` tools require sampling support (Claude Code only). If unavailable, use \`loom_create_*\` tools manually.
+- \`loom_generate_*\` tools require sampling support from the MCP client. If unavailable, use \`loom_create_*\` tools manually.
 
 ---
 
@@ -126,7 +126,7 @@ If MCP is unavailable, output:
 After the reads, output this block and **STOP**:
 
 \`\`\`
-📋 Session start  [Stage 2 — MCP]
+📋 Session start
 > Active weave:  {weave-id}
 > Active plan:   {plan title} — Step {N}  (or "no active plan")
 - Next step: {step description}
