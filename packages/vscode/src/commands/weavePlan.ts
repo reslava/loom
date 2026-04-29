@@ -1,55 +1,25 @@
 import * as vscode from 'vscode';
-import { weavePlan } from '@reslava-loom/app/dist/weavePlan';
-import { loadWeave, saveDoc } from '@reslava-loom/fs/dist';
-import * as fs from 'fs-extra';
+import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
 export async function weavePlanCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace open.');
-        return;
-    }
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
-    const weaveId = node?.weaveId ?? await vscode.window.showInputBox({
-        prompt: 'Weave ID',
-        placeHolder: 'e.g., payment-system',
-    });
+    const weaveId = node?.weaveId ?? await vscode.window.showInputBox({ prompt: 'Weave ID', placeHolder: 'e.g., payment-system' });
     if (!weaveId) return;
 
-    // threadId from thread or design node
     let threadId = node?.threadId;
     if (!threadId) {
-        threadId = await vscode.window.showInputBox({
-            prompt: 'Thread ID (optional)',
-            placeHolder: 'e.g., state-management — leave blank for loose plan',
-        }) || undefined;
+        threadId = await vscode.window.showInputBox({ prompt: 'Thread ID (optional)', placeHolder: 'e.g., state-management — leave blank for loose plan' }) || undefined;
     }
 
-    // When triggered from a design node, link the plan to that design
     const parentId = node?.doc?.type === 'design' ? node.doc.id : undefined;
-
-    const customTitle = await vscode.window.showInputBox({
-        prompt: 'Plan title (optional)',
-        placeHolder: 'Leave blank to use thread ID',
-    });
-
-    const goal = await vscode.window.showInputBox({
-        prompt: 'Goal (optional)',
-        placeHolder: 'Brief description of what this plan implements',
-    });
+    const title = await vscode.window.showInputBox({ prompt: 'Plan title (optional)', placeHolder: 'Leave blank to use thread ID' }) || undefined;
+    const goal = await vscode.window.showInputBox({ prompt: 'Goal (optional)', placeHolder: 'Brief description of what this plan implements' }) || undefined;
 
     try {
-        const result = await weavePlan(
-            { weaveId, title: customTitle || undefined, goal: goal || undefined, parentId, threadId },
-            {
-                loomRoot: workspaceRoot,
-                loadWeave,
-                saveDoc,
-                fs,
-            }
-        );
-
+        const result = await getMCP(root).callTool('loom_create_plan', { weaveId, threadId, title, goal, parentId }) as any;
         vscode.window.showInformationMessage(`🧵 Plan woven: ${result.id}`);
         treeProvider.refresh();
     } catch (e: any) {

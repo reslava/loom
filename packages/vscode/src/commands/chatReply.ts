@@ -1,31 +1,50 @@
 import * as vscode from 'vscode';
-import { chatReply } from '@reslava-loom/app/dist/chatReply';
-import { loadDoc, saveDoc } from '@reslava-loom/fs/dist';
+import { getMCP } from '../mcp-client';
 import { makeAIClient } from '../ai/makeAIClient';
+import { TreeNode } from '../tree/treeProvider';
 
-export async function chatReplyCommand(): Promise<void> {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-        vscode.window.showErrorMessage('No active editor.');
+const SYSTEM_PROMPT = 'You are an AI assistant participating in a Loom design chat. Write a focused, constructive response continuing the conversation.';
+
+export async function chatReplyCommand(node?: TreeNode): Promise<void> {
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) {
+        vscode.window.showErrorMessage('No workspace open.');
         return;
     }
 
-    const filePath = editor.document.uri.fsPath;
-    if (!/-chat(-\d+)?\.md$/.test(filePath)) {
-        vscode.window.showErrorMessage('Active file is not a Loom chat document (*-chat.md or *-chat-NNN.md).');
+    const chatId = node?.doc?.id;
+    if (!chatId) {
+        vscode.window.showErrorMessage('Select a chat document in the Loom tree first.');
         return;
     }
 
-    await editor.document.save();
+    const filePath = (node!.doc as any)._path as string | undefined;
+    if (filePath) {
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(doc, { preview: false, preserveFocus: true });
+        await doc.save();
+    }
 
     try {
-        const aiClient = makeAIClient();
+        let reply: string;
         await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Notification, title: 'Loom: AI thinking…', cancellable: false },
-            () => chatReply({ filePath }, { loadDoc, saveDoc, aiClient })
+            async () => {
+                const mcp = getMCP(root);
+                const chatContent = await mcp.readResource(`loom://docs/${chatId}`);
+                const aiClient = makeAIClient();
+                reply = await aiClient.complete([
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: chatContent },
+                ]);
+                await mcp.callTool('loom_append_to_chat', { id: chatId, role: 'AI', body: reply });
+            }
         );
-        const updated = await vscode.workspace.openTextDocument(filePath);
-        await vscode.window.showTextDocument(updated, { preview: false, preserveFocus: false });
+
+        if (filePath) {
+            const updated = await vscode.workspace.openTextDocument(filePath);
+            await vscode.window.showTextDocument(updated, { preview: false, preserveFocus: false });
+        }
     } catch (e: any) {
         vscode.window.showErrorMessage(`Chat reply failed: ${e.message}`);
     }

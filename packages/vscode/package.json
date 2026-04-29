@@ -479,6 +479,7 @@
     "package": "npx @vscode/vsce package --no-dependencies"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
     "@reslava-loom/app": "file:../app",
     "@reslava-loom/core": "file:../core",
     "@reslava-loom/fs": "file:../fs"

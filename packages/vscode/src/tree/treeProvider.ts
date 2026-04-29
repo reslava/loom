@@ -1,9 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { getState } from '@reslava-loom/app/dist/getState';
-import { loadWeave, buildLinkIndex } from '@reslava-loom/fs/dist';
-import { ConfigRegistry } from '@reslava-loom/core/dist/registry';
+import { getMCP } from '../mcp-client';
 import { LoomState } from '@reslava-loom/core/dist/entities/state';
 import { Weave } from '@reslava-loom/core/dist/entities/weave';
 import { Thread } from '@reslava-loom/core/dist/entities/thread';
@@ -62,15 +60,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
 
         try {
-            const registry = new ConfigRegistry();
-            this.state = await getState({
-                getActiveLoomRoot: () => this.workspaceRoot!,
-                loadWeave: (root, weaveId) => loadWeave(root, weaveId),
-                buildLinkIndex: (root) => buildLinkIndex(root),
-                registry,
-                fs,
-                workspaceRoot: this.workspaceRoot,
-            });
+            const json = await getMCP(this.workspaceRoot).readResource('loom://state');
+            this.state = JSON.parse(json) as LoomState;
 
             if (this.state.weaves.length === 0) {
                 return [this.messageNode('No weaves found')];

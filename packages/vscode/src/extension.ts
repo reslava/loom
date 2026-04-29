@@ -30,6 +30,7 @@ import { refinePlanCommand } from './commands/refinePlan';
 import { doStepCommand } from './commands/doStep';
 import { closePlanCommand } from './commands/closePlan';
 import { setIconBaseUri } from './icons';
+import { disposeMCP } from './mcp-client';
 import { updateDiagnostics } from './diagnostics';
 
 export interface LoomExtensionAPI {
@@ -87,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.setTextFilter', () => setTextFilter(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.chatReply', () => chatReplyCommand()),
+        vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(node)),
         vscode.commands.registerCommand('loom.promoteToIdea', () => promoteToIdeaCommand(treeProvider)),
         vscode.commands.registerCommand('loom.promoteToDesign', () => promoteToDesignCommand(treeProvider)),
         vscode.commands.registerCommand('loom.promoteToPlan', () => promoteToPlanCommand(treeProvider)),
@@ -223,7 +224,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     return { treeProvider, getAiEnabled: () => aiEnabled };
 }
 
-export function deactivate() {}
+export function deactivate() { disposeMCP(); }
 
 async function detectMcpConfig(workspaceRoot: string): Promise<boolean> {
     const candidates = [
