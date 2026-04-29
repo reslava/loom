@@ -19,6 +19,7 @@ export interface InstallWorkspaceResult {
     claudeMdWritten: boolean;
     rootClaudeMdPatched: boolean;
     mcpJsonWritten: boolean;
+    loomCtxWritten: boolean;
 }
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
@@ -44,6 +45,13 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 ---
 
 ## MCP tools (Stage 2)
+
+> **MCP host availability:** the Loom MCP server only runs inside hosts that
+> implement the MCP client protocol — **Claude Code (CLI), the Claude desktop
+> app**, and other MCP-capable agents. The **Claude VS Code extension does NOT
+> support MCP today** — sessions running there cannot reach \`loom://\` resources
+> or \`loom_*\` tools and must fall back to direct file edits (with the
+> \`⚠️ MCP unavailable — editing file directly\` visibility prefix).
 
 ### Claude Code config
 
@@ -84,27 +92,44 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 - **Chat Mode (default):** Respond naturally. Never modify frontmatter or files without explicit approval.
 - **Action Mode:** Only when the user explicitly asks. Respond with a JSON proposal per the handshake protocol.
 - **Never propose state changes** (version bumps, status transitions) without being asked.
-- **When asked to read a file ending in \`-chat.md\`**: reply by writing inside that doc at the bottom under \`## AI:\`.
+- **Chat docs are the conversation surface (always reply inside).** Whenever a \`-chat.md\` doc is the active context of the session — the user asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under \`## AI:\`. This is not optional and does not require the user to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until the user explicitly says \`close\` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
+- **Why this matters:** Chats are Loom's User↔AI collaboration medium and the durable context database. Replies that live only in the terminal disappear; replies inside the chat doc persist as part of the project's shared memory.
 - **MCP tools for Loom state changes:** All mutations must go through MCP tools. Never edit weave markdown files directly.
+
+### MCP visibility (required)
+
+Before any MCP call, output one line:
+\`\`\`
+🔧 MCP: loom_tool_name(key="value", ...)
+📡 MCP: loom://resource-uri
+\`\`\`
+
+If MCP is unavailable, output:
+\`\`\`
+⚠️ MCP unavailable — editing file directly
+\`\`\`
 
 ---
 
 ## Session start protocol
 
-**These reads are mandatory at the start of every session — including when continuing from a compacted/summarized conversation.**
+**Order of operations at session start (mandatory, including after conversation compaction):**
 
-1. Read \`.loom/_status.md\` if present — note Stage, active weave, active plan, last session.
-2. Load thread context:
-   - **Stage 2 (MCP active):** read \`loom://thread-context/{weaveId}/{threadId}\` resource. Then call the \`do-next-step\` prompt with the active planId.
-   - **Stage 1 (manual):** read the active plan file and its \`requires_load\` docs directly.
+1. **Load global ctx** — read \`loom/loom-ctx.md\`. Emit:
+   \`\`\`
+   📘 loom-ctx loaded — global context ready
+   \`\`\`
+   (or \`⚠️ loom-ctx not loaded — proceeding without global context\` on failure).
+2. **Read active work from MCP** — \`loom://state?status=active,implementing\`. Emit \`🧵 Active: <thread IDs>\`. MCP is the only source of truth — do not maintain a hand-written active-work pointer.
+3. **Call \`do-next-step\` prompt** with the active planId. Bundles thread context (idea, design, current plan, requires_load docs), the next incomplete step, and a pre-filled \`loom_complete_step\` call.
 
 After the reads, output this block and **STOP**:
 
 \`\`\`
-📋 Session start  [Stage {1|2}]
+📋 Session start  [Stage 2 — MCP]
 > Active weave:  {weave-id}
 > Active plan:   {plan title} — Step {N}  (or "no active plan")
-- Docs read: {doc1} ✓ · {doc2} ✓ · ...
+- Next step: {step description}
 
 STOP — waiting for go
 \`\`\`
@@ -126,6 +151,67 @@ STOP — waiting for go
 - When a design question is open, present trade-offs and ask — don't just pick one.
 - Do not make any changes until you have 95% confidence. Ask follow-up questions until you reach that confidence.
 - Always choose the cleanest, most correct approach. If it requires more work, say so.
+`;
+
+const LOOM_CTX_MD = `---
+type: ctx
+id: loom-ctx
+title: "Loom — Global Context"
+status: active
+created: ${new Date().toISOString().slice(0, 10)}
+version: 1
+tags: [ctx, vision, architecture, session-start]
+parent_id: null
+child_ids: []
+requires_load: []
+load: always
+---
+
+# Loom — Global Context
+
+**Read at the start of every session.** Concept, architecture, and operating rules.
+
+## 1. Concept
+
+Loom is a **collaboration medium between User and AI**, where **markdown documents
+are the shared context database**.
+
+The loop:
+1. **User and AI talk in chats** — free-form thinking surface.
+2. The user clicks a button to ask the AI to **formalize** a conversation into an
+   *idea*, *design*, or *plan*.
+3. The user clicks another button to ask the AI to **implement the next step** of a
+   plan. The AI writes code and records what it did in the matching \`-done.md\`.
+4. The chat keeps going as the conversation log.
+
+Buttons must do real work, not flip state.
+
+## 2. Architecture
+
+**Stage 2 layers:** \`cli / vscode → mcp → app → core + fs\`. Layers never import
+upward. The VS Code extension **must not** import \`app\` directly — MCP is the gate.
+
+## Glossary
+
+- **Weave** — a project folder under \`loom/\`; the core domain entity.
+- **Thread** — workstream subfolder inside a weave; holds idea + design + plans + done + chats.
+- **Loose fiber** — a doc at weave root, not yet grouped into a thread.
+- **Plan** — implementation plan with a steps table (\`*-plan-NNN.md\`).
+- **Done** — post-implementation notes (\`*-done.md\`).
+- **Chat** — User↔AI conversation log (\`*-chat.md\`).
+- **Ctx** — AI-optimised context summary; auto-loaded.
+
+## 3. Rules
+
+- **Stage 2 — MCP active.** All Loom state mutations go through MCP tools.
+- **Primary entry point:** \`loom://thread-context/{weaveId}/{threadId}\` and the
+  \`do-next-step\` prompt.
+- **Chat docs are the conversation surface.** When a \`-chat.md\` doc is the active
+  context, every reply goes inside it under \`## AI:\`.
+- **MCP visibility:** before each MCP call, output \`🔧 MCP: tool_name(...)\` or
+  \`📡 MCP: loom://...\`. If MCP is unavailable: \`⚠️ MCP unavailable — editing file directly\`.
+- **Stop rules:** after each step, two failed fixes, or any architectural decision —
+  STOP and wait for \`go\`.
 `;
 
 const MCP_JSON = JSON.stringify({
@@ -150,6 +236,8 @@ export async function installWorkspace(
     const rootClaudeMdPath = path.join(root, 'CLAUDE.md');
     const claudeDir = path.join(root, '.claude');
     const mcpJsonPath = path.join(claudeDir, 'settings.json');
+    const loomDocsDir = path.join(root, 'loom');
+    const loomCtxPath = path.join(loomDocsDir, 'loom-ctx.md');
 
     // Step 1: init .loom/ structure (idempotent if exists)
     let loomDirCreated = false;
@@ -188,5 +276,13 @@ export async function installWorkspace(
         mcpJsonWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten };
+    // Step 5: write loom/loom-ctx.md (skip if exists and not --force)
+    deps.fs.ensureDirSync(loomDocsDir);
+    let loomCtxWritten = false;
+    if (!deps.fs.existsSync(loomCtxPath) || input.force) {
+        deps.fs.writeFileSync(loomCtxPath, LOOM_CTX_MD, 'utf8');
+        loomCtxWritten = true;
+    }
+
+    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, loomCtxWritten };
 }

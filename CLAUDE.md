@@ -1,5 +1,22 @@
 # CLAUDE.md — REslava Loom Session Contract
 
+## Required session-start context
+
+**Always load [loom/loom-ctx.md](loom/loom-ctx.md) at the beginning of every session.**
+It is the global ctx doc — concept, architecture, and operating rules in one place.
+Read it before responding to the first user turn. This emulates the auto-loaded
+global context that ctx-typed docs are designed to provide in Loom.
+
+After reading it, output exactly this line so Rafa knows the global context is loaded:
+
+```
+📘 loom-ctx loaded — global context ready
+```
+
+If the read fails for any reason, output `⚠️ loom-ctx not loaded — proceeding without global context` instead, and continue.
+
+---
+
 ## What this project is
 
 **REslava Loom** is a document-driven, event-sourced workflow system for AI-assisted development.
@@ -165,6 +182,16 @@ Claude Code should honour this: read the listed docs before responding.
 > entire section. The manual workflow (direct file edits following frontmatter
 > conventions) remains valid as a fallback at all times.
 
+> **MCP host availability:** the Loom MCP server only runs inside hosts that
+> implement the MCP client protocol — **Claude Code (CLI), the Claude desktop
+> app**, and other MCP-capable agents (Cursor, Continue, etc.). The
+> **Claude VS Code extension does NOT support MCP today** — sessions running
+> there cannot reach `loom://` resources or `loom_*` tools and must fall back
+> to direct file edits (with the `⚠️ MCP unavailable — editing file directly`
+> visibility prefix). The Loom VS Code extension (`packages/vscode/`) is a
+> separate thing — it is itself an MCP *client* talking to the Loom MCP
+> server, and is unrelated to whether the *Claude* VS Code extension hosts MCP.
+
 ### Claude Code config
 
 Add this to `{workspace}/.claude/mcp.json` (project-scoped) or `~/.claude.json` (global):
@@ -210,7 +237,8 @@ Add this to `{workspace}/.claude/mcp.json` (project-scoped) or `~/.claude.json` 
 - **Never propose state changes** (version bumps, status transitions) without being asked.
 - Rafa uses the name `Rafa` in `## Rafa:` headers. Respond under `## AI:`.
 - Keep responses aligned with the ongoing design conversation in the document.
-- **When asked to read a file ending in `-chat.md`**: reply by writing inside that doc at the bottom under `## AI:`. Continue replying inside the doc for all follow-up messages until Rafa says `close`.
+- **Chat docs are the conversation surface (always reply inside).** Whenever a `-chat.md` doc is the active context of the session — Rafa asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under `## AI:`. This is not optional and does not require Rafa to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until Rafa explicitly says `close` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
+- **Why this matters:** Chats are Loom's User↔AI collaboration medium and the durable context database. Replies that live only in the terminal disappear; replies inside the chat doc persist as part of the project's shared memory. Treat the chat doc as the canonical place the conversation lives.
 - **MCP tools for Loom state changes:** All Loom state mutations (create doc, mark step done, rename, archive, promote) must go through MCP tools once MCP is active. Never edit weave markdown files directly to change state — doing so bypasses reducers, link index, and plan-step validation.
 
 ### MCP visibility (required)
@@ -236,12 +264,14 @@ This makes MCP usage visible. If you don't see these prefixes, either MCP is not
 
 ## Session start protocol
 
-**Primary entry point for Stage 2: Call `do-next-step` prompt with the active planId.**
+**Order of operations at session start:**
 
-The `do-next-step` prompt bundles everything needed:
-- Thread context (idea, design, current plan, requires_load docs)
-- Next incomplete step with instructions
-- Pre-filled `loom_complete_step` call ready to execute
+1. **Load global ctx** — read [loom/loom-ctx.md](loom/loom-ctx.md). Emit `📘 loom-ctx loaded — global context ready` (or the failure variant if the read fails).
+2. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
+3. **Call `do-next-step` prompt with the active planId.** This bundles:
+   - Thread context (idea, design, current plan, requires_load docs)
+   - Next incomplete step with instructions
+   - Pre-filled `loom_complete_step` call ready to execute
 
 **No manual `.loom/_status.md` file** — MCP's `loom://state` resource is the only source of truth.
 
