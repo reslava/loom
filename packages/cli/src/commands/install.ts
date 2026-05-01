@@ -16,7 +16,7 @@ export async function installCommand(options: { force?: boolean }): Promise<void
         console.log(`   .loom/        ${result.loomDirCreated ? chalk.green('created') : chalk.gray('already exists')}`);
         console.log(`   .loom/CLAUDE.md  ${result.claudeMdWritten ? chalk.green('written') : chalk.gray('skipped')}`);
         console.log(`   CLAUDE.md     ${result.rootClaudeMdPatched ? chalk.green('patched (@.loom/CLAUDE.md added)') : chalk.gray('already configured')}`);
-        console.log(`   .claude/settings.json  ${result.mcpJsonWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);
+        console.log(`   .mcp.json              ${result.mcpJsonWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);
         console.log(`   loom/loom-ctx.md       ${result.loomCtxWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);
         console.log('');
         console.log(chalk.cyan('Next: open this workspace in Claude Code — Loom MCP tools are ready.'));

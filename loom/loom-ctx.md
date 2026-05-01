@@ -8,7 +8,7 @@ version: 1
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 child_ids: []
-requires_load: []
+requires_load: [vision, workflow]
 load: always
 ---
 
@@ -18,6 +18,10 @@ load: always
 three views you need to operate Loom: what it is (concept), how it's built
 (architecture), and how to act in it (rules). Each section ends with a pointer to
 the deeper reference if needed.
+
+**Canonical refs (loaded via `requires_load`):**
+- [loom/refs/vision.md](refs/vision.md) — the north star: what Loom is for, why it exists, what manual steps it replaces. Use it for the vision-check rule before any design proposal.
+- [loom/refs/workflow.md](refs/workflow.md) — the canonical loop (`chat → {generate|refine} idea/design/plan/ctx → {implement step(s)} → done`), phase definitions, and transitions.
 
 ---
 

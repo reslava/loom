@@ -405,12 +405,12 @@
         },
         {
           "command": "loom.doStep",
-          "when": "view == loom.threads && viewItem == plan-implementing && loom.aiEnabled",
+          "when": "view == loom.threads && viewItem == plan-implementing-doable",
           "group": "inline@1"
         },
         {
           "command": "loom.completeStep",
-          "when": "view == loom.threads && viewItem == plan-implementing",
+          "when": "view == loom.threads && viewItem == plan-implementing-doable",
           "group": "inline@2"
         },
         {

@@ -2,7 +2,7 @@
 type: plan
 id: vscode-mcp-refactor-plan-002
 title: "DoStep Button via MCP Sampling — Plan 002"
-status: draft
+status: done
 created: 2026-04-29
 version: 1
 tags: [vscode, mcp, sampling, do-step]
@@ -28,14 +28,14 @@ reachable from CLI / Claude Code).
 
 ## Steps
 
-| # | Step | Status | Notes |
-|---|------|--------|-------|
-| 1 | Add `sampling/createMessage` handler to `mcp-client.ts` | ⬜ | Register on the stdio client. Handler reads prompt + system msg from request, calls existing `makeAIClient().complete(...)`, returns result in MCP sampling format. |
-| 2 | Revert `chatReply.ts` to use `loom_generate_chat_reply` | ⬜ | Remove the `makeAIClient()` bypass added in plan-001 step 3. Now that step 1 is in place, the original sampling-based flow works. |
-| 3 | Verify `loom_do_step` tool exists on MCP server (add if missing) | ⬜ | Tool reads next non-blocked step + thread context, builds prompt, calls `server.createMessage`, applies file edits, marks step done via app, writes the matching `-done.md`. |
-| 4 | Add `loom.doStep` extension command | ⬜ | New file `packages/vscode/src/commands/doStep.ts`. Receives selected plan node; calls `mcp.callTool('loom_do_step', { planId: node.doc.id })`; refreshes tree. |
-| 5 | Add toolbar button on plan nodes | ⬜ | `package.json` contributions: command icon + `view/item/context` entry with `when: viewItem == plan && viewItem != plan-done`. Inline-only, not in context menu. |
-| 6 | Manual test in Extension Development Host | ⬜ | Build extension, reload window, select an active plan, click DoStep. Verify: code edits applied, plan step marked ✅, `-done.md` updated, tree refreshed. |
+| Done | # | Step | Files touched | Blocked by |
+|---|---|---|---|---|
+| ✅ | 1 | Add `sampling/createMessage` handler to `mcp-client.ts` | `packages/vscode/src/mcp-client.ts` | — |
+| ✅ | 2 | Revert `chatReply.ts` to use `loom_generate_chat_reply` | `packages/vscode/src/commands/chatReply.ts` | — |
+| ✅ | 3 | Add `loom_do_step` tool to MCP server | `packages/mcp/src/tools/doStep.ts`, `packages/mcp/src/server.ts` | — |
+| ✅ | 4 | Update `loom.doStep` extension command to call MCP | `packages/vscode/src/commands/doStep.ts` | 3 |
+| ✅ | 5 | Toolbar button on plan nodes | `packages/vscode/package.json` | — |
+| ✅ | 6 | Manual test in Extension Development Host | — | 4, 5 |
 
 ## Definition of Done
 

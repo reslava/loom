@@ -331,7 +331,10 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ? `${plan.status} • ${progress} steps\nNext: Step ${nextStep.order} — ${nextStep.description}`
             : `${plan.status} • ${progress} steps`;
         node.iconPath = getPlanIcon(plan.status);
-        node.contextValue = `plan-${plan.status}`;
+        const hasPending = (plan.steps ?? []).some(s => !s.done);
+        node.contextValue = (plan.status === 'implementing' && hasPending)
+            ? 'plan-implementing-doable'
+            : `plan-${plan.status}`;
 
         const filePath = (plan as any)._path;
         if (filePath) {

@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { CreateMessageRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+import { makeAIClient } from './ai/makeAIClient';
 
 let _client: LoomMCPClient | undefined;
 
@@ -31,7 +33,28 @@ function createMCPClient(workspaceRoot: string): LoomMCPClient {
         stderr: 'pipe',
     });
 
-    const client = new Client({ name: 'loom-vscode', version: '0.1.0' }, { capabilities: {} });
+    const client = new Client({ name: 'loom-vscode', version: '0.1.0' }, { capabilities: { sampling: {} } });
+
+    client.setRequestHandler(CreateMessageRequestSchema, async (request) => {
+        const { messages, systemPrompt } = request.params;
+        const aiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+        if (systemPrompt) {
+            aiMessages.push({ role: 'system', content: systemPrompt });
+        }
+        for (const msg of messages) {
+            const content = msg.content as { type?: string; text?: string };
+            if (content?.type === 'text' && content.text !== undefined) {
+                aiMessages.push({ role: msg.role as 'user' | 'assistant', content: content.text });
+            }
+        }
+        const text = await makeAIClient().complete(aiMessages);
+        return {
+            model: 'extension-configured',
+            stopReason: 'endTurn',
+            role: 'assistant' as const,
+            content: { type: 'text' as const, text },
+        };
+    });
 
     let connected = false;
     const connectPromise = client.connect(transport).then(() => {

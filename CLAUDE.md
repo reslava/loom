@@ -176,12 +176,15 @@ Claude Code should honour this: read the listed docs before responding.
 
 ### Claude Code config
 
-Add this to `{workspace}/.claude/mcp.json` (project-scoped) or `~/.claude.json` (global):
+Create `.mcp.json` in the **project root** (NOT `.claude/settings.json` — that file
+is for permissions/hooks/env and does not honour `mcpServers`). For user-global
+config use `~/.claude.json` instead.
 
 ```json
 {
   "mcpServers": {
     "loom": {
+      "type": "stdio",
       "command": "loom",
       "args": ["mcp"],
       "env": {
@@ -191,6 +194,10 @@ Add this to `{workspace}/.claude/mcp.json` (project-scoped) or `~/.claude.json` 
   }
 }
 ```
+
+Project-scoped MCP servers require one-time approval per project — run `claude`
+interactively in the project root and approve `loom`, or use `claude /mcp`.
+Verify with `claude mcp list`.
 
 ### Primary entry points
 
@@ -247,8 +254,9 @@ This makes MCP usage visible. If you don't see these prefixes, either MCP is not
 **Order of operations at session start:**
 
 1. **Load global ctx** — read [loom/loom-ctx.md](loom/loom-ctx.md). Emit `📘 loom-ctx loaded — global context ready` (or the failure variant if the read fails).
-2. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
-3. **Call `do-next-step` prompt with the active planId.** This bundles:
+2. **Load vision and workflow** — read [loom/refs/vision.md](loom/refs/vision.md) (north star — what Loom is for, what manual steps it replaces; ground for the vision-check rule under Collaboration style) and [loom/refs/workflow.md](loom/refs/workflow.md) (canonical loop, phase definitions, and transitions). Emit `🌟 vision + workflow loaded` on success.
+3. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
+4. **Call `do-next-step` prompt with the active planId.** This bundles:
    - Thread context (idea, design, current plan, requires_load docs)
    - Next incomplete step with instructions
    - Pre-filled `loom_complete_step` call ready to execute
@@ -280,6 +288,7 @@ STOP — waiting for go
 
 ## Collaboration style
 
+- **Vision check (before any design proposal).** Before suggesting code, file changes, or architecture, state in one sentence which user-visible behavior in [loom/refs/vision.md](loom/refs/vision.md) this serves and which manual step it removes. If you cannot — if the proposal does not map to a vision element or replace a manual step — the proposal is probably wrong. Stop and ask before continuing. The cost of writing this sentence is one line; the cost of building the wrong thing is hours.
 - Discuss design before implementing — Rafa thinks out loud and reaches better solutions through dialogue.
 - When a design question is open, present trade-offs and ask — don't just pick one.
 - If Rafa's proposal has a problem, explain it briefly then let him respond.

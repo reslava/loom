@@ -55,10 +55,14 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 
 ### Claude Code config
 
+Create this as \`.mcp.json\` in the **project root** (NOT \`.claude/settings.json\` —
+that file is for permissions/hooks/env and ignores \`mcpServers\`):
+
 \`\`\`json
 {
   "mcpServers": {
     "loom": {
+      "type": "stdio",
       "command": "loom",
       "args": ["mcp"],
       "env": {
@@ -68,6 +72,10 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
   }
 }
 \`\`\`
+
+Project-scoped MCP servers need a one-time approval per project — run \`claude\`
+interactively in the project root and approve the \`loom\` server, or use
+\`claude /mcp\` to manage. Verify with \`claude mcp list\`.
 
 ### Primary entry points
 
@@ -217,6 +225,7 @@ upward. The VS Code extension **must not** import \`app\` directly — MCP is th
 const MCP_JSON = JSON.stringify({
     mcpServers: {
         loom: {
+            type: 'stdio',
             command: 'loom',
             args: ['mcp'],
             env: {
@@ -234,8 +243,7 @@ export async function installWorkspace(
     const loomDir = path.join(root, '.loom');
     const loomClaudeMdPath = path.join(loomDir, 'CLAUDE.md');
     const rootClaudeMdPath = path.join(root, 'CLAUDE.md');
-    const claudeDir = path.join(root, '.claude');
-    const mcpJsonPath = path.join(claudeDir, 'settings.json');
+    const mcpJsonPath = path.join(root, '.mcp.json');
     const loomDocsDir = path.join(root, 'loom');
     const loomCtxPath = path.join(loomDocsDir, 'loom-ctx.md');
 
@@ -268,8 +276,7 @@ export async function installWorkspace(
         rootClaudeMdPatched = true;
     }
 
-    // Step 4: write .claude/mcp.json (skip if exists and not --force)
-    deps.fs.ensureDirSync(claudeDir);
+    // Step 4: write .mcp.json at project root (skip if exists and not --force)
     let mcpJsonWritten = false;
     if (!deps.fs.existsSync(mcpJsonPath) || input.force) {
         deps.fs.writeFileSync(mcpJsonPath, MCP_JSON, 'utf8');

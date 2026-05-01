@@ -730,3 +730,35 @@ Agreed completely — MCP is just how Loom works now, not a "stage". Removed fro
 Untracked it with `git rm --cached packages/vscode/loom-vscode-0.1.0.vsix`. It now shows as a staged deletion + untracked (gitignored) file going forward.
 
 ### Commit — committing now 
+
+## Rafa:
+
+I will open a new session to check how you start before 
+Start plan
+
+WHat you think?
+
+## AI:
+
+Good idea — testing the session-start protocol before implementing plan-002 is exactly the right order. If the ctx load + active-thread read + `do-next-step` flow doesn't work cleanly in a fresh session, we'd want to fix that before building on top of it.
+
+What to verify in the new session:
+
+1. `📘 loom-ctx loaded — global context ready` appears after reading `loom/loom-ctx.md`
+2. `🧵 Active: <threads>` appears after the MCP `loom://state?status=active,implementing` read (MCP must be running for this — if it's not, you'll get the `⚠️ MCP unavailable` fallback instead, which is also useful to know)
+3. `do-next-step` prompt correctly identifies plan-002 step 1 as the next action
+4. The session-start block + STOP appears cleanly
+
+If anything is missing or wrong, report back here and we'll fix the protocol before starting the plan.
+
+Good testing point.
+
+## Rafa:
+
+For point 3. I think we should change plan status to `implementing`- Agree?
+
+## AI:
+
+Yes, agreed. Plan-002 is ready to work on — changing it to `implementing` now so `do-next-step` can pick it up correctly.
+
+⚠️ MCP unavailable — editing file directly

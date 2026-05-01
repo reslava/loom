@@ -25,7 +25,7 @@ export function parseStepsTable(content: string): PlanStep[] {
         // Skip the header row
         if (line.includes('Done') && line.includes('Step')) continue;
         
-        const cols = line.split('|').map(c => c.trim()).filter(c => c !== '');
+        const cols = line.split('|').slice(1, -1).map(c => c.trim());
         if (cols.length < 4) continue;
         
         // Expected columns: Done, #, Step, Files touched, Blocked by

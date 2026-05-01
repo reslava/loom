@@ -195,3 +195,25 @@ no inline button to finalize
 draft idea created with id `i-idea`
 idea dissappear after I use command to finalize it
 
+## Rafa:
+
+### refs folders, -reference.md doc types
+
+We need to include them in `packages/vscode/src/icons.ts`
+
+- icon for `*-reference.md` docs `packages/vscode/media/icons/reference.svg`
+- icon for `refs` folders use some from codeicon lib
+
+### toolbar groupby 
+- add reference to groupby type
+
+### Default tree view
+GroupBy Weave/Thread is the default view if tree
+
+### toolbar filter
+Active the default view with filter:
+- all
+- active weaves/threads
+- implementing weaves/threads
+
+ 

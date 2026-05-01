@@ -1,9 +1,6 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
-import { makeAIClient } from '../ai/makeAIClient';
 import { TreeNode } from '../tree/treeProvider';
-
-const SYSTEM_PROMPT = 'You are an AI assistant participating in a Loom design chat. Write a focused, constructive response continuing the conversation.';
 
 export async function chatReplyCommand(node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -26,18 +23,11 @@ export async function chatReplyCommand(node?: TreeNode): Promise<void> {
     }
 
     try {
-        let reply: string;
         await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Notification, title: 'Loom: AI thinking…', cancellable: false },
             async () => {
                 const mcp = getMCP(root);
-                const chatContent = await mcp.readResource(`loom://docs/${chatId}`);
-                const aiClient = makeAIClient();
-                reply = await aiClient.complete([
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    { role: 'user', content: chatContent },
-                ]);
-                await mcp.callTool('loom_append_to_chat', { id: chatId, role: 'AI', body: reply });
+                await mcp.callTool('loom_generate_chat_reply', { chatId });
             }
         );
 

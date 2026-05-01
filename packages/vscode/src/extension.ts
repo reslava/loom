@@ -94,7 +94,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.promoteToPlan', () => promoteToPlanCommand(treeProvider)),
         vscode.commands.registerCommand('loom.refineIdea', () => refineIdeaCommand(treeProvider)),
         vscode.commands.registerCommand('loom.refinePlan', () => refinePlanCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.doStep', (node?: TreeNode) => doStepCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.doStep', (node?: TreeNode) => doStepCommand(node)),
         vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.delete', (node?: TreeNode) => deleteItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.archive', (node?: TreeNode) => archiveItemCommand(treeProvider, node)),
