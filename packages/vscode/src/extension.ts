@@ -15,7 +15,7 @@ import { completeStepCommand } from './commands/completeStep';
 import { validateCommand } from './commands/validate';
 import { summariseCommand } from './commands/summarise';
 import { showGroupingSelector } from './commands/grouping';
-import { setTextFilter, toggleArchived } from './commands/filter';
+import { setTextFilter, toggleArchived, setStatusFilter, statusFilterLabel } from './commands/filter';
 import { chatNewCommand } from './commands/chatNew';
 import { chatReplyCommand } from './commands/chatReply';
 import { weaveCreateCommand } from './commands/weaveCreate';
@@ -31,6 +31,7 @@ import { doStepCommand } from './commands/doStep';
 import { closePlanCommand } from './commands/closePlan';
 import { setIconBaseUri } from './icons';
 import { disposeMCP } from './mcp-client';
+
 import { updateDiagnostics } from './diagnostics';
 
 export interface LoomExtensionAPI {
@@ -53,6 +54,11 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     });
     context.subscriptions.push(treeView);
 
+    function updateViewTitle(): void {
+        treeView.title = statusFilterLabel(viewStateManager.getState().statusFilter);
+    }
+    updateViewTitle();
+
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('loom');
     context.subscriptions.push(diagnosticCollection);
 
@@ -72,6 +78,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('loom.refresh', syncAndRefresh),
+        vscode.commands.registerCommand('loom.reconnectMcp', () => { disposeMCP(); syncAndRefresh(); }),
         vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider)),
         vscode.commands.registerCommand('loom.threadCreate', () => threadCreateCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, node)),
@@ -86,18 +93,22 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.summarise', (node?: TreeNode) => summariseCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.setGrouping', () => showGroupingSelector(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.setTextFilter', () => setTextFilter(viewStateManager, treeProvider)),
+        vscode.commands.registerCommand('loom.setStatusFilter', () => setStatusFilter(viewStateManager, treeProvider, updateViewTitle)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(node)),
-        vscode.commands.registerCommand('loom.promoteToIdea', () => promoteToIdeaCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.promoteToDesign', () => promoteToDesignCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.promoteToPlan', () => promoteToPlanCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.refineIdea', () => refineIdeaCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.refinePlan', () => refinePlanCommand(treeProvider)),
+        vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.promoteToDesign', (node?: TreeNode) => promoteToDesignCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.promoteToPlan', (node?: TreeNode) => promoteToPlanCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.refineIdea', (node?: TreeNode) => refineIdeaCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.refinePlan', (node?: TreeNode) => refinePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.doStep', (node?: TreeNode) => doStepCommand(node)),
         vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.delete', (node?: TreeNode) => deleteItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.archive', (node?: TreeNode) => archiveItemCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.generateGlobalCtx', () => {
+            vscode.window.showInformationMessage('Generate / Refine Global Context — coming soon via MCP sampling.');
+        }),
         vscode.commands.registerCommand('loom.install.openCliTerminal', () => {
             const t = vscode.window.createTerminal('Loom CLI Install');
             t.show();

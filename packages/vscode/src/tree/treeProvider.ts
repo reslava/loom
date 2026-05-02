@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { getMCP } from '../mcp-client';
+import { getMCP, disposeMCP } from '../mcp-client';
 import { LoomState } from '@reslava-loom/core/dist/entities/state';
 import { Weave } from '@reslava-loom/core/dist/entities/weave';
 import { Thread } from '@reslava-loom/core/dist/entities/thread';
@@ -69,9 +69,46 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
             const viewState = this.viewStateManager.getState();
             const filtered = this.filterWeaves(this.state.weaves, viewState);
-            return this.groupWeaves(filtered, viewState.grouping);
+
+            const globalDocs = (this.state as any).globalDocs as Document[] | undefined;
+            const globalChats = (this.state as any).globalChats as ChatDoc[] | undefined;
+            const globalCtxDocs = globalDocs?.filter(d => d.type === 'ctx') ?? [];
+            const globalRefDocs = globalDocs?.filter(d => (d as any).type === 'reference') ?? [];
+
+            const refsWeave = filtered.find(w => w.id === 'refs');
+            const normalWeaves = filtered.filter(w => w.id !== 'refs');
+            const nodes = this.groupWeaves(normalWeaves, viewState.grouping);
+
+            if (globalCtxDocs.length > 0) {
+                nodes.unshift(this.createCtxSection(globalCtxDocs));
+            }
+
+            if (globalChats && globalChats.length > 0) {
+                nodes.push(this.createChatsSection(
+                    globalChats.map(c => this.createChatNode(c))
+                ));
+            }
+
+            if (refsWeave) {
+                const refsFromWeave = [...refsWeave.looseFibers, ...(refsWeave.refDocs ?? [])];
+                const allGlobalRefs = [...globalRefDocs, ...refsFromWeave];
+                if (allGlobalRefs.length > 0) {
+                    nodes.push(this.createRefsSection(allGlobalRefs));
+                }
+            } else if (globalRefDocs.length > 0) {
+                nodes.push(this.createRefsSection(globalRefDocs));
+            }
+            return nodes;
         } catch (e: any) {
             console.error('🧵 Failed to load Loom state:', e);
+            const isTimeout = e.message?.includes('32001') || e.message?.includes('timed out');
+            if (isTimeout) {
+                const node = new vscode.TreeItem('MCP timed out — click to reconnect', vscode.TreeItemCollapsibleState.None);
+                node.iconPath = new vscode.ThemeIcon('warning');
+                node.contextValue = 'mcp-timeout';
+                node.command = { command: 'loom.reconnectMcp', title: 'Reconnect MCP', arguments: [] };
+                return [node];
+            }
             return [this.messageNode(`Error: ${e.message}`)];
         }
     }
@@ -90,10 +127,20 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                     (d.title ?? '').toLowerCase().includes(text)
                 );
             })
+            .map(w => {
+                if (!statusFilter.length) return w;
+                if (w.id === 'refs') return w; // refs weave bypasses status filter — rendered as global References
+                const filteredThreads = w.threads.filter(t => {
+                    const threadDocs = [t.idea, t.design, ...t.plans].filter(Boolean) as Document[];
+                    if (threadDocs.length === 0) return false;
+                    return threadDocs.some(d => statusFilter.includes(d.status));
+                });
+                return { ...w, threads: filteredThreads };
+            })
             .filter(w => {
                 if (!statusFilter.length) return true;
-                if (w.allDocs.length === 0) return true;
-                return w.allDocs.some(d => statusFilter.includes(d.status));
+                if (w.id === 'refs') return true;
+                return w.threads.length > 0;
             });
     }
 
@@ -112,12 +159,12 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private groupByType(weaves: Weave[]): TreeNode[] {
-        const groups: Record<string, Document[]> = { idea: [], design: [], plan: [], ctx: [] };
+        const groups: Record<string, Document[]> = { idea: [], design: [], plan: [], ctx: [], reference: [] };
         for (const weave of weaves) {
             const threadDocs = weave.threads.flatMap(t =>
-                [t.idea, t.design, ...t.plans, ...t.dones].filter(Boolean) as Document[]
+                [t.idea, t.design, ...t.plans, ...t.dones, ...(t.refDocs ?? [])].filter(Boolean) as Document[]
             );
-            for (const doc of [...threadDocs, ...weave.looseFibers]) {
+            for (const doc of [...threadDocs, ...weave.looseFibers, ...(weave.refDocs ?? [])]) {
                 if (groups[doc.type] !== undefined) groups[doc.type].push(doc);
             }
         }
@@ -197,20 +244,28 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             children.push(this.createThreadNode(thread, weave.id));
         }
 
-        if (weave.looseFibers.length > 0) {
+        const ctxFibers = weave.looseFibers.filter(f => f.type === 'ctx');
+        const otherFibers = weave.looseFibers.filter(f => f.type !== 'ctx');
+
+        if (ctxFibers.length > 0) {
+            children.push(this.createCtxSection(ctxFibers, weave.id));
+        }
+
+        if (otherFibers.length > 0) {
             children.push(this.createSectionNode(
                 'Loose Fibers',
-                weave.looseFibers.map(f =>
-                    this.createDocumentNode(f, `loose-${f.type}`, weave.id)
-                )
+                otherFibers.map(f => this.createDocumentNode(f, `loose-${f.type}`, weave.id))
             ));
         }
 
         if (weave.chats.length > 0) {
-            children.push(this.createSectionNode(
-                'Chats',
+            children.push(this.createChatsSection(
                 weave.chats.map(c => this.createChatNode(c, weave.id))
             ));
+        }
+
+        if (weave.refDocs && weave.refDocs.length > 0) {
+            children.push(this.createRefsSection(weave.refDocs, weave.id));
         }
 
         return children;
@@ -225,10 +280,17 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const node = new vscode.TreeItem(thread.id, state);
         node.description = thread.design?.title ?? status;
         node.iconPath = getThreadIcon(status);
-        node.contextValue = 'thread';
         node.tooltip = thread.design
             ? `${thread.design.title} (v${thread.design.version})`
             : thread.id;
+
+        // Encode thread constraint state so when clauses can show/hide AI buttons
+        let contextValue = 'thread';
+        if (thread.idea) contextValue += '-has-idea';
+        if (thread.design) contextValue += '-has-design';
+        const hasCtx = thread.allDocs?.some(d => d.type === 'ctx');
+        if (hasCtx) contextValue += '-has-ctx';
+        node.contextValue = contextValue;
 
         return { ...node, weaveId, threadId: thread.id, children };
     }
@@ -245,8 +307,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
 
         if (thread.plans.length > 0) {
-            children.push(this.createSectionNode(
-                'Plans',
+            children.push(this.createPlansSection(
                 thread.plans.map(p => {
                     const doneDoc = thread.dones.find(d => d.parent_id === p.id);
                     return this.createPlanNode(p, weaveId, doneDoc, thread.id);
@@ -255,13 +316,46 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
 
         if (thread.chats.length > 0) {
-            children.push(this.createSectionNode(
-                'Chats',
+            children.push(this.createChatsSection(
                 thread.chats.map(c => this.createChatNode(c, weaveId, thread.id))
             ));
         }
 
+        if (thread.refDocs && thread.refDocs.length > 0) {
+            children.push(this.createRefsSection(thread.refDocs, weaveId, thread.id));
+        }
+
         return children;
+    }
+
+    private createCtxSection(ctxDocs: Document[], weaveId?: string, threadId?: string): TreeNode {
+        const node = new vscode.TreeItem('Context', vscode.TreeItemCollapsibleState.Collapsed);
+        node.contextValue = 'ctx-section';
+        node.iconPath = new vscode.ThemeIcon('note');
+        const children = ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveId, threadId));
+        return { ...node, weaveId, threadId, children };
+    }
+
+    private createRefsSection(refDocs: Document[], weaveId?: string, threadId?: string): TreeNode {
+        const node = new vscode.TreeItem('References', vscode.TreeItemCollapsibleState.Collapsed);
+        node.contextValue = 'refs-section';
+        node.iconPath = new vscode.ThemeIcon('library');
+        const children = refDocs.map(d => this.createDocumentNode(d, 'reference', weaveId, threadId));
+        return { ...node, weaveId, threadId, children };
+    }
+
+    private createChatsSection(chatNodes: TreeNode[]): TreeNode {
+        const node = new vscode.TreeItem('Chats', vscode.TreeItemCollapsibleState.Collapsed);
+        node.contextValue = 'chats-section';
+        node.iconPath = new vscode.ThemeIcon('comment-discussion');
+        return { ...node, children: chatNodes };
+    }
+
+    private createPlansSection(planNodes: TreeNode[]): TreeNode {
+        const node = new vscode.TreeItem('Plans', vscode.TreeItemCollapsibleState.Collapsed);
+        node.contextValue = 'plans-section';
+        node.iconPath = new vscode.ThemeIcon('checklist');
+        return { ...node, children: planNodes };
     }
 
     private createSectionNode(label: string, children: TreeNode[]): TreeNode {

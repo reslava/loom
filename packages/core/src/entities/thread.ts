@@ -17,5 +17,6 @@ export interface Thread {
     plans: PlanDoc[];
     dones: DoneDoc[];
     chats: ChatDoc[];
+    refDocs: Document[];
     allDocs: Document[];
 }

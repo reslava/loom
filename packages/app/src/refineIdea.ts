@@ -45,14 +45,13 @@ export async function refineIdea(
 
     const reply = await deps.aiClient.complete(messages);
 
-    const firstNewline = reply.indexOf('\n');
-    const firstLine = firstNewline === -1 ? reply : reply.slice(0, firstNewline);
-    const titleMatch = firstLine.match(/^TITLE:\s*(.+)$/i);
-    if (!titleMatch) {
-        throw new Error(`AI response did not start with TITLE: line. Got: "${firstLine}"`);
+    const lines = reply.split('\n');
+    const titleIdx = lines.findIndex(l => /^TITLE:\s*.+$/i.test(l));
+    if (titleIdx === -1) {
+        throw new Error(`AI response missing TITLE: line. Got: "${reply.slice(0, 200)}"`);
     }
-    const title = titleMatch[1].trim();
-    const body = firstNewline === -1 ? '' : reply.slice(firstNewline + 1).trim();
+    const title = lines[titleIdx].match(/^TITLE:\s*(.+)$/i)![1].trim();
+    const body = lines.slice(titleIdx + 1).join('\n').trim();
 
     const refined = ideaReducer(doc, { type: 'REFINE_IDEA' });
     const updated: IdeaDoc = {

@@ -37,4 +37,3 @@ The `npm run package` script is the single command — it builds and packages in
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | loom mcp
 ```
 If you get a JSON response with `"name":"loom"`, the server is up. If it hangs or errors, the `loom` binary is not on PATH or failed to build.
-

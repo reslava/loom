@@ -2,6 +2,7 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
     ReadResourceRequestSchema,
     ListResourcesRequestSchema,
+    ListResourceTemplatesRequestSchema,
     ListToolsRequestSchema,
     CallToolRequestSchema,
     ListPromptsRequestSchema,
@@ -25,7 +26,9 @@ import * as createChat from './tools/createChat';
 import * as startPlan from './tools/startPlan';
 import * as completeStep from './tools/completeStep';
 import * as closePlan from './tools/closePlan';
-import * as promote from './tools/promote';
+import { createPromoteTool } from './tools/promote';
+import { createRefineIdeaTool } from './tools/refineIdea';
+import { createRefinePlanTool } from './tools/refinePlan';
 import * as finalizeDoc from './tools/finalizeDoc';
 import * as archive from './tools/archive';
 import * as rename from './tools/rename';
@@ -49,13 +52,28 @@ import * as validateState from './prompts/validateState';
 
 const BASE_TOOLS = [
     createIdea, createDesign, createPlan, updateDoc, appendToChat, createChat,
-    startPlan, completeStep, closePlan, promote, finalizeDoc, archive, rename,
+    startPlan, completeStep, closePlan, finalizeDoc, archive, rename,
     findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs,
     doStep, appendDone, listPlanSteps,
 ];
 
 const PROMPTS = [
     continueThread, doNextStep, refineDesign, weaveIdea, weaveDesign, weavePlan, validateState,
+];
+
+const CONCRETE_RESOURCES = [
+    { uri: 'loom://state', name: 'Loom State', description: 'Full project state (weaves, threads, plans)', mimeType: 'application/json' },
+    { uri: 'loom://status', name: 'Loom Status', description: 'Raw .loom/_status.md content (Stage 1 only)', mimeType: 'text/plain' },
+    { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph (parent_id / child_ids)', mimeType: 'application/json' },
+    { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
+    { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
+];
+
+const RESOURCE_TEMPLATES = [
+    { uriTemplate: 'loom://docs/{id}', name: 'Document', description: 'Raw markdown of any Loom document by id', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://thread-context/{weaveId}/{threadId}', name: 'Thread Context', description: 'Bundled context for a thread: ctx summary, idea, design, active plan, requires_load refs', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://plan/{id}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
+    { uriTemplate: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];
 
 export function createLoomMcpServer(root: string): Server {
@@ -66,22 +84,19 @@ export function createLoomMcpServer(root: string): Server {
 
     const TOOLS = [
         ...BASE_TOOLS,
+        createPromoteTool(server),
+        createRefineIdeaTool(server),
+        createRefinePlanTool(server),
         ...createGenerateTools(server),
         createRefreshCtxTool(server),
     ];
 
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-        resources: [
-            { uri: 'loom://state', name: 'Loom State', description: 'Full project state (weaves, threads, plans)', mimeType: 'application/json' },
-            { uri: 'loom://status', name: 'Loom Status', description: 'Raw .loom/_status.md content (Stage 1 only)', mimeType: 'text/plain' },
-            { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph (parent_id / child_ids)', mimeType: 'application/json' },
-            { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
-            { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
-            { uri: 'loom://docs/{id}', name: 'Document', description: 'Raw markdown of any Loom document by id', mimeType: 'text/plain' },
-            { uri: 'loom://thread-context/{weaveId}/{threadId}', name: 'Thread Context', description: 'Bundled context for a thread: ctx summary, idea, design, active plan, requires_load refs', mimeType: 'text/plain' },
-            { uri: 'loom://plan/{id}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
-            { uri: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
-        ],
+        resources: CONCRETE_RESOURCES,
+    }));
+
+    server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
+        resourceTemplates: RESOURCE_TEMPLATES,
     }));
 
     server.setRequestHandler(ReadResourceRequestSchema, async (request) => {

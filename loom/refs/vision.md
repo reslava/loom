@@ -1,5 +1,5 @@
 ---
-type: ref
+type: reference
 id: vision
 title: "Loom — Vision"
 status: active

@@ -52,13 +52,28 @@ export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkI
         }
     }
 
+    // Load weave-level reference docs from refs/
+    const refDocs: Document[] = [];
+    const refsDir = path.join(weavePath, 'refs');
+    if (await fs.pathExists(refsDir)) {
+        const refFiles = (await fs.readdir(refsDir)).filter(f => f.endsWith('.md'));
+        for (const f of refFiles) {
+            try {
+                refDocs.push(await loadDoc(path.join(refsDir, f)) as Document);
+            } catch (e) {
+                console.warn(`Skipping ${f}: ${(e as Error).message}`);
+            }
+        }
+    }
+
     const allDocs: Document[] = [
         ...threads.flatMap(t => t.allDocs),
         ...looseFibers,
         ...chats,
+        ...refDocs,
     ];
 
-    return { id: weaveId, threads, looseFibers, chats, allDocs };
+    return { id: weaveId, threads, looseFibers, chats, refDocs, allDocs };
 }
 
 export async function saveWeave(loomRoot: string, weave: Weave): Promise<void> {

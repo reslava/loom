@@ -17,7 +17,7 @@ export async function weaveCreateCommand(treeProvider: LoomTreeProvider): Promis
     });
     if (!weaveId) return;
 
-    const weavePath = path.join(workspaceRoot, 'weaves', weaveId);
+    const weavePath = path.join(workspaceRoot, 'loom', weaveId);
     if (await fs.pathExists(weavePath)) {
         vscode.window.showWarningMessage(`Weave '${weaveId}' already exists.`);
         return;

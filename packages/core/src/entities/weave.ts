@@ -10,5 +10,6 @@ export interface Weave {
     threads: Thread[];
     looseFibers: Document[];
     chats: ChatDoc[];
+    refDocs: Document[];
     allDocs: Document[];
 }

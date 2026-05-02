@@ -56,10 +56,7 @@ export async function promoteToIdea(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc;
 
-    const weaveId = doc.parent_id;
-    if (!weaveId) {
-        throw new Error('Chat document has no parent_id. Cannot determine target weave for the idea.');
-    }
+    const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
 
     const turns = parseTurns(doc.content);
     if (turns.length === 0) {
@@ -73,23 +70,32 @@ export async function promoteToIdea(
 
     const reply = await deps.aiClient.complete(messages);
 
-    const firstNewline = reply.indexOf('\n');
-    const firstLine = firstNewline === -1 ? reply : reply.slice(0, firstNewline);
-    const titleMatch = firstLine.match(/^TITLE:\s*(.+)$/i);
-    if (!titleMatch) {
-        throw new Error(`AI response did not start with TITLE: line. Got: "${firstLine}"`);
+    const { title, body } = parseTitleAndBody(reply);
+
+    const targetDir = threadId
+        ? path.join(deps.loomRoot, 'loom', weaveId, threadId)
+        : path.join(deps.loomRoot, 'loom', weaveId);
+    await deps.fs.ensureDir(targetDir);
+
+    let ideaId: string;
+    let filePath: string;
+    if (threadId) {
+        // Thread-level: canonical filename is {threadId}-idea.md (one per thread)
+        ideaId = `${threadId}-idea`;
+        filePath = path.join(targetDir, `${ideaId}.md`);
+        if (await deps.fs.pathExists(filePath)) {
+            throw new Error(`Thread '${threadId}' already has an idea. Refine the existing one instead.`);
+        }
+    } else {
+        // Weave-level loose fiber: use kebab-of-title to allow multiple
+        const existingFiles = await deps.fs.readdir(targetDir).catch(() => [] as string[]);
+        const ideaFiles = existingFiles.filter(f => f.endsWith('-idea.md'));
+        ideaId = generateIdeaId(title, weaveId, ideaFiles);
+        filePath = path.join(targetDir, `${ideaId}.md`);
     }
-    const title = titleMatch[1].trim();
-    const body = firstNewline === -1 ? '' : reply.slice(firstNewline + 1).trim();
 
-    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
-    await deps.fs.ensureDir(weavePath);
-
-    const existingFiles = await deps.fs.readdir(weavePath).catch(() => [] as string[]);
-    const ideaFiles = existingFiles.filter(f => f.endsWith('-idea.md'));
-    const ideaId = generateIdeaId(title, weaveId, ideaFiles);
-
-    const frontmatter = createBaseFrontmatter('idea', ideaId, title, weaveId);
+    const idScope = threadId ?? weaveId;
+    const frontmatter = createBaseFrontmatter('idea', ideaId, title, idScope);
     const ideaDoc: IdeaDoc = {
         ...frontmatter,
         type: 'idea',
@@ -97,10 +103,33 @@ export async function promoteToIdea(
         content: `# ${title}\n\n${body}`,
     } as IdeaDoc;
 
-    const filePath = path.join(weavePath, `${ideaId}.md`);
     await deps.saveDoc(ideaDoc, filePath);
 
     return { filePath, title };
+}
+
+function parseTitleAndBody(reply: string): { title: string; body: string } {
+    const lines = reply.split('\n');
+    const titleIdx = lines.findIndex(l => /^TITLE:\s*.+$/i.test(l));
+    if (titleIdx === -1) {
+        throw new Error(`AI response missing TITLE: line. Got: "${reply.slice(0, 200)}"`);
+    }
+    const title = lines[titleIdx].match(/^TITLE:\s*(.+)$/i)![1].trim();
+    const body = lines.slice(titleIdx + 1).join('\n').trim();
+    return { title, body };
+}
+
+function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
+    const rel = path.relative(path.join(loomRoot, 'loom'), filePath);
+    const parts = rel.split(/[\\/]/);
+    if (parts.length < 2) throw new Error(`Cannot derive weave from path: ${rel}`);
+    const weaveId = parts[0];
+    // loom/{weave}/chats/file → weave-level chat (no thread)
+    if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
+    // loom/{weave}/{thread}/chats/file or loom/{weave}/{thread}/{anything}
+    if (parts.length >= 3) return { weaveId, threadId: parts[1] };
+    // loom/{weave}/file (loose fiber at weave root)
+    return { weaveId };
 }
 
 function generateIdeaId(title: string, weaveId: string, existingFiles: string[]): string {

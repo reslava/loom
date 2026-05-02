@@ -31,8 +31,7 @@ This feature is **opt‑in** and purely cosmetic. If no name is configured, the 
 ## Rafa:
 I'd like the system to know my name and use it in the docs. Can we make `## Rafa:` appear instead of `## User:`? Also, the AI should call me by my name when we chat.
 
-## AI:
-Absolutely. Let's define the configuration and implementation.
+## AI:Absolutely. Let's define the configuration and implementation.
 
 ### 1. Configuration
 

@@ -1,13 +1,14 @@
 import * as fs from 'fs-extra';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { loadDoc, saveDoc, findDocumentById } from '../../../fs/dist';
 import { promoteToIdea } from '../../../app/dist/promoteToIdea';
 import { promoteToDesign } from '../../../app/dist/promoteToDesign';
 import { promoteToPlan } from '../../../app/dist/promoteToPlan';
-import { makeAiClient } from '../deepseekClient';
+import { samplingAiClient } from '../samplingAiClient';
 
-export const toolDef = {
+const toolDef = {
     name: 'loom_promote',
-    description: 'Promote a document to a new type (idea, design, or plan). Creates a new doc linked to the source. AI generation uses DeepSeek when DEEPSEEK_API_KEY is set, otherwise a placeholder. Use this tool to promote docs — do not edit weave files directly.',
+    description: 'Promote a document to a new type (idea, design, or plan). Creates a new doc linked to the source. Uses MCP sampling for AI generation.',
     inputSchema: {
         type: 'object' as const,
         properties: {
@@ -18,25 +19,30 @@ export const toolDef = {
     },
 };
 
-export async function handle(root: string, args: Record<string, unknown>) {
-    const sourceId = args['sourceId'] as string;
-    const targetType = args['targetType'] as 'idea' | 'design' | 'plan';
+export function createPromoteTool(server: Server) {
+    return {
+        toolDef,
+        async handle(root: string, args: Record<string, unknown>) {
+            const sourceId = args['sourceId'] as string;
+            const targetType = args['targetType'] as 'idea' | 'design' | 'plan';
 
-    const filePath = await findDocumentById(root, sourceId);
-    if (!filePath) {
-        throw new Error(`Source document not found: ${sourceId}`);
-    }
+            const filePath = await findDocumentById(root, sourceId);
+            if (!filePath) {
+                throw new Error(`Source document not found: ${sourceId}`);
+            }
 
-    const deps = { loadDoc, saveDoc, fs, aiClient: makeAiClient(), loomRoot: root };
+            const deps = { loadDoc, saveDoc, fs, aiClient: samplingAiClient(server), loomRoot: root };
 
-    let result: { filePath: string; title: string };
-    if (targetType === 'idea') {
-        result = await promoteToIdea({ filePath }, deps);
-    } else if (targetType === 'design') {
-        result = await promoteToDesign({ filePath }, deps);
-    } else {
-        result = await promoteToPlan({ filePath }, deps);
-    }
+            let result: { filePath: string; title: string };
+            if (targetType === 'idea') {
+                result = await promoteToIdea({ filePath }, deps);
+            } else if (targetType === 'design') {
+                result = await promoteToDesign({ filePath }, deps);
+            } else {
+                result = await promoteToPlan({ filePath }, deps);
+            }
 
-    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+            return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+        },
+    };
 }

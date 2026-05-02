@@ -55,6 +55,7 @@ export async function loadThread(
     const plans = await loadMdFiles<PlanDoc>(path.join(threadPath, 'plans'), 'plan');
     const dones = await loadMdFiles<DoneDoc>(path.join(threadPath, 'done'), 'done');
     const chats = await loadMdFiles<ChatDoc>(path.join(threadPath, 'chats'), 'chat');
+    const refDocs = await loadMdFiles<Document>(path.join(threadPath, 'refs'));
 
     // Constraint warnings
     const rootFiles = await fs.readdir(threadPath).catch(() => [] as string[]);
@@ -71,6 +72,7 @@ export async function loadThread(
         ...plans,
         ...dones,
         ...chats,
+        ...refDocs,
     ];
 
     if (index) {
@@ -85,7 +87,7 @@ export async function loadThread(
         }
     }
 
-    return { id: threadId, weaveId, idea, design, plans, dones, chats, allDocs };
+    return { id: threadId, weaveId, idea, design, plans, dones, chats, refDocs, allDocs };
 }
 
 function docPathInThread(doc: Document, threadPath: string, threadId: string): string {

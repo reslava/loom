@@ -47,6 +47,12 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "loom.reconnectMcp",
+        "title": "Reconnect MCP",
+        "category": "Loom",
+        "icon": "$(debug-restart)"
+      },
+      {
         "command": "loom.weaveCreate",
         "title": "New Weave",
         "category": "Loom",
@@ -159,12 +165,24 @@
       },
       {
         "command": "loom.setTextFilter",
-        "title": "Filter",
+        "title": "Filter by text",
+        "category": "Loom",
+        "icon": "$(search)"
+      },
+      {
+        "command": "loom.setStatusFilter",
+        "title": "Filter by status",
         "category": "Loom",
         "icon": {
           "light": "media/icons/filter.svg",
           "dark": "media/icons/filter.svg"
         }
+      },
+      {
+        "command": "loom.generateGlobalCtx",
+        "title": "Generate / Refine Global Context",
+        "category": "Loom",
+        "icon": "$(book)"
       },
       {
         "command": "loom.toggleArchived",
@@ -352,40 +370,50 @@
           "group": "navigation@6"
         },
         {
-          "command": "loom.setTextFilter",
+          "command": "loom.setStatusFilter",
           "when": "view == loom.threads",
           "group": "navigation@7"
         },
         {
-          "command": "loom.toggleArchived",
+          "command": "loom.setTextFilter",
           "when": "view == loom.threads",
           "group": "navigation@8"
         },
         {
-          "command": "loom.refresh",
+          "command": "loom.generateGlobalCtx",
           "when": "view == loom.threads",
           "group": "navigation@9"
+        },
+        {
+          "command": "loom.toggleArchived",
+          "when": "view == loom.threads",
+          "group": "navigation@10"
+        },
+        {
+          "command": "loom.refresh",
+          "when": "view == loom.threads",
+          "group": "navigation@11"
         }
       ],
       "view/item/context": [
         {
           "command": "loom.weaveIdea",
-          "when": "view == loom.threads && viewItem == thread",
+          "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-idea/)",
           "group": "inline@1"
         },
         {
           "command": "loom.weaveDesign",
-          "when": "view == loom.threads && viewItem == thread",
+          "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-design/)",
           "group": "inline@2"
         },
         {
           "command": "loom.weavePlan",
-          "when": "view == loom.threads && (viewItem == thread || viewItem == design)",
+          "when": "view == loom.threads && (viewItem =~ /^thread/ || viewItem == design)",
           "group": "inline@3"
         },
         {
           "command": "loom.summarise",
-          "when": "view == loom.threads && (viewItem == weave || viewItem == thread) && loom.aiEnabled",
+          "when": "view == loom.threads && (viewItem == weave || viewItem =~ /^thread/) && loom.aiEnabled",
           "group": "inline@4"
         },
         {
@@ -415,7 +443,7 @@
         },
         {
           "command": "loom.validate",
-          "when": "view == loom.threads && viewItem == weave",
+          "when": "view == loom.threads && viewItem =~ /^weave/",
           "group": "inline@2"
         },
         {

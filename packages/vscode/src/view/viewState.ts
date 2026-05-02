@@ -11,6 +11,6 @@ export interface ViewState {
 export const defaultViewState: ViewState = {
     grouping: 'thread',
     textFilter: '',
-    statusFilter: ['active', 'implementing', 'draft'],
+    statusFilter: [],
     showArchived: false,
 };

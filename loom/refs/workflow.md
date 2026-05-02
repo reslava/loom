@@ -1,5 +1,5 @@
 ---
-type: ref
+type: reference
 id: workflow
 title: "Loom — Workflow"
 status: active

@@ -12,6 +12,8 @@ export const Icons = {
     design: 'design',
     plan: 'plan',
     ctx: 'ctx',
+    reference: 'reference',
+    refs: 'refs',
 
     // Actions
     actionDelete: 'actionDelete',
@@ -29,6 +31,8 @@ const CodiconMap: Readonly<Record<keyof typeof Icons, string>> = {
     design: 'symbol-structure',
     plan: 'checklist',
     ctx: 'note',
+    reference: 'references',
+    refs: 'library',
     actionDelete: 'trash',
     actionArchive: 'archive',
     actionCancel: 'close',
@@ -66,8 +70,9 @@ export function getDocumentIcon(type: string): ReturnType<typeof icon> {
         case 'idea':   return icon(Icons.idea);
         case 'plan':   return icon(Icons.plan);
         case 'ctx':    return icon(Icons.ctx);
-        case 'chat':   return icon(Icons.chat);
-        default:       return icon(Icons.design);
+        case 'chat':      return icon(Icons.chat);
+        case 'reference': return icon(Icons.reference);
+        default:          return icon(Icons.design);
     }
 }
 

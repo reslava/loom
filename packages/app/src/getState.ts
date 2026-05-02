@@ -1,8 +1,11 @@
 import { getActiveLoomRoot } from '../../fs/dist';
 import { loadWeave } from '../../fs/dist';
 import { buildLinkIndex } from '../../fs/dist';
+import { loadDoc } from '../../fs/dist';
 import { ConfigRegistry } from '../../core/dist/registry';
 import { LoomState, LoomMode } from '../../core/dist/entities/state';
+import { Document } from '../../core/dist/entities/document';
+import { ChatDoc } from '../../core/dist/entities/chat';
 import { Weave, WeaveStatus } from '../../core/dist/entities/weave';
 import { getWeaveStatus } from '../../core/dist/derived';
 import { filterWeavesByStatus, filterWeavesByPhase, filterWeavesById } from '../../core/dist/filters/weaveFilters';
@@ -40,22 +43,43 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     
     const weavesDir = path.join(loomRoot, 'loom');
     const allWeaves: Weave[] = [];
-    
+    const globalDocs: Document[] = [];
+    const globalChats: ChatDoc[] = [];
+
     const index = await deps.buildLinkIndex(loomRoot);
-    
+
     if (deps.fs.existsSync(weavesDir)) {
         const entries = await deps.fs.readdir(weavesDir);
         for (const entry of entries) {
-            const weavePath = path.join(weavesDir, entry);
-            const stat = await deps.fs.stat(weavePath);
+            const entryPath = path.join(weavesDir, entry);
+            const stat = await deps.fs.stat(entryPath);
             if (stat.isDirectory() && entry !== '.archive') {
-                try {
-                    const weave = await deps.loadWeave(loomRoot, entry, index);
-                    if (weave) {
-                        allWeaves.push(weave);
+                if (entry === 'chats') {
+                    // Global chats directory — load chat docs directly
+                    const chatFiles = (await deps.fs.readdir(entryPath)).filter((f: string) => f.endsWith('.md'));
+                    for (const f of chatFiles) {
+                        try {
+                            const doc = await loadDoc(path.join(entryPath, f));
+                            if (doc.type === 'chat') globalChats.push(doc as ChatDoc);
+                        } catch (e) {
+                            // Skip invalid chat docs
+                        }
                     }
+                } else {
+                    try {
+                        const weave = await deps.loadWeave(loomRoot, entry, index);
+                        if (weave) {
+                            allWeaves.push(weave);
+                        }
+                    } catch (e) {
+                        // Skip invalid weaves
+                    }
+                }
+            } else if (stat.isFile() && entry.endsWith('.md')) {
+                try {
+                    globalDocs.push(await loadDoc(entryPath));
                 } catch (e) {
-                    // Skip invalid weaves
+                    // Skip docs with invalid frontmatter
                 }
             }
         }
@@ -110,6 +134,8 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         loomRoot,
         mode,
         loomName,
+        globalDocs,
+        globalChats,
         weaves: filteredWeaves,
         index,
         generatedAt: new Date().toISOString(),

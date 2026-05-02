@@ -52,10 +52,7 @@ export async function promoteToPlan(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc | IdeaDoc | DesignDoc;
 
-    const weaveId = doc.parent_id;
-    if (!weaveId) {
-        throw new Error('Document has no parent_id. Cannot determine target weave for the plan.');
-    }
+    const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
 
     let messages: Message[];
     if (doc.type === 'chat') {
@@ -73,23 +70,19 @@ export async function promoteToPlan(
 
     const reply = await deps.aiClient.complete(messages);
 
-    const firstNewline = reply.indexOf('\n');
-    const firstLine = firstNewline === -1 ? reply : reply.slice(0, firstNewline);
-    const titleMatch = firstLine.match(/^TITLE:\s*(.+)$/i);
-    if (!titleMatch) {
-        throw new Error(`AI response did not start with TITLE: line. Got: "${firstLine}"`);
-    }
-    const title = titleMatch[1].trim();
-    const body = firstNewline === -1 ? '' : reply.slice(firstNewline + 1).trim();
+    const { title, body } = parseTitleAndBody(reply);
 
-    const plansDir = path.join(deps.loomRoot, 'loom', weaveId, 'plans');
+    const plansDir = threadId
+        ? path.join(deps.loomRoot, 'loom', weaveId, threadId, 'plans')
+        : path.join(deps.loomRoot, 'loom', weaveId, 'plans');
     await deps.fs.ensureDir(plansDir);
 
+    const idScope = threadId ?? weaveId;
     const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);
     const existingPlanIds = existingFiles
         .filter(f => f.endsWith('.md'))
         .map(f => f.replace(/\.md$/, ''));
-    const planId = generatePlanId(weaveId, existingPlanIds);
+    const planId = generatePlanId(idScope, existingPlanIds);
 
     const frontmatter = createBaseFrontmatter('plan', planId, title, doc.id);
     const planDoc: PlanDoc = {
@@ -104,4 +97,25 @@ export async function promoteToPlan(
     await deps.saveDoc(planDoc, filePath);
 
     return { filePath, title };
+}
+
+function parseTitleAndBody(reply: string): { title: string; body: string } {
+    const lines = reply.split('\n');
+    const titleIdx = lines.findIndex(l => /^TITLE:\s*.+$/i.test(l));
+    if (titleIdx === -1) {
+        throw new Error(`AI response missing TITLE: line. Got: "${reply.slice(0, 200)}"`);
+    }
+    const title = lines[titleIdx].match(/^TITLE:\s*(.+)$/i)![1].trim();
+    const body = lines.slice(titleIdx + 1).join('\n').trim();
+    return { title, body };
+}
+
+function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
+    const rel = path.relative(path.join(loomRoot, 'loom'), filePath);
+    const parts = rel.split(/[\\/]/);
+    if (parts.length < 2) throw new Error(`Cannot derive weave from path: ${rel}`);
+    const weaveId = parts[0];
+    if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
+    if (parts.length >= 3) return { weaveId, threadId: parts[1] };
+    return { weaveId };
 }

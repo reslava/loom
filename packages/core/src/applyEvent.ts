@@ -81,6 +81,7 @@ export function applyEvent(weave: Weave, event: WorkflowEvent): Weave {
         threads: updatedThreads,
         looseFibers: weave.looseFibers.map(f => updatedById.get(f.id) ?? f),
         chats: weave.chats.map(c => (updatedById.get(c.id) as ChatDoc) ?? c),
+        refDocs: weave.refDocs,
         allDocs: updatedDocs,
     };
 }

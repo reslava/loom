@@ -27,7 +27,7 @@ export async function threadCreateCommand(
     });
     if (!threadId) return;
 
-    const threadPath = path.join(workspaceRoot, 'weaves', weaveId, threadId);
+    const threadPath = path.join(workspaceRoot, 'loom', weaveId, threadId);
     if (await fs.pathExists(threadPath)) {
         vscode.window.showWarningMessage(`Thread '${threadId}' already exists in '${weaveId}'.`);
         return;

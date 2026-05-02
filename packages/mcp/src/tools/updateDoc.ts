@@ -1,5 +1,5 @@
 import { findDocumentById, loadDoc, saveDoc } from '../../../fs/dist';
-import { Document } from '../../../core/dist';
+import { Document, parseStepsTable } from '../../../core/dist';
 
 export const toolDef = {
     name: 'loom_update_doc',
@@ -29,6 +29,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         version: doc.version + 1,
         updated: new Date().toISOString().split('T')[0],
         content: newContent,
+        ...(doc.type === 'plan' ? { steps: parseStepsTable(newContent) } : {}),
     } as Document;
 
     await saveDoc(updated, filePath);

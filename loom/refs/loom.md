@@ -1,5 +1,5 @@
 ---
-type: ref
+type: reference
 id: loom
 title: "Loom — Definition & Vision"
 status: active
