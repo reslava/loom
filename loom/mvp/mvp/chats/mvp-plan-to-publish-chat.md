@@ -642,3 +642,291 @@ Want the parser fix landed before next test?
 
 - Yes
 - Commit, push
+
+## Rafa:
+
+### Is Loom useful?
+Let’s assume we’ve finished Loom.
+A developer uses Loom to create a moderately complex app with you. Let’s assume he is a good developer and use Loom properly.
+Would you feel more comfortable, with better information and context?
+Do you think you’d both produce a higher-quality app? 
+The workflow will have more or less friction?
+In more or less time?
+With more or fewer tokens?
+Tell me whatever you can imagine...
+Be 100% honest, please!
+
+### Next plan Steps
+Tell me
+
+## AI:
+
+### Is Loom useful? — straight answer
+
+Premise: Loom is finished, friction-free, the dev is good and uses it properly.
+
+**Comfort + context: clearly better.**
+Today in a fresh repo I burn 5–15 turns figuring out *where we are* — what was tried, what was decided, what's the convention. With Loom that's one resource read (`loom://thread-context/{w}/{t}`). I'd start every session already on the same page as the dev. The chat docs are persistent memory — when the dev comes back next week, they don't re-explain anything.
+
+**Output quality: better, but conditionally.**
+- Better when the dev has paid the up-front cost (real idea/design/plan docs that capture intent). The plan-step model forces decomposition; harder to drift, harder to skip steps. That's structural quality.
+- *Loom doesn't fix garbage-in*. A one-line idea doc and a 38-step plan still produces a bad app. The dev has to actually use Loom *thoughtfully*, not just mechanically.
+- One real risk: marking ✅ on steps creates *the appearance of progress*. 30 ✅ across a plan can hide that integration never got tested. The discipline of small steps lets debt accumulate quietly. Loom should probably make "running tests / integration check" a first-class step type — right now it's just a step like any other.
+
+**Friction: more total, less per action.**
+- More total: every state mutation goes through MCP, every doc has frontmatter, every change wants a chat reply. There's a ceremony tax.
+- Less per action: I never ask "what's active?", "where did we leave off?", "what was that decision?". Lookup is free.
+- Net: friction shifts from *discovering context* to *maintaining state*. Better tradeoff for multi-week projects. Worse for one-day hacks. Crossover around session 5–10. Below that, terminal beats Loom.
+
+**Time: depends on project shape.**
+- Short, exploratory: slower. Ceremony is overhead.
+- Long, structured: faster. Days saved on context re-establishment alone.
+- "Moderately complex app" is squarely in Loom-wins territory. Maybe 20–30% faster end-to-end for the kind of project where you'd otherwise lose half a day each week to "what was the deal with the auth flow again?".
+
+**Tokens: higher per turn, lower per project.**
+- Per turn: bigger context window — thread-context, ctx docs, requires_load all cost tokens.
+- Per project: probably 30–50% lower. Today on day 5 of a complex thing I burn ~30k tokens re-establishing state across the conversation. With Loom that's ~5k pulling structured state. The chat docs replace the user re-explaining.
+- Sampling-based generation is also cheaper than the dev paste-stuffing context into a freeform chat.
+
+**What I'd actually be different about:**
+- I'd push back less on "small fix" requests because the system tracks them — no fear of losing the thread.
+- I'd commit smaller and more often because plan steps frame natural boundaries.
+- I'd be braver about challenging — "wait, this contradicts the design on line 47" — because the design doc is *right there*, not something the dev hopefully remembered to mention.
+- I'd drift less because the plan is the contract, not a verbal agreement that fades in 3 turns.
+
+**Where I'd still want freeform:**
+- One-off scripts. Read-heavy debug sessions. "Explain this code." Anything where formalizing costs more than the benefit. Loom shouldn't try to win these — it should be honest about its sweet spot.
+
+**Honest assessment of the bet:**
+Loom's bet is: *durable structured context beats freeform chat at scale*. I think that bet is right for projects bigger than a weekend. The thing that makes or breaks it isn't the tech — it's whether the dev has the discipline to write *real* idea/design/plan docs instead of stubs. Loom amplifies whatever they bring. With a thoughtful dev, finished Loom is genuinely better than a freeform IDE+terminal session. With a lazy dev, Loom is a slower way to produce the same garbage.
+
+The friction we've hit this session — TITLE: brittleness, dist drift, regressions — is implementation polish, not the model itself. The model is sound. Most of "lot of iterations" is the system being immature, not the workflow being wrong.
+
+---
+
+### Next plan steps
+
+Phase 0 has 5 steps. State now:
+
+| # | Step | Status |
+|---|------|--------|
+| 1 | Toolbar audit | ✅ |
+| 2 | Inline audit | ✅ |
+| 3 | weaveCreate/threadCreate path bug | ✅ user-confirmed |
+| 4 | Selection→context wiring | ✅ |
+| 5 | Fix bugs found (5 promote/refine + tree-click + parser) | ⚠️ user-confirmed working last try, modulo TITLE: parser fix just landed |
+
+Recommended next moves, in order:
+
+1. **Smoke-test step 5 once more** with the lenient TITLE: parser. Reconnect MCP, repackage vsix, retry the chat → idea promote that failed twice before. If it lands first try, mark step 5 ✅. **(this closes Phase 0)**.
+2. **Phase 1 — `loom install` template parity** (steps 6–9). Run `loom install` in an empty test dir. This is the *single most important MVP item* since it's what an outside user hits first. I'd do it before Phase 2 because if install is broken, nothing else matters.
+3. **Phase 2 — AI commands via MCP** (steps 10–15). Most are already done as side-effects of step 5 (we just routed promote/refine through MCP). Audit what's left: `generateGlobalCtx` is still a stub, `summarise`/`chatReply` need verification.
+4. **Phase 3, 4, 5, 6** in plan order.
+
+My recommendation for *this session*: do step 1 above (smoke-test + close Phase 0) and then start Phase 1 step 6. Phase 1 will surface real issues that should be fixed before any docs-rewrite work in Phase 5.
+
+Stopping for direction.
+
+## Rafa:
+
+1. I still got error:
+```
+Promote to idea failed: MCP error -32603: AI response missing TITLE: line. Got: "I cannot create or modify files on your local system. I'm an AI assistant within a document-driven workflow environment and can only process information within the conversation context. If you'd like"
+```
+
+This may or may not be related to the current task.
+
+## AI:
+
+### Diagnosis
+
+The lenient TITLE: parser fix landed and is doing its job — it is no longer choking on a chatty preamble. This is a **different failure**: the model is **refusing the task outright**. It thinks it is being asked to *perform* file creation rather than *extract an idea text*.
+
+Likely cause: `parseTurns` feeds *every* `## Header:` section of the chat into the model as alternating user/assistant turns — including AI turns that contain meta-text like "I cannot edit files directly", MCP visibility prefixes, system-reminder-style content, plan tables, etc. The model echoes the safety/refusal stance back from its own past replies in the chat, then the system prompt ("extract the idea") gets out-shouted by the conversation own framing.
+
+Two contributing factors:
+1. **Prompt is too soft** for refusal-prone models. "Your task: read the chat conversation and extract the most important idea" does not say "do not refuse, do not narrate, do not address the user — just output the format".
+2. **Whole chat replayed as turns** means a 700-line meta-conversation is being handed to the model as if it were *the actual conversation to summarize*. The model gets confused about who it is addressing.
+
+### Fix options (cheapest → cleanest)
+
+1. **Tighten the system prompt** (5 min). Add explicit "do not refuse / do not preface / first character of your reply must be `TITLE:`" instructions. Cheap, but band-aid — models will still occasionally drift.
+2. **Send chat as a single user message, not as turns** (15 min). Concatenate the whole chat into one block prefixed with "Here is a chat transcript. Extract the idea per the format below." This removes the role-confusion (model is not tricked into *replying as the AI in the chat*) and is closer to how summarization is normally prompted.
+3. **Both**. Recommended. Option 2 fixes the structural issue, option 1 hardens against residual variance.
+
+Same change applies to `promoteToDesign`, `promoteToPlan`, `refineIdea`, `refinePlan`.
+
+### Recommendation
+
+Land option 3 in one commit. While there, also: if the parsed reply still does not match (refusal detected, no TITLE: line), include the **full** reply in the error (not just the first 200 chars) — debugging refusals on a truncated message is what just cost us a round-trip.
+
+Phase 0 step 5 stays ⚠️ until this lands and a fresh promote attempt succeeds first try.
+
+Want me to land option 3 now?
+
+Next: waiting for `go` on the promote-prompt rework (option 3 + better error), or alternative direction.
+
+## Rafa:
+
+- Option 3
+
+I do not understand why promote chat to an idea do not send the entire chat to be converted into an idea canonical format yet. 
+Sending chuncks of a chat should be only for reply chat.
+Tell me.
+
+## AI:
+
+You are right, and there is no good reason for the current shape. Honest answer: it was copy-pasted scaffolding, not a deliberate design.
+
+### Why it ended up that way
+
+The `AIClient.complete(messages: Message[])` interface was built for chat-reply (which legitimately needs role-segmented turns so the model knows whose voice to continue). When promote was added, the path of least resistance was to reuse the same interface and call `parseTurns(content)` to fit it. So the chat got chopped into `user`/`assistant` turns and shipped to a *summarization* task as if it were a *continuation* task. That is the bug.
+
+### Why it is wrong
+
+- Summarization is a single-input → single-output task. The input is "this transcript". The output is "an idea doc". There is no conversation to continue.
+- Replaying the chat as alternating turns tricks the model into thinking it *is* the AI in that chat — so it answers in-character (refusing, narrating, addressing Rafa) instead of standing outside and summarizing.
+- It also breaks when the chat starts with `## AI:` or has uneven turn counts — the model sees a malformed "conversation" and reacts to *that* instead of doing the task.
+
+### Correct shape
+
+- **promoteToIdea / promoteToDesign / promoteToPlan / refineIdea / refinePlan / refineDesign**: one system message (the format spec) + one user message containing the *entire* doc/chat verbatim as a transcript block. No `parseTurns`.
+- **chatReply** (only): keep `parseTurns` because that genuinely needs role continuation.
+- **generateGlobalCtx / summarise**: same as promote — single-input summarization, no turn-splitting.
+
+### Plan for the fix (option 3, scoped)
+
+1. Add a helper `buildSummarizationMessages(systemPrompt, transcript)` in `app/` that returns `[{system}, {user: "<TRANSCRIPT>
+" + transcript + "
+</TRANSCRIPT>
+
+Produce the output now in the exact format specified."}]`.
+2. Replace `parseTurns(...)` call sites in promoteToIdea / promoteToDesign / promoteToPlan / refineIdea / refinePlan / refineDesign with this helper.
+3. Harden each system prompt: add "Do not refuse. Do not address the user. Do not add preamble. The first line of your reply must be `TITLE:`."
+4. On parse failure, include the full reply in the thrown error (not the first 200 chars).
+5. Leave `chatReply` alone — it is the one place turns are correct.
+6. Rebuild app + mcp dist, repackage vsix, smoke-test promote-to-idea on this very chat.
+
+Going now unless you say otherwise.
+
+Next: implementing steps 1–6 above.
+
+## Rafa:
+
+go
+
+## AI:
+
+### Landed (option 3)
+
+Commit-pending changes:
+
+- **New** `packages/app/src/utils/aiSummarization.ts` — `buildSummarizationMessages(systemPrompt, label, content)` and `parseTitleAndBody(reply)`. The helper wraps the doc in a `<TRANSCRIPT>...</TRANSCRIPT>` block, sends it as ONE user message, and appends a STRICT OUTPUT RULES section to the system prompt: do not refuse, do not address the user, no preamble, first line must be `TITLE:`. `parseTitleAndBody` now includes the FULL reply in the error (not the first 200 chars) so refusals are diagnosable.
+- **promoteToIdea** — dropped `parseTurns`. Sends whole chat as transcript via the helper.
+- **promoteToDesign** — same. Works for both chat and idea inputs.
+- **promoteToPlan** — same. Works for chat / idea / design inputs.
+- **refineIdea** — switched to helper (was already single-message but lacked refusal-hardening + better error).
+- **refinePlan** — same.
+- **chatReply** — untouched. Turn-splitting is correct there.
+- **summarise** — already correct shape, untouched.
+
+### Build + tests
+
+- `bash scripts/build-all.sh` — clean.
+- `bash scripts/test-all.sh` — same result as on a clean main: every test passes EXCEPT one pre-existing failure (`workspace-workflow.test.ts: weave must surface chat doc from ai-chats/`). I verified by stashing my changes, rebuilding, and re-running — same failure on stock `main`. **Not introduced by this work.** Worth filing as a separate item.
+- `npm run build && npm run package` in `packages/vscode/` — fresh `loom-vscode-0.1.0.vsix` produced (367 KB).
+
+### Next
+
+Reinstall the vsix, reload the window so the MCP server respawns with the new app dist, and retry **Promote chat → idea** on this very chat. Expected: succeeds first try.
+
+If it does, mark Phase 0 step 5 ✅ (and probably file the `ai-chats/` surfacing bug as a Phase-1-or-later item).
+
+Stopping for the smoke test.
+
+## Rafa:
+
+- test ok, step 5 maked ✅
+
+### Correct path
+I am concern why all these method was constructed above chat.
+Please add to CLAUDE.md something like.
+When need to choose between paths to fix/implement something always pick the correct path, the one that is going to last forever, that makes architectural, app sense. Never prefer the shorter, fast path in front of the correct on.
+Agree? (Write it with better English semantics)
+
+### Chat weakness
+In line 789 you wrote:
+```
+- It also breaks when the chat starts with `## AI:` or has uneven turn counts — the model sees a malformed "conversation" and reacts to *that* instead of doing the task.
+```
+
+Well, this shoulb be fixed also, chat workflow should remain strong no matter these issues and AI, should just reply
+
+### MCP timed out
+Why this error happens so usually? 
+This need to be fixed
+## AI:
+
+### Step 5 ✅ — Phase 0 closed
+
+Noted. Phase 0 is done. Ready to start Phase 1 (`loom install` template parity, steps 6–9) once the items below are settled.
+
+### 1. The "Correct Path" principle — proposed CLAUDE.md addition
+
+Fully agree. The TITLE: parser band-aid was a textbook example of the wrong reflex — patching the symptom (lenient regex) instead of the cause (wrong message shape). Costs us a round-trip every time.
+
+Proposed wording, to add as a new section under **Collaboration style** in CLAUDE.md (right after the existing "Always choose the cleanest, most correct approach" bullet, which it sharpens):
+
+> **Correct path over short path.** When more than one fix or implementation route is available, choose the one that is architecturally sound and durable — the path that will still be right months from now — even if it requires more work, more files, or a wider refactor. Never trade correctness for speed. A patch that masks a root cause is a future bug with interest accrued: the next failure will be harder to diagnose because the symptom will have shifted. Before proposing a fix, name the root cause out loud; if your proposal does not address it, say so explicitly and justify why a workaround is acceptable here. Default is always: fix the cause, not the symptom.
+
+This is stronger than the current bullet because it (a) names the failure mode (symptom-fix masking root cause), (b) requires explicit justification for any workaround, and (c) makes "name the root cause" a precondition for proposing a fix.
+
+Want me to land this verbatim, or tweak first?
+
+### 2. Chat workflow weakness
+
+You are right — robustness of the chat workflow is non-negotiable. Status:
+
+- **Promote/refine paths**: already fixed by option 3 just landed. They no longer use `parseTurns`; they send the whole chat as one transcript. Uneven turns / leading `## AI:` are no longer a problem there.
+- **chatReply** (`packages/app/src/chatReply.ts`): still uses `parseTurns`. This is the one remaining surface where the weakness lives. Failure modes today:
+  - Chat starts with `## AI:` (no user turn yet) → `turns.length === 0` after filter? Actually no, it would have one assistant-only turn, then we send `[system, assistant]` to the model with no user prompt — model gets confused.
+  - Two consecutive `## Rafa:` blocks → two adjacent user turns, which most APIs reject or treat oddly.
+  - Code-fenced `## ` inside a turn → treated as a fake header, splits the turn.
+  - Trailing empty `## Rafa:` block (the user pressed reply on an empty draft) → empty user turn filtered out, model replies to the previous-previous turn.
+
+**Proposed fix for chatReply** (clean path, not a patch):
+
+  1. Parse turns leniently: collapse consecutive same-role turns, ignore turns inside code fences, drop empty turns.
+  2. Require at least one non-empty `## Rafa:` (or other user-named) turn as the *last* turn before allowing a reply. If the last turn is `## AI:`, refuse with a clear "write something under `## {You}:` first" error rather than sending broken messages to the model.
+  3. If the chat is malformed in any other way (e.g. starts with `## AI:`), normalize to: `[system, user: <full chat verbatim>]` + a small instruction "Continue the conversation by responding to the most recent user message." This is the same single-message strategy as promote/refine, used as a fallback for malformed chats.
+
+Net effect: chatReply works no matter what shape the chat is in. Same robustness principle applied to the one place still vulnerable.
+
+### 3. MCP timed out — root cause + fix
+
+This one I dug into. The cause is concrete:
+
+**Root cause**: in `packages/vscode/src/mcp-client.ts`, `client.callTool(...)` and `client.readResource(...)` are called with NO `RequestOptions`. The MCP SDK default request timeout is **60 seconds**. Two failure shapes follow:
+
+  - **AI-bound tools** (`loom_promote`, `loom_refine_*`, `loom_generate_*`, `loom_do_step`): these round-trip through sampling → DeepSeek → back. On a 700-line chat the sampling call alone can take 60–120s. Any call near or past 60s gets killed mid-flight with JSON-RPC error 32001 (request timeout). The treeProvider already detects `32001` / "timed out" and shows the "MCP timed out — click to reconnect" node — but the timeout itself is the bug, not the rendering.
+  - **State reads** (`loom://state?status=...`): these are usually fast, but on cold-start the server has to build the link index over the whole workspace. On the first read after a reload, this can edge past 60s on this repo. Same 32001.
+
+**Fix (clean path)**: pass an explicit `RequestOptions { timeout: ... }` per call class. Long timeouts for AI-bound tools (e.g. 5 minutes), shorter but still generous for resource reads (e.g. 30s with a clear "still loading" signal). Centralize the call wrappers so every callsite picks the right class. Optionally also bump server-side: ensure the server does not enforce a tighter limit than the client.
+
+A secondary improvement: a heartbeat / progress notification from server to client during long sampling, so the SDK does not consider the request idle. The MCP spec supports `notifications/progress` for exactly this. Adding it makes timeouts disappear even with longer AI calls because the client sees the request is alive.
+
+Minimum fix to land first: explicit `timeout: 300_000` on AI-bound tool calls. Cheapest, biggest win, no protocol change. The progress-notification work can come later as a polish.
+
+### Suggested order of work (waiting for go)
+
+1. Land the CLAUDE.md "Correct path" addition (after you approve wording).
+2. Land the chatReply robustness fix.
+3. Land the MCP timeout fix (RequestOptions on the vscode mcp-client; later: progress notifications from the server).
+4. Commit + push.
+5. Then start Phase 1 step 6 (`loom install` template parity).
+
+Stopping for direction. Pick any subset / change order / tweak the CLAUDE.md wording.
+
+## Rafa:
+
+Do 1-4

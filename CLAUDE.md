@@ -295,6 +295,7 @@ STOP — waiting for go
 - Don't rush to write code or create files until the design feels settled.
 - Do not make any changes until you have 95% confidence in what you need to build. Ask follow-up questions until you reach that confidence.
 - Always choose the cleanest, most correct approach even if it is harder or slower. Patches and workarounds accumulate debt. If the clean approach requires more work, say so — never silently pick the easy path.
+- **Correct path over short path.** When more than one fix or implementation route is available, choose the one that is architecturally sound and durable — the path that will still be right months from now — even if it requires more work, more files, or a wider refactor. Never trade correctness for speed. A patch that masks a root cause is a future bug with interest accrued: the next failure will be harder to diagnose because the symptom will have shifted. Before proposing a fix, name the root cause out loud; if your proposal does not address it, say so explicitly and justify why a workaround is acceptable here. Default is always: fix the cause, not the symptom.
 
 ---
 

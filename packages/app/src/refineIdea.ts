@@ -1,5 +1,6 @@
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, Message, IdeaDoc, ideaReducer } from '../../core/dist';
+import { AIClient, IdeaDoc, ideaReducer } from '../../core/dist';
+import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface RefineIdeaInput {
     filePath: string;
@@ -38,20 +39,15 @@ export async function refineIdea(
 ): Promise<{ filePath: string; version: number }> {
     const doc = await deps.loadDoc(input.filePath) as IdeaDoc;
 
-    const messages: Message[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: `Here is the idea document titled "${doc.title}":\n\n${doc.content}` },
-    ];
+    const messages = buildSummarizationMessages(
+        SYSTEM_PROMPT,
+        `idea document titled "${doc.title}"`,
+        doc.content,
+    );
 
     const reply = await deps.aiClient.complete(messages);
 
-    const lines = reply.split('\n');
-    const titleIdx = lines.findIndex(l => /^TITLE:\s*.+$/i.test(l));
-    if (titleIdx === -1) {
-        throw new Error(`AI response missing TITLE: line. Got: "${reply.slice(0, 200)}"`);
-    }
-    const title = lines[titleIdx].match(/^TITLE:\s*(.+)$/i)![1].trim();
-    const body = lines.slice(titleIdx + 1).join('\n').trim();
+    const { title, body } = parseTitleAndBody(reply);
 
     const refined = ideaReducer(doc, { type: 'REFINE_IDEA' });
     const updated: IdeaDoc = {

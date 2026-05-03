@@ -1,7 +1,8 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, Message, ChatDoc, IdeaDoc, DesignDoc, createBaseFrontmatter } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, createBaseFrontmatter } from '../../core/dist';
+import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToDesignInput {
     filePath: string;
@@ -36,19 +37,6 @@ TITLE: <one concise line describing the design>
 ## Open questions
 <anything still unresolved>`;
 
-function parseTurns(content: string): Message[] {
-    const segments = content.split(/^## /m).slice(1);
-    return segments
-        .map(seg => {
-            const lineEnd = seg.indexOf('\n');
-            const header = lineEnd === -1 ? seg : seg.slice(0, lineEnd);
-            const body = lineEnd === -1 ? '' : seg.slice(lineEnd + 1).trim();
-            const role: 'user' | 'assistant' = header.startsWith('AI') ? 'assistant' : 'user';
-            return { role, content: body };
-        })
-        .filter(m => m.content.length > 0);
-}
-
 export async function promoteToDesign(
     input: PromoteToDesignInput,
     deps: PromoteToDesignDeps
@@ -57,19 +45,14 @@ export async function promoteToDesign(
 
     const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
 
-    let messages: Message[];
-    if (doc.type === 'chat') {
-        const turns = parseTurns(doc.content);
-        if (turns.length === 0) {
-            throw new Error('No conversation turns found in chat document.');
-        }
-        messages = [{ role: 'system', content: SYSTEM_PROMPT }, ...turns];
-    } else {
-        messages = [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: `Here is the ${doc.type} document titled "${doc.title}":\n\n${doc.content}` },
-        ];
+    if (!doc.content || doc.content.trim().length === 0) {
+        throw new Error(`${doc.type} document is empty.`);
     }
+
+    const label = doc.type === 'chat'
+        ? 'chat conversation'
+        : `${doc.type} document titled "${doc.title}"`;
+    const messages = buildSummarizationMessages(SYSTEM_PROMPT, label, doc.content);
 
     const reply = await deps.aiClient.complete(messages);
 
@@ -107,17 +90,6 @@ export async function promoteToDesign(
     await deps.saveDoc(designDoc, filePath);
 
     return { filePath, title };
-}
-
-function parseTitleAndBody(reply: string): { title: string; body: string } {
-    const lines = reply.split('\n');
-    const titleIdx = lines.findIndex(l => /^TITLE:\s*.+$/i.test(l));
-    if (titleIdx === -1) {
-        throw new Error(`AI response missing TITLE: line. Got: "${reply.slice(0, 200)}"`);
-    }
-    const title = lines[titleIdx].match(/^TITLE:\s*(.+)$/i)![1].trim();
-    const body = lines.slice(titleIdx + 1).join('\n').trim();
-    return { title, body };
 }
 
 function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
