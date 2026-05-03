@@ -29,6 +29,9 @@ import * as closePlan from './tools/closePlan';
 import { createPromoteTool } from './tools/promote';
 import { createRefineIdeaTool } from './tools/refineIdea';
 import { createRefinePlanTool } from './tools/refinePlan';
+import { createRefineDesignTool } from './tools/refineDesign';
+import { createSummariseTool } from './tools/summarise';
+import { createGenerateGlobalCtxTool } from './tools/generateGlobalCtx';
 import * as finalizeDoc from './tools/finalizeDoc';
 import * as archive from './tools/archive';
 import * as rename from './tools/rename';
@@ -87,6 +90,9 @@ export function createLoomMcpServer(root: string): Server {
         createPromoteTool(server),
         createRefineIdeaTool(server),
         createRefinePlanTool(server),
+        createRefineDesignTool(server),
+        createSummariseTool(server),
+        createGenerateGlobalCtxTool(server),
         ...createGenerateTools(server),
         createRefreshCtxTool(server),
     ];

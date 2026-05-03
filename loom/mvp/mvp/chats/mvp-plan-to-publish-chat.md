@@ -1,9 +1,9 @@
 ---
 type: chat
 id: mvp-plan-to-publish-chat
-title: "MVP plan to publish"
+title: MVP plan to publish
 status: active
-created: 2026-04-25
+created: "2026-04-25T00:00:00.000Z"
 version: 1
 tags: []
 parent_id: vscode-extension-fixes-tweaks-chat.md
@@ -930,3 +930,74 @@ Stopping for direction. Pick any subset / change order / tweak the CLAUDE.md wor
 ## Rafa:
 
 Do 1-4
+## AI:
+
+### 1-4 done
+
+Commit `95aa5d1` pushed to `main`.
+
+- **CLAUDE.md** — new "Correct path over short path" bullet under Collaboration style. Verbatim wording you approved.
+- **chatReply.ts** — rewritten. Lenient parser (skips `## ` inside code fences, collapses consecutive same-role turns, drops empties). Well-formed chats go as turns; malformed shapes fall back to single-message mode (`<CHAT>...</CHAT>` block + "reply to the most recent user message" instruction). Only refuses on a literally empty chat.
+- **mcp-client.ts** — explicit `RequestOptions { timeout }` per call class. Centralized constants: `AI_TOOL_TIMEOUT_MS = 5min` (any tool starting with `loom_promote` / `loom_refine_` / `loom_generate_` / `loom_do_step`), `RESOURCE_READ_TIMEOUT_MS = 2min` (state reads — covers cold-start link-index build), `TOOL_TIMEOUT_MS = 60s` (plain mutations).
+- **Build + tests** — clean. Same single pre-existing `workspace-workflow.test.ts: weave must surface chat doc from ai-chats/` failure as on stock main, unchanged by this work.
+- **vsix** — repackaged: `loom-vscode-0.1.0.vsix` (367.81 KB).
+
+Reinstall + reload, then we are clear to start Phase 1 step 6 (`loom install` template parity) — that is the next thing on the plan.
+
+Next: waiting for `go` to start Phase 1 step 6, or pre-flight smoke-test guidance for the 1-3 fixes if you want to verify before moving on.
+
+## Rafa:
+
+Phase 1, Steps 6-9 done and marked ✅
+
+Only issue I found (j:/loom_test):
+I ran `loom install` from a terminal
+When I open the workspace from VSCode did not detect loom was already setup and run `loom install` process again
+
+## AI:
+
+### Phase 1 ✅ — and the install-loop bug
+
+Noted Steps 6–9 done. The bug you hit is real and a one-line fix (now landed).
+
+### Root cause
+
+`loom install` writes `.mcp.json` at the **project root** — that is the canonical Claude Code project-scoped MCP config location, and `.loom/CLAUDE.md` documents it as such.
+
+But `detectMcpConfig` in `packages/vscode/src/extension.ts:240` checks four candidates and **none of them is `.mcp.json` at root**. It looks at `.claude/mcp.json`, `.claude.json`, `.cursor/mcp.json`, `.vscode/mcp.json`. So after a successful install:
+
+- `.loom/` exists → `loomDirOk = true`
+- `.loom/CLAUDE.md` exists → `claudeMdOk = true`
+- `.mcp.json` at root exists but is not in the candidates list → `mcpOk = false` ❌
+
+`showSetupNotification` then fires "Set up Loom MCP for this workspace?" → user clicks → `runLoomInstall()` runs again. The install is idempotent so nothing is destroyed, but the loop is real and the UX is wrong.
+
+This is exactly the kind of thing the new "Correct path" rule is for: the writer (`installWorkspace`) and the reader (`detectMcpConfig`) disagreed about where the config lives. Patching only one side (e.g., suppressing the notification with a "shown once" flag) would mask the real bug; fixing the reader to match the writer is the durable fix.
+
+### Fix landed
+
+Added `path.join(workspaceRoot, ".mcp.json")` as the **first** candidate in `detectMcpConfig` (it is the canonical one, deserves first place). Comment in code points at this exact failure mode so future-us does not re-introduce it.
+
+Built + packaged: fresh `loom-vscode-0.1.0.vsix` (367.81 KB).
+
+### Smoke-test
+
+In `j:/loom_test`:
+1. Reinstall the new vsix, reload the window.
+2. The "Set up Loom MCP" notification should NOT fire. The MCP status bar should show `$(plug) Loom MCP` (connected).
+3. Reload again — still no notification.
+
+If the smoke-test passes, mark the bug fixed and we are clear for Phase 2.
+
+### Two adjacent cleanups (low priority, calling them out for transparency)
+
+- The `.claude.json` candidate at line 243 reads a *project-relative* `.claude.json`, but the real Claude Code user-global config is `~/.claude.json` (per `.loom/CLAUDE.md`). The project-relative candidate is dead code — it will never match for a real install. Worth deleting in a future tidy-up.
+- The `.loom/**` file watcher catches install-time changes to `.loom/`, which indirectly re-runs `syncSetupContext`. But the new `.mcp.json` write at root is NOT watched. Currently fine because `.loom/CLAUDE.md` rewrite always co-occurs, but worth adding `.mcp.json` to the watch list defensively.
+
+Both are tidy-ups, not blockers. Mention only — not landing now.
+
+Next: waiting for your smoke-test on the vsix, then on to Phase 2.
+
+## Rafa:
+
+Do Phase 2 Steps 10-15

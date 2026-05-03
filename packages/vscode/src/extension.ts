@@ -30,7 +30,7 @@ import { refinePlanCommand } from './commands/refinePlan';
 import { doStepCommand } from './commands/doStep';
 import { closePlanCommand } from './commands/closePlan';
 import { setIconBaseUri } from './icons';
-import { disposeMCP } from './mcp-client';
+import { disposeMCP, getMCP } from './mcp-client';
 
 import { updateDiagnostics } from './diagnostics';
 
@@ -106,8 +106,26 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.delete', (node?: TreeNode) => deleteItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.archive', (node?: TreeNode) => archiveItemCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.generateGlobalCtx', () => {
-            vscode.window.showInformationMessage('Generate / Refine Global Context — coming soon via MCP sampling.');
+        vscode.commands.registerCommand('loom.generateGlobalCtx', async () => {
+            const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
+            try {
+                let result: any;
+                await vscode.window.withProgress(
+                    { location: vscode.ProgressLocation.Notification, title: 'Loom: Generating global context…', cancellable: false },
+                    async () => {
+                        result = await getMCP(root).callTool('loom_generate_global_ctx', {});
+                    }
+                );
+                treeProvider.refresh();
+                if (result?.filePath) {
+                    const doc = await vscode.workspace.openTextDocument(result.filePath);
+                    await vscode.window.showTextDocument(doc, { preview: false });
+                }
+                vscode.window.showInformationMessage(`Global context updated (v${result?.version})`);
+            } catch (e: any) {
+                vscode.window.showErrorMessage(`Generate global context failed: ${e.message}`);
+            }
         }),
         vscode.commands.registerCommand('loom.install.openCliTerminal', () => {
             const t = vscode.window.createTerminal('Loom CLI Install');
@@ -238,7 +256,12 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
 export function deactivate() { disposeMCP(); }
 
 async function detectMcpConfig(workspaceRoot: string): Promise<boolean> {
+    // `.mcp.json` at the project root is what `loom install` writes — it is
+    // the canonical Claude Code project-scoped MCP config location and must
+    // be checked first, otherwise the extension loops re-prompting "Set up
+    // Loom MCP" after a successful install.
     const candidates = [
+        path.join(workspaceRoot, '.mcp.json'),
         path.join(workspaceRoot, '.claude', 'mcp.json'),
         path.join(workspaceRoot, '.claude.json'),
         path.join(workspaceRoot, '.cursor', 'mcp.json'),

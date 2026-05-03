@@ -10,6 +10,7 @@ export { validate, ValidateInput, ValidateDeps, ValidationResult } from './valid
 export { weaveIdea, WeaveIdeaInput, WeaveIdeaDeps } from './weaveIdea';
 export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
 export { weavePlan, WeavePlanInput, WeavePlanDeps } from './weavePlan';
+export { refineDesign, RefineDesignInput, RefineDesignDeps } from './refineDesign';
 
 // ============================================================================
 // Use‑Cases — Loom Management

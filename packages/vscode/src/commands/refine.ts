@@ -1,37 +1,32 @@
 import * as vscode from 'vscode';
-import { runEvent } from '@reslava-loom/app/dist/runEvent';
-import { loadWeave, saveWeave } from '@reslava-loom/fs/dist';
+import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
 export async function refineCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace open.');
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
+
+    const id = node?.doc?.id;
+    if (!id) {
+        vscode.window.showErrorMessage('Right-click a design in the tree to refine it.');
         return;
     }
 
-    const weaveId = node?.weaveId ?? await vscode.window.showInputBox({
-        prompt: 'Weave ID to refine design',
-        placeHolder: 'e.g., payment-system',
-    });
-    if (!weaveId) return;
-
     try {
-        const loomRoot = workspaceRoot;
-        const loadWeaveOrThrow = async (root: string, id: string) => {
-            const weave = await loadWeave(root, id);
-            if (!weave) throw new Error(`Weave '${id}' is empty or does not exist.`);
-            return weave;
-        };
-
-        await runEvent(
-            weaveId,
-            { type: 'REFINE_DESIGN' },
-            { loadWeave: loadWeaveOrThrow, saveWeave, loomRoot }
+        let result: any;
+        await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title: 'Loom: Refining design…', cancellable: false },
+            async () => {
+                result = await getMCP(root).callTool('loom_refine_design', { id });
+            }
         );
-        vscode.window.showInformationMessage(`🧵 Design refined: ${weaveId} (version incremented)`);
         treeProvider.refresh();
+        if (result?.filePath) {
+            const doc = await vscode.workspace.openTextDocument(result.filePath);
+            await vscode.window.showTextDocument(doc, { preview: false });
+        }
+        vscode.window.showInformationMessage(`Design refined (v${result?.version})`);
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Failed to refine design: ${e.message}`);
+        vscode.window.showErrorMessage(`Refine design failed: ${e.message}`);
     }
 }

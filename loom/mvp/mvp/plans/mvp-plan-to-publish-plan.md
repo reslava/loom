@@ -4,7 +4,7 @@ id: mvp-plan-to-publish-plan
 title: MVP — Plan to publish
 status: implementing
 created: "2026-05-02T00:00:00.000Z"
-updated: 2026-05-02
+updated: 2026-05-03
 version: 4
 design_version: 1
 tags: []
@@ -39,16 +39,16 @@ Organized as 7 phases:
 | ✅ | 3 | **Phase 0** — Fix `weaveCreate` / `threadCreate` path bug (wrote to `weaves/` instead of `loom/`). Confirm fix lands in vsix; smoke-test creating an empty weave and an empty thread end-to-end | `packages/vscode/src/commands/weaveCreate.ts`, `packages/vscode/src/commands/threadCreate.ts` | — |
 | ✅ | 4 | **Phase 0** — Repair selection→context wiring so `loom.selectedWeaveId` is set when a weave OR any descendant doc is clicked (currently driven only by `node.weaveId`; verify it's set for thread-level and doc-level selections too) | `packages/vscode/src/extension.ts` | — |
 | ✅ | 5 | **Phase 0** — Root-cause + fix anything found in steps 1–4. One bug = one row appended below this step | (varies) | 1, 2, 3, 4 |
-| 🔳 | 6 | **Phase 1** — Run `loom install` in an empty test directory. Confirm it creates `.loom/`, `CLAUDE.md`, `loom-ctx.md`, `.mcp.json` (or equivalent), and the `loom/` weave dir. Record gaps | `packages/cli/src/commands/install.ts`, `packages/app/src/installWorkspace.ts` | — |
-| 🔳 | 7 | **Phase 1** — Verify the installed `.mcp.json` template uses `${workspaceFolder}` for `LOOM_ROOT` and points to the correct `loom mcp` command. Confirm the new workspace can spawn the MCP server | `packages/app/src/installWorkspace.ts` (templates) | 6 |
-| 🔳 | 8 | **Phase 1** — Verify the installed `CLAUDE.md` template includes session-start protocol, MCP visibility rules, stop rules — i.e. parity with this repo's `CLAUDE.md`. Update template if drift detected | `packages/app/src/installWorkspace.ts` (templates) | 6 |
-| 🔳 | 9 | **Phase 1** — End-to-end smoke: in the test dir, open Claude Code, run a chat, ask for an idea generation, confirm `loom_generate_idea` works through MCP. Document any setup step a real user has to do that isn't automated | (test only) | 7, 8 |
-| 🔳 | 10 | **Phase 2** — `loom.generateGlobalCtx` is currently a stub. Wire it through MCP sampling: call MCP on the loom root, write `loom-ctx.md` | `packages/vscode/src/extension.ts`, `packages/mcp/src/tools/*` (new tool if needed) | — |
-| 🔳 | 11 | **Phase 2** — `loom.refineDesign` — verify the existing implementation actually calls `loom_generate_design` (refinement mode) via MCP sampling. Fix if it bypasses MCP | `packages/vscode/src/commands/refine.ts` | — |
-| 🔳 | 12 | **Phase 2** — `loom.refineIdea` and `loom.refinePlan` — same audit as step 11; ensure both go through MCP sampling and update versions/staleness correctly | `packages/vscode/src/commands/refineIdea.ts`, `packages/vscode/src/commands/refinePlan.ts` | — |
-| 🔳 | 13 | **Phase 2** — `loom.summarise` — generates a ctx doc; confirm it routes through MCP sampling and writes via `loom_create_doc` | `packages/vscode/src/commands/summarise.ts` | — |
-| 🔳 | 14 | **Phase 2** — `loom.chatReply` — confirm AI reply is appended into the chat doc via MCP `loom_append_to_chat`, not direct file edit | `packages/vscode/src/commands/chatReply.ts` | — |
-| 🔳 | 15 | **Phase 2** — Verify all `loom.promoteTo*` commands (idea/design/plan) route through MCP `loom_promote` (or equivalent) | `packages/vscode/src/commands/promoteTo*.ts` | — |
+| ✅ | 6 | **Phase 1** — Run `loom install` in an empty test directory. Confirm it creates `.loom/`, `CLAUDE.md`, `loom-ctx.md`, `.mcp.json` (or equivalent), and the `loom/` weave dir. Record gaps | `packages/cli/src/commands/install.ts`, `packages/app/src/installWorkspace.ts` | — |
+| ✅ | 7 | **Phase 1** — Verify the installed `.mcp.json` template uses `${workspaceFolder}` for `LOOM_ROOT` and points to the correct `loom mcp` command. Confirm the new workspace can spawn the MCP server | `packages/app/src/installWorkspace.ts` (templates) | 6 |
+| ✅ | 8 | **Phase 1** — Verify the installed `CLAUDE.md` template includes session-start protocol, MCP visibility rules, stop rules — i.e. parity with this repo's `CLAUDE.md`. Update template if drift detected | `packages/app/src/installWorkspace.ts` (templates) | 6 |
+| ✅ | 9 | **Phase 1** — End-to-end smoke: in the test dir, open Claude Code, run a chat, ask for an idea generation, confirm `loom_generate_idea` works through MCP. Document any setup step a real user has to do that isn't automated | (test only) | 7, 8 |
+| ✅ | 10 | **Phase 2** — `loom.generateGlobalCtx` is currently a stub. Wire it through MCP sampling: call MCP on the loom root, write `loom-ctx.md` | `packages/vscode/src/extension.ts`, `packages/mcp/src/tools/*` (new tool if needed) | — |
+| ✅ | 11 | **Phase 2** — `loom.refineDesign` — verify the existing implementation actually calls `loom_generate_design` (refinement mode) via MCP sampling. Fix if it bypasses MCP | `packages/vscode/src/commands/refine.ts` | — |
+| ✅ | 12 | **Phase 2** — `loom.refineIdea` and `loom.refinePlan` — same audit as step 11; ensure both go through MCP sampling and update versions/staleness correctly | `packages/vscode/src/commands/refineIdea.ts`, `packages/vscode/src/commands/refinePlan.ts` | — |
+| ✅ | 13 | **Phase 2** — `loom.summarise` — generates a ctx doc; confirm it routes through MCP sampling and writes via `loom_create_doc` | `packages/vscode/src/commands/summarise.ts` | — |
+| ✅ | 14 | **Phase 2** — `loom.chatReply` — confirm AI reply is appended into the chat doc via MCP `loom_append_to_chat`, not direct file edit | `packages/vscode/src/commands/chatReply.ts` | — |
+| ✅ | 15 | **Phase 2** — Verify all `loom.promoteTo*` commands (idea/design/plan) route through MCP `loom_promote` (or equivalent) | `packages/vscode/src/commands/promoteTo*.ts` | — |
 | 🔳 | 16 | **Phase 3** — Empty-workspace tree state: when no `loom/` dir exists OR it's empty, replace "No weaves found" with a friendlier welcome view (`viewsWelcome`) — title, sentence, and a button that runs `loom.weaveCreate` | `packages/vscode/package.json` (viewsWelcome), `packages/vscode/src/tree/treeProvider.ts` | — |
 | 🔳 | 17 | **Phase 3** — Walkthrough polish: verify each step's completion event fires (`cliDetected`, `workspaceInitialized`, `aiConfigured`, `hasWeaves`). Step 4 ("Create your first weave") should auto-complete when first weave dir exists | `packages/vscode/src/extension.ts` | — |
 | 🔳 | 18 | **Phase 3** — First-run notification: confirm `showSetupNotification` fires once per workspace and the actions actually work end-to-end | `packages/vscode/src/extension.ts` | — |

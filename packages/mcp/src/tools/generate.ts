@@ -7,6 +7,7 @@ import { weavePlan } from '../../../app/dist/weavePlan';
 import { Document } from '../../../core/dist';
 import { handleThreadContextResource } from '../resources/threadContext';
 import { requestSampling, SamplingMessage } from '../sampling';
+import { handle as appendToChatHandle } from './appendToChat';
 
 function msg(role: 'user' | 'assistant', text: string): SamplingMessage {
     return { role, content: { type: 'text', text } };
@@ -188,7 +189,9 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     'You are an AI assistant participating in a Loom design chat. Write a focused, constructive response continuing the conversation.'
                 );
 
-                await fsExtra.writeFile(filePath, `${chatContent}\n\n## AI:\n\n${reply}`, 'utf8');
+                // Route the write through loom_append_to_chat so chat mutations
+                // funnel through one code path (no direct file writes here).
+                await appendToChatHandle(root, { id: chatId, role: 'AI', body: reply });
 
                 return { id: chatId, filePath };
             }
