@@ -2,10 +2,10 @@
 type: idea
 id: id_01KQZ2H5AHBR0C9AB1V54HSE17
 title: Context Sidebar — Visible, Controllable MCP Context
-status: draft
+status: done
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
-version: 2
+updated: "2026-05-06T00:00:00.000Z"
+version: 3
 tags: []
 parent_id: null
 requires_load: []

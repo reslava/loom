@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, createBaseFrontmatter, generateDocId, generatePlanId } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToPlanInput {
@@ -26,13 +26,18 @@ TITLE: <one concise line describing the plan>
 <what this plan implements in 1-2 sentences>
 
 ## Steps
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ⬜ | 1 | <step description> | <files> | — |
-| ⬜ | 2 | <step description> | <files> | 1 |
+1. <first concrete implementation step>
+2. <second concrete implementation step>
+3. <add as many steps as needed>
 
 ## Notes
-<any implementation notes, gotchas, or context for each step>`;
+<implementation notes, gotchas, open questions — no step labels here>
+
+CRITICAL RULES:
+- The ## Steps section MUST contain a numbered list with at least one item. A plan with no steps is invalid.
+- Each step must be on its own line starting with a number and period: "1. ", "2. ", etc.
+- Do NOT leave ## Steps empty. If the source is vague, infer concrete steps from the goal.
+- Do NOT put step descriptions in ## Notes — Notes is for gotchas and context only.`;
 
 export async function promoteToPlan(
     input: PromoteToPlanInput,
@@ -55,6 +60,14 @@ export async function promoteToPlan(
 
     const { title, body } = parseTitleAndBody(reply);
 
+    const parsedSteps = parseNumberedSteps(body);
+    if (parsedSteps.length === 0) {
+        throw new Error(
+            `promoteToPlan: AI generated no steps. A plan must have at least one step.\n` +
+            `Full reply:\n${reply}`
+        );
+    }
+
     const plansDir = threadId
         ? path.join(deps.loomRoot, 'loom', weaveId, threadId, 'plans')
         : path.join(deps.loomRoot, 'loom', weaveId, 'plans');
@@ -72,8 +85,8 @@ export async function promoteToPlan(
     const planDoc: PlanDoc = {
         ...frontmatter,
         type: 'plan',
-        status: 'draft',
-        steps: [],
+        status: 'active',
+        steps: parsedSteps,
         content: `# ${title}\n\n${body}`,
     } as unknown as PlanDoc;
 
@@ -81,6 +94,19 @@ export async function promoteToPlan(
     await deps.saveDoc(planDoc, filePath);
 
     return { filePath, title };
+}
+
+function parseNumberedSteps(body: string): PlanStep[] {
+    const match = body.match(/## Steps\s*\n([\s\S]*?)(?=\n##|$)/i);
+    if (!match) return [];
+    const steps: PlanStep[] = [];
+    for (const line of match[1].split('\n')) {
+        const m = line.match(/^\s*\d+\.\s+(.+)/);
+        if (m) {
+            steps.push({ order: steps.length + 1, description: m[1].trim(), done: false, files_touched: [], blockedBy: [] });
+        }
+    }
+    return steps;
 }
 
 function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {

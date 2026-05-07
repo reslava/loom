@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQYDFDD95S5RM3QBN4SR3GG7
 title: Mcp Test Chat
-status: active
+status: done
 created: "2026-04-27T00:00:00.000Z"
-version: 1
+updated: 2026-05-07
+version: 2
 tags: []
 parent_id: null
 requires_load: []

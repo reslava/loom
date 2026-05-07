@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDDEC8J06R4624YH86QZ
 title: VS Code Unified Icon System
-status: active
+status: done
 created: "2026-04-20T00:00:00.000Z"
-version: 1
+updated: "2026-05-06T00:00:00.000Z"
+version: 2
 tags: [vscode, icons, design]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM]

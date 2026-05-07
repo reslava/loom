@@ -49,6 +49,8 @@ export function toggleArchived(
     manager: ViewStateManager,
     treeProvider: LoomTreeProvider
 ): void {
-    manager.update({ showArchived: !manager.getState().showArchived });
+    const newState = !manager.getState().showArchived;
+    manager.update({ showArchived: newState });
+    vscode.commands.executeCommand('setContext', 'loom.showArchived', newState);
     treeProvider.refresh();
 }

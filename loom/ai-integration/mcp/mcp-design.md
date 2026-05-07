@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDD9PRVJT4JBAQ0JHRG6
 title: Loom MCP Server — Exposing Loom State to AI Agents
-status: active
+status: done
 created: "2026-04-25T00:00:00.000Z"
-version: 2
+updated: 2026-05-07
+version: 3
 tags: [ai, mcp, integration, agent, loom]
 parent_id: null
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]

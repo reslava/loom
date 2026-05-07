@@ -2,10 +2,10 @@
 type: design
 id: de_01KQZ2HGVC1W2V48A6RMCT3FA5
 title: Context Sidebar — Design
-status: draft
+status: done
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
-version: 2
+updated: "2026-05-06T00:00:00.000Z"
+version: 3
 tags: []
 parent_id: id_01KQZ2H5AHBR0C9AB1V54HSE17
 requires_load: []

@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQYDFDD9JY494CSH7WJQQ9K0
 title: Mcp Done Chat
-status: active
+status: done
 created: "2026-04-26T00:00:00.000Z"
-version: 1
+updated: 2026-05-07
+version: 2
 tags: []
 parent_id: null
 requires_load: []

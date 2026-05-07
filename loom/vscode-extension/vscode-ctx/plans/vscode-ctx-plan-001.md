@@ -2,10 +2,10 @@
 type: plan
 id: pl_01KQZ2J17RW4CH45MREYJC499B
 title: Context Sidebar — Implementation Plan
-status: draft
+status: done
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
-version: 2
+updated: "2026-05-06T00:00:00.000Z"
+version: 3
 design_version: 1
 tags: []
 parent_id: de_01KQZ2HGVC1W2V48A6RMCT3FA5
@@ -31,31 +31,6 @@ Implement the context sidebar in the VS Code extension: a panel below the tree t
 
 # Steps
 
-| # | Step | Status |
-|---|------|--------|
-| 1 | Fix ULID missing bug in extension chat creation | 🔳 |
-| 2 | Implement local token estimator utility | 🔳 |
-| 3 | Implement context sidebar UI (pinned + opt-in, token badge, toggle) | 🔳 |
-| 4 | Add optional `context_ids` param to MCP tools | 🔳 |
-| 5 | Wire sidebar state into MCP tool calls | 🔳 |
-
----
-
-## Step 1 — Fix ULID missing bug in extension chat creation
-
-Ensure chat docs created from the extension go through the `loom_create_chat` MCP tool (not direct file write), so frontmatter gets a ULID-based `id`. Locate where the extension currently writes chat files directly and replace with the MCP call.
-
-**Files likely touched:** `packages/vscode/src/commands/` — whichever command creates chats.
-
----
-
-## Step 2 — Implement local token estimator utility
-
-Create `packages/vscode/src/services/tokenEstimatorService.ts`. Estimates tokens as `Math.ceil(content.length / 4)`. Maintains an in-memory cache: `Map<filePath, { tokens: number, mtime: number }>`. Registers a `vscode.workspace.onDidSaveTextDocument` listener to invalidate cache entries on save. Exposes `estimate(filePath: string): Promise<number>`.
-
-**Files touched:** `packages/vscode/src/services/tokenEstimatorService.ts` (new), `packages/vscode/src/extension.ts` (register service).
-
----
 
 ## Step 3 — Implement context sidebar UI
 

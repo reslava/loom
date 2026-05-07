@@ -496,7 +496,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private createDoneDocNode(done: DoneDoc, weaveId?: string, threadId?: string): TreeNode {
         const node = new vscode.TreeItem(done.title || done.id, vscode.TreeItemCollapsibleState.None);
-        node.description = 'final';
+        node.description = 'done';
         node.iconPath = new vscode.ThemeIcon('check-all');
         node.contextValue = 'done';
         node.tooltip = `done doc — ${done.id}`;

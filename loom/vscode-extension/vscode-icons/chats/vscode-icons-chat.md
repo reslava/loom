@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQYDFDDEZ3TJPTGDYQC4Y8P5
 title: Vscode Icons Chat
-status: active
+status: done
 created: "2026-04-20T00:00:00.000Z"
-version: 1
+updated: "2026-05-06T00:00:00.000Z"
+version: 2
 tags: []
 parent_id: null
 requires_load: []

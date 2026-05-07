@@ -85,7 +85,7 @@ export async function closePlan(
         type: 'done',
         id: doneId,
         title: `Done — ${plan.title}`,
-        status: 'final',
+        status: 'done',
         created: new Date().toISOString().split('T')[0],
         version: 1,
         tags: [],

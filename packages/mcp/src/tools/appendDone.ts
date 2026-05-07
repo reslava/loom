@@ -89,7 +89,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         const doc = {
             ...fm,
             type: 'done' as const,
-            status: 'final' as const,
+            status: 'done' as const,
             content,
         } as DoneDoc;
         await saveDoc(doc, doneFilePath);

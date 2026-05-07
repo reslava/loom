@@ -62,7 +62,7 @@ export async function weavePlan(
         const doc: PlanDoc = {
             ...baseFrontmatter,
             type: 'plan',
-            status: 'draft',
+            status: 'active',
             design_version: 1,
             target_version: '0.1.0',
             steps: planSteps,

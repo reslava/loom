@@ -50,6 +50,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
      setIconBaseUri(context.extensionUri);
 
     const viewStateManager = new ViewStateManager(context.workspaceState);
+    vscode.commands.executeCommand('setContext', 'loom.showArchived', viewStateManager.getState().showArchived);
     const treeProvider = new LoomTreeProvider(viewStateManager);
     const tokenEstimator = new TokenEstimatorService(context);
     const contextSidebar = new ContextSidebarProvider(treeProvider, tokenEstimator);
@@ -129,6 +130,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.setTextFilter', () => setTextFilter(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.setStatusFilter', () => setStatusFilter(viewStateManager, treeProvider, updateViewTitle)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
+        vscode.commands.registerCommand('loom.toggleArchivedOff', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(node)),
         vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),

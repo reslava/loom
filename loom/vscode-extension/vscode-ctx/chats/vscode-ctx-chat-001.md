@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQZ7E45ZYGM2C2E4SJ821P43
 title: vscode-ctx
-status: active
-created: 2026-05-06
-version: 1
+status: done
+created: "2026-05-06T00:00:00.000Z"
+updated: "2026-05-06T00:00:00.000Z"
+version: 2
 tags: []
 parent_id: vscode-ctx
 requires_load: []

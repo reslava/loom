@@ -22,11 +22,9 @@ Implements the design in [vscode-mcp-do-step-design.md](../vscode-mcp-do-step-de
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
 | ✅ | 1 | Redesign `loom_do_step` MCP tool to be a briefing tool — return JSON `{ planId, stepNumber, stepDescription, filesToTouch, threadContext, planSummary, instructions }`. Remove `requestSampling`, remove side effects (no chat doc, no `completeStep` call). | `packages/mcp/src/tools/doStep.ts`, `packages/mcp/src/server.ts` | — |
-| ✅ | 2 | Add new MCP tool `loom_append_done` — input `{ planId, stepNumber, notes }`. Append `## Step N — <description>` section to `{thread}/done/{plan-id}-done.md`, creating the file with Loom frontmatter on first call. Idempotent: replace a section for the same step rather than duplicate. | `packages/mcp/src/tools/appendDone.ts`, `packages/mcp/src/server.ts` | — |
 | ✅ | 3 | Rewrite extension `doStep.ts` to launch Claude Code terminal — `vscode.window.createTerminal({ cwd })`, build prompt that names `planId` and instructs Claude to call `loom_do_step → implement → loom_append_done → loom_complete_step`, send via `terminal.sendText`. | `packages/vscode/src/commands/doStep.ts`, `packages/vscode/src/extension.ts` | 1, 2 |
 | ✅ | 4 | Detect `claude` binary on disk before launching — `which claude` / `where claude`. If missing, show an error notification with install pointer and skip terminal creation. | `packages/vscode/src/commands/doStep.ts` | 3 |
 | ✅ | 5 | Manual test in Extension Development Host — create a small implementing plan, click DoStep, verify Claude Code terminal opens, plan executes end-to-end (file edits real, `done.md` appended, step ✅ in plan). | — | 4 |
-
 ## Definition of Done
 
 - `loom_do_step` returns a JSON brief with no sampling and no side effects.

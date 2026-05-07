@@ -212,7 +212,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 const reply = await requestSampling(
                     server,
                     [msg('user', chatContent)],
-                    'You are an AI assistant participating in a Loom design chat. Write a focused, constructive response continuing the conversation.'
+                    `You are an AI assistant in a Loom design chat. This is a DISCUSSION surface only.
+
+RULES — strictly enforced:
+- Do NOT promise to implement anything. Never say "let me find X", "I'll update Y", "I'll check Z", "Let me look at the code", or any phrase that implies you are about to act.
+- Do NOT write code changes, file edits, or reference specific lines as if about to modify them.
+- Your role is to think through the problem, discuss design options, and identify what work is needed.
+- If implementation is needed, say so explicitly and suggest the user promote this chat to a plan so that a DoStep can carry it out.
+- Write a focused, constructive response that advances the conversation.`
                 );
 
                 // Route the write through loom_append_to_chat so chat mutations

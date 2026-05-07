@@ -35,7 +35,6 @@ reachable from CLI / Claude Code).
 | ✅ | 4 | Update `loom.doStep` extension command to call MCP | `packages/vscode/src/commands/doStep.ts` | 3 |
 | ✅ | 5 | Toolbar button on plan nodes | `packages/vscode/package.json` | — |
 | ✅ | 6 | Manual test in Extension Development Host | — | 4, 5 |
-
 ## Definition of Done
 
 - `mcp-client.ts` correctly handles `sampling/createMessage` requests; returns inference results to the MCP server.

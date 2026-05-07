@@ -4,7 +4,7 @@ id: id_01KQZ2GHS4P00ASVPK5N06VHA9
 title: Token Count — Local Estimator
 status: draft
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
+updated: "2026-05-06T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

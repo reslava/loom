@@ -2,10 +2,10 @@
 type: chat
 id: ch_01KQZ9GKS3YJXD207XJMFMB556
 title: VSCode extension new fixes
-status: active
+status: done
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
-version: 3
+updated: 2026-05-07
+version: 4
 tags: []
 parent_id: vscode-extension
 requires_load: []

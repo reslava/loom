@@ -216,6 +216,12 @@
         }
       },
       {
+        "command": "loom.toggleArchivedOff",
+        "title": "Toggle Archived",
+        "category": "Loom",
+        "icon": "$(archive)"
+      },
+      {
         "command": "loom.chatNew",
         "title": "Weave Chat",
         "category": "Loom",
@@ -407,7 +413,12 @@
         },
         {
           "command": "loom.toggleArchived",
-          "when": "view == loom.threads",
+          "when": "view == loom.threads && loom.showArchived",
+          "group": "navigation@5"
+        },
+        {
+          "command": "loom.toggleArchivedOff",
+          "when": "view == loom.threads && !loom.showArchived",
           "group": "navigation@5"
         },
         {

@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDDEKVQ0M6N4XNAZ9AK2
 title: VS Code Extension — Visual Design Blueprint
-status: active
+status: done
 created: "2026-04-19T00:00:00.000Z"
-version: 1.2.0
+updated: "2026-05-06T00:00:00.000Z"
+version: 1.2.01
 tags: [vscode, ui, tree-view, toolbar, design]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM]
