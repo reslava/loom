@@ -8,7 +8,8 @@
       "mcp__loom__loom_complete_step",
       "mcp__loom__loom_do_step",
       "mcp__loom__loom_append_done",
-      "mcp__loom__loom_append_to_chat"
+      "mcp__loom__loom_append_to_chat",
+      "mcp__loom__loom_list_plan_steps"
     ]
   },
   "enableAllProjectMcpServers": true,

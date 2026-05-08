@@ -4,7 +4,7 @@ id: id_01KQYDFDDCKTVHTZZE0NTS504V
 title: Staleness Management
 status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 3
 tags: []
 parent_id: null

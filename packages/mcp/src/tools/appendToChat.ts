@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 import { findDocumentById } from '../../../fs/dist';
+import { getUserName, getAiName } from '../../../app/dist/utils/chatNames';
 
 export const toolDef = {
     name: 'loom_append_to_chat',
@@ -8,7 +9,7 @@ export const toolDef = {
         type: 'object' as const,
         properties: {
             id: { type: 'string', description: 'Chat document id' },
-            role: { type: 'string', enum: ['AI', 'Rafa'], description: 'Message author role' },
+            role: { type: 'string', enum: ['user', 'ai'], description: 'Message author role' },
             body: { type: 'string', description: 'Message body (markdown)' },
         },
         required: ['id', 'role', 'body'],
@@ -25,8 +26,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
         throw new Error(`Chat document not found: ${id}`);
     }
 
+    const displayName = role === 'ai' ? getAiName(root) : getUserName(root);
     const existing = await fs.readFile(filePath, 'utf8');
-    const appended = `${existing}\n\n## ${role}:\n\n${body}`;
+    const appended = `${existing}\n\n## ${displayName}\n\n${body}`;
     await fs.writeFile(filePath, appended, 'utf8');
 
     return { content: [{ type: 'text' as const, text: JSON.stringify({ id, filePath }) }] };

@@ -4,7 +4,7 @@ id: de_01KQYDFDDF3J8F6P5F3VJQ8BWQ
 title: Application Version Tracking in Workflow Documents
 status: done
 created: "2026-04-12T00:00:00.000Z"
-updated: 2026-05-06
+updated: "2026-05-06T00:00:00.000Z"
 version: 1.0.01
 tags: [versioning, release, planning, frontmatter]
 parent_id: de_01KQYDFDDF4QG72MKRE0KB2HZ4

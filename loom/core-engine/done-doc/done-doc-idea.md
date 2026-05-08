@@ -4,7 +4,7 @@ id: id_01KQYDFDDB0WEBX52CDG69VXYP
 title: Plan Done Documents — Post-Implementation Record
 status: done
 created: "2026-04-23T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [done, plan, implementation-notes, doc-type]
 parent_id: null

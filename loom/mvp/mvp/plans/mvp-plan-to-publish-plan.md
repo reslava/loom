@@ -29,7 +29,7 @@ Organized as 7 phases:
 - **Phase 5** — Docs sweep aimed at outside users (Loom-on-someone-else's-codebase).
 - **Phase 6** — Bump to `0.5.0`, publish vsix + npm.
 
-## Steps
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -71,6 +71,7 @@ Organized as 7 phases:
 | 🔳 | 36 | **Phase 6** — Publish vsix: `npx vsce publish` (or upload via marketplace UI). Verify install from marketplace works in a clean VS Code instance | (external) | 24, 35 |
 | 🔳 | 37 | **Phase 6** — Publish CLI to npm: `npm publish` for `@reslava/loom` (cli package). Verify `npm install -g @reslava/loom` then `loom --version` reports 0.5.0 | `packages/cli/`, `packages/mcp/` | 34 |
 | 🔳 | 38 | **Phase 6** — Tag release in git: `v0.5.0`, push tag. Optionally a GitHub Release with changelog body | (git) | 36, 37 |
+
 ## Notes
 
 - Phase 0 must complete before phases 2–3, since AI commands and walkthrough rely on a stable button set.

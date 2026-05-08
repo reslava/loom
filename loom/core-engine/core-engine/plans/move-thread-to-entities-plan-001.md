@@ -36,7 +36,6 @@ Complete domain restructuring by moving `Thread`, `ThreadStatus`, and `ThreadPha
 | ✅ | 2 | Update `types.ts` to re‑export from `entities/thread` | `packages/core/src/types.ts` | Step 1 |
 | ✅ | 3 | Update all imports to use `entities/thread` directly (optional) | `packages/*/src/**/*.ts` | Step 1 |
 | ✅ | 4 | Run full build and test suite | All packages | Step 3 |
-
 ---
 
 ## Step 1 — Create `entities/thread.ts`

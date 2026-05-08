@@ -1,5 +1,6 @@
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, Message, ChatDoc } from '../../core/dist';
+import { getAiName } from './utils/chatNames';
 
 export interface ChatReplyInput {
     filePath: string;
@@ -9,11 +10,15 @@ export interface ChatReplyDeps {
     loadDoc: typeof loadDoc;
     saveDoc: typeof saveDoc;
     aiClient: AIClient;
+    loomRoot: string;
 }
 
-const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system for AI-assisted development.
+function buildSystemPrompt(loomRoot: string): string {
+    const aiName = getAiName(loomRoot);
+    return `You are an AI assistant embedded in REslava Loom, a document-driven workflow system for AI-assisted development.
 You are in Chat Mode: brainstorm, explore, and answer questions freely. Do not propose state changes unless explicitly asked.
-Your response will be appended to the document as a new ## AI: block. Reply in plain Markdown without wrapping your answer in a code block.`;
+Your response will be appended to the document as a new ## ${aiName} block. Reply in plain Markdown without wrapping your answer in a code block.`;
+}
 
 const FALLBACK_INSTRUCTION = `The text inside <CHAT> below is the full chat document. The conversation may be malformed (start with an AI turn, contain consecutive same-role turns, or have other irregularities). Read it as a whole and reply to the most recent message from the user. Do not address the malformed structure; just continue the conversation naturally.`;
 
@@ -88,18 +93,18 @@ function parseTurns(content: string): Turn[] {
  * Refuses only one case: zero non-empty turns at all (the chat is literally
  * empty). That is operator error worth surfacing.
  */
-function buildMessages(rawContent: string, turns: Turn[]): Message[] {
+function buildMessages(rawContent: string, turns: Turn[], systemPrompt: string): Message[] {
     if (turns.length === 0) {
-        throw new Error('Chat document has no content. Write a message under ## Rafa: first.');
+        throw new Error('Chat document has no content. Write a user message first.');
     }
 
     const wellFormed = turns[0].role === 'user' && turns[turns.length - 1].role === 'user';
     if (wellFormed) {
-        return [{ role: 'system', content: SYSTEM_PROMPT }, ...turns];
+        return [{ role: 'system', content: systemPrompt }, ...turns];
     }
 
     return [
-        { role: 'system', content: `${SYSTEM_PROMPT}\n\n${FALLBACK_INSTRUCTION}` },
+        { role: 'system', content: `${systemPrompt}\n\n${FALLBACK_INSTRUCTION}` },
         { role: 'user', content: `<CHAT>\n${rawContent.trim()}\n</CHAT>\n\nReply to the most recent user message in the chat above.` },
     ];
 }
@@ -111,10 +116,10 @@ export async function chatReply(
     const doc = await deps.loadDoc(input.filePath) as ChatDoc;
 
     const turns = parseTurns(doc.content);
-    const messages = buildMessages(doc.content, turns);
+    const messages = buildMessages(doc.content, turns, buildSystemPrompt(deps.loomRoot));
 
     const reply = await deps.aiClient.complete(messages);
-    const appended = `\n\n## AI:\n${reply}`;
+    const appended = `\n\n## ${getAiName(deps.loomRoot)}\n${reply}`;
     const updatedContent = doc.content.trimEnd() + appended;
 
     await deps.saveDoc({ ...doc, content: updatedContent }, input.filePath);

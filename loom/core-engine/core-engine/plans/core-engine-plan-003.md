@@ -37,16 +37,15 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` | 
-| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` | |
-| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` | |
-| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` | |
-| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` | |
-| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` | |
-| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` | |
-| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` | |
-| ✅ | 9 | Test CLI with real looms | `looms/test/` | |
-
+| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` |
+| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` | — |
+| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` | — |
+| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` | — |
+| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` | — |
+| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` | — |
+| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` | — |
+| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` | — |
+| ✅ | 9 | Test CLI with real looms | `looms/test/` | — |
 ---
 
 ## Step 1 — Setup CLI Project Structure with `commander`

@@ -4,7 +4,7 @@ id: de_01KQYDFDDBCXYVBTRHGT38887N
 title: Dependency Tracking in Plans and Across Plans
 status: done
 created: "2026-04-14T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [dependency, plan, workflow, blocking]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW

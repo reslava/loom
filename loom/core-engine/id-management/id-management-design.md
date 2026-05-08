@@ -4,7 +4,7 @@ id: de_01KQYDFDDC2GWRSG7TVP5Z5MAN
 title: Automatic Document ID Management
 status: done
 created: "2026-04-15T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [id, linking, ux, automation]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW

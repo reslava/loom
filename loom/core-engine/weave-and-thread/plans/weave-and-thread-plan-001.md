@@ -62,42 +62,6 @@ Every layer is affected: core entities, fs loaders, app use-cases, CLI, VS Code 
 
 ## Steps
 
-### Phase 1 — Entity Model
-
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ✅ | 1 | Create `Thread` entity: `{ id, weaveId, idea?, design?, plans[], dones[], chats[], allDocs[] }`. Add unit type for `Fiber` (= Document in a thread). | `packages/core/src/entities/thread.ts` (new), `packages/core/src/entities/index.ts` | — |
-| ✅ | 2 | Update `Weave` entity: replace flat `ideas[]`/`designs[]`/`plans[]`/`dones[]` with `threads: Thread[]`. Add `looseFibers: Document[]` for weave-root docs. Keep `chats[]` at weave level. | `packages/core/src/entities/weave.ts`, `packages/core/src/derived.ts` (getWeaveStatus aggregates across threads) | Step 1 |
-| ✅ | 3 | Add `getThreadStatus` derived helper (mirrors current `getWeaveStatus` logic but at thread level). Entity tests: construct Weave with 2 threads, verify aggregation. | `packages/core/src/derived.ts`, `tests/entity.test.ts` | Steps 1–2 |
-
-### Phase 2 — fs Layer (Load / Save / Index)
-
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ✅ | 4 | Add `listThreadDirs(weavePath)` utility: returns subdirs excluding reserved names (`plans`, `done`, `ai-chats`, `ctx`, `references`, `_archive`). A subdir counts as a thread if it contains at least one doc matching `{thread-id}-{idea\|design\|plan}.md`. | `packages/fs/src/utils/pathUtils.ts` | Step 3 |
-| ✅ | 5 | Implement `loadThread(loomRoot, weaveId, threadId, index?)`: scans the thread folder, returns `Thread`. Enforces "1 idea, 1 design, N plans" — warn if violated. | `packages/fs/src/repositories/threadRepository.ts` (new), `packages/fs/src/index.ts` | Step 4 |
-| ✅ | 6 | Rewrite `loadWeave`: calls `listThreadDirs` + `loadThread` for each, plus loads loose fibers (flat `.md` at weave root) and weave-level `ai-chats/`. Returns new `Weave` shape. | `packages/fs/src/repositories/weaveRepository.ts` | Step 5 |
-| ✅ | 7 | Update `saveWeave` / add `saveThread`: determine path per doc type *within* thread (`{thread}/{doc-id}.md` for idea/design, `{thread}/plans/{id}.md`, `{thread}/done/{id}.md`). Loose fibers save to weave root. | `packages/fs/src/repositories/weaveRepository.ts`, `packages/fs/src/repositories/threadRepository.ts` | Step 6 |
-| ✅ | 8 | Update `buildLinkIndex`: walks threads, indexes all docs with their thread context. Index entry gains `threadId` field. | `packages/fs/src/repositories/linkRepository.ts`, `packages/core/src/linkIndex.ts` | Step 6 |
-| ✅ | 9 | Repository tests: seed new-layout workspace at `j:/temp/loom`, verify `loadWeave` returns correct threads + loose fibers, verify round-trip save/load. | `tests/weave-repository.test.ts` (rewrite), `tests/thread-repository.test.ts` (new) | Steps 5–8 |
-
-### Phase 3 — app Layer
-
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ✅ | 10 | Update `getState` to aggregate across threads: totals count all threads' plans, `stalePlans` checks each thread's design_version against its plans. | `packages/app/src/getState.ts` | Step 9 |
-| ✅ | 11 | Add `resolveThread` helper: given a weave + optional threadId/filePath, returns the target thread or "loose". Used by every use-case that needs thread context. | `packages/app/src/utils/resolveThread.ts` (new) | Step 10 |
-| ✅ | 12 | Update doc-creation use-cases (`weaveIdea`, `weaveDesign`, `weavePlan`) to take optional `threadId`: if provided, create thread subdir & write doc there; if omitted, write as loose fiber (idea/design) at weave root. | `packages/app/src/weaveIdea.ts`, `weaveDesign.ts`, `weavePlan.ts` | Step 11 |
-| ✅ | 13 | Update plan-lifecycle use-cases (`completeStep`, `closePlan`, `doStep`, `summarise`): resolve thread from plan's location, write done docs and chats into the thread. | `packages/app/src/completeStep.ts`, `closePlan.ts`, `doStep.ts`, `summarise.ts` | Step 11 |
-| ✅ | 14 | Use-case tests: end-to-end with j:/temp/loom — create idea in thread, promote to design, create plan, complete steps, close, do-step. Verify all files land in correct thread folders. | `tests/workspace-workflow.test.ts` (rewrite) | Steps 12–13 |
-
-### Phase 4 — CLI
-
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ✅ | 15 | Add `--thread <id>` to `loom weave idea|design|plan`. Default behavior: creates thread named after the doc (e.g., `loom weave idea "State Management"` → thread `state-management`). `--loose` flag explicitly creates a loose fiber. | `packages/cli/src/commands/weave*.ts` | Step 12 |
-| ✅ | 16 | Update `loom status` / `loom state` output to show Weave → Threads → Docs (per design section 6.2). Loose fibers as separate section. | `packages/cli/src/commands/status.ts`, `state.ts` | Step 15 |
-| ✅ | 17 | CLI tests: rewrite `commands.test.ts` for new layout, including thread creation and loose-fiber flow. | `tests/commands.test.ts` | Steps 15–16 |
 
 ### Phase 5 — VS Code Tree & Commands
 

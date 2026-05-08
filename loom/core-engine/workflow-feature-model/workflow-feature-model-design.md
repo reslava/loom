@@ -4,7 +4,7 @@ id: de_01KQYDFDDFPJETSXVMRDSKD8C2
 title: Workflow Feature Model
 status: done
 created: "2026-04-11T00:00:00.000Z"
-updated: 2026-05-06
+updated: "2026-05-06T00:00:00.000Z"
 version: 2.0.01
 tags: [feature, model, relationships, architecture]
 parent_id: de_01KQYDFDDF4QG72MKRE0KB2HZ4

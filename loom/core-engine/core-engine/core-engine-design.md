@@ -4,7 +4,7 @@ id: de_01KQYDFDDB802XEJM0S329T9WW
 title: REslava Loom — Core Engine Design
 status: done
 created: "2026-04-11T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 4
 tags: [loom, core, architecture, markdown, context-management]
 parent_id: id_01KQYDFDDBK79TTRP2W1QK5FFM

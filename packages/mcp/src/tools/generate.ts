@@ -283,7 +283,7 @@ RULES — strictly enforced:
 
                 // Route the write through loom_append_to_chat so chat mutations
                 // funnel through one code path (no direct file writes here).
-                await appendToChatHandle(root, { id: chatId, role: 'AI', body: reply });
+                await appendToChatHandle(root, { id: chatId, role: 'ai', body: reply });
 
                 return { id: chatId, filePath };
             }

@@ -4,7 +4,7 @@ id: id_01KQYDFDDC5KQMGQJKN66H5RX9
 title: Global Ctx — Project-Level Context Summary
 status: done
 created: "2026-04-26T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [ctx, ai, core-engine, mcp]
 parent_id: null

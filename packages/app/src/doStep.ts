@@ -4,6 +4,7 @@ import { saveDoc, resolveWeaveIdForPlan } from '../../fs/dist';
 import { generateChatId, createBaseFrontmatter, AIClient, Message } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
 import { PlanDoc } from '../../core/dist/entities/plan';
+import { getUserName, getAiName } from './utils/chatNames';
 
 export interface DoStepInput {
     planId: string;
@@ -83,7 +84,7 @@ export async function doStep(
     const title = `${plan.title} — ${stepLabel}`;
 
     const userContent = `Implement ${stepLabel} of plan \`${input.planId}\`:\n\n${stepLines}`;
-    const chatContent = `# CHAT\n\n## Rafa:\n${userContent}\n\n## AI:\n${aiResponse.trim()}\n`;
+    const chatContent = `# CHAT\n\n## ${getUserName(deps.loomRoot)}\n${userContent}\n\n## ${getAiName(deps.loomRoot)}\n${aiResponse.trim()}\n`;
 
     const frontmatter = createBaseFrontmatter('chat', chatId, title, input.planId);
     const doc: ChatDoc = {

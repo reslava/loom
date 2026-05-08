@@ -17,17 +17,14 @@ requires_load: [migration-reference]
 Prepare all `weaves/` docs for the thread migration (Phase 7/8 of `weave-and-thread-plan-001`).
 All decisions resolved in `migration-reference.md`. Execute in order: delete/archive → move → frontmatter fixes → parent_id chain fixes → structural changes.
 
-## Steps
+# Steps
 
-### Pass 1 — Delete & Archive
-
-| Done | # | Step | Files touched | Notes |
-|------|---|------|---------------|-------|
+| Done | # | Step | Files touched | Blocked by |
+|---|---|---|---|---|
 | ✅ | 1 | Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md` | 2 files | Exact copies exist in correct locations |
 | ✅ | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model |
 | ✅ | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions |
 | ✅ | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy |
-
 ### Pass 2 — Move Misplaced Files
 
 | Done | # | Step | Files touched | Notes |

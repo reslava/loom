@@ -3,6 +3,7 @@ import * as path from 'path';
 import { saveDoc } from '../../fs/dist';
 import { generateChatId, generateDocId, createBaseFrontmatter } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
+import { getUserName } from './utils/chatNames';
 
 export interface ChatNewInput {
     weaveId?: string;
@@ -42,7 +43,7 @@ export async function chatNew(
         ...frontmatter,
         type: 'chat',
         status: 'active',
-        content: '# CHAT\n\n## Rafa:\n',
+        content: `# CHAT\n\n## ${getUserName(deps.loomRoot)}\n`,
     };
 
     const filePath = path.join(chatsDir, `${chatFilename}.md`);

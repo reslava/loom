@@ -39,15 +39,14 @@ This establishes the foundation for filesystem integration and future CLI/VSIX c
 
 # Steps
 
-| Done | # | Step | Files touched |
-|---|---|---|---|
-| ✅ | 1 | Define TypeScript core types | `packages/core/src/types.ts` |
-| ✅ | 2 | Implement design reducer | `packages/core/src/designReducer.ts` |
-| ✅ | 3 | Implement plan reducer | `packages/core/src/planReducer.ts` |
-| ✅ | 4 | Implement applyEvent orchestrator | `packages/core/src/applyEvent.ts` |
-| ✅ | 5 | Implement derived state functions | `packages/core/src/derived.ts` |
-| ✅ | 6 | Basic tests / usage example | `packages/core/test/` |
-
+| Done | # | Step | Files touched | Blocked by |
+|---|---|---|---|---|
+| ✅ | 1 | Define TypeScript core types | `packages/core/src/types.ts` | — |
+| ✅ | 2 | Implement design reducer | `packages/core/src/designReducer.ts` | — |
+| ✅ | 3 | Implement plan reducer | `packages/core/src/planReducer.ts` | — |
+| ✅ | 4 | Implement applyEvent orchestrator | `packages/core/src/applyEvent.ts` | — |
+| ✅ | 5 | Implement derived state functions | `packages/core/src/derived.ts` | — |
+| ✅ | 6 | Basic tests / usage example | `packages/core/test/` | — |
 ---
 
 ## Step 1 — Define TypeScript Core Types

@@ -7,6 +7,7 @@ import { generateDocId, generatePermanentId } from '../../core/dist';
 import { createBaseFrontmatter } from '../../core/dist';
 import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
+import { getUserName } from './utils/chatNames';
 
 export interface WeaveDesignInput {
     weaveId: string;
@@ -119,7 +120,7 @@ export async function weaveDesign(
         const id = generateDocId('design');
         const filename = `${input.threadId}-design`;
         const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
-        const content = generateDesignBody(designTitle, 'User');
+        const content = generateDesignBody(designTitle, getUserName(loomRoot));
         const doc: DesignDoc = { ...frontmatter, content } as DesignDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);

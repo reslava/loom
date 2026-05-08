@@ -4,7 +4,7 @@ id: id_01KQYDFDDB0AHWHNW6GTHKMR7P
 title: Unify ctx filenames to plain ctx.md
 status: done
 created: "2026-05-05T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [ctx, naming, layout]
 parent_id: null

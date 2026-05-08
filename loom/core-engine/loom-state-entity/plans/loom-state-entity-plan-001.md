@@ -37,7 +37,6 @@ Introduce a centralized `LoomState` entity that represents the complete derived 
 | ✅ | 3 | Refactor CLI `status` command to use `getState` | `packages/cli/src/commands/status.ts` | Step 2 |
 | ✅ | 4 | Update `app/src/index.ts` barrel export | `packages/app/src/index.ts` | Step 2 |
 | ✅ | 5 | Run full test suite | All packages, `tests/*` | Step 3 |
-
 ---
 
 ## Step 1 — Create `entities/state.ts`

@@ -4,7 +4,7 @@ id: de_01KQYDFDDATTCNZQCNB0JR0Z0F
 title: BaseDoc — Foundational Document Interface with Generic Status
 status: done
 created: "2026-04-17T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [core, entities, domain-model, typescript]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW

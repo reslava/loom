@@ -4,7 +4,7 @@ id: pl_01KQYDFDDBS518N4PX97V1Q9SS
 title: Unify ctx Filenames to ctx.md
 status: done
 created: "2026-05-05T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: [ctx, naming, layout, refactor, mvp]
@@ -21,23 +21,9 @@ Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references acros
 
 # Steps
 
-
-## Phases
-
-| Phase | Scope | Steps |
-|-------|-------|-------|
-| 1 | Code-path audit | 1 |
-| 2 | Rename + update path references | 2–4 |
-| 3 | Verify build + visibility rules still work | 5 |
-
----
-
-## Phase 1 — Code-path audit
-
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-|      | 1 | Grep the entire repo for hard-coded `'loom-ctx.md'` / `"loom-ctx.md"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4. | grep across `packages/`, `loom/`, root files | — |
-
+|---|---|---|---|---|
+| 🔳 | 1 | Grep the entire repo for hard-coded `'loom-ctx.md'` / `"loom-ctx.md"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4. | grep across `packages/`, `loom/`, root files | — |
 ---
 
 ## Phase 2 — Rename and update path references

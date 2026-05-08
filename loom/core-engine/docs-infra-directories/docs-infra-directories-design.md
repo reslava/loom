@@ -4,7 +4,7 @@ id: de_01KQYDFDDCB06E6V25HT94VAP3
 title: Workspace Directory Structure — REslava Loom
 status: done
 created: "2026-04-12T00:00:00.000Z"
-updated: 2026-05-06
+updated: "2026-05-06T00:00:00.000Z"
 version: 3
 tags: [structure, directories, filesystem, organization, loom]
 parent_id: null

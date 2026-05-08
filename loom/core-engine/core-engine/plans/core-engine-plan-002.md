@@ -51,7 +51,6 @@ This step transforms the system from in‑memory logic into a persistent, real�
 | ✅ | 5 | Implement `saveThread` | `packages/fs/src/saveThread.ts` | Steps 2, 3 |
 | ✅ | 6 | Integrate with core engine (`runEvent`) | `packages/fs/src/runEvent.ts` | Steps 4, 5 |
 | ✅ | 7 | Test with real thread folder | `looms/test/threads/example/` | All |
-
 ---
 
 ## Step 1 — Setup Filesystem Utilities (with Robust Loom Resolution)
