@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDZDXZDHVWCM2VF3EN
-title: VS Code Commands Reference
+title: vscode — Commands Reference
 status: active
 created: "2026-04-14T00:00:00.000Z"
 version: 1

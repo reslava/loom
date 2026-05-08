@@ -504,7 +504,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const node = new vscode.TreeItem('References', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'refs-section';
         node.iconPath = new vscode.ThemeIcon('library');
-        const children = refDocs.map(d => this.createDocumentNode(d, 'reference', weaveId, threadId));
+        const children = [...refDocs]
+            .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+            .map(d => this.createDocumentNode(d, 'reference', weaveId, threadId));
         return { ...node, weaveId, threadId, children };
     }
 

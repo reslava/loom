@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDYZ0F4EHWNDKBAA2E
-title: VS Code Toolbar Icons Mapping Reference
+title: vscode — Toolbar Icons Mapping Reference
 status: active
 created: "2026-04-20T00:00:00.000Z"
 version: 1

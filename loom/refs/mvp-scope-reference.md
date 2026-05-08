@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDYZC0R4XNNX2RASC9
-title: MVP — Scope and Boundaries
+title: mcp — Scope and Boundaries
 status: active
 created: "2026-05-05T00:00:00.000Z"
 version: 1

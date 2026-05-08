@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDD6R0G19XQPQYGJETK
-title: VS Code Extension & Final Polishing Roadmap
+title: vscode — Extension & Final Polishing Roadmap
 status: active
 created: "2026-04-18T00:00:00.000Z"
 version: 1

@@ -1,7 +1,7 @@
 ---
 type: ctx
 id: loom-ctx
-title: Loom — Global Context
+title: loom — Global Context
 status: active
 created: "2026-04-29T00:00:00.000Z"
 updated: 2026-05-07

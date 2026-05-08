@@ -1,7 +1,7 @@
 ---
 type: chat
 id: ch_01KQZ8S9QXNTC8F3KQEVMJBHBJ
-title: loom-AI-tool-pros-cons
+title: Loom AI tool pros-cons
 status: active
 created: 2026-05-06
 version: 1

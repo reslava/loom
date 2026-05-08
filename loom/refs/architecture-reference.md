@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDMS4N0V9G73MNV5JR
-title: Architecture Reference
+title: loom — Architecture 
 status: active
 created: "2026-04-14T00:00:00.000Z"
 version: 2

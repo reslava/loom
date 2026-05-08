@@ -1,7 +1,7 @@
 ---
 type: chat
 id: ch_01KQYDFDDA7KWKSMRBC65JRARH
-title: Loom Setup Chat
+title: Loom Setup 
 status: active
 created: "2026-04-22T00:00:00.000Z"
 version: 1

@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDD31MDCMHA1TDAG0EG
-title: Workspace Directory Structure
+title: loom — Workspace Directory Structure
 status: active
 created: "2026-04-26T00:00:00.000Z"
 version: 2

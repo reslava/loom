@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDSHGVMDC23WXW76ZD
-title: Application Layer Query Use‑Cases Reference
+title: app — Query Use‑Cases 
 status: active
 created: "2026-04-18T00:00:00.000Z"
 version: 1

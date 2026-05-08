@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDDGG6Q9DG9G1CM1GMG
-title: Vision
+title: loom — Vision
 status: active
 created: "2026-04-30T00:00:00.000Z"
 version: 1

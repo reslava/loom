@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KR3K003KHHTV0DKV71GX6FAG
-title: Plan Steps Table and BlockedBy Format
+title: loom — Plan Steps Table and BlockedBy Format
 status: active
 created: "2026-05-08T00:00:00.000Z"
 updated: 2026-05-08

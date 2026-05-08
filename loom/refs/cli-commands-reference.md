@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDDD6SYMCJ1Q2Z6748EK
-title: CLI Commands Reference
+title: cli — Commands 
 status: active
 created: "2026-04-14T00:00:00.000Z"
 version: 1

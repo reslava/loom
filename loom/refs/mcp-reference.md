@@ -1,7 +1,7 @@
 ---
 type: reference
 id: rf_01KQYDFDD9XKK20AREQ1TF6BCA
-title: MCP Reference
+title: mcp
 status: active
 created: "2026-04-27T00:00:00.000Z"
 version: 1
