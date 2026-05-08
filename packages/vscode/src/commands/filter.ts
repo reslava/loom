@@ -28,6 +28,8 @@ export async function setStatusFilter(
         { label: '$(circle-filled) Active', description: 'Active weaves/threads only', filter: ['active'] },
         { label: '$(sync~spin) Implementing', description: 'Implementing weaves/threads only', filter: ['implementing'] },
         { label: '$(pass-filled) Done', description: 'Done weaves/threads only', filter: ['done'] },
+        { label: '$(warning) Stale', description: 'Threads with stale plans or docs', filter: ['stale'] },
+        { label: '$(issues) Blocked', description: 'Threads with blocked steps in implementing plans', filter: ['blocked'] },
     ];
     const currentLabel = options.find(o => JSON.stringify(o.filter) === JSON.stringify(current))?.label;
     const picked = await vscode.window.showQuickPick(options, {

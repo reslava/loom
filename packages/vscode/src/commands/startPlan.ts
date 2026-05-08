@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function startPlanCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -14,6 +15,6 @@ export async function startPlanCommand(treeProvider: LoomTreeProvider, node?: Tr
         vscode.window.showInformationMessage(`🧵 Plan started: ${planId}`);
         treeProvider.refresh();
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Failed to start plan: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

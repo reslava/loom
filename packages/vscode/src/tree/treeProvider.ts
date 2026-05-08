@@ -7,9 +7,11 @@ import { Weave } from '@reslava-loom/core/dist/entities/weave';
 import { Thread } from '@reslava-loom/core/dist/entities/thread';
 import { Document } from '@reslava-loom/core/dist/entities/document';
 import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
+import { DesignDoc } from '@reslava-loom/core/dist/entities/design';
 import { ChatDoc } from '@reslava-loom/core/dist/entities/chat';
 import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
 import { getWeaveStatus, getThreadStatus } from '@reslava-loom/core/dist/derived';
+import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
 import { ViewStateManager } from '../view/viewStateManager';
 import { GroupingMode, ViewState } from '../view/viewState';
 import { Icons, icon, getDocumentIcon, getWeaveIcon, getThreadIcon, getPlanIcon } from '../icons';
@@ -29,6 +31,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     readonly onMCPStateChange = this._onMCPStateChange.event;
 
     private state: LoomState | null = null;
+    private lastGoodState: LoomState | null = null;
     private workspaceRoot: string | undefined;
 
     private filePathToNode = new Map<string, TreeNode>();
@@ -92,8 +95,23 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
         try {
             const json = await getMCP(this.workspaceRoot).readResource('loom://state');
-            this.state = JSON.parse(json) as LoomState;
+            const newState = JSON.parse(json) as LoomState;
             this._onMCPStateChange.fire();
+
+            const lastTotal = this.lastGoodState
+                ? this.lastGoodState.weaves.reduce((n, w) => n + w.allDocs.length, 0)
+                : 0;
+            const newTotal = newState.weaves.reduce((n, w) => n + w.allDocs.length, 0);
+            const isSuspect = this.lastGoodState !== null && lastTotal > 0 && newTotal < lastTotal * 0.7;
+
+            if (isSuspect) {
+                setTimeout(() => this._onDidChangeTreeData.fire(), 1500);
+            } else {
+                this.state = newState;
+                this.lastGoodState = newState;
+            }
+
+            if (!this.state) return [];
 
             if (this.state.weaves.length === 0) {
                 return [];
@@ -110,6 +128,19 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const refsWeave = filtered.find(w => w.id === 'refs');
             const normalWeaves = filtered.filter(w => w.id !== 'refs');
             const nodes = this.groupWeaves(normalWeaves, viewState.grouping);
+
+            // Summary warning row — shown only when there are stale plans or blocked steps
+            const { stalePlans, staleIdeas, staleDesigns, blockedSteps } = this.state.summary;
+            const staleDocs = (stalePlans ?? 0) + (staleIdeas ?? 0) + (staleDesigns ?? 0);
+            if (staleDocs > 0 || blockedSteps > 0) {
+                const parts: string[] = [];
+                if (staleDocs > 0) parts.push(`${staleDocs} stale`);
+                if (blockedSteps > 0) parts.push(`${blockedSteps} plan steps blocked`);
+                const warningNode = new vscode.TreeItem(`⚠️ ${parts.join(' · ')}`, vscode.TreeItemCollapsibleState.None);
+                warningNode.contextValue = 'summary-warning';
+                warningNode.iconPath = new vscode.ThemeIcon('warning');
+                nodes.unshift(warningNode);
+            }
 
             // Archive section — shown when showArchived is toggled on
             const archivedWeaves = (this.state as any).archivedWeaves as Weave[] | undefined;
@@ -161,6 +192,44 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
     }
 
+    private threadHasBlocked(t: Thread): boolean {
+        for (const plan of t.plans) {
+            if (plan.status !== 'implementing') continue;
+            for (const step of plan.steps ?? []) {
+                if (step.done || !step.blockedBy?.length) continue;
+                for (const blocker of step.blockedBy) {
+                    const stepMatch = blocker.match(/^Step\s+(\d+)$/i);
+                    if (stepMatch) {
+                        const stepNum = parseInt(stepMatch[1], 10);
+                        const dep = plan.steps?.find(s => s.order === stepNum);
+                        if (dep && !dep.done) return true;
+                    } else {
+                        // Cross-plan blocker: treat as blocked (best-effort, no link index)
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private threadHasStale(t: Thread): boolean {
+        if (t.design) {
+            for (const plan of t.plans) {
+                if (plan.status !== 'done' && plan.status !== 'cancelled' && plan.design_version < t.design.version) {
+                    return true;
+                }
+            }
+        }
+        if (t.idea && t.design) {
+            const designUpdated = t.design.updated ?? '';
+            const ideaUpdated = t.idea.updated ?? '';
+            if (designUpdated > ideaUpdated && t.idea.status !== 'done') return true;
+            if (ideaUpdated > designUpdated && t.design.status !== 'done' && t.design.status !== 'closed') return true;
+        }
+        return false;
+    }
+
     private filterWeaves(weaves: Weave[], viewState: ViewState): Weave[] {
         const text = viewState.textFilter?.toLowerCase() ?? '';
         const statusFilter = viewState.statusFilter;
@@ -180,6 +249,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 const filteredThreads = w.threads.filter(t => {
                     const workflowDocs = [t.idea, t.design, ...t.plans].filter(Boolean) as Document[];
                     if (workflowDocs.length === 0) return false;
+                    if (statusFilter.includes('stale')) return this.threadHasStale(t);
+                    if (statusFilter.includes('blocked')) return this.threadHasBlocked(t);
                     const status = getThreadStatus(t).toLowerCase();
                     return statusFilter.includes(status);
                 });
@@ -286,10 +357,25 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private getWeaveChildren(weave: Weave): TreeNode[] {
+        const staleIds = new Set<string>();
+        for (const thread of weave.threads) {
+            if (thread.idea && thread.design) {
+                const designUpdated = thread.design.updated ?? '';
+                const ideaUpdated = thread.idea.updated ?? '';
+                if (designUpdated > ideaUpdated && thread.idea.status !== 'done') staleIds.add(thread.idea.id);
+                if (ideaUpdated > designUpdated && thread.design.status !== 'done' && thread.design.status !== 'closed') staleIds.add(thread.design.id);
+            }
+            if (thread.design) {
+                for (const plan of thread.plans) {
+                    if (plan.design_version < thread.design.version) staleIds.add(plan.id);
+                }
+            }
+        }
+
         const children: TreeNode[] = [];
 
         for (const thread of weave.threads) {
-            children.push(this.createThreadNode(thread, weave.id));
+            children.push(this.createThreadNode(thread, weave.id, staleIds));
         }
 
         const ctxFibers = weave.looseFibers.filter(f => f.type === 'ctx');
@@ -319,9 +405,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return children;
     }
 
-    private createThreadNode(thread: Thread, weaveId: string): TreeNode {
+    private createThreadNode(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode {
         const status = getThreadStatus(thread);
-        const children = this.getThreadChildren(thread, weaveId);
+        const children = this.getThreadChildren(thread, weaveId, staleIds);
         const state = children.length > 0
             ? vscode.TreeItemCollapsibleState.Collapsed
             : vscode.TreeItemCollapsibleState.None;
@@ -343,23 +429,32 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return { ...node, weaveId, threadId: thread.id, children };
     }
 
-    private getThreadChildren(thread: Thread, weaveId: string): TreeNode[] {
+    private getThreadChildren(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode[] {
         const children: TreeNode[] = [];
 
         if (thread.idea) {
-            children.push(this.createDocumentNode(thread.idea, 'idea', weaveId, thread.id));
+            children.push(this.createDocumentNode(thread.idea, 'idea', weaveId, thread.id, staleIds));
         }
 
         if (thread.design) {
-            children.push(this.createDocumentNode(thread.design, 'design', weaveId, thread.id));
+            children.push(this.createDocumentNode(thread.design, 'design', weaveId, thread.id, staleIds));
         }
 
         if (thread.plans.length > 0) {
             children.push(this.createPlansSection(
                 thread.plans.map(p => {
                     const doneDoc = thread.dones.find(d => d.parent_id === p.id);
-                    return this.createPlanNode(p, weaveId, doneDoc, thread.id);
+                    return this.createPlanNode(p, weaveId, doneDoc, thread.id, thread.design);
                 })
+            ));
+        }
+
+        const planIds = new Set(thread.plans.map(p => p.id));
+        const orphanedDones = thread.dones.filter(d => !planIds.has(d.parent_id ?? ''));
+        if (orphanedDones.length > 0) {
+            children.push(this.createSectionNode(
+                'Done (orphaned)',
+                orphanedDones.map(d => this.createDoneDocNode(d, weaveId, thread.id))
             ));
         }
 
@@ -419,14 +514,15 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return { ...node, children };
     }
 
-    private createDocumentNode(doc: Document, baseContextValue: string, weaveId?: string, threadId?: string): TreeNode {
+    private createDocumentNode(doc: Document, baseContextValue: string, weaveId?: string, threadId?: string, staleIds?: Set<string>): TreeNode {
         const isTemp = doc.id.startsWith('new-');
         const contextValue = isTemp ? `${baseContextValue}-temp` : baseContextValue;
         const node = new vscode.TreeItem(doc.title || doc.id, vscode.TreeItemCollapsibleState.None);
-        node.description = doc.status;
+        const isStale = staleIds?.has(doc.id) ?? false;
+        node.description = isStale ? `${doc.status} ⚠️ stale` : doc.status;
         node.iconPath = getDocumentIcon(doc.type);
         node.contextValue = contextValue;
-        node.tooltip = `${doc.type} • ${doc.status}`;
+        node.tooltip = isStale ? `${doc.type} • ${doc.status} ⚠️ stale` : `${doc.type} • ${doc.status}`;
 
         const filePath = (doc as any)._path;
         if (filePath) {
@@ -459,15 +555,35 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return { ...node, doc: chat, weaveId, threadId, children: [] };
     }
 
-    private createPlanNode(plan: PlanDoc, weaveId?: string, doneDoc?: DoneDoc, threadId?: string): TreeNode {
+    private createPlanNode(plan: PlanDoc, weaveId?: string, doneDoc?: DoneDoc, threadId?: string, design?: DesignDoc): TreeNode {
         const hasDone = !!doneDoc;
         const node = new vscode.TreeItem(plan.title || plan.id, hasDone ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
         const doneSteps = plan.steps?.filter(s => s.done).length ?? 0;
         const totalSteps = plan.steps?.length ?? 0;
         const nextStep = plan.steps?.find(s => !s.done);
         const progress = `${doneSteps}/${totalSteps}`;
-        if (plan.staled) {
-            node.description = `${plan.status} ⚠️ stale`;
+        const isStale = (design && plan.status !== 'done' && plan.status !== 'cancelled')
+            ? plan.design_version < design.version
+            : false;
+        const pendingSteps = (plan.steps ?? []).filter(s => !s.done);
+        const hasPending = pendingSteps.length > 0;
+        const blockedCount = this.state
+            ? pendingSteps.filter(s => isStepBlocked(s, plan, this.state!.index)).length
+            : 0;
+        const allPendingBlocked = hasPending && pendingSteps.length === blockedCount;
+        if (isStale) {
+            node.description = `${progress} · ${plan.status} ⚠️ stale`;
+        } else if (plan.status === 'implementing' && allPendingBlocked) {
+            node.description = `${progress} · ${blockedCount} blocked 🚫`;
+        } else if (plan.status === 'implementing' && blockedCount > 0 && nextStep) {
+            const firstUnblocked = this.state
+                ? pendingSteps.find(s => !isStepBlocked(s, plan, this.state!.index))
+                : nextStep;
+            const stepToShow = firstUnblocked ?? nextStep;
+            const label = stepToShow.description.length > 35
+                ? stepToShow.description.slice(0, 35) + '…'
+                : stepToShow.description;
+            node.description = `${progress} · Step ${stepToShow.order}: ${label} (${blockedCount} blocked)`;
         } else if (nextStep && plan.status === 'implementing') {
             const label = nextStep.description.length > 35
                 ? nextStep.description.slice(0, 35) + '…'
@@ -480,10 +596,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ? `${plan.status} • ${progress} steps\nNext: Step ${nextStep.order} — ${nextStep.description}`
             : `${plan.status} • ${progress} steps`;
         node.iconPath = getPlanIcon(plan.status);
-        const hasPending = (plan.steps ?? []).some(s => !s.done);
-        node.contextValue = (plan.status === 'implementing' && hasPending)
-            ? 'plan-implementing-doable'
-            : `plan-${plan.status}`;
+        node.contextValue = (plan.status === 'implementing' && allPendingBlocked)
+            ? 'plan-implementing-blocked'
+            : (plan.status === 'implementing' && hasPending ? 'plan-implementing-doable' : `plan-${plan.status}`);
 
         const filePath = (plan as any)._path;
         if (filePath) {

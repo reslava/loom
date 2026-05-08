@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function completeStepCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -32,7 +33,6 @@ export async function completeStepCommand(treeProvider: LoomTreeProvider, node?:
         vscode.window.showInformationMessage(`🧵 ${count} step${count > 1 ? 's' : ''} completed: ${plan.id}`);
         treeProvider.refresh();
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Failed to complete step: ${e.message}`);
-        treeProvider.refresh();
+        handleMcpError(e, treeProvider);
     }
 }

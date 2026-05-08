@@ -31,12 +31,3 @@ Implement the context sidebar in the VS Code extension: a panel below the tree t
 
 # Steps
 
-
-## Legend
-
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Done |
-| 🔄 | In Progress |
-| 🔳 | Pending |
-| ❌ | Cancelled |

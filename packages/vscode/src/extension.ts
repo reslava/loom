@@ -35,6 +35,7 @@ import { createReferenceCommand } from './commands/createReference';
 import { addRequiresLoadCommand } from './commands/addRequiresLoad';
 import { setIconBaseUri } from './icons';
 import { disposeMCP, getMCP, getMCPConnected } from './mcp-client';
+import { handleMcpError } from './mcpErrorUtils';
 import { TokenEstimatorService } from './services/tokenEstimatorService';
 import { ContextSidebarProvider } from './providers/contextSidebarProvider';
 
@@ -134,7 +135,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.toggleArchivedOff', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(node)),
+        vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToDesign', (node?: TreeNode) => promoteToDesignCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToPlan', (node?: TreeNode) => promoteToPlanCommand(treeProvider, node)),
@@ -173,7 +174,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 }
                 vscode.window.showInformationMessage('Context refreshed.');
             } catch (e: any) {
-                vscode.window.showErrorMessage(`Refresh context failed: ${e.message}`);
+                handleMcpError(e, treeProvider);
             }
         }),
         vscode.commands.registerCommand('loom.generateDesign', async (node?: TreeNode) => {
@@ -197,7 +198,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 }
                 vscode.window.showInformationMessage(`Design generated`);
             } catch (e: any) {
-                vscode.window.showErrorMessage(`Generate design failed: ${e.message}`);
+                handleMcpError(e, treeProvider);
             }
         }),
         vscode.commands.registerCommand('loom.generatePlan', async (node?: TreeNode) => {
@@ -221,7 +222,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 }
                 vscode.window.showInformationMessage(`Plan generated`);
             } catch (e: any) {
-                vscode.window.showErrorMessage(`Generate plan failed: ${e.message}`);
+                handleMcpError(e, treeProvider);
             }
         }),
         vscode.commands.registerCommand('loom.generateGlobalCtx', async () => {
@@ -242,7 +243,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 }
                 vscode.window.showInformationMessage(`Global context updated (v${result?.version})`);
             } catch (e: any) {
-                vscode.window.showErrorMessage(`Generate global context failed: ${e.message}`);
+                handleMcpError(e, treeProvider);
             }
         }),
         vscode.commands.registerCommand('loom.install.openCliTerminal', () => {
@@ -365,7 +366,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(loomDirWatcher);
 
     const watcher = vscode.workspace.createFileSystemWatcher('**/loom/**/*.md');
-    const debouncedRefresh = debounce(() => treeProvider.refresh(), 300);
+    const debouncedRefresh = debounce(() => treeProvider.refresh(), 800);
     context.subscriptions.push(watcher.onDidCreate(debouncedRefresh));
     context.subscriptions.push(watcher.onDidChange(debouncedRefresh));
     context.subscriptions.push(watcher.onDidDelete(debouncedRefresh));

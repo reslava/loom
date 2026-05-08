@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function closePlanCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -23,6 +24,6 @@ export async function closePlanCommand(treeProvider: LoomTreeProvider, node?: Tr
         }
         vscode.window.showInformationMessage(`Plan closed — done doc saved.`);
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Close Plan failed: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

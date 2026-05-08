@@ -3,13 +3,16 @@
     "commit": "",
     "pr": ""
   },
+  "permissions": {
+    "allow": [
+      "mcp__loom__loom_complete_step",
+      "mcp__loom__loom_do_step",
+      "mcp__loom__loom_append_done",
+      "mcp__loom__loom_append_to_chat"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "loom"
-  ],
-  "permissions": {
-    "allow": [
-      "mcp__loom__loom_complete_step"
-    ]
-  }
+  ]
 }

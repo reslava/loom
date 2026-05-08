@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 import { ContextSidebarProvider } from '../providers/contextSidebarProvider';
 
 export async function refineCommand(treeProvider: LoomTreeProvider, node?: TreeNode, contextSidebar?: ContextSidebarProvider): Promise<void> {
@@ -29,6 +30,6 @@ export async function refineCommand(treeProvider: LoomTreeProvider, node?: TreeN
         }
         vscode.window.showInformationMessage(`Design refined (v${result?.version})`);
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Refine design failed: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

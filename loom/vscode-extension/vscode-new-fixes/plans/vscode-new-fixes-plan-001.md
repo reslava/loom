@@ -4,7 +4,7 @@ id: pl_01KR119TRV94QJF6FG6GM4BB08
 title: VSCode tree ctx/reference nodes, context menus, and requires_load picker
 status: done
 created: "2026-05-07T00:00:00.000Z"
-updated: 2026-05-07
+updated: "2026-05-07T00:00:00.000Z"
 version: 1
 design_version: 1
 tags: []

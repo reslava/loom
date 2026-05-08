@@ -4,7 +4,7 @@ id: pl_01KQYDFDDBV96HGN3QN37ZCTJG
 title: Handle Links to Archived Documents Gracefully
 status: active
 created: "2026-04-18T00:00:00.000Z"
-version: 1
+version: 3
 tags: [validation, link-index, archive, ux]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDCQ0DBXVNCSCK57P7M]

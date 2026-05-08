@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
-import { TreeNode } from '../tree/treeProvider';
+import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 
-export async function chatReplyCommand(node?: TreeNode): Promise<void> {
+export async function chatReplyCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) {
         vscode.window.showErrorMessage('No workspace open.');
@@ -36,6 +37,6 @@ export async function chatReplyCommand(node?: TreeNode): Promise<void> {
             await vscode.window.showTextDocument(updated, { preview: false, preserveFocus: false });
         }
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Chat reply failed: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

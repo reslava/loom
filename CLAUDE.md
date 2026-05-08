@@ -228,7 +228,9 @@ Verify with `claude mcp list`.
 - **All writes to `loom/**/*.md` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use `loom://thread-context` before starting any thread work. It bundles everything the agent needs (idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
-- `loom_generate_*` tools require sampling support from the MCP client. If sampling is unavailable, use `loom_create_*` tools manually.
+- **`loom_generate_*` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths, different behavior:
+  - **VS Code extension**: sampling works — the extension's `mcp-client.ts` advertises `{ sampling: {} }` and routes `sampling/createMessage` through its configured AI API key. Use `loom_generate_*` buttons freely.
+  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference is not supported and returns `MethodNotFound`. **Always use `loom_create_*` + `loom_update_doc`** instead: create the doc shell, then write the content directly with `loom_update_doc`.
 
 ---
 

@@ -79,7 +79,7 @@ export async function handleThreadContextResource(root: string, uri: string) {
 
     if (activePlan) {
         visited.add(activePlan.id);
-        const planPath = path.join(root, 'loom', weaveId, threadId, 'plans', `${activePlan.id}.md`);
+        const planPath = (activePlan as any)._path ?? path.join(root, 'loom', weaveId, threadId, 'plans', `${activePlan.id}.md`);
         const planContent = await readFileText(planPath);
         sections.push(`## plan: ${activePlan.id}\n\n${planContent}`);
     }

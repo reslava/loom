@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { ContextSidebarProvider } from '../providers/contextSidebarProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function refinePlanCommand(treeProvider: LoomTreeProvider, node?: TreeNode, contextSidebar?: ContextSidebarProvider): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -29,6 +30,6 @@ export async function refinePlanCommand(treeProvider: LoomTreeProvider, node?: T
         }
         vscode.window.showInformationMessage(`Plan refined (v${result?.version})`);
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Refine plan failed: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

@@ -83,6 +83,7 @@ export function getWeaveIcon(status: string): ReturnType<typeof icon> {
     switch (status) {
         case 'IMPLEMENTING': return svgIcon('weave-implementing.svg', 'sync~spin');
         case 'DONE':         return svgIcon('status-done.svg', 'pass-filled');
+        case 'BLOCKED':      return new vscode.ThemeIcon('warning');
         case 'CANCELLED':    return new vscode.ThemeIcon('error');
         default:             return icon(Icons.weave);
     }
@@ -95,6 +96,7 @@ export function getThreadIcon(status: string): ReturnType<typeof icon> {
     switch (status) {
         case 'IMPLEMENTING': return svgIcon('thread-implementing.svg', 'sync~spin');
         case 'DONE':         return svgIcon('status-done.svg', 'pass-filled');
+        case 'BLOCKED':      return new vscode.ThemeIcon('warning');
         case 'CANCELLED':    return new vscode.ThemeIcon('error');
         default:             return icon(Icons.thread);
     }

@@ -139,9 +139,24 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     const stalePlans = filteredWeaves.reduce((sum, w) => {
         return sum + w.threads.reduce((ts, thread) => {
             if (!thread.design) return ts;
-            return ts + thread.plans.filter(p => p.design_version < thread.design!.version).length;
+            return ts + thread.plans.filter(p =>
+                p.status !== 'done' && p.status !== 'cancelled' &&
+                p.design_version < thread.design!.version
+            ).length;
         }, 0);
     }, 0);
+
+    let staleIdeas = 0;
+    let staleDesigns = 0;
+    for (const weave of filteredWeaves) {
+        for (const thread of weave.threads) {
+            if (!thread.idea || !thread.design) continue;
+            const designUpdated = thread.design.updated ?? '';
+            const ideaUpdated = thread.idea.updated ?? '';
+            if (designUpdated > ideaUpdated && thread.idea.status !== 'done') staleIdeas++;
+            if (ideaUpdated > designUpdated && thread.design.status !== 'done' && thread.design.status !== 'closed') staleDesigns++;
+        }
+    }
 
     let blockedSteps = 0;
     for (const weave of filteredWeaves) {
@@ -149,7 +164,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             for (const plan of thread.plans) {
                 if (!plan.steps) continue;
                 for (const step of plan.steps) {
-                    if (!step.done && isStepBlocked(step, plan, index)) {
+                    if (plan.status === 'implementing' && !step.done && isStepBlocked(step, plan, index)) {
                         blockedSteps++;
                     }
                 }
@@ -175,6 +190,8 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             doneWeaves,
             totalPlans,
             stalePlans,
+            staleIdeas,
+            staleDesigns,
             blockedSteps,
         },
     };

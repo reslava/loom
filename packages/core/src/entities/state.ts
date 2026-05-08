@@ -44,6 +44,8 @@ export interface LoomState {
         doneWeaves: number;
         totalPlans: number;
         stalePlans: number;
+        staleIdeas: number;
+        staleDesigns: number;
         blockedSteps: number;
     };
 }

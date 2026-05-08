@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function weavePlanCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -23,6 +24,6 @@ export async function weavePlanCommand(treeProvider: LoomTreeProvider, node?: Tr
         vscode.window.showInformationMessage(`🧵 Plan woven: ${result.id}`);
         treeProvider.refresh();
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Failed to weave plan: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }

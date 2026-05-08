@@ -99,7 +99,9 @@ interactively in the project root and approve the \`loom\` server, or use
 - **All writes to \`loom/**/*.md\` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use \`loom://thread-context\` before starting any thread work.
 - \`do-next-step\` prompt is the primary workflow driver: call it with the active planId to get context + step instruction.
-- \`loom_generate_*\` tools require sampling support from the MCP client. If unavailable, use \`loom_create_*\` tools manually.
+- **\`loom_generate_*\` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths:
+  - **VS Code extension**: sampling works — the extension advertises \`{ sampling: {} }\` and routes \`sampling/createMessage\` through its configured AI API key.
+  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference returns \`MethodNotFound\`. **Always use \`loom_create_*\` + \`loom_update_doc\`** instead: create the doc shell, then write content directly.
 
 ---
 

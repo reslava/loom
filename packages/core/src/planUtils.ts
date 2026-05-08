@@ -18,7 +18,7 @@ export function isStepBlocked(
 
     for (const blocker of step.blockedBy) {
         // Internal step dependency: "Step N"
-        const stepMatch = blocker.match(/^Step\s+(\d+)$/i);
+        const stepMatch = blocker.match(/^(?:Step\s+)?(\d+)$/i);
         if (stepMatch) {
             const stepNum = parseInt(stepMatch[1], 10);
             const targetStep = plan.steps?.find(s => s.order === stepNum);

@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KR0WK1VAFH29Q3HSY4D039VG
 title: VSCode create reference, delete thread
-status: active
+status: done
 created: "2026-05-07T00:00:00.000Z"
-version: 1
+updated: "2026-05-07T00:00:00.000Z"
+version: 2
 tags: []
 parent_id: vscode-extension
 requires_load: []

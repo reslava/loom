@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
+import { handleMcpError } from '../mcpErrorUtils';
 
 export async function refineIdeaCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -27,6 +28,6 @@ export async function refineIdeaCommand(treeProvider: LoomTreeProvider, node?: T
         }
         vscode.window.showInformationMessage(`Idea refined (v${result?.version})`);
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Refine idea failed: ${e.message}`);
+        handleMcpError(e, treeProvider);
     }
 }
