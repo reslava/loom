@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W
 title: Document Body Generators & Utility Extraction
-status: active
+status: done
 created: "2026-04-16T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 tags: [refactor, architecture, utilities, templates]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDC2GWRSG7TVP5Z5MAN]

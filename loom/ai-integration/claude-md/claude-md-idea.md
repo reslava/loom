@@ -1,10 +1,11 @@
 ---
 type: idea
 id: id_01KQYDFDD8CEXH33CCWPKTX5DY
-title: CLAUDE.md Lifecycle — Template, Fusion, and Maintenance
-status: draft
+title: CLAUDE Lifecycle — Template, Fusion, and Maintenance
+status: done
 created: "2026-04-26T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 tags: [claude-md, mcp, install, fusion, ai-integration]
 parent_id: null
 requires_load: [rf_01KQYDFDDDMS4N0V9G73MNV5JR]

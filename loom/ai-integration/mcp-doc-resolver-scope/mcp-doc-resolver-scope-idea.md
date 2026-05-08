@@ -2,10 +2,10 @@
 type: idea
 id: id_01KQYDFDD9W0YYAC3FPN2PAVH0
 title: MCP doc resolver scope and ID disambiguation
-status: draft
+status: done
 created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-05T00:00:00.000Z"
-version: 2
+updated: 2026-05-08
+version: 3
 tags: []
 parent_id: null
 requires_load: []

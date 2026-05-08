@@ -2,10 +2,10 @@
 type: idea
 id: id_01KQYDFDD8QAB8TD0JXC8D31J4
 title: Context Injection for Chats
-status: active
+status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-04T00:00:00.000Z"
-version: 2
+updated: 2026-05-08
+version: 3
 tags: []
 parent_id: null
 requires_load: []

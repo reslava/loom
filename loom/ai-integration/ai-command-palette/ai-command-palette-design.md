@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDD7Z9B0CK146K75XTRZ
 title: AI Command Palette — Promote, Refine, Summarize
-status: draft
+status: done
 created: "2026-04-22T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 tags: [ai, commands, promote, refine, summarize, vscode]
 parent_id: null
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]

@@ -4,8 +4,8 @@ id: id_01KQYDFDDFK0Y1KF9AGQHV7YTY
 title: Document-Driven AI Workflow System (Refined Vision)
 status: done
 created: "2026-04-11T00:00:00.000Z"
-updated: 2026-05-07
-version: 2.0.011
+updated: 2026-05-08
+version: 2.0.0111
 tags: [workflow, ai, architecture, markdown, vscode, meta-tool]
 parent_id: null
 requires_load: [kebab-case-id]

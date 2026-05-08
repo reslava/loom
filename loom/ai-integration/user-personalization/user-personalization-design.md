@@ -1,7 +1,7 @@
 ---
 type: design
 id: de_01KQYDFDDEDXJJHYNNZWXQZNMM
-title: User Personalization in VS Code Extension
+title: User Personalization
 status: active
 created: "2026-04-11T00:00:00.000Z"
 updated: "2026-04-14T00:00:00.000Z"
@@ -13,7 +13,7 @@ target_release: 0.4.0
 actual_release: null
 ---
 
-# User Personalization in VS Code Extension — REslava Loom
+# User Personalization — REslava Loom
 
 ## Goal
 

@@ -2,10 +2,10 @@
 type: design
 id: de_01KQYDFDDC911HGHRQGZV1ZSCA
 title: Staleness Management
-status: active
+status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-04T00:00:00.000Z"
-version: 2
+updated: 2026-05-08
+version: 3
 tags: []
 parent_id: id_01KQYDFDDCKTVHTZZE0NTS504V
 requires_load: []

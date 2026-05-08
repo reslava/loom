@@ -2,10 +2,10 @@
 type: idea
 id: id_01KQYDFDD9AE2306D37KA2WNA3
 title: Showing Docs Loaded Visibility
-status: active
+status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-04T00:00:00.000Z"
-version: 2
+updated: 2026-05-08
+version: 3
 tags: []
 parent_id: null
 requires_load: []

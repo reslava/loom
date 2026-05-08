@@ -2,9 +2,10 @@
 type: plan
 id: pl_01KQYDFDDBV96HGN3QN37ZCTJG
 title: Handle Links to Archived Documents Gracefully
-status: active
+status: done
 created: "2026-04-18T00:00:00.000Z"
-version: 3
+updated: 2026-05-08
+version: 4
 tags: [validation, link-index, archive, ux]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDCQ0DBXVNCSCK57P7M]
@@ -39,7 +40,6 @@ Modify link validation and status display to treat references to **archived** do
 | 🔳 | 5 | Update `loom status` to show archive indicator for archived references | `packages/app/src/status.ts`, `packages/cli/src/commands/status.ts` | Steps 3, 4 |
 | 🔳 | 6 | Update `loom validate` to skip archived reference errors | `packages/cli/src/commands/validate.ts` | Steps 3, 4 |
 | 🔳 | 7 | Run full test suite | All packages, `tests/*` | Step 6 |
-
 ---
 
 ## Step 1 — Extend `DocumentEntry` with `archived` Flag

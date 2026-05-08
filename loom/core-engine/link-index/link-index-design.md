@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDDCQ0DBXVNCSCK57P7M
 title: Structured Link Index for Document Relationships
-status: active
+status: done
 created: "2026-04-14T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 tags: [linking, index, validation, performance]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]

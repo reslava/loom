@@ -2,9 +2,10 @@
 type: plan
 id: pl_01KQYDFDD9FZPE58GYJHP69ZDT
 title: Showing Docs Loaded — Visibility Rules Audit and Sync
-status: active
+status: done
 created: "2026-05-05T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 design_version: 2
 tags: [ai, visibility, claude-md, mvp]
 parent_id: showing-docs-loaded-design
@@ -16,6 +17,10 @@ requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ## Goal
 
 Confirm the visibility-prefix rules from `showing-docs-loaded-design` are present, complete, and consistent across both `CLAUDE.md` surfaces (recursive + agnostic install template). Pure rules work — no code changes.
+
+
+# Steps
+
 
 ## Phases
 

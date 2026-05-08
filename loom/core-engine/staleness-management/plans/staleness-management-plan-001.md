@@ -2,9 +2,10 @@
 type: plan
 id: pl_01KQYDFDDCHD6SEJ0QCBAYJ93Y
 title: Staleness Management — MVP Surfacing
-status: active
+status: done
 created: "2026-05-05T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 design_version: 2
 tags: [staleness, vscode, mcp, mvp]
 parent_id: de_01KQYDFDDC911HGHRQGZV1ZSCA
@@ -16,6 +17,10 @@ requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ## Goal
 
 Surface the existing passive staleness-detection infrastructure (`loom_get_stale_docs`, `loom_get_stale_plans`, `version` fields) into the user-visible UI: tree icon, summary count, diagnostics. Do NOT add cascade automation, refine-propagation, or block-on-stale — those are post-MVP per `mvp-scope`.
+
+
+# Steps
+
 
 ## Phases
 

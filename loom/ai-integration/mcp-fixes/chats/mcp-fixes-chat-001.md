@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KR0J2BJ6A8F9PXZNX7MHJZ5P
 title: mcp-fixes
-status: active
-created: 2026-05-07
-version: 1
+status: done
+created: "2026-05-07T00:00:00.000Z"
+updated: 2026-05-08
+version: 2
 tags: []
 parent_id: null
 requires_load: []

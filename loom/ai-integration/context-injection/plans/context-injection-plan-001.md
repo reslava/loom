@@ -2,9 +2,10 @@
 type: plan
 id: pl_01KQYDFDD811TEXADDXS6CMC6Y
 title: Context Injection — MVP Rule and Tool Metadata
-status: active
+status: done
 created: "2026-05-05T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
 parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
@@ -16,6 +17,10 @@ requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ## Goal
 
 Lock in the MVP-scope context-injection rule ("first chat-reply in a thread loads thread context") in both `CLAUDE.md` surfaces, and confirm the MCP tools surface enough metadata for the AI to apply the rule correctly. Defer the delta-only optimization to a post-MVP plan.
+
+
+# Steps
+
 
 ## Phases
 

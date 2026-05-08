@@ -19,7 +19,7 @@ Extend the existing ts-node test suite to cover all core entities, fs repository
 behaviour, and app use-case paths introduced since the initial build. Regressions
 in any of these layers should be caught before they reach VS Code.
 
-## Steps
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
