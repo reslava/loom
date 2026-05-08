@@ -37,15 +37,15 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
-| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` |
-| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` |
-| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` |
-| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` |
-| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` |
-| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` |
-| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` |
-| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` |
-| ✅ | 9 | Test CLI with real looms | `looms/test/` |
+| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` | 
+| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` | |
+| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` | |
+| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` | |
+| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` | |
+| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` | |
+| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` | |
+| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` | |
+| ✅ | 9 | Test CLI with real looms | `looms/test/` | |
 
 ---
 
@@ -547,12 +547,14 @@ function extractQuestions(content: string): string {
 **Manual Test Plan:**
 
 1. **Setup test loom:**
+
    ```bash
    loom setup test
    loom switch test
    ```
 
 2. **Create a sample thread:**
+
    ```bash
    mkdir -p ~/looms/test/threads/example/plans
    cp .loom/templates/design-template.md ~/looms/test/threads/example/example-design.md
@@ -560,6 +562,7 @@ function extractQuestions(content: string): string {
    ```
 
 3. **Test commands:**
+
    ```bash
    loom status
    loom status example --verbose

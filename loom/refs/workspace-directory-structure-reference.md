@@ -102,6 +102,7 @@ Every scope (project, weave, thread) supports the same set of directories:
 | `.archive/` | `loom/.archive/` | `loom/{weave}/.archive/` | `loom/{weave}/{thread}/.archive/` |
 
 Rules:
+
 - Create any directory only when first needed — don't pre-create empty dirs
 - `ctx.md` (project + weave) is a single file; `ctx/` (thread) is a directory of session summaries
 - `refs/` contains static facts; never put AI-generated content in `refs/`

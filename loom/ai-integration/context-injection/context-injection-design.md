@@ -77,6 +77,7 @@ The "is this thread's context already loaded?" question is **AI-side**, not serv
   - Same thread, but a `refine` or `generate` happened since last reply → re-read full context, emit visibility lines again.
 
 This is a CLAUDE.md rule, in the same family as the visibility rules. It avoids:
+
 - Defining "session" on the server (the MCP server is a stdio process — its lifetime does not align with a Claude Code conversation).
 - Tracking LLM transcript contents on the server (the server cannot see them).
 

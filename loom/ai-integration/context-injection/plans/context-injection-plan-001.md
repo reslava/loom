@@ -7,7 +7,7 @@ created: "2026-05-05T00:00:00.000Z"
 version: 1
 design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
-parent_id: context-injection-design
+parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ---
 
@@ -42,6 +42,7 @@ Lock in the MVP-scope context-injection rule ("first chat-reply in a thread load
 |      | 3 | If step 2 changes a tool response shape, update the matching MCP integration test to assert the new field. Run `cd packages/vscode && npm run package` to confirm the bundle still compiles. | `packages/mcp/tests/integration.test.ts` | 2 |
 
 **Notes:**
+
 - Steps 2 and 3 may turn out to be no-ops if the threadId is already in the response. If so, mark them done with a one-line "verified, no change needed" note.
 - The post-MVP delta-only optimization (server-side session state, transcript awareness) lives in a future `context-injection-plan-002`. Do not start it from this plan.
 

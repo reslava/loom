@@ -10,7 +10,7 @@ parent_id: null
 requires_load: []
 ---
 
-# 🔥 Canonical Frontmatter Serializer 
+# 🔥 Canonical Frontmatter Serializer
 
 Simple, deterministic, and **does exactly what we want**.
 
