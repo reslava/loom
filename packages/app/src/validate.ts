@@ -72,7 +72,7 @@ async function validateWeave(
 
         if (doc.type === 'plan') {
             const plan = doc as PlanDoc;
-            
+
             if (plan.parent_id) {
                 const parentDesign = docs.find(d => d.id === plan.parent_id) as DesignDoc;
                 if (parentDesign && plan.design_version != null && plan.design_version !== parentDesign.version) {
@@ -80,8 +80,15 @@ async function validateWeave(
                 }
             }
 
-            const blockerIssues = validateStepBlockers(plan, index);
-            issues.push(...blockerIssues.map(i => i.message));
+            if (!plan.steps || plan.steps.length === 0) {
+                if (plan.status !== 'done') {
+                    issues.push(`Plan ${plan.id} has no canonical Steps table`);
+                }
+            } else {
+                const blockerIssues = validateStepBlockers(plan, index);
+                // Prefix each message with the plan ID so diagnostics.ts can map them to the right file
+                issues.push(...blockerIssues.map(i => `Plan ${plan.id}: ${i.message}`));
+            }
         }
     }
 

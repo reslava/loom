@@ -12,8 +12,8 @@ export interface PlanStep {
 export function parseStepsTable(content: string): PlanStep[] {
     const steps: PlanStep[] = [];
     
-    // Find the steps section: from "# Steps" to the next "---" or "##" or end of file
-    const stepsSectionMatch = content.match(/# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i);
+    // Find the steps section: "# Steps" must be at the start of a line (not "## Steps")
+    const stepsSectionMatch = content.match(/(?:^|\n)# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i);
     if (!stepsSectionMatch) return steps;
     
     const section = stepsSectionMatch[1];

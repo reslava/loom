@@ -77,17 +77,22 @@ function createMCPClient(workspaceRoot: string): LoomMCPClient {
     });
 
     let connected = false;
+    let connectError: Error | undefined;
     const connectPromise = client.connect(transport).then(() => {
         connected = true;
         _mcpConnected = true;
     }).catch((err: Error) => {
+        connectError = err;
         _mcpConnected = false;
         console.error('🧵 MCP connect failed:', err.message);
         vscode.window.showErrorMessage(`Loom MCP failed to start: ${err.message}`);
     });
 
     async function ensureConnected(): Promise<void> {
-        if (!connected) await connectPromise;
+        if (!connected) {
+            await connectPromise;
+            if (connectError) throw connectError;
+        }
     }
 
     return {

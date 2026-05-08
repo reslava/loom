@@ -7,7 +7,7 @@ created: "2026-05-07T00:00:00.000Z"
 updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: []
-parent_id: vscode-staled
+parent_id: null
 requires_load: []
 ---
 # CHAT

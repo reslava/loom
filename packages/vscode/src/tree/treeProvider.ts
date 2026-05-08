@@ -94,7 +94,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         this.nodeToParent.clear();
 
         try {
-            const json = await getMCP(this.workspaceRoot).readResource('loom://state');
+            const json = await this.readStateWithRetry(this.workspaceRoot);
             const newState = JSON.parse(json) as LoomState;
             this._onMCPStateChange.fire();
 
@@ -190,6 +190,23 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             }
             return [this.messageNode(`Error: ${e.message}`)];
         }
+    }
+
+    private async readStateWithRetry(root: string): Promise<string> {
+        const MAX_ATTEMPTS = 3;
+        const RETRY_DELAY_MS = 500;
+        let lastError: Error = new Error('no attempts');
+        for (let i = 0; i < MAX_ATTEMPTS; i++) {
+            try {
+                return await getMCP(root).readResource('loom://state');
+            } catch (e: any) {
+                const isTimeout = e.message?.includes('32001') || e.message?.includes('timed out');
+                if (isTimeout) throw e; // reconnect path — no retry
+                lastError = e;
+                if (i < MAX_ATTEMPTS - 1) await new Promise(r => setTimeout(r, RETRY_DELAY_MS));
+            }
+        }
+        throw lastError;
     }
 
     private threadHasBlocked(t: Thread): boolean {

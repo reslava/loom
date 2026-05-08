@@ -2,9 +2,10 @@
 type: design
 id: de_01KQYDFDDBPFWTRWDMCAH1V45S
 title: Unify ctx filenames to plain ctx.md
-status: active
+status: done
 created: "2026-05-05T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 tags: [ctx, naming, layout]
 parent_id: id_01KQYDFDDB0AHWHNW6GTHKMR7P
 requires_load: []

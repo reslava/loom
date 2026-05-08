@@ -6,7 +6,7 @@ status: active
 created: "2026-05-03T00:00:00.000Z"
 version: 1
 tags: []
-parent_id: continue-deepseek
+parent_id: null
 requires_load: []
 ---
 # CHAT

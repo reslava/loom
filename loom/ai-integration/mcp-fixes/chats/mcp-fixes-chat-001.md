@@ -6,7 +6,7 @@ status: active
 created: 2026-05-07
 version: 1
 tags: []
-parent_id: mcp-fixes
+parent_id: null
 requires_load: []
 ---
 # CHAT

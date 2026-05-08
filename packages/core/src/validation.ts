@@ -34,36 +34,52 @@ export function getDanglingChildIds(_doc: Document, _index: LinkIndex): string[]
 export function validateStepBlockers(plan: PlanDoc, index: LinkIndex): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     if (!plan.steps) return issues;
-    
+
     for (const step of plan.steps) {
         if (!step.blockedBy || step.blockedBy.length === 0) continue;
-        
+
         for (const blocker of step.blockedBy) {
-            // Internal step dependency: "Step N"
-            if (blocker.startsWith('Step ')) {
-                const stepNum = parseInt(blocker.replace('Step ', ''), 10);
-                if (isNaN(stepNum) || stepNum < 1 || stepNum > plan.steps.length) {
+            // Canonical: bare step number "3"
+            if (/^\d+$/.test(blocker)) {
+                const stepNum = parseInt(blocker, 10);
+                if (stepNum < 1 || stepNum > plan.steps.length) {
                     issues.push({
                         documentId: plan.id,
                         severity: 'error',
-                        message: `Step ${step.order}: invalid blocker "${blocker}"`,
+                        message: `Step ${step.order}: invalid blocker "${blocker}" (no step ${stepNum})`,
                     });
                 }
                 continue;
             }
-            
-            // Cross‑plan dependency: plan ID
+
+            // Canonical: comma-separated step numbers "3,4"
+            if (/^\d+(,\s*\d+)*$/.test(blocker)) {
+                const stepNums = blocker.split(',').map(s => parseInt(s.trim(), 10));
+                for (const stepNum of stepNums) {
+                    if (stepNum < 1 || stepNum > plan.steps.length) {
+                        issues.push({
+                            documentId: plan.id,
+                            severity: 'error',
+                            message: `Step ${step.order}: invalid blocker "${blocker}" (no step ${stepNum})`,
+                        });
+                    }
+                }
+                continue;
+            }
+
+            // Cross-plan dependency: "{plan-id}" or "{plan-id} N" or "{plan-id} N,M"
             if (blocker.includes('-plan-')) {
-                if (!index.documents.has(blocker)) {
+                const planId = blocker.split(' ')[0];
+                if (!index.documents.has(planId)) {
                     issues.push({
                         documentId: plan.id,
                         severity: 'warning',
-                        message: `Step ${step.order}: blocked by missing plan "${blocker}"`,
+                        message: `Step ${step.order}: blocked by missing plan "${planId}"`,
                     });
                 }
                 continue;
             }
-            
+
             // Unknown blocker format
             issues.push({
                 documentId: plan.id,
@@ -72,6 +88,6 @@ export function validateStepBlockers(plan: PlanDoc, index: LinkIndex): Validatio
             });
         }
     }
-    
+
     return issues;
 }

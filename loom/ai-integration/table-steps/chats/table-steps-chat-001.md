@@ -6,7 +6,7 @@ status: done
 created: 2026-05-06
 version: 1
 tags: []
-parent_id: table-steps
+parent_id: null
 requires_load: []
 ---
 # CHAT

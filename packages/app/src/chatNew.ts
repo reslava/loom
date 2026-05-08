@@ -37,7 +37,7 @@ export async function chatNew(
     const chatId = generateDocId('chat');
     const title = input.title || `${scopeId} Chat`;
 
-    const frontmatter = createBaseFrontmatter('chat', chatId, title, scopeId);
+    const frontmatter = createBaseFrontmatter('chat', chatId, title, null);
     const doc: ChatDoc = {
         ...frontmatter,
         type: 'chat',

@@ -54,6 +54,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
 
     const viewStateManager = new ViewStateManager(context.workspaceState);
     vscode.commands.executeCommand('setContext', 'loom.showArchived', viewStateManager.getState().showArchived);
+    vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', viewStateManager.getState().syncDocToTreeEnabled);
     const treeProvider = new LoomTreeProvider(viewStateManager);
     const tokenEstimator = new TokenEstimatorService(context);
     const contextSidebar = new ContextSidebarProvider(treeProvider, tokenEstimator);
@@ -96,6 +97,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(
         vscode.window.onDidChangeActiveTextEditor(editor => {
             if (!editor) return;
+            if (!viewStateManager.getState().syncDocToTreeEnabled) return;
             const filePath = editor.document.uri.fsPath;
             const node = treeProvider.getNodeByFilePath(filePath);
             if (node) {
@@ -134,6 +136,16 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.setStatusFilter', () => setStatusFilter(viewStateManager, treeProvider, updateViewTitle)),
         vscode.commands.registerCommand('loom.toggleArchived', () => toggleArchived(viewStateManager, treeProvider)),
         vscode.commands.registerCommand('loom.toggleArchivedOff', () => toggleArchived(viewStateManager, treeProvider)),
+        vscode.commands.registerCommand('loom.toggleSyncDocToTree', () => {
+            const enabled = !viewStateManager.getState().syncDocToTreeEnabled;
+            viewStateManager.update({ syncDocToTreeEnabled: enabled });
+            vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', enabled);
+        }),
+        vscode.commands.registerCommand('loom.toggleSyncDocToTreeOff', () => {
+            const enabled = !viewStateManager.getState().syncDocToTreeEnabled;
+            viewStateManager.update({ syncDocToTreeEnabled: enabled });
+            vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', enabled);
+        }),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),
@@ -366,10 +378,10 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(loomDirWatcher);
 
     const watcher = vscode.workspace.createFileSystemWatcher('**/loom/**/*.md');
-    const debouncedRefresh = debounce(() => treeProvider.refresh(), 800);
-    context.subscriptions.push(watcher.onDidCreate(debouncedRefresh));
-    context.subscriptions.push(watcher.onDidChange(debouncedRefresh));
-    context.subscriptions.push(watcher.onDidDelete(debouncedRefresh));
+    const debouncedSyncAndRefresh = debounce(() => syncAndRefresh(), 800);
+    context.subscriptions.push(watcher.onDidCreate(debouncedSyncAndRefresh));
+    context.subscriptions.push(watcher.onDidChange(debouncedSyncAndRefresh));
+    context.subscriptions.push(watcher.onDidDelete(debouncedSyncAndRefresh));
     // Also re-sync context keys (hasWeaves) when loom files appear or disappear
     context.subscriptions.push(watcher.onDidCreate(debouncedSyncSetup));
     context.subscriptions.push(watcher.onDidDelete(debouncedSyncSetup));

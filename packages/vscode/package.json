@@ -333,6 +333,18 @@
         "title": "Refresh Context",
         "category": "Loom",
         "icon": "$(sync)"
+      },
+      {
+        "command": "loom.toggleSyncDocToTree",
+        "title": "Sync Doc → Tree (enabled)",
+        "category": "Loom",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "loom.toggleSyncDocToTreeOff",
+        "title": "Sync Doc → Tree (disabled)",
+        "category": "Loom",
+        "icon": "$(eye-closed)"
       }
     ],
     "configuration": {
@@ -435,9 +447,19 @@
           "group": "navigation@5"
         },
         {
+          "command": "loom.toggleSyncDocToTree",
+          "when": "view == loom.threads && loom.syncDocToTreeEnabled",
+          "group": "navigation@6"
+        },
+        {
+          "command": "loom.toggleSyncDocToTreeOff",
+          "when": "view == loom.threads && !loom.syncDocToTreeEnabled",
+          "group": "navigation@6"
+        },
+        {
           "command": "loom.refresh",
           "when": "view == loom.threads",
-          "group": "navigation@6"
+          "group": "navigation@7"
         }
       ],
       "view/item/context": [

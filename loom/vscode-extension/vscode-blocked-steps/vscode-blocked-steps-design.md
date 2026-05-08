@@ -4,7 +4,7 @@ id: de_01KR1QJJS01WWY5KWEAZ1X0GFB
 title: Surface blocked steps per-plan in the VS Code tree
 status: done
 created: "2026-05-07T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 3
 tags: []
 parent_id: id_01KR1PS6ZQ3K0AT96SKE4XQKRP

@@ -17,12 +17,3 @@ Implement distinct icons for the "Toggle Archived" extension toolbar button: use
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Locate the source file (e.g., in `packages/vscode` extension code) where the button is rendered or its icon is set. | — | — |
-| ✅ | 2 | Add a conditional check for the button's enabled/disabled state. | — | — |
-| ✅ | 3 | Set the icon to `packages/vscode/media/icons/archive.svg` when enabled. | — | — |
-| ✅ | 4 | Set the icon to the Codeicon `Archive` icon (via CSS class `codicon-archive` or equivalent SVG) when disabled. | — | — |
-## Notes
-- The implementation method depends on whether the button is defined via `package.json` commands (no native state-based icon support) or custom-rendered in a webview/tree view — confirm before coding.
-- If using a webview, the icon swap can be done by toggling a CSS class on the button element.

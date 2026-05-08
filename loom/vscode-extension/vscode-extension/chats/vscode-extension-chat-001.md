@@ -7,7 +7,7 @@ created: "2026-05-06T00:00:00.000Z"
 updated: "2026-05-07T00:00:00.000Z"
 version: 4
 tags: []
-parent_id: vscode-extension
+parent_id: null
 requires_load: []
 ---
 # CHAT

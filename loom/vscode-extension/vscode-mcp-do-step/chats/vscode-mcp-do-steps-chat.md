@@ -6,7 +6,7 @@ status: done
 created: "2026-05-01T00:00:00.000Z"
 version: 1
 tags: []
-parent_id: vscode-mcp-do-step
+parent_id: null
 requires_load: []
 ---
 # CHAT

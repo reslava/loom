@@ -2,9 +2,10 @@
 type: plan
 id: pl_01KQYDFDDBS518N4PX97V1Q9SS
 title: Unify ctx Filenames to ctx.md
-status: active
+status: done
 created: "2026-05-05T00:00:00.000Z"
-version: 1
+updated: 2026-05-08
+version: 2
 design_version: 1
 tags: [ctx, naming, layout, refactor, mvp]
 parent_id: de_01KQYDFDDBPFWTRWDMCAH1V45S
@@ -16,6 +17,10 @@ requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ## Goal
 
 Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references across the recursive `CLAUDE.md`, the `LOOM_CLAUDE_MD` install template, the `LOOM_CTX_MD` write target, and the refs. Verify no code hard-codes the old filename.
+
+
+# Steps
+
 
 ## Phases
 

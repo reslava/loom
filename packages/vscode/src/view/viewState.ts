@@ -6,6 +6,7 @@ export interface ViewState {
     statusFilter: string[];
     showArchived: boolean;
     focusedweaveId?: string;
+    syncDocToTreeEnabled: boolean;
 }
 
 export const defaultViewState: ViewState = {
@@ -13,4 +14,5 @@ export const defaultViewState: ViewState = {
     textFilter: '',
     statusFilter: [],
     showArchived: false,
+    syncDocToTreeEnabled: true,
 };

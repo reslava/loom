@@ -4,10 +4,10 @@ id: ch_01KR36V7NR68KSTAK9PZEP6VP9
 title: vscode-blocked-steps Chat
 status: done
 created: "2026-05-08T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: []
-parent_id: vscode-blocked-steps
+parent_id: null
 requires_load: []
 ---
 # CHAT

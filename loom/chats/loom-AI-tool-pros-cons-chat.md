@@ -6,7 +6,7 @@ status: active
 created: 2026-05-06
 version: 1
 tags: []
-parent_id: vscode-ctx
+parent_id: null
 requires_load: []
 ---
 # CHAT

@@ -92,8 +92,8 @@ function extractDocId(issue: string): string | undefined {
     // "Broken parent_id: {docId} → ..."  or  "Dangling child_id: {docId} → ..."
     const arrowMatch = issue.match(/:\s+([\w-]+)\s+[→>]/);
     if (arrowMatch) return arrowMatch[1];
-    // "Plan {planId} is stale ..."
-    const planMatch = issue.match(/^Plan\s+([\w-]+)\s+/);
+    // "Plan {planId} is stale ..." or "Plan {planId} has no ..." or "Plan {planId}: Step N: ..."
+    const planMatch = issue.match(/^Plan\s+([\w-]+)[\s:]/);
     if (planMatch) return planMatch[1];
     return undefined;
 }
