@@ -2,9 +2,10 @@
 type: idea
 id: id_01KR4TED5JSRNZ17Z3YFA71YB7
 title: app-chat-new-reply
-status: draft
+status: done
 created: "2026-05-08T00:00:00.000Z"
-version: 1
+updated: 2026-05-11
+version: 2
 tags: []
 parent_id: null
 requires_load: []

@@ -4,11 +4,8 @@ export function generatePlanBody(title: string, goal?: string, steps?: string[])
 
     const hasSteps = steps && steps.length > 0;
     const tableRows = hasSteps
-        ? steps!.map((s, i) => `| \u{1F533} | ${i + 1} | ${s} | \`src/...\` | — |`).join('\n')
-        : '| \u{1F533} | 1 | {Step description} | `src/...` | — |';
-    const detailSections = hasSteps
-        ? steps!.map((s, i) => `## Step ${i + 1} — ${s}\n\n<!-- Detailed spec. -->\n\n---`).join('\n\n')
-        : '## Step 1 — {Step description}\n\n<!-- Detailed spec for Step 1. -->\n\n---';
+        ? steps!.map((s, i) => `| \u{1F533} | ${i + 1} | ${s} | — | — |`).join('\n')
+        : '| \u{1F533} | 1 | {Step description} | — | — |';
 
     return `# Plan — ${title}
 
@@ -31,8 +28,6 @@ ${goalSection}---
 ${tableRows}
 
 ---
-
-${detailSections}
 
 ## Legend
 

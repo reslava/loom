@@ -7,8 +7,8 @@ export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, node?: Tr
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
-    const title = await vscode.window.showInputBox({ prompt: 'Idea title', placeHolder: 'e.g., Add Dark Mode' });
-    if (!title) return;
+    const titleInput = await vscode.window.showInputBox({ prompt: 'Idea title (leave blank to use default)', placeHolder: 'e.g., Add Dark Mode' });
+    if (titleInput === undefined) return;
 
     let weaveId = node?.weaveId;
     if (!weaveId) {
@@ -16,7 +16,8 @@ export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, node?: Tr
         if (!weaveId) return;
     }
 
-    const threadId: string = node?.threadId ?? toKebabCaseId(title);
+    const threadId: string = node?.threadId ?? (titleInput ? toKebabCaseId(titleInput) : 'new-idea');
+    const title = titleInput || `${threadId} idea`;
 
     try {
         const result = await getMCP(root).callTool('loom_create_idea', { weaveId, threadId, title }) as any;

@@ -6,6 +6,8 @@ import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummari
 
 export interface PromoteToPlanInput {
     filePath: string;
+    targetWeaveId?: string;
+    targetThreadId?: string;
 }
 
 export interface PromoteToPlanDeps {
@@ -22,10 +24,10 @@ Respond with exactly this format — nothing else before or after:
 
 TITLE: <one concise line describing the plan>
 
-## Goal
+# Goal
 <what this plan implements in 1-2 sentences>
 
-## Steps
+# Steps
 1. <first concrete implementation step>
 2. <second concrete implementation step>
 3. <add as many steps as needed>
@@ -34,9 +36,9 @@ TITLE: <one concise line describing the plan>
 <implementation notes, gotchas, open questions — no step labels here>
 
 CRITICAL RULES:
-- The ## Steps section MUST contain a numbered list with at least one item. A plan with no steps is invalid.
+- The # Steps section MUST contain a numbered list with at least one item. A plan with no steps is invalid.
 - Each step must be on its own line starting with a number and period: "1. ", "2. ", etc.
-- Do NOT leave ## Steps empty. If the source is vague, infer concrete steps from the goal.
+- Do NOT leave # Steps empty. If the source is vague, infer concrete steps from the goal.
 - Do NOT put step descriptions in ## Notes — Notes is for gotchas and context only.`;
 
 export async function promoteToPlan(
@@ -45,7 +47,9 @@ export async function promoteToPlan(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc | IdeaDoc | DesignDoc;
 
-    const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
+    const { weaveId, threadId } = input.targetWeaveId
+        ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
+        : deriveLocation(input.filePath, deps.loomRoot);
 
     if (!doc.content || doc.content.trim().length === 0) {
         throw new Error(`${doc.type} document is empty.`);
@@ -97,7 +101,7 @@ export async function promoteToPlan(
 }
 
 function parseNumberedSteps(body: string): PlanStep[] {
-    const match = body.match(/## Steps\s*\n([\s\S]*?)(?=\n##|$)/i);
+    const match = body.match(/# Steps\s*\n([\s\S]*?)(?=\n##|$)/i);
     if (!match) return [];
     const steps: PlanStep[] = [];
     for (const line of match[1].split('\n')) {

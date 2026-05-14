@@ -12,12 +12,30 @@ export async function promoteToIdeaCommand(treeProvider: LoomTreeProvider, node?
         return;
     }
 
+    const toolArgs: Record<string, unknown> = { sourceId, targetType: 'idea' };
+
+    if (!node?.weaveId) {
+        const targetWeaveId = await vscode.window.showInputBox({ prompt: 'Target weave ID', placeHolder: 'e.g., my-feature' });
+        if (!targetWeaveId) return;
+        toolArgs['targetWeaveId'] = targetWeaveId;
+    } else {
+        toolArgs['targetWeaveId'] = node.weaveId;
+    }
+
+    if (!node?.threadId) {
+        const targetThreadId = await vscode.window.showInputBox({ prompt: 'Target thread ID (leave blank for weave-level)', placeHolder: 'e.g., auth-flow' });
+        if (targetThreadId === undefined) return;
+        if (targetThreadId) toolArgs['targetThreadId'] = targetThreadId;
+    } else {
+        toolArgs['targetThreadId'] = node.threadId;
+    }
+
     try {
         let result: any;
         await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Notification, title: 'Loom: Promoting to idea…', cancellable: false },
             async () => {
-                result = await getMCP(root).callTool('loom_promote', { sourceId, targetType: 'idea' });
+                result = await getMCP(root).callTool('loom_promote', toolArgs);
             }
         );
         treeProvider.refresh();

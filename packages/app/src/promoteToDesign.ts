@@ -6,6 +6,8 @@ import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummari
 
 export interface PromoteToDesignInput {
     filePath: string;
+    targetWeaveId?: string;
+    targetThreadId?: string;
 }
 
 export interface PromoteToDesignDeps {
@@ -43,7 +45,9 @@ export async function promoteToDesign(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc | IdeaDoc;
 
-    const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
+    const { weaveId, threadId } = input.targetWeaveId
+        ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
+        : deriveLocation(input.filePath, deps.loomRoot);
 
     if (!doc.content || doc.content.trim().length === 0) {
         throw new Error(`${doc.type} document is empty.`);

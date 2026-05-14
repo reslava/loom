@@ -1,10 +1,11 @@
 ---
-type: ctx
-id: vscode-extension-ctx
-title: Context Summary — Loom Install — Workspace Onboarding
-status: active
+type: chat
+id: ch_01KREMAKV02GXDVGH31PNFGY41
+title: Loom Install — Workspace Onboarding
+status: done
 created: "2026-05-02T00:00:00.000Z"
-version: 1
+updated: 2026-05-14
+version: 2
 tags: [ctx, summary]
 parent_id: de_01KQYDFDDDW3C3JYPHQV085GAC
 requires_load: []

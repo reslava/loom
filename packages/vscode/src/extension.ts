@@ -25,6 +25,7 @@ import { archiveItemCommand } from './commands/archiveItem';
 import { promoteToIdeaCommand } from './commands/promoteToIdea';
 import { promoteToDesignCommand } from './commands/promoteToDesign';
 import { promoteToPlanCommand } from './commands/promoteToPlan';
+import { promoteToReferenceCommand } from './commands/promoteToReference';
 import { refineIdeaCommand } from './commands/refineIdea';
 import { refinePlanCommand } from './commands/refinePlan';
 import { doStepCommand } from './commands/doStep';
@@ -120,7 +121,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.refresh', syncAndRefresh),
         vscode.commands.registerCommand('loom.reconnectMcp', () => { disposeMCP(); syncAndRefresh(); }),
         vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider)),
-        vscode.commands.registerCommand('loom.threadCreate', () => threadCreateCommand(treeProvider, treeView)),
+        vscode.commands.registerCommand('loom.threadCreate', (node?: TreeNode) => threadCreateCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.weaveDesign', (node?: TreeNode) => weaveDesignCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.weavePlan', (node?: TreeNode) => weavePlanCommand(treeProvider, node)),
@@ -151,6 +152,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToDesign', (node?: TreeNode) => promoteToDesignCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToPlan', (node?: TreeNode) => promoteToPlanCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.promoteToReference', (node?: TreeNode) => promoteToReferenceCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refineIdea', (node?: TreeNode) => refineIdeaCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refinePlan', (node?: TreeNode) => refinePlanCommand(treeProvider, node, contextSidebar)),
         vscode.commands.registerCommand('loom.doStep', (node?: TreeNode) => doStepCommand(node, contextSidebar)),

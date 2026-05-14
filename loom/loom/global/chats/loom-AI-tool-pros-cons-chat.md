@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQZ8S9QXNTC8F3KQEVMJBHBJ
 title: Loom AI tool pros-cons
-status: active
-created: 2026-05-06
-version: 1
+status: done
+created: "2026-05-06T00:00:00.000Z"
+updated: 2026-05-12
+version: 2
 tags: []
 parent_id: null
 requires_load: []
@@ -65,3 +66,9 @@ The practical result: **a session started on step 4 of a plan is as sharp as a s
 The one thing I'd add: this also makes Loom's AI usage more auditable. Because the context is explicit (you can see exactly what docs are loaded in the sidebar), you know *why* the AI gave the answer it gave. In a chat tool, that's opaque — the model's behavior depends on 80 messages of invisible history. In Loom, the context is the docs, and the docs are version-controlled.
 
 That's a genuinely novel property. Worth calling out in any positioning — "fresh, scoped, auditable context" vs. "growing, opaque, degrading chat history."
+
+## Rafa:
+
+Reality: AI is capable of nothing unless directed by someone competent, with knowledge. AI has no state. The interface of this era consists of chats with AI, with no history, no guidance whatsoever on solving projects, and without the appropriate context at any given moment.
+The workflow of serious projects needs to be organised and persistent: ideas, designs, plans, reference material, appropriate context. If an idea changes, the design and plan must be revised. Documents represent the state of the project, a ‘fresh, defined and auditable’ context as opposed to ‘an ever-expanding, opaque and degraded chat history’. That is why I am developing reslava/loom on GitHub; an MVP will be available shortly.
+

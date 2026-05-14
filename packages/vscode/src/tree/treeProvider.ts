@@ -121,7 +121,6 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const filtered = this.filterWeaves(this.state.weaves, viewState);
 
             const globalDocs = (this.state as any).globalDocs as Document[] | undefined;
-            const globalChats = (this.state as any).globalChats as ChatDoc[] | undefined;
             const globalCtxDocs = globalDocs?.filter(d => d.type === 'ctx') ?? [];
             const globalRefDocs = globalDocs?.filter(d => (d as any).type === 'reference') ?? [];
 
@@ -159,19 +158,29 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             }
 
             // Special global sections come after all regular weave nodes
-            nodes.push(this.createChatsSection(
-                (globalChats ?? []).map(c => this.createChatNode(c))
-            ));
-
             if (globalCtxDocs.length > 0) {
                 nodes.push(this.createCtxSection(globalCtxDocs));
             }
 
             if (refsWeave) {
+                const refsChats = refsWeave.chats ?? [];
                 const refsFromWeave = [...refsWeave.looseFibers, ...(refsWeave.refDocs ?? [])];
                 const allGlobalRefs = [...globalRefDocs, ...refsFromWeave];
-                if (allGlobalRefs.length > 0) {
-                    nodes.push(this.createRefsSection(allGlobalRefs));
+                if (refsChats.length > 0 || allGlobalRefs.length > 0) {
+                    const refsChildren: TreeNode[] = [];
+                    refsChildren.push(this.createChatsSection(
+                        refsChats.map(c => this.createChatNode(c, 'refs')),
+                        'refs'
+                    ));
+                    refsChildren.push(
+                        ...[...allGlobalRefs]
+                            .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+                            .map(d => this.createDocumentNode(d, 'reference', 'refs'))
+                    );
+                    const refsNode = new vscode.TreeItem('Refs', vscode.TreeItemCollapsibleState.Collapsed);
+                    refsNode.contextValue = 'refs-section';
+                    refsNode.iconPath = new vscode.ThemeIcon('library');
+                    nodes.push({ ...refsNode, weaveId: 'refs', children: refsChildren });
                 }
             } else if (globalRefDocs.length > 0) {
                 nodes.push(this.createRefsSection(globalRefDocs));
@@ -405,12 +414,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ));
         }
 
-        // Special sections at end: Chats, Context, References
-        children.push(this.createChatsSection(
-            weave.chats.map(c => this.createChatNode(c, weave.id)),
-            weave.id
-        ));
-
+        // Special sections at end: Context, References
         if (ctxFibers.length > 0) {
             children.push(this.createCtxSection(ctxFibers, weave.id));
         }
@@ -559,7 +563,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const node = new vscode.TreeItem(chat.title || chat.id, vscode.TreeItemCollapsibleState.None);
         node.description = chat.status;
         node.iconPath = icon(Icons.chat);
-        node.contextValue = 'chat';
+        node.contextValue = (weaveId === 'refs' && !threadId) ? 'chat-refs' : 'chat';
         node.tooltip = `chat • ${chat.status}`;
 
         const filePath = (chat as any)._path;

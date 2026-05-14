@@ -70,7 +70,7 @@ export function generateStepsTable(steps: PlanStep[]): string {
 export function updateStepsTableInContent(originalContent: string, steps: PlanStep[]): string {
     const newTable = generateStepsTable(steps);
     
-    const stepsRegex = /# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i;
+    const stepsRegex = /(?<=^|\n)# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i;
     if (stepsRegex.test(originalContent)) {
         return originalContent.replace(stepsRegex, `# Steps\n\n${newTable}`);
     }

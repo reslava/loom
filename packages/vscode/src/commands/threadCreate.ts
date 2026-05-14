@@ -5,7 +5,8 @@ import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
 export async function threadCreateCommand(
     treeProvider: LoomTreeProvider,
-    treeView: vscode.TreeView<TreeNode>
+    treeView: vscode.TreeView<TreeNode>,
+    node?: TreeNode
 ): Promise<void> {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!workspaceRoot) {
@@ -13,7 +14,7 @@ export async function threadCreateCommand(
         return;
     }
 
-    const selectedNode = treeView.selection[0] as TreeNode | undefined;
+    const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
     const weaveId = selectedNode?.weaveId ?? await vscode.window.showInputBox({
         prompt: 'Weave ID to create thread in',
         placeHolder: 'e.g., payment-system',

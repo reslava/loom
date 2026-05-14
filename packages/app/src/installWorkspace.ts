@@ -19,7 +19,8 @@ export interface InstallWorkspaceResult {
     claudeMdWritten: boolean;
     rootClaudeMdPatched: boolean;
     mcpJsonWritten: boolean;
-    loomCtxWritten: boolean;
+    ctxWritten: boolean;
+    settingsJsonWritten: boolean;
 }
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
@@ -162,7 +163,7 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 
 **Order of operations at session start (mandatory, including after conversation compaction):**
 
-1. **Load global ctx** — read \`loom/loom-ctx.md\`. Emit:
+1. **Load global ctx** — read \`loom/ctx.md\`. Emit:
    \`\`\`
    📘 loom-ctx loaded — global context ready
    \`\`\`
@@ -202,77 +203,37 @@ STOP — waiting for go
 
 const LOOM_CTX_MD = `---
 type: ctx
-id: loom-ctx
-title: "Loom — Global Context"
+id: global-ctx
+title: "Global Context"
 status: active
 created: ${new Date().toISOString().slice(0, 10)}
 version: 1
-tags: [ctx, vision, architecture, session-start]
+tags: [ctx, session-start]
 parent_id: null
 child_ids: []
 requires_load: []
 load: always
 ---
 
-# Loom — Global Context
+# Global Context
 
-**Read at the start of every session.** Concept, architecture, and operating rules.
+**Read at the start of every session.** Replace this with a summary of your project's concept, architecture, and operating rules.
 
-## 1. Concept
+## 1. What this project is
 
-Loom is a **collaboration medium between User and AI**, where **markdown documents
-are the shared context database**.
-
-The loop:
-1. **User and AI talk in chats** — free-form thinking surface.
-2. The user clicks a button to ask the AI to **formalize** a conversation into an
-   *idea*, *design*, or *plan*.
-3. The user clicks another button to ask the AI to **implement the next step** of a
-   plan. The AI writes code and records what it did in the matching \`-done.md\`.
-4. The chat keeps going as the conversation log.
-
-Buttons must do real work, not flip state.
+<one paragraph overview>
 
 ## 2. Architecture
 
-**Stage 2 layers:** \`cli / vscode → mcp → app → core + fs\`. Layers never import
-upward. The VS Code extension **must not** import \`app\` directly — MCP is the gate.
-
-## Glossary
-
-- **Weave** — a project folder under \`loom/\`; the core domain entity.
-- **Thread** — workstream subfolder inside a weave; holds idea + design + plans + done + chats.
-- **Loose fiber** — a doc at weave root, not yet grouped into a thread.
-- **Plan** — implementation plan with a steps table (\`*-plan-NNN.md\`).
-- **Done** — post-implementation notes (\`*-done.md\`).
-- **Chat** — User↔AI conversation log (\`*-chat.md\`).
-- **Ctx** — AI-optimised context summary; auto-loaded.
+<key structure, layers, or components>
 
 ## 3. Rules
 
-- **Stage 2 — MCP active.** All Loom state mutations go through MCP tools.
-- **Primary entry point:** \`loom://thread-context/{weaveId}/{threadId}\` and the
-  \`do-next-step\` prompt.
-- **Chat docs are the conversation surface.** When a \`-chat.md\` doc is the active
-  context, every reply goes inside it under \`## AI:\`.
-- **MCP visibility:** before each MCP call, output \`🔧 MCP: tool_name(...)\` or
-  \`📡 MCP: loom://...\`. If MCP is unavailable: \`⚠️ MCP unavailable — editing file directly\`.
-- **Stop rules:** after each step, two failed fixes, or any architectural decision —
-  STOP and wait for \`go\`.
+- All writes to \`loom/**/*.md\` go through MCP tools.
+- Chat docs are the conversation surface — reply inside them under \`## AI:\`.
+- After each step, state what was done and what is next, then STOP.
 `;
 
-const MCP_JSON = JSON.stringify({
-    mcpServers: {
-        loom: {
-            type: 'stdio',
-            command: 'loom',
-            args: ['mcp'],
-            env: {
-                LOOM_ROOT: '${workspaceFolder}',
-            },
-        },
-    },
-}, null, 2);
 
 export async function installWorkspace(
     input: InstallWorkspaceInput,
@@ -284,7 +245,7 @@ export async function installWorkspace(
     const rootClaudeMdPath = path.join(root, 'CLAUDE.md');
     const mcpJsonPath = path.join(root, '.mcp.json');
     const loomDocsDir = path.join(root, 'loom');
-    const loomCtxPath = path.join(loomDocsDir, 'loom-ctx.md');
+    const ctxPath = path.join(loomDocsDir, 'ctx.md');
 
     // Step 1: init .loom/ structure (idempotent if exists)
     let loomDirCreated = false;
@@ -315,23 +276,41 @@ export async function installWorkspace(
         rootClaudeMdPatched = true;
     }
 
-    // Step 4: write .mcp.json at project root (skip if exists and not --force)
+    // Step 4: write .mcp.json at project root with the real workspace path (skip if exists and not --force)
+    const mcpJson = JSON.stringify({
+        mcpServers: {
+            loom: {
+                type: 'stdio',
+                command: 'loom',
+                args: ['mcp'],
+                env: { LOOM_ROOT: root.replace(/\\/g, '/') },
+            },
+        },
+    }, null, 2);
     let mcpJsonWritten = false;
     if (!deps.fs.existsSync(mcpJsonPath) || input.force) {
-        deps.fs.writeFileSync(mcpJsonPath, MCP_JSON, 'utf8');
+        deps.fs.writeFileSync(mcpJsonPath, mcpJson, 'utf8');
         mcpJsonWritten = true;
     }
 
     // Step 5: ensure standard loom/ subdirectories exist
     deps.fs.ensureDirSync(loomDocsDir);
-    deps.fs.ensureDirSync(path.join(loomDocsDir, 'chats'));
     deps.fs.ensureDirSync(path.join(loomDocsDir, 'refs'));
+    deps.fs.ensureDirSync(path.join(loomDocsDir, 'refs', 'chats'));
     deps.fs.ensureDirSync(path.join(loomDocsDir, '.archive'));
-    let loomCtxWritten = false;
-    if (!deps.fs.existsSync(loomCtxPath) || input.force) {
-        deps.fs.writeFileSync(loomCtxPath, LOOM_CTX_MD, 'utf8');
-        loomCtxWritten = true;
+    let ctxWritten = false;
+    if (!deps.fs.existsSync(ctxPath) || input.force) {
+        deps.fs.writeFileSync(ctxPath, LOOM_CTX_MD, 'utf8');
+        ctxWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, loomCtxWritten };
+    // Step 6: write .loom/settings.json
+    const settingsPath = path.join(loomDir, 'settings.json');
+    let settingsJsonWritten = false;
+    if (!deps.fs.existsSync(settingsPath) || input.force) {
+        deps.fs.writeFileSync(settingsPath, JSON.stringify({ 'user.name': 'User:', 'ai.model': 'AI:' }, null, 2) + '\n', 'utf8');
+        settingsJsonWritten = true;
+    }
+
+    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten };
 }

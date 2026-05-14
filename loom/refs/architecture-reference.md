@@ -101,7 +101,7 @@ Session start: call `do-next-step` prompt (loads context + step instructions).
 | `design` | `{thread}/{thread}-design.md` | Design conversation + decision log |
 | `plan` | `{thread}/plans/{plan-id}.md` | Implementation steps table |
 | `done` | `{thread}/done/{done-id}.md` | Post-implementation summary |
-| `chat` | `{thread}/chats/{chat-id}.md` or `{weave}/chats/{id}.md` | AI conversation log |
+| `chat` | `{thread}/chats/{chat-id}.md` or `loom/refs/chats/{id}.md` | AI conversation log (thread-scoped or refs-scoped only) |
 | `ctx` | `{thread}/ctx/` or `{weave}/ctx.md` | AI-optimised context summary (source of truth for agents) |
 | `reference` | `loom/refs/{scope}/{id}.md` | Static/semi-static architectural facts |
 
@@ -169,18 +169,17 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
     (no _status.md in Stage 2 — MCP is the source of truth)
   loom/
     ctx.md                  ← global context summary
-    refs/                   ← static architectural facts
-    chats/                  ← project-level AI chat docs
+    refs/                   ← static architectural facts (reference docs)
+      chats/                ← refs-level AI chat docs (promote to -reference.md)
     .archive/               ← archived project-level docs
     {weave-id}/
       ctx.md                ← weave-level context summary
-      chats/                ← weave-level AI chat docs
       .archive/             ← archived weave-level docs
       {thread-id}/
         {thread-id}-idea.md
         {thread-id}-design.md
         ctx/                ← thread-level context summary
-        chats/              ← thread-level AI chat docs
+        chats/              ← thread-level AI chat docs (promote to idea/design/plan)
         plans/
           {plan-id}.md
         done/
@@ -194,3 +193,38 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
     vscode/                 ← delivery: VS Code extension (human surface)
     mcp/                    ← delivery: MCP server (agent surface)
 ```
+
+## 7. File Names and Titles
+
+### File naming rules
+
+File suffixes are **enforced** — they are load-bearing for doc-type detection:
+
+| Suffix | Doc type |
+|--------|----------|
+| `-idea.md` | idea |
+| `-design.md` | design |
+| `-plan-NNN.md` | plan (NNN = zero-padded number) |
+| `-chat-MMM.md` | chat (MMM = zero-padded number or ULID) |
+| `-done.md` | done |
+| `-reference.md` | reference |
+| `-ctx.md` | ctx (thread-scoped) |
+
+Special forced filenames (exact, no prefix):
+
+| Filename | Scope |
+|----------|-------|
+| `ctx.md` | Global (`loom/ctx.md`) |
+| `{weave-id}/ctx.md` | Weave-level |
+
+Thread constraints define what docs can exist, not what they're named. Location implies the parent thread — no extra metadata needed. Physical file rename is left to the VS Code Explorer; Loom does not manage it.
+
+### Title — single source of truth
+
+**`frontmatter.title` is the only title.** Docs do **not** include a `# Title` heading in the body. The Loom tree view and all Loom surfaces read `frontmatter.title` directly.
+
+- No `# Heading` in the body → no dual-source drift.
+- VS Code's built-in markdown preview will not display a title heading (acceptable trade-off; the Loom tree view is the primary surface).
+- Future: the Loom extension's preview renderer may inject a synthetic `# {title}` at render time — stored nowhere, display only.
+
+**`loom_rename`** updates `frontmatter.title` only. Physical file rename is out of Loom's scope.

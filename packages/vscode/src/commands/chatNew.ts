@@ -13,7 +13,9 @@ export async function chatNewCommand(
     const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
     const weaveId = selectedNode?.weaveId;
     const threadId = selectedNode?.threadId;
-    const title = await vscode.window.showInputBox({ prompt: 'Chat title (optional)', placeHolder: 'Leave blank to use default' }) || undefined;
+    const titleInput = await vscode.window.showInputBox({ prompt: 'Chat title (optional)', placeHolder: 'Leave blank to use default' });
+    if (titleInput === undefined) return;
+    const title = titleInput || undefined;
 
     try {
         const toolArgs: Record<string, unknown> = { title };

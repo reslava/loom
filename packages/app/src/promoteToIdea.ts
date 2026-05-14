@@ -6,6 +6,8 @@ import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummari
 
 export interface PromoteToIdeaInput {
     filePath: string;
+    targetWeaveId?: string;
+    targetThreadId?: string;
 }
 
 export interface PromoteToIdeaDeps {
@@ -44,7 +46,9 @@ export async function promoteToIdea(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc;
 
-    const { weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot);
+    const { weaveId, threadId } = input.targetWeaveId
+        ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
+        : deriveLocation(input.filePath, deps.loomRoot);
 
     if (!doc.content || doc.content.trim().length === 0) {
         throw new Error('Chat document is empty.');

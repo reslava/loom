@@ -4,7 +4,8 @@ id: ch_01KQYDFDDABPWAQ2VVYFWA35GP
 title: Loom Context Claude
 status: done
 created: "2026-04-23T00:00:00.000Z"
-version: 1
+updated: 2026-05-12
+version: 2
 tags: []
 parent_id: null
 requires_load: []

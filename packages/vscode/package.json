@@ -282,6 +282,12 @@
         }
       },
       {
+        "command": "loom.promoteToReference",
+        "title": "Promote to Reference",
+        "category": "Loom",
+        "icon": "$(library)"
+      },
+      {
         "command": "loom.refineIdea",
         "title": "Refine Idea",
         "category": "Loom",
@@ -422,6 +428,11 @@
     "menus": {
       "view/title": [
         {
+          "command": "loom.weaveCreate",
+          "when": "view == loom.threads && loom.workspaceInitialized",
+          "group": "navigation@1"
+        },
+        {
           "command": "loom.setGrouping",
           "when": "view == loom.threads",
           "group": "navigation@2"
@@ -515,7 +526,7 @@
         },
         {
           "command": "loom.chatNew",
-          "when": "view == loom.threads && viewItem =~ /^(weave|thread)/",
+          "when": "view == loom.threads && viewItem =~ /^thread/",
           "group": "create@3"
         },
         {
@@ -602,6 +613,11 @@
           "command": "loom.promoteToPlan",
           "when": "view == loom.threads && viewItem =~ /^(chat|idea|loose-idea|design)/ && loom.aiEnabled",
           "group": "ai@3"
+        },
+        {
+          "command": "loom.promoteToReference",
+          "when": "view == loom.threads && viewItem == chat-refs && loom.aiEnabled",
+          "group": "ai@1"
         },
         {
           "command": "loom.summarise",
