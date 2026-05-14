@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KQYDFDDDDV79RTZ94Q60VGJ1
 title: MVP plan to publish
-status: active
+status: done
 created: "2026-04-25T00:00:00.000Z"
-version: 1
+updated: 2026-05-14
+version: 2
 tags: []
 parent_id: vscode-extension-fixes-tweaks-chat.md
 requires_load: []

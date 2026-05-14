@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KRKKP7W1KG3B3FD7Y5VA1547
 title: MVP ready to publish vsix
-status: active
-created: 2026-05-14
-version: 1
+status: done
+created: "2026-05-14T00:00:00.000Z"
+updated: 2026-05-14
+version: 2
 tags: []
 parent_id: null
 requires_load: []
@@ -126,3 +127,29 @@ Steps 27–31 done. Summary:
 ## Rafa:
 
 do steps 32-38
+
+## AI:
+
+Steps 32–38 done. Summary:
+
+**32 — Version bump** — All packages bumped to `0.5.0`: root, core, fs, app, cli, mcp, vscode. Added `name`, `version`, `license` to `core/package.json` and `fs/package.json` (were missing). MCP server version string updated to `0.5.0`.
+
+**33 — CHANGELOG.md** — Added `[0.5.0]` entry to root `CHANGELOG.md` covering: MCP server, loom install, MCP client architecture, numbered chats, promote-to-reference, thread-create from node, empty-workspace welcome view, reconnect command, vsix packaging fix, docs sweep. Created `packages/vscode/CHANGELOG.md` for the marketplace (auto-included in the vsix).
+
+**34 — Build + tests** — `build-all.sh` passes clean. `test-all.sh` has one pre-existing failure (`completeStep` use-case test: "Step 1 does not exist. Plan has 0 steps.") — confirmed pre-existing by running against unmodified `main`. Not introduced by this release.
+
+**35 — Package vsix** — `loom-vscode-0.5.0.vsix` produced cleanly: 26 files, 372 KB, no warnings.
+
+**36 — Publish vsix** ⚠️ External — run when ready:
+```
+cd packages/vscode
+npx vsce publish --pat <YOUR_PAT>
+```
+
+**37 — Publish CLI to npm** ⚠️ External — run when ready:
+```
+cd packages/cli
+npm publish --access public
+```
+
+**38 — Tag** — `v0.5.0` tagged and pushed to origin.

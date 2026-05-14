@@ -2,7 +2,7 @@
 type: done
 id: dn_01KQYDFDDD5HJPCFBZVWJ4JY0J
 title: Done — MVP — Plan to publish
-status: final
+status: done
 created: "2026-05-02T00:00:00.000Z"
 version: 4
 tags: []

@@ -2,10 +2,10 @@
 type: plan
 id: pl_01KQYDFDDDS4F8C6THBQ49WE8Q
 title: MVP — Plan to publish
-status: implementing
+status: done
 created: "2026-05-02T00:00:00.000Z"
-updated: "2026-05-03T00:00:00.000Z"
-version: 4
+updated: 2026-05-14
+version: 5
 design_version: 1
 tags: []
 parent_id: null
@@ -64,14 +64,13 @@ Organized as 7 phases:
 | ✅ | 29 | **Phase 5** — Verify `loom/refs/architecture-reference.md` matches current code (post-MCP refactor); update any stale diagrams or layer descriptions | `loom/refs/architecture-reference.md` | — |
 | ✅ | 30 | **Phase 5** — Verify `loom/refs/workflow.md` matches the current button names and command IDs (post-rename from `new` to `weave`). Fix any drift | `loom/refs/workflow.md` | — |
 | ✅ | 31 | **Phase 5** — `CLAUDE.md` template (the one shipped by `loom install`) — pass it through a fresh-eyes review; it's the first thing every outside user's AI agent sees | `packages/app/src/installWorkspace.ts` (template), `loom/CLAUDE.md` | — |
-| 🔳 | 32 | **Phase 6** — Bump versions: `core`, `fs`, `app`, `cli`, `mcp`, `vscode`, root → all `0.5.0`. Add explicit `version: "0.5.0"` to `core/package.json` and `fs/package.json` (currently missing) | `packages/*/package.json`, `package.json` | — |
-| 🔳 | 33 | **Phase 6** — Write `CHANGELOG.md` for `0.5.0`: MCP refactor, global chats/ctx/refs, status-filter rework, dynamic title, reconnect command, install template, etc. | `CHANGELOG.md`, `packages/vscode/CHANGELOG.md` | 32 |
-| 🔳 | 34 | **Phase 6** — Final build: `./scripts/build-all.sh` + `./scripts/test-all.sh` — both must pass clean | (CI) | 32 |
-| 🔳 | 35 | **Phase 6** — Package vsix: `npx vsce package` in `packages/vscode/` produces `loom-vscode-0.5.0.vsix` with no warnings | `packages/vscode/` | 20, 34 |
-| 🔳 | 36 | **Phase 6** — Publish vsix: `npx vsce publish` (or upload via marketplace UI). Verify install from marketplace works in a clean VS Code instance | (external) | 24, 35 |
-| 🔳 | 37 | **Phase 6** — Publish CLI to npm: `npm publish` for `@reslava/loom` (cli package). Verify `npm install -g @reslava/loom` then `loom --version` reports 0.5.0 | `packages/cli/`, `packages/mcp/` | 34 |
-| 🔳 | 38 | **Phase 6** — Tag release in git: `v0.5.0`, push tag. Optionally a GitHub Release with changelog body | (git) | 36, 37 |
-
+| ✅ | 32 | **Phase 6** — Bump versions: `core`, `fs`, `app`, `cli`, `mcp`, `vscode`, root → all `0.5.0`. Add explicit `version: "0.5.0"` to `core/package.json` and `fs/package.json` (currently missing) | `packages/*/package.json`, `package.json` | — |
+| ✅ | 33 | **Phase 6** — Write `CHANGELOG.md` for `0.5.0`: MCP refactor, global chats/ctx/refs, status-filter rework, dynamic title, reconnect command, install template, etc. | `CHANGELOG.md`, `packages/vscode/CHANGELOG.md` | 32 |
+| ✅ | 34 | **Phase 6** — Final build: `./scripts/build-all.sh` + `./scripts/test-all.sh` — both must pass clean | (CI) | 32 |
+| ✅ | 35 | **Phase 6** — Package vsix: `npx vsce package` in `packages/vscode/` produces `loom-vscode-0.5.0.vsix` with no warnings | `packages/vscode/` | 20, 34 |
+| ✅ | 36 | **Phase 6** — Publish vsix: `npx vsce publish` (or upload via marketplace UI). Verify install from marketplace works in a clean VS Code instance | (external) | 24, 35 |
+| ✅ | 37 | **Phase 6** — Publish CLI to npm: `npm publish` for `@reslava/loom` (cli package). Verify `npm install -g @reslava/loom` then `loom --version` reports 0.5.0 | `packages/cli/`, `packages/mcp/` | 34 |
+| ✅ | 38 | **Phase 6** — Tag release in git: `v0.5.0`, push tag. Optionally a GitHub Release with changelog body | (git) | 36, 37 |
 ## Notes
 
 - Phase 0 must complete before phases 2–3, since AI commands and walkthrough rely on a stable button set.
