@@ -1,28 +1,42 @@
 # 🧵 Loom
 
-**Your AI agent's long-term memory.**
+**Document-native workflow for AI-assisted development.**
 
-Loom is a document-driven workflow system that gives AI agents persistent context, structured
-workflow state, and approval gates — so multi-session development stays coherent.
+Loom gives AI agents structured, scoped, persistent context — so every session is as sharp
+as the first, and every decision is traceable.
 
-> *"AI agents are stateless. Loom is the memory layer that makes them not."*
+> *"The workflow of serious projects needs to be organised and persistent: ideas, designs,
+> plans, reference material, appropriate context. Documents represent the state of the project —
+> fresh, defined and auditable — as opposed to an ever-expanding, opaque and degraded chat history."*
+> — Rafa Eslava
 
 ---
 
 ## The Problem
 
-AI-assisted development degrades over time. Session 1 is the best session — the AI is aligned,
-decisions get made, code gets written. By session 10, the AI has forgotten everything from
-sessions 2 through 9. You either re-explain context every time (expensive) or the AI makes
-suggestions that contradict earlier decisions (damaging).
+AI is capable of nothing unless directed by someone competent, with knowledge. And the current
+interface of AI-assisted development makes that direction almost impossible to sustain.
 
-The cause isn't model quality — it's that there's no persistent memory of what was decided and why.
+Every AI coding tool has the same structural flaw: **context is a shared garbage bag**. One long
+session accumulates everything — old decisions, abandoned paths, half-finished discussions — and
+the model degrades as it tries to reason over all of it simultaneously. You either hit the context
+limit and lose history, or keep a bloated context and pay with quality.
+
+- Session 1 is the best session. By session 10 the AI has forgotten sessions 2–9.
+- Re-explaining context every session is expensive. Letting the AI make suggestions that contradict
+  earlier decisions is damaging.
+- There's no guidance, no structure, no persistent state — just a chat window that grows forever
+  with no memory of what was actually decided.
+
+The cause isn't model quality. It's that there's no workflow beneath the chat.
 
 ---
 
 ## What Loom Does
 
-Loom stores project memory as a typed, linked markdown document graph:
+Loom replaces the chat window with a **document graph that is the workflow**. Every idea, design
+decision, implementation plan, and done-summary is a typed, linked markdown document. The AI reads
+exactly the right slice of that graph for the current task — nothing more, nothing less.
 
 ```
 loom/
@@ -37,12 +51,51 @@ loom/
         {plan-id}.md           ← implementation steps table
       done/
         {done-id}.md           ← post-implementation summary
-      ctx/                     ← AI-generated thread summary
       chats/                   ← AI conversation logs
 ```
 
 Every document has typed frontmatter. Status is derived from documents — there is no central state
 file. Changes are versioned in git.
+
+---
+
+## Fresh, Scoped, Auditable
+
+This is what Loom does that no chat-native tool can:
+
+**Fresh** — each session starts clean. The AI loads the thread context (idea + design + active plan +
+`requires_load` chain) and nothing else. Old chats, dead ends, and prior sessions don't pollute new
+ones — they're in the docs, available on demand, not injected by default.
+
+**Scoped** — a session started on step 4 of a plan is as sharp as a session started on step 1.
+The AI isn't carrying the weight of steps 1–3 in its working context. Context is bounded by the
+thread, not by the length of the chat history.
+
+**Auditable** — because the context is explicit (the docs that are loaded are visible and
+version-controlled), you know *why* the AI gave the answer it gave. In a chat tool that's opaque —
+the model's behaviour depends on 80 messages of invisible history. In Loom, the context *is* the
+docs.
+
+---
+
+## How Loom is Different
+
+Most AI tools in this space are **prompt wrappers** — they make it easy to run a prompt, maybe with
+some RAG on top, but the workflow is still ad-hoc. The human holds the plan in their head.
+
+The closest alternatives are Linear + Cursor workflows stitched together manually, or fully-autonomous
+agents (Devin-style) that run until done. Loom sits in a different position:
+
+| | Prompt wrappers | Autonomous agents | **Loom** |
+|--|--|--|--|
+| Memory across sessions | ❌ | ❌ partial | ✅ document graph |
+| Human approval gates | ❌ | ❌ | ✅ every phase transition |
+| Context scope control | ❌ | ❌ | ✅ thread-bounded |
+| Auditable context | ❌ | ❌ | ✅ version-controlled docs |
+| Works with existing agents | — | — | ✅ MCP standard |
+
+Loom's thesis: **human-in-the-loop, document-native, resumable**. The human drives. The AI executes.
+The docs remember everything.
 
 ---
 
@@ -138,7 +191,7 @@ cli / vscode / mcp  →  app (use-cases)  →  core (domain) + fs (infrastructur
 - **`fs`**: Infrastructure — file IO, frontmatter parsing, link index, repositories.
 - **`cli`**: Thin delivery layer — command parsing, console output.
 - **`vscode`**: Human surface — tree view, commands, toolbar.
-- **`mcp`**: Agent surface — MCP resources, tools, prompts, sampling. *(v0.5.0)*
+- **`mcp`**: Agent surface — MCP resources, tools, prompts, sampling.
 
 No layer imports upward. All MCP tools delegate to `app` — no bypassing.
 
@@ -152,11 +205,10 @@ No layer imports upward. All MCP tools delegate to `app` — no bypassing.
 | Filesystem layer (repositories, link index) | ✅ Shipped |
 | App use-cases (idea, design, plan, step, finalize, rename, archive) | ✅ Shipped |
 | CLI commands | ✅ Shipped |
-| VS Code extension (tree view, toolbar, commands) | ✅ Shipped (v0.3.x) |
-| Global ctx (`loom/ctx.md`) | 🔧 Planned |
-| MCP server (`loom mcp`, resources, tools, prompts) | 🔧 In design (v0.5.0) |
-| MCP sampling (VS Code AI buttons via agent) | 🔧 Planned (v0.5.0) |
-| `loom init` with CLAUDE.md fusion | 🔧 Planned |
+| VS Code extension (tree view, toolbar, commands) | ✅ Shipped |
+| MCP server (`loom mcp`, resources, tools, prompts) | ✅ Shipped (v0.5.0) |
+| MCP sampling (VS Code AI buttons via agent) | ✅ Shipped (v0.5.0) |
+| `loom init` with CLAUDE.md fusion | ✅ Shipped |
 
 ---
 
