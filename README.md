@@ -152,14 +152,49 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 ## The Workflow
 
 ```
+0. Chat      → think with the AI, explore the problem space
+   ↓ Promote
 1. Idea      → raw concept, rough scope
+   ↓ Promote
 2. Design    → decisions, trade-offs, rejected alternatives, conversation log
+   ↓ Promote
 3. Plan      → numbered implementation steps, each reviewable
+   ↓ DoStep
 4. Implement → agent executes one step at a time, marking progress
+   ↓
 5. Done      → post-implementation summary, links to what was built
 ```
 
 Human approves each phase transition. The agent never advances without a checkpoint.
+
+### Chat — a better AI window
+
+Loom chats look like a normal AI chat window but work completely differently:
+
+| | Usual AI chat | Loom chat |
+|--|--|--|
+| Context | Everything in the session, growing forever | Thread-bounded: idea + design + active plan only |
+| History | Lost when session ends | Persisted as a versioned markdown doc |
+| Scope | Whatever the user remembered to mention | Explicit: exactly the docs in `requires_load` |
+| Reusable | No — ephemeral | Yes — future sessions load it on demand |
+| Promotable | No | Yes — any chat can become an idea, design, or plan |
+
+Chats live inside threads, so the AI always has the right context loaded before you type the first
+message — not because you pasted it in, but because the thread document graph defines it.
+
+### Promote — turning conversation into structure
+
+The most powerful workflow command. Any chat can be promoted to a formal doc with one click:
+
+- **Chat → Idea** — the exploration becomes a scoped concept with success criteria
+- **Idea → Design** — the concept becomes an architecture document with decisions and trade-offs
+- **Design → Plan** — the architecture becomes numbered, reviewable implementation steps
+- **Chat → Reference** — useful findings become a permanent reference doc in `loom/refs/`
+
+This means you never start a formal document from scratch. You think out loud with the AI in a chat,
+and when the conversation reaches something concrete, you promote it. The structure comes from the
+conversation, not the other way around. No copy-pasting from a chat window into a document — the
+doc *is* the promoted chat.
 
 **Staleness detection:** when a design is updated, linked plans are flagged stale. The agent sees
 the warning and knows to re-read the design before implementing. Context can't silently drift.
