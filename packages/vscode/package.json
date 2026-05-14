@@ -664,13 +664,11 @@
     "typecheck": "tsc -p ./ --noEmit",
     "package": "npx @vscode/vsce package --no-dependencies"
   },
-  "dependencies": {
+  "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "@reslava-loom/app": "file:../app",
     "@reslava-loom/core": "file:../core",
-    "@reslava-loom/fs": "file:../fs"
-  },
-  "devDependencies": {
+    "@reslava-loom/fs": "file:../fs",
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.85.0",
     "esbuild": "^0.28.0",

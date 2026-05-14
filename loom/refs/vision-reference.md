@@ -29,14 +29,15 @@ Loom turns this into:
 
 Loom vscode extension is the visual help bridge between User ↔ Loom ↔ AI: tree and buttons to launch/ask AI.
 
-## Beyond Loom-on-Loom
+## Who Loom is for
 
-Loom is currently building Loom — recursive while bootstrapping. **That recursion is not the purpose.** Loom is for helping final users, teams, and developers build any kind of solution.
+Loom is for any developer or team building software with AI — not just the Loom project itself. Drop `loom install` into any repository and the full workflow is available immediately.
 
-This implies:
-- `loom install` to drop the workflow into any project, not just this one.
-- Possibly a custom `.loom/workflow.yml` so each team can shape its own variation of the loop.
-- Loom-on-Loom is just a stress test. The real test is Loom-on-someone-else's-codebase.
+- Works with Claude Code, Cursor, or any MCP-capable agent.
+- Each project gets its own `loom/` doc workspace and AI session contract.
+- Teams can shape the loop to their needs (a `.loom/workflow.yml` is planned for custom phases).
+
+The Loom project uses Loom to build itself — a useful stress test, but **not the purpose**. The real measure is Loom on someone else's codebase.
 
 ## Chat
 - User create new chat draft with a button

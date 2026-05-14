@@ -1,6 +1,7 @@
 {
   "name": "@reslava-loom/mcp",
   "version": "0.4.0",
+  "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc"

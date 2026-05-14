@@ -101,7 +101,7 @@ Session start: call `do-next-step` prompt (loads context + step instructions).
 | `design` | `{thread}/{thread}-design.md` | Design conversation + decision log |
 | `plan` | `{thread}/plans/{plan-id}.md` | Implementation steps table |
 | `done` | `{thread}/done/{done-id}.md` | Post-implementation summary |
-| `chat` | `{thread}/chats/{chat-id}.md` or `loom/refs/chats/{id}.md` | AI conversation log (thread-scoped or refs-scoped only) |
+| `chat` | `{thread}/chats/{chat-id}.md`, `{weave}/chats/{chat-id}.md`, or `loom/refs/chats/{id}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
 | `ctx` | `{thread}/ctx/` or `{weave}/ctx.md` | AI-optimised context summary (source of truth for agents) |
 | `reference` | `loom/refs/{scope}/{id}.md` | Static/semi-static architectural facts |
 

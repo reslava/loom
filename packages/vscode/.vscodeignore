@@ -6,12 +6,11 @@ esbuild.js
 package-old-loom.json
 *.vsix
 .vscode/**
-dist/diagnostics.js
-dist/diagnostics.js.map
-dist/icons.js
-dist/icons.js.map
-dist/extension.js.map
-dist/ai/**
-dist/commands/**
-dist/tree/**
-dist/view/**
+.claude/**
+
+# Monorepo siblings — already bundled by esbuild into dist/extension.js
+../**
+
+# Dist: only the bundled output is needed
+dist/**
+!dist/extension.js

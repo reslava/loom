@@ -25,14 +25,6 @@ export interface InstallWorkspaceResult {
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
 
-> **Maintainer note (Loom repo only):** this file is the project-agnostic
-> CLAUDE.md installed by \`loom install\`. The Loom repo also has its own
-> recursive \`CLAUDE.md\` at the repo root with project-specific rules. The
-> two MUST stay in sync — every rule shared by both surfaces (session
-> rules, MCP visibility, chat-reply context injection, stop rules, session
-> start protocol) lives in both files. See the sync rule in the recursive
-> CLAUDE.md.
-
 ## What Loom is
 
 **Loom** is a document-driven, event-sourced workflow system for AI-assisted development.
@@ -111,7 +103,7 @@ interactively in the project root and approve the \`loom\` server, or use
 - **Chat Mode (default):** Respond naturally. Never modify frontmatter or files without explicit approval.
 - **Action Mode:** Only when the user explicitly asks. Respond with a JSON proposal per the handshake protocol.
 - **Never propose state changes** (version bumps, status transitions) without being asked.
-- **Chat docs are the conversation surface (always reply inside).** Whenever a \`-chat.md\` doc is the active context of the session — the user asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under \`## AI:\`. This is not optional and does not require the user to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until the user explicitly says \`close\` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
+- **Chat docs are the conversation surface (always reply inside).** Whenever a chat doc (any file matching \`*-chat.md\` or \`*-chat-NNN.md\`, i.e. \`type: chat\` in frontmatter) is the active context of the session — the user asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under \`## AI:\`. This is not optional and does not require the user to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until the user explicitly says \`close\` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
 - **Why this matters:** Chats are Loom's User↔AI collaboration medium and the durable context database. Replies that live only in the terminal disappear; replies inside the chat doc persist as part of the project's shared memory.
 - **MCP tools for ALL writes to \`loom/**/*.md\` (hard rule):** Every write to a Loom doc — frontmatter or body, new doc or existing, state mutation or prose edit — goes through a \`loom_*\` MCP tool. No exceptions for "small" edits, typo fixes, or appending a single line. If a \`loom-mcp-gate\` PreToolUse hook is installed in this workspace, direct \`Edit\`/\`Write\`/\`MultiEdit\` to \`loom/**/*.md\` is **physically blocked**; if you see a deny from the gate, switch to the right MCP tool — don't route around it.
   - Chats → \`loom_append_to_chat\`
