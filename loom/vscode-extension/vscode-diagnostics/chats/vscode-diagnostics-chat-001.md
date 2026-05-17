@@ -4,7 +4,7 @@ id: ch_01KR3ET2VW25YYWDRBZ0SRKJVS
 title: vscode-diagnostics Chat
 status: done
 created: "2026-05-08T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

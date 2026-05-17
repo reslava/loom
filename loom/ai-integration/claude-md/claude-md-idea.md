@@ -4,7 +4,7 @@ id: id_01KQYDFDD8CEXH33CCWPKTX5DY
 title: CLAUDE Lifecycle — Template, Fusion, and Maintenance
 status: done
 created: "2026-04-26T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [claude-md, mcp, install, fusion, ai-integration]
 parent_id: null

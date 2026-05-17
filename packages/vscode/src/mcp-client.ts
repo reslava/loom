@@ -20,6 +20,12 @@ function isAIBoundTool(name: string): boolean {
 
 let _client: LoomMCPClient | undefined;
 let _mcpConnected = false;
+let _out: vscode.OutputChannel | undefined;
+
+function getOut(): vscode.OutputChannel {
+    if (!_out) _out = vscode.window.createOutputChannel('Loom MCP');
+    return _out;
+}
 
 export function getMCPConnected(): boolean {
     return _mcpConnected;
@@ -46,12 +52,46 @@ export function disposeMCP(): void {
 }
 
 function createMCPClient(workspaceRoot: string): LoomMCPClient {
+    const out = getOut();
     const transport = new StdioClientTransport({
         command: 'loom',
         args: ['mcp'],
         env: { ...process.env as Record<string, string>, LOOM_ROOT: workspaceRoot },
         stderr: 'pipe',
     });
+
+    transport.stderr?.on('data', (chunk: Buffer) => {
+        for (const line of chunk.toString('utf8').split(/\r?\n/)) {
+            if (line) out.appendLine(`[server] ${line}`);
+        }
+    });
+    transport.onclose = () => {
+        out.appendLine('[server] transport closed');
+        _mcpConnected = false;
+    };
+
+    let inFlight = 0;
+    let nextReqId = 1;
+
+    async function logged<T>(kind: 'readResource' | 'callTool' | 'callPrompt', label: string, fn: () => Promise<T>): Promise<T> {
+        const id = nextReqId++;
+        const startedAt = Date.now();
+        inFlight++;
+        out.appendLine(`[client] ${kind} start id=${id} ${label} inFlight=${inFlight}`);
+        try {
+            const r = await fn();
+            const ms = Date.now() - startedAt;
+            out.appendLine(`[client] ${kind} ok    id=${id} ${label} durationMs=${ms}`);
+            return r;
+        } catch (e: unknown) {
+            const ms = Date.now() - startedAt;
+            const msg = e instanceof Error ? e.message : String(e);
+            out.appendLine(`[client] ${kind} FAIL  id=${id} ${label} durationMs=${ms} err=${msg}`);
+            throw e;
+        } finally {
+            inFlight--;
+        }
+    }
 
     const client = new Client({ name: 'loom-vscode', version: '0.1.0' }, { capabilities: { sampling: {} } });
 
@@ -98,32 +138,39 @@ function createMCPClient(workspaceRoot: string): LoomMCPClient {
     return {
         async readResource(uri: string): Promise<string> {
             await ensureConnected();
-            const result = await client.readResource({ uri }, { timeout: RESOURCE_READ_TIMEOUT_MS });
-            const first = result.contents[0];
-            if (!first) throw new Error(`No content for resource: ${uri}`);
-            return 'text' in first ? first.text : '';
+            return logged('readResource', uri, async () => {
+                const result = await client.readResource({ uri }, { timeout: RESOURCE_READ_TIMEOUT_MS });
+                const first = result.contents[0];
+                if (!first) throw new Error(`No content for resource: ${uri}`);
+                return 'text' in first ? first.text as string : '';
+            });
         },
 
         async callTool(name: string, args: Record<string, unknown>): Promise<unknown> {
             await ensureConnected();
             const timeout = isAIBoundTool(name) ? AI_TOOL_TIMEOUT_MS : TOOL_TIMEOUT_MS;
-            const result = await client.callTool({ name, arguments: args }, undefined, { timeout });
-            if ('isError' in result && result.isError) throw new Error(`Tool ${name} returned error`);
-            if (!('content' in result)) return result;
-            const first = (result.content as unknown[])[0] as Record<string, unknown> | undefined;
-            return first && 'text' in first ? JSON.parse(first.text as string) : result;
+            return logged('callTool', name, async () => {
+                const result = await client.callTool({ name, arguments: args }, undefined, { timeout });
+                if ('isError' in result && result.isError) throw new Error(`Tool ${name} returned error`);
+                if (!('content' in result)) return result;
+                const first = (result.content as unknown[])[0] as Record<string, unknown> | undefined;
+                return first && 'text' in first ? JSON.parse(first.text as string) : result;
+            });
         },
 
         async callPrompt(name: string, args: Record<string, string>): Promise<string> {
             await ensureConnected();
-            const result = await client.getPrompt({ name, arguments: args }, { timeout: AI_TOOL_TIMEOUT_MS });
-            return result.messages
-                .filter(m => 'text' in m.content)
-                .map(m => (m.content as { text: string }).text)
-                .join('\n');
+            return logged('callPrompt', name, async () => {
+                const result = await client.getPrompt({ name, arguments: args }, { timeout: AI_TOOL_TIMEOUT_MS });
+                return result.messages
+                    .filter(m => 'text' in m.content)
+                    .map(m => (m.content as { text: string }).text)
+                    .join('\n');
+            });
         },
 
         dispose(): void {
+            out.appendLine('[client] dispose');
             transport.close().catch(() => {});
         },
     };

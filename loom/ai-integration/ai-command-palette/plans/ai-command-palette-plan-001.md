@@ -10,7 +10,6 @@ tags: [ai, commands, promote, refine, summarize, vscode]
 parent_id: de_01KQYDFDD7Z9B0CK146K75XTRZ
 requires_load: [de_01KQYDFDD7Z9B0CK146K75XTRZ, de_01KQYDFDD88BTYTQ61S0Q9W02V]
 target_version: 0.3.0
-steps: []
 ---
 
 # AI Command Palette — Implementation
@@ -21,10 +20,11 @@ Implement the full AI command palette defined in `ai-command-palette-design`:
 rename `promoteIdea` → `promoteToIdea`, add `promoteToDesign`, `promoteToPlan`,
 `refineIdea`, `refinePlan`, and wire `summarize` to the AI client.
 
-## Steps
+
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
+|---|---|---|---|---|
 | ✅ | 1 | Rename `promoteIdea` → `promoteToIdea` — file, export, command ID, package.json | `app/src/promoteIdea.ts`, `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | — |
 | ✅ | 2 | `app/promoteToDesign` use-case — AI drafts design doc from chat or idea | `app/src/promoteToDesign.ts` | 1 |
 | ✅ | 3 | `loom.promoteToDesign` command + menu entry | `vscode/src/commands/promoteToDesign.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 2 |
@@ -36,7 +36,6 @@ rename `promoteIdea` → `promoteToIdea`, add `promoteToDesign`, `promoteToPlan`
 | ✅ | 9 | `loom.refinePlan` command + menu entry | `vscode/src/commands/refinePlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 8 |
 | ✅ | 10 | Wire `summarise` to `aiClient` — replace template stub with AI-generated ctx | `app/src/summarise.ts`, `vscode/src/commands/summarise.ts` | — |
 | ✅ | 11 | Build + smoke test full command palette | `scripts/build-all.sh` | 1–10 |
-
 ## Notes
 
 - Step 1: rename is purely mechanical — no logic changes, just identifiers and filenames.

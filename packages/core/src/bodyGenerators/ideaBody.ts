@@ -4,8 +4,7 @@
  * @returns The complete Markdown body (excluding frontmatter).
  */
 export function generateIdeaBody(title: string): string {
-    return `# ${title}
-
+    return `
 ## Problem
 <!-- What pain or gap does this idea address? -->
 

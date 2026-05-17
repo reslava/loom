@@ -4,7 +4,7 @@ id: pl_01KQYDFDD811TEXADDXS6CMC6Y
 title: Context Injection — MVP Rule and Tool Metadata
 status: done
 created: "2026-05-05T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
@@ -21,22 +21,9 @@ Lock in the MVP-scope context-injection rule ("first chat-reply in a thread load
 
 # Steps
 
-
-## Phases
-
-| Phase | Scope | Steps |
-|-------|-------|-------|
-| 1 | CLAUDE.md rule audit | 1 |
-| 2 | MCP tool metadata check | 2–3 |
-
----
-
-## Phase 1 — CLAUDE.md rule audit
-
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-|      | 1 | Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files. | `CLAUDE.md`, `packages/app/src/installWorkspace.ts` | — |
-
+|---|---|---|---|---|
+| 🔳 | 1 | Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files. | `CLAUDE.md`, `packages/app/src/installWorkspace.ts` | — |
 ---
 
 ## Phase 2 — MCP tool metadata check

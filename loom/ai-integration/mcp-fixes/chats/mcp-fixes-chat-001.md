@@ -4,7 +4,7 @@ id: ch_01KR0J2BJ6A8F9PXZNX7MHJZ5P
 title: mcp-fixes
 status: done
 created: "2026-05-07T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

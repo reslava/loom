@@ -4,7 +4,7 @@ id: id_01KR44SK18Q6X2DS730RTRBDN8
 title: VSCode Loom Explorer toggle
 status: done
 created: "2026-05-08T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

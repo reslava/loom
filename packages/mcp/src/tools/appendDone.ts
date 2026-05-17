@@ -85,7 +85,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
 
     if (!exists) {
         const fm = createBaseFrontmatter('done', doneId, `Done — ${planDoc.title}`, planId);
-        const content = rebuildContent([`# Done — ${planDoc.title}`], [newSection]);
+        const content = '\n' + rebuildContent([], [newSection]);
         const doc = {
             ...fm,
             type: 'done' as const,

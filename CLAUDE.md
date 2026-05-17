@@ -325,7 +325,7 @@ STOP — waiting for go
 
 ## Non-negotiable stop rules
 
-1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for `go`. For ad-hoc tasks (no active plan), end every response with a `Next:` line: one sentence describing what comes next, or "waiting for direction."
+1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for `go`. For ad-hoc tasks (no active plan), end every response with a `Next:` line: one sentence describing what comes next, or "waiting for direction." **Exception — explicit multi-step authorization:** when the user explicitly asks for a range or all steps in advance (e.g. "do steps 2–4", "do all remaining steps", "do the whole plan") via chat, Claude CLI, or the extension, continue through the authorized range without stopping between steps. Still mark ✅ and append the per-step done note as each completes. Rules 2 (error loop) and 3 (design decision) continue to interrupt the range — they always stop.
 2. **Error loop**: after a 2nd consecutive failed fix — stop, write root-cause findings, wait for `go`. Never push forward blindly.
 3. **Design decision**: when a decision affects architecture, API shape, or test design — explain options and trade-offs, **STOP** and wait.
 4. **User says "STOP"**: respond with `Stopped.` only — nothing else.

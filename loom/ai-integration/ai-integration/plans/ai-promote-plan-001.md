@@ -10,7 +10,6 @@ tags: [ai, chat, idea, promote, vscode]
 parent_id: de_01KQYDFDD88BTYTQ61S0Q9W02V
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
 target_version: 0.3.0
-steps: []
 ---
 
 # AI Promote — Chat to Idea
@@ -21,28 +20,15 @@ Implement `loom.promoteIdea`: reads the active `*-chat.md`, sends the conversati
 
 This closes the first complete AI loop: **chat → AI reply → promote → idea doc**.
 
-## Decisions
 
-- **Mode:** Chat Mode only (no JSON handshake). The AI returns a plain-text title on the first line and the idea body below. Simpler than Action Mode, easier to validate.
-- **Output format:** AI responds with:
-  ```
-  TITLE: <one-line idea title>
-
-  <idea body in Markdown>
-  ```
-- **Idea creation:** Reuses `app/weaveIdea` internals — same frontmatter, same `generateIdeaBody` template but with AI content injected as body.
-- **Weave ID:** Derived from the chat doc's `parent_id` field (set when the chat was created via `loom.chatNew`). Falls back to prompting the user if `parent_id` is null (workspace-level chats).
-- **No auto-finalize:** The created idea starts as `draft` status. User reviews and finalizes manually.
-
-## Steps
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
+|---|---|---|---|---|
 | ✅ | 1 | `app/promoteIdea` use-case — calls AI, parses response, saves idea doc | `app/src/promoteIdea.ts` | — |
 | ✅ | 2 | `loom.promoteIdea` command | `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 1 |
 | ✅ | 3 | Add inline button on chat nodes in tree view | `vscode/package.json` | 2 |
 | ✅ | 4 | Build + smoke test | `scripts/build-all.sh` | 3 |
-
 ## Notes
 
 - Step 1: `promoteIdea` deps: `{ loadDoc, saveDoc, fs, aiClient, loomRoot }`. Reads chat by `filePath`, calls `aiClient.complete()` with a structured system prompt, parses `TITLE:` line, creates the idea doc.

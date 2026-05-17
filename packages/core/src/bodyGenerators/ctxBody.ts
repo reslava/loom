@@ -22,8 +22,7 @@ export function generateCtxBody(data: CtxSummaryData): string {
     const plans = data.plans.map(p => `- ${p.id} (status: ${p.status}, progress: ${p.progress})`).join('\n');
     const now = new Date().toISOString();
 
-    return `# Design Context Summary
-
+    return `
 ## Problem Statement
 ${data.goal}
 

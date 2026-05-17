@@ -4,7 +4,7 @@ id: ch_01KREMAKV02GXDVGH31PNFGY41
 title: Loom Install — Workspace Onboarding
 status: done
 created: "2026-05-02T00:00:00.000Z"
-updated: 2026-05-14
+updated: "2026-05-14T00:00:00.000Z"
 version: 2
 tags: [ctx, summary]
 parent_id: de_01KQYDFDDDW3C3JYPHQV085GAC

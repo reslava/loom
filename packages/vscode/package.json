@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",
@@ -364,11 +364,12 @@
         "reslava-loom.ai.provider": {
           "type": "string",
           "enum": [
+            "anthropic",
             "deepseek",
             "openai"
           ],
-          "default": "deepseek",
-          "description": "AI provider. DeepSeek is recommended for cost-effective testing."
+          "default": "anthropic",
+          "description": "AI provider. Claude (Anthropic) is recommended. DeepSeek and OpenAI also supported."
         },
         "reslava-loom.ai.apiKey": {
           "type": "string",
@@ -379,7 +380,7 @@
         "reslava-loom.ai.model": {
           "type": "string",
           "default": "",
-          "description": "Model name override. Leave blank to use the provider default (deepseek-chat / gpt-4o-mini)."
+          "description": "Model name override. Leave blank to use the provider default (claude-haiku-4-5-20251001 / deepseek-chat / gpt-4o-mini)."
         },
         "reslava-loom.ai.baseUrl": {
           "type": "string",
@@ -411,7 +412,7 @@
           {
             "id": "configureAi",
             "title": "Configure an AI provider",
-            "description": "Add your DeepSeek or OpenAI API key to enable AI commands.\n\n[Open Settings](command:loom.install.openAiSettings)",
+            "description": "Add your Claude (Anthropic), DeepSeek, or OpenAI API key to enable AI commands.\n\n[Open Settings](command:loom.install.openAiSettings)",
             "completionEvents": ["onContext:loom.aiConfigured"],
             "media": { "image": "media/loom.png", "altText": "Loom" }
           },

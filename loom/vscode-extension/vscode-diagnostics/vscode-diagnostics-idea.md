@@ -4,7 +4,7 @@ id: id_01KR1QRAAN6FP1HV6G55FBDS6X
 title: Wire diagnostics to file changes for continuous validation
 status: done
 created: "2026-05-07T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 3
 tags: []
 parent_id: null

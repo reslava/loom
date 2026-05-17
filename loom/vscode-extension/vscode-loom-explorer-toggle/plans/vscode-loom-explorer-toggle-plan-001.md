@@ -4,7 +4,7 @@ id: pl_01KR478CKGVA1VHR1S8JTJJJW4
 title: Add toolbar button to toggle Loom document-to-tree synchronization
 status: done
 created: "2026-05-08T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 1
 tags: []
 parent_id: id_01KR44SK18Q6X2DS730RTRBDN8

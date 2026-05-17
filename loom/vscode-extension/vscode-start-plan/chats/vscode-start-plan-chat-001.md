@@ -4,7 +4,7 @@ id: ch_01KRCASESTKBKCMMVQFPQ8BZ8N
 title: vscode-start-plan Chat
 status: done
 created: "2026-05-11T00:00:00.000Z"
-updated: 2026-05-12
+updated: "2026-05-12T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

@@ -1,5 +1,9 @@
 # Loom — AI-assisted workflow for VS Code
 
+<img src="media/loom.png" alt="Loom" width="80" />
+
+> Demo GIF coming — see `media/loom-demo.gif` once recorded.
+
 Loom turns your project into a structured collaboration surface between you and AI. Instead of a chat window that forgets everything, you get a document-driven loop:
 
 **chat → idea → design → plan → implement → done**
@@ -63,11 +67,24 @@ Each stage produces a Markdown document visible in the Loom panel. Nothing disap
 
 ---
 
-## The panel
+## The CONTEXT panel
 
-The Loom panel (Activity Bar) shows your **weaves** (project areas) and **threads** (workstreams). Each thread holds its own idea, design, plans, and chats.
+The CONTEXT panel (Activity Bar) shows your **weaves** (project areas) and **threads** (workstreams). Each thread holds its own idea, design, plans, chats, and done docs.
 
-Right-click any node for context actions: new idea, new design, new plan, new chat, refine, promote, archive.
+| Button | What it does |
+|--------|-------------|
+| *Generate Idea* | Formalise a chat or prompt into a scoped idea doc |
+| *Generate Design* | Turn an idea into an architecture + decisions doc |
+| *Generate Plan* | Break a design into numbered, reviewable implementation steps |
+| *Do Step* | AI implements the next pending step; marks it ✅ and writes a done note |
+| *AI Reply* | Continue the conversation inside a chat doc with full thread context loaded |
+| *Generate Ctx* | Regenerate the ctx summary for a weave or thread |
+| *Refine* | Re-run generation on a stale doc after its parent was updated |
+| *Promote* | chat → idea → design → plan in one click |
+| *Start Plan* | Move a plan from `draft` to `implementing` |
+| *Rename / Archive* | Inline doc management from the tree |
+
+Right-click any node for the same actions as a context menu.
 
 ---
 
@@ -76,8 +93,11 @@ Right-click any node for context actions: new idea, new design, new plan, new ch
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `reslava-loom.user.name` | `User` | Your display name in chat headers |
+| `reslava-loom.ai.provider` | `anthropic` | AI provider (anthropic/deepseek/openai) |
+| `reslava-loom.ai.apiKey` | — | API key for the configured provider |
+| `reslava-loom.ai.model` | — | Model override (blank = provider default) |
 
-AI inference runs through the MCP server's sampling — configure your API key in your MCP host (Claude Code, Cursor), not in VS Code settings.
+**AI configuration:** The extension defaults to Claude (Anthropic). For Claude, set `reslava-loom.ai.apiKey` to your Anthropic API key. You can also use OpenAI or DeepSeek by changing `reslava-loom.ai.provider`.
 
 ---
 

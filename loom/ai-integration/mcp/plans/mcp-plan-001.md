@@ -17,38 +17,16 @@ requires_load: [de_01KQYDFDD9PRVJT4JBAQ0JHRG6]
 
 Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's document graph to any MCP-compatible AI agent (Claude Code, Cursor). Replaces the standalone AI API layer entirely; all AI generation goes through MCP sampling or the host agent directly.
 
-## Phases
 
-| Phase | Scope | Steps |
-|-------|-------|-------|
-| 1 | Package scaffold + CLI wiring | 1–5 |
-| 2 | State & diagnostics resources | 6–10 |
-| 3 | Document reading resources | 11–14 |
-| 4 | Document authoring tools | 15–20 |
-| 5 | Workflow transition tools | 21–27 |
-| 6 | Search & query tools | 28–31 |
-| 7 | Prompts | 32–37 |
-| 8 | Sampling (VS Code AI buttons) | 38–40 |
-| 9 | Testing | 41–44 |
-| 10 | Documentation & release | 45–47 |
-
----
-
-## Phase 1 — Package scaffold + CLI wiring
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
+|---|---|---|---|---|
 | ✅ | 1 | Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`) | `packages/mcp/package.json` | — |
 | ✅ | 2 | Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references` | `packages/mcp/tsconfig.json` | 1 |
 | ✅ | 3 | Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now) | `packages/mcp/src/server.ts` | 2 |
 | ✅ | 4 | Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server | `packages/mcp/src/index.ts` | 3 |
 | ✅ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 |
-
-**Notes:**
-- Transport: `StdioServerTransport` from `@modelcontextprotocol/sdk/server/stdio.js`
-- Server capabilities to declare: `{ resources: {}, tools: {}, prompts: {}, sampling: {} }`
-- `LOOM_ROOT` must be the workspace root (not `.loom/`); the MCP server calls `getActiveLoomRoot(LOOM_ROOT)` internally
-
 ---
 
 ## Phase 2 — State & diagnostics resources

@@ -3,7 +3,7 @@ type: chat
 id: table-steps-chat-001
 title: table-steps
 status: done
-created: 2026-05-06
+created: "2026-05-06T00:00:00.000Z"
 version: 1
 tags: []
 parent_id: null

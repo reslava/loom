@@ -10,7 +10,6 @@ tags: [ai, chat, vscode, core]
 parent_id: de_01KQYDFDD88BTYTQ61S0Q9W02V
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
 target_version: 0.3.0
-steps: []
 ---
 
 # AI Chat Reply — Core Loop
@@ -23,19 +22,11 @@ Implement the minimum viable AI chat loop:
 
 Provider is configurable (DeepSeek / OpenAI-compatible API). Full chat history sent on every call (no summarization yet).
 
-## Decisions
 
-- **Chat doc type:** New `type: chat` added to `DocumentType` in `core`.
-- **Chat doc location:** `weaves/{weaveId}/{weaveId}-chat-{NNN}.md` for weave-scoped chats. `weaves/ai-chats/` reserved for workspace-level meta-conversations (not managed by commands).
-- **Naming:** `{weaveId}-chat-001`, `{weaveId}-chat-002`, … (auto-incremented, same pattern as plan IDs).
-- **Conversation format:** `## Rafa:` / `## AI:` headers, parsed from raw Markdown. No structured frontmatter for turns.
-- **Context strategy:** Send full history on every call. Summarization deferred.
-- **Provider abstraction:** `AIClient` interface in `core`. Concrete OpenAI-compatible client in `vscode/src/ai/`. Injected via `deps` in `app` use-cases (standard pattern).
-
-## Steps
+# Steps
 
 | Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
+|---|---|---|---|---|
 | ✅ | 1 | Add `'chat'` to `DocumentType`; add `ChatDoc` entity | `core/src/entities/base.ts`, `core/src/entities/chat.ts`, `core/src/index.ts` | — |
 | ✅ | 2 | `generateChatId` utility | `core/src/idUtils.ts` | 1 |
 | ✅ | 3 | `AIClient` interface in `core` | `core/src/ai.ts`, `core/src/index.ts` | — |
@@ -47,7 +38,6 @@ Provider is configurable (DeepSeek / OpenAI-compatible API). Full chat history s
 | ✅ | 9 | `loom.chatReply` command | `vscode/src/commands/chatReply.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 5, 6, 7 |
 | ✅ | 10 | Show chat docs in tree view | `vscode/src/tree/treeProvider.ts` | 1 |
 | ✅ | 11 | Build all + smoke test end-to-end | `scripts/build-all.sh` | 10 |
-
 ## Notes
 
 - Steps 1–3 are `core` changes — rebuild `core` before `app`. Rebuild `app` before `vscode`.

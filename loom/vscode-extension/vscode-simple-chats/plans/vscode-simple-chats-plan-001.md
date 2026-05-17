@@ -4,7 +4,7 @@ id: pl_01KREGDY1Q17GB3R40K975R1FH
 title: Simple Chat Levels Implementation
 status: done
 created: "2026-05-12T00:00:00.000Z"
-updated: 2026-05-14
+updated: "2026-05-14T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: []

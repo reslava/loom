@@ -4,7 +4,7 @@ id: de_01KQYDFDD9Z844XJV7XDHB92FP
 title: Reference Document Context Loading Control
 status: done
 created: "2026-04-21T00:00:00.000Z"
-updated: 2026-05-08
+updated: "2026-05-08T00:00:00.000Z"
 version: 2
 tags: [reference, ai, context, frontmatter]
 parent_id: null

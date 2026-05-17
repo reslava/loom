@@ -7,8 +7,7 @@ export function generatePlanBody(title: string, goal?: string, steps?: string[])
         ? steps!.map((s, i) => `| \u{1F533} | ${i + 1} | ${s} | — | — |`).join('\n')
         : '| \u{1F533} | 1 | {Step description} | — | — |';
 
-    return `# Plan — ${title}
-
+    return `
 | | |
 |---|---|
 | **Created** | ${today} |

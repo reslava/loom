@@ -19,3 +19,7 @@ Implements the design in [vscode-mcp-do-step-design.md](../vscode-mcp-do-step-de
 
 ## Steps
 
+
+
+# Steps
+

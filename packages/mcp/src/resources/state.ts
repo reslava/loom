@@ -8,6 +8,7 @@ const VALID_STATUSES = ['CANCELLED', 'IMPLEMENTING', 'ACTIVE', 'DONE', 'BLOCKED'
 type WeaveStatus = typeof VALID_STATUSES[number];
 
 export async function handleStateResource(root: string, uri: string) {
+    const startedAt = Date.now();
     const url = new URL(uri.replace('loom://', 'loom://host/'));
     const weaveId = url.searchParams.get('weaveId') ?? undefined;
     const threadId = url.searchParams.get('threadId') ?? undefined;
@@ -43,12 +44,10 @@ export async function handleStateResource(root: string, uri: string) {
         const cached = getCachedState();
         if (cached) {
             const replacer = (key: string, value: unknown) => (key === 'content' ? undefined : value);
+            const text = JSON.stringify(cached, replacer, 2);
+            process.stderr.write(`[state] read uri=${uri} cacheHit=true totalMs=${Date.now() - startedAt}\n`);
             return {
-                contents: [{
-                    uri,
-                    mimeType: 'application/json',
-                    text: JSON.stringify(cached, replacer, 2),
-                }],
+                contents: [{ uri, mimeType: 'application/json', text }],
             };
         }
     }
@@ -67,11 +66,9 @@ export async function handleStateResource(root: string, uri: string) {
         ? undefined
         : (key: string, value: unknown) => (key === 'content' ? undefined : value);
 
+    const text = JSON.stringify(state, replacer, 2);
+    process.stderr.write(`[state] read uri=${uri} cacheHit=false totalMs=${Date.now() - startedAt}\n`);
     return {
-        contents: [{
-            uri,
-            mimeType: 'application/json',
-            text: JSON.stringify(state, replacer, 2),
-        }],
+        contents: [{ uri, mimeType: 'application/json', text }],
     };
 }

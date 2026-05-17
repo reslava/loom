@@ -4,7 +4,7 @@ id: pl_01KQYFA0DCH6H1PZ2AYXRJC1RX
 title: Wire steps array through loom_create_plan
 status: done
 created: "2026-05-06T00:00:00.000Z"
-updated: 2026-05-06
+updated: "2026-05-06T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: []

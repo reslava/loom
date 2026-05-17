@@ -5,8 +5,7 @@
  * @returns The complete Markdown body (excluding frontmatter).
  */
 export function generateDesignBody(title: string, userName: string = 'User'): string {
-    return `# ${title}
-
+    return `
 ## Goal
 <!-- What does this design solve? One paragraph. -->
 

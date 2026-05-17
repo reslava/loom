@@ -4,7 +4,7 @@ id: ch_01KRDCHE49XBDSAX6EH7VEXQZK
 title: vscode simple chats Chat
 status: done
 created: "2026-05-12T00:00:00.000Z"
-updated: 2026-05-14
+updated: "2026-05-14T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

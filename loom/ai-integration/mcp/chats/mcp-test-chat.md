@@ -4,7 +4,7 @@ id: ch_01KQYDFDD95S5RM3QBN4SR3GG7
 title: Mcp Test Chat
 status: done
 created: "2026-04-27T00:00:00.000Z"
-updated: 2026-05-07
+updated: "2026-05-07T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null

@@ -178,7 +178,7 @@ STOP — waiting for go
 
 ## Non-negotiable stop rules
 
-1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for \`go\`.
+1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for \`go\`. **Exception — explicit multi-step authorization:** when the user explicitly asks for a range or all steps in advance (e.g. "do steps 2–4", "do all remaining steps", "do the whole plan"), continue through the authorized range without stopping between steps. Still mark ✅ as each completes. Rules 2 and 3 continue to interrupt the range — they always stop.
 2. **Error loop**: after a 2nd consecutive failed fix — stop, write root-cause findings, wait for \`go\`.
 3. **Design decision**: when a decision affects architecture, API shape, or test design — explain options and trade-offs, **STOP** and wait.
 4. **User says "STOP"**: respond with \`Stopped.\` only — nothing else.
