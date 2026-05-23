@@ -24,7 +24,8 @@ async function updateAllReferences(
     newId: string,
     deps: Pick<RenameDeps, 'loadDoc' | 'saveDoc' | 'findMarkdownFiles'>
 ): Promise<number> {
-    const files = await deps.findMarkdownFiles(loomRoot);
+    const docsDir = path.join(loomRoot, 'loom');
+    const files = await deps.findMarkdownFiles(docsDir);
     let updatedCount = 0;
 
     for (const file of files) {

@@ -15,9 +15,7 @@ const toolDef = {
 };
 
 const SYSTEM_PROMPT = `You are a Loom context summarizer. You are writing the workspace-level loom/loom-ctx.md doc that every Loom session reads at startup.
-Output structure (markdown body only — no frontmatter, no surrounding code fences):
-
-# Loom — Global Context
+Output structure (markdown body only — no frontmatter, no H1, no surrounding code fences; the save chokepoint adds the H1 from frontmatter title):
 
 ## 1. Concept
 <2-3 short paragraphs: what THIS workspace is about, derived from the weaves you see — not the generic Loom-on-Loom story>

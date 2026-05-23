@@ -496,3 +496,109 @@ Reply `apply` to run `npx ts-node ... scripts/migrate-h1-titles.ts --apply`, the
 ## Rafa:
 
 apply
+
+## AI:
+
+Plan **complete**. Pushed in 2 commits:
+
+- `939f143` — reveal-after-create wiring (foundation).
+- `07bd6ea` — frontmatter title H1 sync + section demotion + refs tree fix + migration of 159 docs.
+
+**Test suite:** all passing except one pre-existing failure unrelated to this work — `tests/close-plan.test.ts` asserts done-doc `status: final` but `packages/app/src/closePlan.ts:88` sets `status: 'done'`. Same on HEAD before my changes (last touched in commit `4abebba`). Flagging for separate cleanup — out of scope here.
+
+**Migration result:** 159 docs migrated, 9 old design docs skipped (preserved their inline `# CHAT` history). Heading hierarchy cascades correctly — `# Steps` → `## Steps`, and any H2 in that section's subtree → H3.
+
+**One side-effect to confirm in the extension:**
+- VS Code markdown preview should now show the doc title for every doc.
+- Refs section appears even with an empty `refs/` folder so Create Reference is reachable.
+- Rename a doc → both frontmatter `title` and body `# Title` update (rename goes through `loom_rename` → `saveDoc` → `syncBodyH1`).
+
+**Follow-up worth tracking separately (NOT done here):**
+- Pre-existing close-plan `status: 'done'` vs test-expected `'final'` mismatch.
+- `mcp/src/tools/generateGlobalCtx.ts:20` still has a literal `# Loom — Global Context` in the system prompt; the save-path sync will override it to whatever the frontmatter title is. Works correctly but the prompt text is now misleading — small cleanup for later.
+
+All next session-start `do-next-step` calls on this thread will see plan-010 as `status: complete` (last step done). Ready for your next direction.
+
+## Rafa:
+
+- Fix the bugs you mentioned in lines 516-520
+
+- When I renamed a chat in extension got this:
+
+```
+Failed to rename: MCP error -32603: Invalid frontmatter in j:\loom_demo\.loom\CLAUDE.md: Missing required field: type
+```
+
+## AI:
+
+Investigated all three. Two are quick fixes, one needs a small design call before I touch it.
+
+**Bug 1 — close-plan `status: 'done'` vs test-expected `'final'`**
+
+Looked at the code/test split:
+- `packages/app/src/closePlan.ts:88` writes the done doc with `status: 'done'`.
+- `tests/close-plan.test.ts:57` asserts `status: final` on the done doc.
+- Grep for `'final'` across `packages/**/src` → **zero matches**. Nothing in the source code ever produces or accepts `'final'`. The DoneDoc type/reducers don't know about it.
+- `tests/close-plan.test.ts:66` *also* asserts the plan ends up at `status: 'done'`, which matches the code.
+
+So the test is the outlier — `'final'` is a phantom status that exists nowhere except this one assertion. The correct fix is to change the test to `status: done` (matches code, matches type system, matches the plan's own status, matches everything else in the codebase). Changing the code to emit `'final'` would mean adding a brand-new status value purely to satisfy one test line, with no semantic distinction from `'done'`.
+
+Recommend: **fix the test**, not the code.
+
+**Bug 2 — `generateGlobalCtx.ts:20` literal `# Loom — Global Context` in the system prompt**
+
+Confirmed at `packages/mcp/src/tools/generateGlobalCtx.ts:17-34`. The prompt says "Output structure (markdown body only — no frontmatter, no surrounding code fences):" and then leads with `# Loom — Global Context` before the `## 1. Concept` section.
+
+Two problems:
+1. Misleading: `syncBodyH1` will overwrite that H1 with whatever frontmatter `title` says, so the prompt is lying to the model about what gets persisted.
+2. Doubly wrong now: with the H1-sync work, generators should *not* emit `# Title` lines at all — the save chokepoint adds them. So we want the sample to just start at `## 1. Concept`.
+
+Fix: drop the `# Loom — Global Context` line and the surrounding blank line from the prompt. One-line edit.
+
+**Bug 3 — rename fails: `Invalid frontmatter in j:\loom_demo\.loom\CLAUDE.md: Missing required field: type`**
+
+Root cause found. Trace:
+- `packages/app/src/rename.ts:91` calls `updateAllReferences(loomRoot, ...)`.
+- `updateAllReferences` (line 27) calls `findMarkdownFiles(loomRoot)`.
+- `loomRoot` is the **workspace root** (e.g. `j:\loom_demo`), not the docs dir.
+- `findMarkdownFiles` (`packages/fs/src/utils/pathUtils.ts:23`) recursively walks every dir under that root, only excluding `.archive`. So it picks up `.loom/CLAUDE.md`, `node_modules/**/*.md`, `README.md`, etc.
+- `updateAllReferences` then calls `loadDoc` on every result, which throws on the first file without valid Loom frontmatter — in your demo workspace, `.loom/CLAUDE.md`.
+
+Compare to `packages/fs/src/repositories/linkRepository.ts:35`, which does it right: it scans `path.join(loomRoot, 'loom')` — the docs subtree only, never the whole workspace.
+
+**Correct fix (root cause, not a symptom patch):** scope `updateAllReferences` to `path.join(loomRoot, 'loom')` so it only walks the Loom docs tree, mirroring linkRepository. This also makes rename dramatically faster on real workspaces (no node_modules sweep). I'd resist the alternative of "make `loadDoc` swallow errors silently" — that hides real corruption in actual Loom docs.
+
+Side note while I was in there: `findMarkdownFiles` also doesn't skip `node_modules`, `.git`, `.loom`, `dist`, etc. — fine for its current callers (linkRepository constrains the dir before calling), but a footgun. Worth a separate exclude-list pass later; out of scope here.
+
+**Proposed plan (one commit each):**
+1. Test fix — `tests/close-plan.test.ts:57` `final` → `done`. Run `./scripts/test-all.sh`.
+2. Prompt cleanup — drop the literal H1 from `generateGlobalCtx.ts` SYSTEM_PROMPT.
+3. Rename scope fix — `updateAllReferences` walks `path.join(loomRoot, 'loom')` instead of `loomRoot`. Verify by running the rename test suite and manually retrying the chat rename in `j:\loom_demo`.
+
+All three are in `app`/`mcp` packages, so I'd `./scripts/build-all.sh` once at the end and run `./scripts/test-all.sh`.
+
+One thing to flag: the thread-context resource currently shows plan `pl_01KSAW3YTZ4YK0WBZK3R6ABMGV` (H1 sync / refs tree / 12 steps) as `implementing`, but your previous message said plan-010 was complete. These look like overlapping plans on the same thread. Not blocking the three fixes above, but worth a glance — do you want this new plan, the old plan-010, or were they meant to merge?
+
+STOP — waiting for `go` (or pushback on any of the three approaches, especially #1 where you may have wanted `'final'` to mean something).
+
+## Rafa:
+
+go
+
+## AI:
+
+All tests green. Summary of what landed:
+
+✅ **Bug 1** — `tests/close-plan.test.ts:57` changed `'final'` → `'done'` to match code/type system.
+✅ **Bug 2** — `packages/mcp/src/tools/generateGlobalCtx.ts` dropped the misleading `# Loom — Global Context` literal from the SYSTEM_PROMPT.
+✅ **Bug 3** — `packages/app/src/rename.ts` scopes `updateAllReferences` scan to `loomRoot/loom/` (was scanning whole workspace, hitting `.loom/CLAUDE.md`).
+
+Build clean, full test suite passes. The rename fix should also resolve your `j:\loom_demo\.loom\CLAUDE.md` error — worth a manual retry from the extension to confirm.
+
+Next: commit these three fixes (one or three commits?), and the plan-010 vs `pl_01KSAW3YTZ4YK0WBZK3R6ABMGV` overlap question I flagged is still open.
+
+## Rafa:
+
+I already marked plan vscode-extension-plan-010.md as done, I do not see any issue
+
+1 commit push

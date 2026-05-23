@@ -54,7 +54,7 @@ async function testClosePlan() {
         assert(await fs.pathExists(donePath), `done doc must exist at ${donePath}`);
         const doneContent = fsNative.readFileSync(donePath, 'utf8');
         assert(doneContent.includes('type: done'), 'done doc must have type: done');
-        assert(doneContent.includes('status: final'), 'done doc must have status: final');
+        assert(doneContent.includes('status: done'), 'done doc must have status: done');
         assert(doneContent.includes(`parent_id: ${planId}`), 'done doc must link to plan');
         assert(doneContent.includes('Built the thing.'), 'done doc must include AI body');
         console.log('    ✅ done doc written correctly');
