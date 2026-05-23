@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM]
 target_version: 0.5.0
 ---
 
-# Plan — Implement groupByThread (Thread‑Based Tree View)
+# Implement groupByThread — Thread‑Based Tree View
 
 | | |
 |---|---|

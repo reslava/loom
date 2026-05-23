@@ -11,7 +11,7 @@ load: always
 load_when: [idea, design, plan, implementing]
 ---
 
-# Workspace Directory Structure — REslava Loom
+# loom — Workspace Directory Structure
 
 > **Note:** This reference describes the **target structure** (post-migration).
 > Migration from `weaves/` + `references/` to `loom/` + `.loom/` is tracked in

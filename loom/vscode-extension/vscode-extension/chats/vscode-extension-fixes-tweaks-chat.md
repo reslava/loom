@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Vscode Extension Fixes Tweaks Chat
 
 ## Rafa:
 We need to test, fix and tweak vscode extension until implement fully feature workflow and have a confortable and intuitive UX.

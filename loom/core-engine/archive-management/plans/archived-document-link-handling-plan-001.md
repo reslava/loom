@@ -12,7 +12,7 @@ requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDCQ0DBXVNCSCK57P7M]
 target_version: 0.5.0
 ---
 
-# Plan — Handle Links to Archived Documents Gracefully
+# Handle Links to Archived Documents Gracefully
 
 | | |
 |---|---|
@@ -29,7 +29,7 @@ Modify link validation and status display to treat references to **archived** do
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|

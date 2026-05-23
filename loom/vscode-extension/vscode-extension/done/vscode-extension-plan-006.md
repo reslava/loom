@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDE0PPQX6WSKFF5XBQB, pl_01KQYDFDDE44MBZ865D6F222X8, pl
 target_version: 0.6.0
 ---
 
-# Plan — Implement VSCode Toolbar (View Controls & Actions)
+# Implement VSCode Toolbar (View Controls & Actions)
 
 | | |
 |---|---|

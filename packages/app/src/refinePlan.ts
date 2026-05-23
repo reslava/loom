@@ -38,7 +38,7 @@ export async function refinePlan(
     const doc = await deps.loadDoc(input.filePath) as PlanDoc;
 
     const content = input.extraContext
-        ? `# Additional Context\n\n${input.extraContext}\n\n---\n\n${doc.content}`
+        ? `## Additional Context\n\n${input.extraContext}\n\n---\n\n${doc.content}`
         : doc.content;
     const messages = buildSummarizationMessages(
         SYSTEM_PROMPT,

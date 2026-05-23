@@ -11,7 +11,7 @@ parent_id: null
 requires_load: []
 ---
 
-# Unify ctx filenames to plain `ctx.md`
+# Unify ctx filenames to plain ctx.md
 
 ## Problem
 

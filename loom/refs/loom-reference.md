@@ -13,7 +13,7 @@ load: by-request
 load_when: [design, plan, implementing]
 ---
 
-# Loom — Implementation Contract
+# loom — Implementation Contract
 
 The technical contract for working inside `packages/`: deps shape, DI pattern,
 reducer purity, ID lifecycle, file naming, `requires_load` semantics. Complements

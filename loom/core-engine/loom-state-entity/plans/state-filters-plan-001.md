@@ -11,7 +11,7 @@ requires_load: [pl_01KQYDFDDCPDV5E3WFGAVN51QJ]
 target_version: 0.6.0
 ---
 
-# Plan — Implement Common State Filters and Sorting Utilities
+# Implement Common State Filters and Sorting Utilities
 
 | | |
 |---|---|
@@ -28,7 +28,7 @@ Build a suite of pure, reusable filter and sorting functions that operate on the
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|

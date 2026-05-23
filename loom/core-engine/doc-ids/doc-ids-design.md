@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDDBJSRCQTW60ANFM9YR
 requires_load: []
 ---
-# Doc IDs — Design
+# Doc IDs — ULID-based identity with slug presentation
 
 Implementation design for ULID-based doc identity, slug-on-refs, auto-loaded ctx, `requires_load` for refs only, and `child_ids` removal. Companion to `doc-ids-idea.md`.
 

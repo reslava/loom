@@ -15,7 +15,7 @@ requires_load: []
 ## Goal
 Replace the hardcoded string `## Rafa:` in chatNew.ts and `## AI:` in chatReply.ts with values read from settings.json, and make sure the helper to read from settings.json is already in place.
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -23,7 +23,7 @@ Replace the hardcoded string `## Rafa:` in chatNew.ts and `## AI:` in chatReply.
 | ✅ | 2 | In `packages/app/src/chatNew.ts` line 45, replace the hardcoded `## Rafa:` with the dynamically fetched user name using the helper. | — | — |
 | ✅ | 3 | In `packages/app/src/chatReply.ts` lines 16 and 117, replace the hardcoded `## AI:` with the dynamically fetched AI model name using the helper. | — | — |
 | ✅ | 4 | Verify that the settings.json is loaded before these strings are used (e.g., during app initialization) to avoid undefined values at runtime. | — | — |
-## Notes
+### Notes
 - The exact location and filename of `settings.json` must be confirmed; the plan assumes it is accessible via a standard path or configuration.
 - The helper functions should be synchronous and cached to avoid repeated I/O.
 - Check that the replacement does not break string context in chat template logic (e.g., prefix patterns used for parsing).

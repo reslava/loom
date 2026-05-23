@@ -12,7 +12,7 @@ parent_id: de_01KRT2RZGM09CBDB9B9BZF1GH1
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Instrument MCP and capture a timeout
+# Instrument MCP and capture a timeout
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Add client + server instrumentation, capture a real timeout in the "Loom MCP" output channel, identify which of the three hypotheses (cache thrashing / transport stall / silent child death) the evidence supports. No fixes in this plan — the fix lives in a follow-up thread designed against the captured log.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ Add client + server instrumentation, capture a real timeout in the "Loom MCP" ou
 | 🔳 | 3 | Reproduce and diagnose: build, reload the extension, capture (a) the cold getState() duration on session start and (b) the fs.watch invalidation count during a single DoStep, then drive the workspace until a timeout fires and save the full "Loom MCP" output. Paste the log into the chat. Identify which hypothesis the evidence supports. The real fix is scoped in a new thread — not in this plan. | — | — |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

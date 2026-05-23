@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDD9AE2306D37KA2WNA3
 requires_load: []
 ---
-# Showing Docs Loaded Visibility — Design
+# Showing Docs Loaded Visibility
 
 ## Goal
 

@@ -10,7 +10,7 @@ parent_id: de_01KQYDFDDEC8J06R4624YH86QZ
 requires_load: [de_01KQYDFDDEC8J06R4624YH86QZ]
 ---
 
-# Plan — Wire thread & chat custom SVG icons
+# Wire thread & chat custom SVG icons
 
 | | |
 |---|---|

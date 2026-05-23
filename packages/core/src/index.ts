@@ -42,6 +42,7 @@ export { generateDocId, parseDocId, isUlidId, toKebabCaseId, ensureUniqueId, gen
 export { ConfigRegistry } from './registry';
 export { AIClient, Message } from './ai';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent } from './planTableUtils';
+export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep } from './planUtils';
 export { createEmptyIndex, resolveId, LinkIndex, DocumentEntry, StepBlocker } from './linkIndex';
 export {

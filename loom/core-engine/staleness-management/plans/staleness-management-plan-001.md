@@ -12,14 +12,14 @@ parent_id: de_01KQYDFDDC911HGHRQGZV1ZSCA
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ---
 
-# Staleness Management — Implementation Plan (MVP scope)
+# Staleness Management — MVP Surfacing
 
 ## Goal
 
 Surface the existing passive staleness-detection infrastructure (`loom_get_stale_docs`, `loom_get_stale_plans`, `version` fields) into the user-visible UI: tree icon, summary count, diagnostics. Do NOT add cascade automation, refine-propagation, or block-on-stale — those are post-MVP per `mvp-scope`.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -27,7 +27,7 @@ Surface the existing passive staleness-detection infrastructure (`loom_get_stale
 | 🔳 | 2 | Add stale-doc entries to `loom://diagnostics` — one entry per stale doc with id, parent id, parent version, doc's known parent_version, and human-readable reason. | `packages/mcp/src/resources/diagnostics.ts`, `packages/mcp/tests/integration.test.ts` | 1 |
 ---
 
-## Phase 2 — VS Code tree-view stale icon
+### Phase 2 — VS Code tree-view stale icon
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -35,7 +35,7 @@ Surface the existing passive staleness-detection infrastructure (`loom_get_stale
 
 ---
 
-## Phase 3 — Verify cascade rules
+### Phase 3 — Verify cascade rules
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -45,7 +45,7 @@ Surface the existing passive staleness-detection infrastructure (`loom_get_stale
 - Run `cd packages/vscode && npm run package` after each phase to confirm the bundle compiles.
 - If step 4 finds the code already matches the design, mark done with a "verified, no change needed" note.
 
-## Out of scope (deferred to plan-002+)
+### Out of scope (deferred to plan-002+)
 
 - Cascade automation (auto-flagging children when a parent is updated through MCP).
 - Refine-propagation suggestion ("you refined this idea — want to refine its design too?").

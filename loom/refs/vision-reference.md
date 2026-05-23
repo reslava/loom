@@ -11,7 +11,7 @@ requires_load: []
 slug: vision
 ---
 
-# Loom — Vision
+# loom — Vision
 
 ## User and AI collaboration
 

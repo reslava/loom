@@ -9,6 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
+# vscode-mcp-timeout Chat
 
 ## Rafa:
 

@@ -12,6 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
+# Add Claude as default AI provider
 
 | | |
 |---|---|
@@ -22,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Make Claude/Anthropic the default AI provider in the VS Code extension instead of DeepSeek. Requires no new dependencies (raw fetch pattern). VS Code settings allow provider override to openai or deepseek.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -37,7 +38,7 @@ Make Claude/Anthropic the default AI provider in the VS Code extension instead o
 | ✅ | 4 | Build and verify — run npm run package in packages/vscode, test with ANTHROPIC_API_KEY env var set, confirm Chat Reply calls Claude not DeepSeek | — | — |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

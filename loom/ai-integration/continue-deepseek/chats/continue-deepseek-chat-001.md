@@ -2,14 +2,15 @@
 type: chat
 id: ch_01KQYDFDD8F81MTZP97YNXAZHJ
 title: continue-deepseek Chat
-status: active
+status: done
 created: "2026-05-03T00:00:00.000Z"
-version: 1
+updated: 2026-05-22
+version: 2
 tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# continue-deepseek Chat
 
 ## Rafa:
 

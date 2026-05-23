@@ -23,7 +23,7 @@ Implement the minimum viable AI chat loop:
 Provider is configurable (DeepSeek / OpenAI-compatible API). Full chat history sent on every call (no summarization yet).
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -38,7 +38,7 @@ Provider is configurable (DeepSeek / OpenAI-compatible API). Full chat history s
 | ✅ | 9 | `loom.chatReply` command | `vscode/src/commands/chatReply.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 5, 6, 7 |
 | ✅ | 10 | Show chat docs in tree view | `vscode/src/tree/treeProvider.ts` | 1 |
 | ✅ | 11 | Build all + smoke test end-to-end | `scripts/build-all.sh` | 10 |
-## Notes
+### Notes
 
 - Steps 1–3 are `core` changes — rebuild `core` before `app`. Rebuild `app` before `vscode`.
 - Step 6: the client only needs `fetch` (Node 18+) or the `openai` npm package. Prefer `openai` SDK — DeepSeek is API-compatible with it.

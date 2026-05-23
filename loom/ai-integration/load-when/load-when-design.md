@@ -10,7 +10,7 @@ parent_id: null
 requires_load: [de_01KQYDFDD9Z844XJV7XDHB92FP]
 ---
 
-# Reference Context Filtering by Operation Mode (`load_when`)
+# Reference Context Filtering by Operation Mode (load_when)
 
 ## Relationship to `reference-load-context-design`
 

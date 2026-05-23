@@ -121,8 +121,8 @@ async function testWorkspaceWorkflow() {
         assert(fileExists(result.chatPath), 'chat doc must exist');
         assert(result.chatPath.includes('chats'), 'chat must be in chats/ dir');
         const content = readFile(result.chatPath);
-        assert(content.includes('# CHAT'), 'chat doc must have # CHAT header');
-        assert(content.includes('## Rafa:'), 'chat doc must have ## Rafa: section');
+        assert(/^# .+/m.test(content), 'chat doc must have an H1 title (synced from frontmatter)');
+        assert(content.includes('## User:'), 'chat doc must have user (## User:) section');
         assert(content.includes('## AI:'), 'chat doc must have ## AI: section');
         assert(content.includes('Do this and that.'), 'AI response must appear in chat doc');
         assert(content.includes(`parent_id: ${planId}`), 'parent_id must link to plan');

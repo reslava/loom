@@ -20,5 +20,5 @@ Follows design in `loom-install-design.md`.
 
 
 
-# Steps
+## Steps
 

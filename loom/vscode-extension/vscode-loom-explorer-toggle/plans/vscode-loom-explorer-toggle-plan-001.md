@@ -12,10 +12,10 @@ requires_load: []
 ---
 # Add toolbar button to toggle Loom document-to-tree synchronization
 
-# Goal
+## Goal
 Implement a toggle button in the toolbar that enables or disables synchronization from Loom documents to the tree view, while keeping tree-to-document sync always active.
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -24,6 +24,6 @@ Implement a toggle button in the toolbar that enables or disables synchronizatio
 | ✅ | 3 | Modify the document-open handler to only sync the opened Loom document to the tree when `syncDocToTreeEnabled` is `true`. | — | — |
 | ✅ | 4 | Ensure tree node click still always opens the corresponding Loom document regardless of the toggle state. | — | — |
 | ✅ | 5 | Persist the toggle state (e.g., in extension settings or workspace state) so it survives reloads. | — | — |
-## Notes
+### Notes
 - The toggle should not affect the tree-to-document direction at all.
 - Use distinct, clear icons for enabled/disabled states from the built-in codeicon library.

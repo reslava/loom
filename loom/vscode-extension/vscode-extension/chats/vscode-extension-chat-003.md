@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# VSCode features
 
 ## Rafa:
 
@@ -431,3 +431,68 @@ If all is clear, create a plan, starting by commit push step
 ## Rafa:
 
 do the whole plan vscode-extension-plan-010
+
+## AI:
+
+Plan progress — steps 1-9 done, **STOPPED at step 10** (apply migration) for explicit approval. Reasoning: 159 file changes is a bulk destructive op; the plan itself flagged this as a manual go gate.
+
+### What landed (commit 939f143)
+Step 1 — committed and pushed reveal-after-create work.
+
+### What's in working tree (uncommitted, awaiting migration go)
+- **Step 2 — heading parser map**: only two parsers anchor on `# Steps`/`# Goal` — `planTableUtils.ts` and `promoteToPlan.ts:104`. Everything else (`appendDone`, `chatReply`, `summarise`) already uses `##`. Updated both to accept `#{1,2}` (legacy + new) and emit `##`.
+- **Step 3 — sync helper**: `packages/core/src/bodyH1Sync.ts` (new) + exported from index. Wired into `packages/fs/src/serializers/frontmatterSaver.ts` — every MCP write now syncs first H1 to frontmatter title. Idempotent.
+- **Step 4 — generators demoted**:
+  - `planBody.ts` — `# Goal`/`# Steps` → `## Goal`/`## Steps`, `## Legend` → `### Legend` (it's a sub-section of Steps).
+  - `designBody.ts` — dropped `# CHAT` block entirely (dead leftover).
+  - `refineDesign.ts`/`refinePlan.ts` — `# Additional Context` → `## Additional Context`.
+  - `promoteToPlan.ts` — system prompt + step-table regex updated.
+- **Step 5 — chat generators**: `chatNew.ts` and `doStep.ts` no longer emit `# CHAT` — body starts with `## ${name}` and the save-path adds `# ${title}` from frontmatter.
+- **Step 6 — refs tree**: `treeProvider.ts:188` — dropped the `length > 0` guard. Empty `refs/` folder now renders the Refs section so Create Reference is reachable.
+- **Step 7 — build clean** (`./scripts/build-all.sh`).
+- **Step 8-9 — migration script + dry-run**:
+  - `scripts/migrate-h1-titles.ts` (new). Algorithm: ensure first H1 = frontmatter title; if any rogue H1 exists below, shift every heading from that point onward by +1 (preserves hierarchy of subtree under the demoted H1, leaves earlier siblings untouched). Skips old design docs containing `# CHAT` (preserves historical inline chats — 9 docs skipped).
+  - Dry-run: **159 files would change**, 9 skipped, 0 errors.
+
+### Diff samples that matter
+
+Plans (the dominant pattern):
+```
+loom/.../ai-command-palette-plan-001.md
+  - # Steps        → ## Steps
+  - ## Notes       → ### Notes   (was child of Steps subtree → cascades)
+  ## Goal stays as ## Goal       (sits before Steps, doesn't cascade)
+```
+
+Chat docs with old `# CHAT`:
+```
+- # CHAT  → # continue-deepseek Chat   (now matches frontmatter title)
+```
+
+Design docs where body H1 drifted from frontmatter title:
+```
+- # AI Provider Transport Abstraction
+  → # AI Provider Transport Abstraction (API Key vs Subscription vs Ollama)
+```
+
+Trailing-`\r` cleanup as a side-effect on Windows line-ending titles:
+```
+- # AI Command Palette — Promote, Refine, Summarize\r
+  → # AI Command Palette — Promote, Refine, Summarize
+```
+
+### Things worth your eyes before approving --apply
+
+1. **Some titles change wording** because the body H1 had drifted from frontmatter (e.g. `CLAUDE.md Lifecycle` → `CLAUDE Lifecycle` — frontmatter omits `.md`). Frontmatter wins per the rule, but if any of these are *wrong in frontmatter*, fix frontmatter first.
+2. **Hierarchy cascade** is per-doc — my +1 shift starts at the first rogue H1 and runs to EOF, lifting only that subtree's depths. Siblings before the rogue H1 are untouched.
+3. Full dry-run output saved to `/tmp/migrate-dry-run.txt` (shows first 15 of 159) — happy to dump the full list or filter by weave if you want to spot-check.
+
+### To proceed
+
+Reply `apply` to run `npx ts-node ... scripts/migrate-h1-titles.ts --apply`, then I'll do the final test-suite + commit + push (plan steps 11-12).
+
+**STOP — waiting for `apply` (or pushback on specific diffs).**
+
+## Rafa:
+
+apply

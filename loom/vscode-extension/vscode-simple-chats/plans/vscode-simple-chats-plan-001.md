@@ -12,7 +12,7 @@ parent_id: de_01KREGDKW50DT3ZS8HVBNRV8V2
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Simple Chat Levels Implementation
+# Simple Chat Levels Implementation
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Simplify VS Code extension chat levels: remove global and weave chats, keep only thread chats and refs/chats. Fix ESC cancel bug across all creation and promote commands.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -40,7 +40,7 @@ Simplify VS Code extension chat levels: remove global and weave chats, keep only
 | ✅ | 6 | Update loom/refs/architecture-reference.md — document the simplified chat structure (thread chats + refs/chats only) | — | — |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

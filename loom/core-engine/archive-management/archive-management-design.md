@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDDA5F6SJJ3K7PA7HHBJ
 requires_load: []
 ---
-# Archive management — Design
+# Archive management — taxonomy, central root, and tree visibility
 
 See [archive-management-idea](archive-management-idea.md) for motivation. This doc covers the design decisions for path layout, archive tool API, frontmatter shape, migration, and tree rendering.
 

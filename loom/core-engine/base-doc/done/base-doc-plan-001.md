@@ -11,7 +11,7 @@ requires_load: [de_01KQYDFDDATTCNZQCNB0JR0Z0F]
 target_version: 0.5.0
 ---
 
-# Plan — Extract BaseDoc Interface with Generic Status
+# Extract BaseDoc Interface with Generic Status
 
 | | |
 |---|---|

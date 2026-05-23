@@ -12,8 +12,8 @@ export interface PlanStep {
 export function parseStepsTable(content: string): PlanStep[] {
     const steps: PlanStep[] = [];
     
-    // Find the steps section: "# Steps" must be at the start of a line (not "## Steps")
-    const stepsSectionMatch = content.match(/(?:^|\n)# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i);
+    // Find the steps section: matches "## Steps" (canonical) or "# Steps" (legacy, pre-H1-sync).
+    const stepsSectionMatch = content.match(/(?:^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,2}\s|$)/i);
     if (!stepsSectionMatch) return steps;
     
     const section = stepsSectionMatch[1];
@@ -70,15 +70,15 @@ export function generateStepsTable(steps: PlanStep[]): string {
 export function updateStepsTableInContent(originalContent: string, steps: PlanStep[]): string {
     const newTable = generateStepsTable(steps);
     
-    const stepsRegex = /(?<=^|\n)# Steps\s*\n([\s\S]*?)(?=\n---|\n##|$)/i;
+    const stepsRegex = /(?<=^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,2}\s|$)/i;
     if (stepsRegex.test(originalContent)) {
-        return originalContent.replace(stepsRegex, `# Steps\n\n${newTable}`);
+        return originalContent.replace(stepsRegex, `## Steps\n\n${newTable}`);
     }
-    
-    const goalRegex = /(# Goal\s*\n[\s\S]*?)(?=\n---|\n##|$)/i;
+
+    const goalRegex = /(#{1,2} Goal\s*\n[\s\S]*?)(?=\n---|\n#{1,2}\s|$)/i;
     if (goalRegex.test(originalContent)) {
-        return originalContent.replace(goalRegex, `$1\n\n# Steps\n\n${newTable}`);
+        return originalContent.replace(goalRegex, `$1\n\n## Steps\n\n${newTable}`);
     }
-    
-    return `${originalContent}\n\n# Steps\n\n${newTable}`;
+
+    return `${originalContent}\n\n## Steps\n\n${newTable}`;
 }

@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: [architecture-reference]
 ---
-# CHAT
+# install Chat
 
 ## Rafa:
 

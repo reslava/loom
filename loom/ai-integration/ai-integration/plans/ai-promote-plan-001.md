@@ -21,7 +21,7 @@ Implement `loom.promoteIdea`: reads the active `*-chat.md`, sends the conversati
 This closes the first complete AI loop: **chat → AI reply → promote → idea doc**.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ This closes the first complete AI loop: **chat → AI reply → promote → idea
 | ✅ | 2 | `loom.promoteIdea` command | `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 1 |
 | ✅ | 3 | Add inline button on chat nodes in tree view | `vscode/package.json` | 2 |
 | ✅ | 4 | Build + smoke test | `scripts/build-all.sh` | 3 |
-## Notes
+### Notes
 
 - Step 1: `promoteIdea` deps: `{ loadDoc, saveDoc, fs, aiClient, loomRoot }`. Reads chat by `filePath`, calls `aiClient.complete()` with a structured system prompt, parses `TITLE:` line, creates the idea doc.
 - Step 2: Command detects active editor file path (same pattern as `chatReply`). If the chat doc has a `parent_id`, uses it as `weaveId`. Otherwise prompts the user.

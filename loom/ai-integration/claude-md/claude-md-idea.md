@@ -11,7 +11,7 @@ parent_id: null
 requires_load: [rf_01KQYDFDDDMS4N0V9G73MNV5JR]
 ---
 
-# CLAUDE.md Lifecycle — Template, Fusion, and Maintenance
+# CLAUDE Lifecycle — Template, Fusion, and Maintenance
 
 ## Problem
 

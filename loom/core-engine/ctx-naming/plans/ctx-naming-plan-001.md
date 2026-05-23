@@ -12,21 +12,21 @@ parent_id: de_01KQYDFDDBPFWTRWDMCAH1V45S
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ---
 
-# Unify ctx Filenames — Implementation Plan
+# Unify ctx Filenames to ctx.md
 
 ## Goal
 
 Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references across the recursive `CLAUDE.md`, the `LOOM_CLAUDE_MD` install template, the `LOOM_CTX_MD` write target, and the refs. Verify no code hard-codes the old filename.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
 | 🔳 | 1 | Grep the entire repo for hard-coded `'loom-ctx.md'` / `"loom-ctx.md"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4. | grep across `packages/`, `loom/`, root files | — |
 ---
 
-## Phase 2 — Rename and update path references
+### Phase 2 — Rename and update path references
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -36,7 +36,7 @@ Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references acros
 
 ---
 
-## Phase 3 — Verify build + visibility rules
+### Phase 3 — Verify build + visibility rules
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -47,7 +47,7 @@ Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references acros
 - If the audit finds the thread-level `ctx/` directory shape referenced anywhere in code (vs the documented `ctx.md` file), add a step 6 to fix it. Otherwise the unification is purely a path-rename + docs sweep.
 - This plan does NOT touch any existing weave-level `ctx.md` files (those already follow the convention). Only the global is being renamed.
 
-## Out of scope
+### Out of scope
 
 - A deprecation shim that resolves `loom-ctx.md` → `ctx.md`. Pre-1.0; clean break is fine. Note in release notes.
 - Generating any new ctx files. This plan only renames the existing one.

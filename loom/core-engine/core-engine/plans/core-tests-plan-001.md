@@ -19,7 +19,7 @@ Extend the existing ts-node test suite to cover all core entities, fs repository
 behaviour, and app use-case paths introduced since the initial build. Regressions
 in any of these layers should be caught before they reach VS Code.
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -31,7 +31,7 @@ in any of these layers should be caught before they reach VS Code.
 | ✅ | 6 | Add `doStep` use-case tests — mock AI client; assert chat doc created with correct `## Rafa:` + `## AI:` structure, `parent_id` set to plan | `tests/do-step.test.ts` (new) | — |
 | ✅ | 7 | Add `summarise` use-case tests — mock AI client; assert done doc "Decisions made" and "Open items" appear in the user message sent to AI | `tests/summarise.test.ts` (new) | Step 2 |
 | ✅ | 8 | Run full suite, fix any failures, add to `scripts/test-all.sh` | `scripts/test-all.sh` | Steps 1–7 |
-## Notes
+### Notes
 
 - All tests use `os.tmpdir()` for isolation — no shared state between runs.
 - AI client is always mocked in these tests (fixed string responses). Real AI calls belong in manual smoke tests only.

@@ -11,7 +11,7 @@ requires_load: [id_01KQYDFDDCDX24651YYE1JCQRY]
 target_version: 0.6.0
 ---
 
-# Plan — Implement LoomState Entity and getState Use‑Case
+# Implement LoomState Entity and getState Use‑Case
 
 | | |
 |---|---|
@@ -28,7 +28,7 @@ Introduce a centralized `LoomState` entity that represents the complete derived 
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|

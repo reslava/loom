@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDD9W0YYAC3FPN2PAVH0
 requires_load: []
 ---
-# MCP doc resolver scope and ID disambiguation — Design
+# MCP doc resolver scope and ID disambiguation
 
 ## Problem recap
 

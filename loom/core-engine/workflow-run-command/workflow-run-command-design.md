@@ -10,7 +10,7 @@ parent_id: de_01KQYDFDDF4QG72MKRE0KB2HZ4
 requires_load: []
 ---
 
-# `run_command` Effect — Design Specification
+# run_command Effect — Design Specification
 
 ## Goal
 

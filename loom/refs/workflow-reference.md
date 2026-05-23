@@ -11,7 +11,7 @@ requires_load: [vision]
 slug: workflow
 ---
 
-# Loom — Workflow
+# loom — Workflow
 
 The Loom loop. One sentence:
 

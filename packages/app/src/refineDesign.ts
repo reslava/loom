@@ -41,7 +41,7 @@ export async function refineDesign(
     const doc = await deps.loadDoc(input.filePath) as DesignDoc;
 
     const content = input.extraContext
-        ? `# Additional Context\n\n${input.extraContext}\n\n---\n\n${doc.content}`
+        ? `## Additional Context\n\n${input.extraContext}\n\n---\n\n${doc.content}`
         : doc.content;
     const messages = buildSummarizationMessages(
         SYSTEM_PROMPT,

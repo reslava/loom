@@ -16,5 +16,5 @@ requires_load: []
 Implement distinct icons for the "Toggle Archived" extension toolbar button: use the current `archive.svg` when enabled and the Codeicon `Archive` icon when disabled.
 
 
-# Steps
+## Steps
 

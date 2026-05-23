@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# VSCode create reference, delete thread
 
 ## Rafa:
 

@@ -12,7 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Unify MCP timeout handling
+# Unify MCP timeout handling
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Extract a shared MCP error handler so all command paths offer reconnect on timeout, not just the tree-load path.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -38,31 +38,31 @@ Extract a shared MCP error handler so all command paths offer reconnect on timeo
 | ✅ | 4 | Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears. | — | — |
 ---
 
-## Step 1 — Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren.
+### Step 1 — Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 2 — Extract handleMcpError(e: unknown, treeProvider: LoomTreeProvider): never helper — if isMcpTimeout(e): call disposeMCP(), call treeProvider.refresh() (which shows the reconnect node), then show a vscode.window.showErrorMessage with 'MCP timed out — reconnecting…'. Always re-throw so the calling command's catch can exit cleanly.
+### Step 2 — Extract handleMcpError(e: unknown, treeProvider: LoomTreeProvider): never helper — if isMcpTimeout(e): call disposeMCP(), call treeProvider.refresh() (which shows the reconnect node), then show a vscode.window.showErrorMessage with 'MCP timed out — reconnecting…'. Always re-throw so the calling command's catch can exit cleanly.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 3 — Wire handleMcpError into the catch blocks of: doStep, refine (design + idea + plan), chatReply, generate (design, plan, global ctx), closePlan, startPlan, completeStep. These are the commands that make AI-bound MCP tool calls and are most likely to time out.
+### Step 3 — Wire handleMcpError into the catch blocks of: doStep, refine (design + idea + plan), chatReply, generate (design, plan, global ctx), closePlan, startPlan, completeStep. These are the commands that make AI-bound MCP tool calls and are most likely to time out.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 4 — Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears.
+### Step 4 — Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

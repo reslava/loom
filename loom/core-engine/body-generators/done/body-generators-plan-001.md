@@ -12,7 +12,7 @@ requires_load: [de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W]
 target_version: 0.4.0
 ---
 
-# Plan — Implement Document Body Generators
+# Implement Document Body Generators
 
 | | |
 |---|---|

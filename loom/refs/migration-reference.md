@@ -11,7 +11,7 @@ requires_load: []
 slug: migration-reference
 ---
 
-# Docs Migration Reference — Thread Assignment
+# docs — Migration Reference — Thread Assignment
 
 ## How to use
 

@@ -12,7 +12,7 @@ parent_id: de_01KR1QJJS01WWY5KWEAZ1X0GFB
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Surface blocked steps per-plan
+# Surface blocked steps per-plan
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Compute per-plan blocked-step counts in the tree provider, surface them as description suffixes, and adjust contextValue so the DoStep button is suppressed when all pending steps are blocked.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -39,37 +39,37 @@ Compute per-plan blocked-step counts in the tree provider, surface them as descr
 | ✅ | 5 | Build and smoke-test: run build-all.sh, verify a plan with a blockedBy dependency shows the blocked suffix, DoStep is hidden/disabled when all pending steps are blocked, and normal plans are unaffected. | — | — |
 ---
 
-## Step 1 — Import isStepBlocked from @reslava-loom/core/dist/planUtils in treeProvider.ts.
+### Step 1 — Import isStepBlocked from @reslava-loom/core/dist/planUtils in treeProvider.ts.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 2 — Compute blockedCount in createPlanNode: filter plan.steps for !done steps, call isStepBlocked(s, plan, this.state!.index) for each, count results.
+### Step 2 — Compute blockedCount in createPlanNode: filter plan.steps for !done steps, call isStepBlocked(s, plan, this.state!.index) for each, count results.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 3 — Update description logic in createPlanNode: when blockedCount > 0 and all pending steps are blocked show '{progress} · {blockedCount} blocked 🚫'; when some but not all are blocked show next unblocked step with '({blockedCount} blocked)' suffix.
+### Step 3 — Update description logic in createPlanNode: when blockedCount > 0 and all pending steps are blocked show '{progress} · {blockedCount} blocked 🚫'; when some but not all are blocked show next unblocked step with '({blockedCount} blocked)' suffix.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 4 — Adjust contextValue: introduce plan-implementing-blocked when all pending steps are blocked; keep plan-implementing-doable only when at least one unblocked pending step exists. Update package.json when clauses if the DoStep button needs suppressing for plan-implementing-blocked.
+### Step 4 — Adjust contextValue: introduce plan-implementing-blocked when all pending steps are blocked; keep plan-implementing-doable only when at least one unblocked pending step exists. Update package.json when clauses if the DoStep button needs suppressing for plan-implementing-blocked.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 5 — Build and smoke-test: run build-all.sh, verify a plan with a blockedBy dependency shows the blocked suffix, DoStep is hidden/disabled when all pending steps are blocked, and normal plans are unaffected.
+### Step 5 — Build and smoke-test: run build-all.sh, verify a plan with a blockedBy dependency shows the blocked suffix, DoStep is hidden/disabled when all pending steps are blocked, and normal plans are unaffected.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

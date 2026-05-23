@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Next2 Chat
 
 ## Rafa:
 since I started the project there are so many docs and becuase it has been a manual work and evolve many times, now there is confusing what's next setp

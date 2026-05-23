@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM, de_01KQYDFDDE0PPQX6WSKFF5XBQB, de
 target_version: 0.5.0
 ---
 
-# Plan — VS Code Extension (Loom Visual Layer)
+# VS Code Extension — Loom Visual Layer
 
 | | |
 |---|---|

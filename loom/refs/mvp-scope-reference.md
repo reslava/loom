@@ -11,7 +11,7 @@ requires_load: []
 slug: mvp-scope-reference
 ---
 
-# Loom MVP — Scope and Boundaries
+# mcp — Scope and Boundaries
 
 This is the canonical "what's in MVP, what isn't" reference. Plans that ship before MVP cite this via `requires_load: [mvp-scope]`. Archives with the MVP weave once Loom 1.0 ships.
 

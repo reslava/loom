@@ -9,6 +9,8 @@ tags: []
 parent_id: pl_01KRTM2Z2BQWKE3YQFXCH1SFSR
 requires_load: []
 ---
+# Done — Add Claude as default AI provider
+
 ## Step 1 — Create packages/vscode/src/ai/anthropicClient.ts — implement AnthropicClient class using raw fetch against https://api.anthropic.com/v1/messages endpoint, extract system message to top-level field, return first content text
 
 Created new AnthropicClient class in `packages/vscode/src/ai/anthropicClient.ts`. Implements AIClient interface using raw fetch pattern (no SDK dependency). Extracts system message to top-level field per Anthropic API requirements, uses `anthropic-version: 2023-06-01` header, and max_tokens: 8192."

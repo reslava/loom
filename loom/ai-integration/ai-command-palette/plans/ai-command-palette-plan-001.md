@@ -21,7 +21,7 @@ rename `promoteIdea` → `promoteToIdea`, add `promoteToDesign`, `promoteToPlan`
 `refineIdea`, `refinePlan`, and wire `summarize` to the AI client.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -36,7 +36,7 @@ rename `promoteIdea` → `promoteToIdea`, add `promoteToDesign`, `promoteToPlan`
 | ✅ | 9 | `loom.refinePlan` command + menu entry | `vscode/src/commands/refinePlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 8 |
 | ✅ | 10 | Wire `summarise` to `aiClient` — replace template stub with AI-generated ctx | `app/src/summarise.ts`, `vscode/src/commands/summarise.ts` | — |
 | ✅ | 11 | Build + smoke test full command palette | `scripts/build-all.sh` | 1–10 |
-## Notes
+### Notes
 
 - Step 1: rename is purely mechanical — no logic changes, just identifiers and filenames.
 - Steps 2–5: same pattern as `promoteToIdea`. System prompt differs: ask for design sections (Goal / Context / Decisions) or plan steps table.

@@ -11,7 +11,7 @@ parent_id: id_01KQYDFDDB0AHWHNW6GTHKMR7P
 requires_load: []
 ---
 
-# Unify ctx filenames to plain `ctx.md` — Design
+# Unify ctx filenames to plain ctx.md
 
 ## Goal
 

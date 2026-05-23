@@ -10,7 +10,7 @@ parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: []
 ---
 
-# Plan — Fix linkRepository.ts (threads → weaves)
+# Fix linkRepository.ts — threads → weaves directory
 
 | | |
 |---|---|

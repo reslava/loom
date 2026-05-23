@@ -12,7 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Install & extension post-install fixes
+# Install & extension post-install fixes
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Fix issues found during first real install test in j:/temp_mvp: install output correctness (ctx filename, .mcp.json path, settings.json) and VS Code extension UX bugs (new weave entry point, right-click context, promote flow, Weave Idea title fallback).
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -41,49 +41,49 @@ Fix issues found during first real install test in j:/temp_mvp: install output c
 | ✅ | 7 | B4 — Weave Idea title fallback: if user leaves title empty, fall back to default {thread}-idea title instead of silently not creating the doc | — | — |
 ---
 
-## Step 1 — A1 — Rename installed ctx file: change installWorkspace.ts to write ctx.md (not loom-ctx.md); make it a minimal project-agnostic template with no Loom-specific content
+### Step 1 — A1 — Rename installed ctx file: change installWorkspace.ts to write ctx.md (not loom-ctx.md); make it a minimal project-agnostic template with no Loom-specific content
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 2 — A2 — Fix .mcp.json LOOM_ROOT path: resolve the real absolute workspace path at install time and write it in forward-slash format (j:/path/path)
+### Step 2 — A2 — Fix .mcp.json LOOM_ROOT path: resolve the real absolute workspace path at install time and write it in forward-slash format (j:/path/path)
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 3 — A3 — Install settings.json: add a write step in installWorkspace.ts to create .loom/settings.json with {"user.name": "User:", "ai.model": "AI:"}
+### Step 3 — A3 — Install settings.json: add a write step in installWorkspace.ts to create .loom/settings.json with {"user.name": "User:", "ai.model": "AI:"}
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 4 — B1 — Promote from chat with weave/thread creation: from global chat prompt for weave (create if missing) then thread (create if missing); from weave chat prompt for thread only
+### Step 4 — B1 — Promote from chat with weave/thread creation: from global chat prompt for weave (create if missing) then thread (create if missing); from weave chat prompt for thread only
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 5 — B2 — New Weave always available: add New Weave as a persistent right-click option and/or toolbar button so a fresh install has an entry point to create the first weave
+### Step 5 — B2 — New Weave always available: add New Weave as a persistent right-click option and/or toolbar button so a fresh install has an entry point to create the first weave
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 6 — B3 — Right-click targets clicked node: fix right-click handler to use the node that was right-clicked, not the current tree selection
+### Step 6 — B3 — Right-click targets clicked node: fix right-click handler to use the node that was right-clicked, not the current tree selection
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 7 — B4 — Weave Idea title fallback: if user leaves title empty, fall back to default {thread}-idea title instead of silently not creating the doc
+### Step 7 — B4 — Weave Idea title fallback: if user leaves title empty, fall back to default {thread}-idea title instead of silently not creating the doc
 
 <!-- Detailed spec. -->
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

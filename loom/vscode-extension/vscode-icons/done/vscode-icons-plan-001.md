@@ -11,7 +11,7 @@ requires_load: [de_01KQYDFDDEC8J06R4624YH86QZ]
 target_version: 0.6.0
 ---
 
-# Plan — Create Custom SVG Icons for VS Code Extension
+# Create Custom SVG Icons for VS Code Extension
 
 | | |
 |---|---|

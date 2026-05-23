@@ -11,7 +11,7 @@ slug: architecture-reference
 load_when: [design, plan]
 ---
 
-# Loom — Architecture Reference
+# loom — Architecture
 
 ## 1. Package Relationships (Stage 2)
 

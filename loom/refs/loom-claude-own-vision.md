@@ -11,7 +11,7 @@ load: by-request
 load_when: [idea, design]
 ---
 
-# Loom — Claude's Own Vision
+# loom — Claude's Own Vision
 
 *Written by Claude Code (claude-sonnet-4-6), April 2026.*
 *Rafa asked me to write this honestly — not as a summary of the design docs, but as my own perspective.*

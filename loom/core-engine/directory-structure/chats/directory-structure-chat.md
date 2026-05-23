@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Directory Structure Chat
 
 ## Rafa:
 

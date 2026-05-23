@@ -189,22 +189,20 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 const refsChats = refsWeave.chats ?? [];
                 const refsFromWeave = [...refsWeave.looseFibers, ...(refsWeave.refDocs ?? [])];
                 const allGlobalRefs = [...globalRefDocs, ...refsFromWeave];
-                if (refsChats.length > 0 || allGlobalRefs.length > 0) {
-                    const refsChildren: TreeNode[] = [];
-                    refsChildren.push(this.createChatsSection(
-                        refsChats.map(c => this.createChatNode(c, 'refs')),
-                        'refs'
-                    ));
-                    refsChildren.push(
-                        ...[...allGlobalRefs]
-                            .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
-                            .map(d => this.createDocumentNode(d, 'reference', 'refs'))
-                    );
-                    const refsNode = new vscode.TreeItem('Refs', vscode.TreeItemCollapsibleState.Collapsed);
-                    refsNode.contextValue = 'refs-section';
-                    refsNode.iconPath = new vscode.ThemeIcon('library');
-                    nodes.push({ ...refsNode, weaveId: 'refs', children: refsChildren });
-                }
+                const refsChildren: TreeNode[] = [];
+                refsChildren.push(this.createChatsSection(
+                    refsChats.map(c => this.createChatNode(c, 'refs')),
+                    'refs'
+                ));
+                refsChildren.push(
+                    ...[...allGlobalRefs]
+                        .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+                        .map(d => this.createDocumentNode(d, 'reference', 'refs'))
+                );
+                const refsNode = new vscode.TreeItem('Refs', vscode.TreeItemCollapsibleState.Collapsed);
+                refsNode.contextValue = 'refs-section';
+                refsNode.iconPath = new vscode.ThemeIcon('library');
+                nodes.push({ ...refsNode, weaveId: 'refs', children: refsChildren });
             } else if (globalRefDocs.length > 0) {
                 nodes.push(this.createRefsSection(globalRefDocs));
             }

@@ -10,7 +10,7 @@ requires_load: []
 slug: mcp-reference
 ---
 
-# REslava Loom MCP Reference
+# mcp
 
 ## How MCP works
 

@@ -59,8 +59,8 @@ async function testDoStep() {
         assert(fsNative.existsSync(result.chatPath), 'chat file must exist');
 
         const content = fsNative.readFileSync(result.chatPath, 'utf8');
-        assert(content.includes('# CHAT'), 'chat doc must have # CHAT header');
-        assert(content.includes('## Rafa:'), 'chat doc must have ## Rafa: section');
+        assert(/^# .+/m.test(content), 'chat doc must have an H1 title (synced from frontmatter)');
+        assert(content.includes('## User:'), 'chat doc must have user (## User:) section');
         assert(content.includes('## AI:'), 'chat doc must have ## AI: section');
         assert(content.includes(AI_BODY), 'AI response must appear in chat doc');
         assert(content.includes('Step 1'), 'step reference must appear in user section');

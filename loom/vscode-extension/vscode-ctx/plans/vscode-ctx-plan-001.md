@@ -12,7 +12,7 @@ parent_id: de_01KQZ2HGVC1W2V48A6RMCT3FA5
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Context Sidebar — Implementation Plan
+# Context Sidebar — Implementation Plan
 
 | | |
 |---|---|
@@ -23,11 +23,11 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Implement the context sidebar in the VS Code extension: a panel below the tree that shows and controls which docs will be injected into the next MCP tool call via `context_ids`.
 
 ---
 
-# Steps
+## Steps
 

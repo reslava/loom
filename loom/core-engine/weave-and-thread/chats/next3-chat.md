@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Next3 Chat
 
 ## Rafa:
 - Briefly: what is your honest & sincere opinion about loom? useful? will developers adopt it?

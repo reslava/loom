@@ -84,7 +84,7 @@ export async function doStep(
     const title = `${plan.title} — ${stepLabel}`;
 
     const userContent = `Implement ${stepLabel} of plan \`${input.planId}\`:\n\n${stepLines}`;
-    const chatContent = `# CHAT\n\n## ${getUserName(deps.loomRoot)}\n${userContent}\n\n## ${getAiName(deps.loomRoot)}\n${aiResponse.trim()}\n`;
+    const chatContent = `## ${getUserName(deps.loomRoot)}\n${userContent}\n\n## ${getAiName(deps.loomRoot)}\n${aiResponse.trim()}\n`;
 
     const frontmatter = createBaseFrontmatter('chat', chatId, title, input.planId);
     const doc: ChatDoc = {

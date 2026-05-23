@@ -11,7 +11,7 @@ requires_load: []
 slug: fs-extra-esm-reference
 ---
 
-# fs-extra ESM Import Behaviour in ts-node Tests
+# tests — fs-extra ESM Import Behaviour in ts-node Tests
 
 ## Rule
 

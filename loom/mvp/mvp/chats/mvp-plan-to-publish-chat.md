@@ -10,7 +10,7 @@ tags: []
 parent_id: vscode-extension-fixes-tweaks-chat.md
 requires_load: []
 ---
-# CHAT
+# MVP plan to publish
 
 ## Rafa:
 

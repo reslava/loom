@@ -12,7 +12,7 @@ requires_load: []
 slug: plan-steps-table-and-blockedby-format
 description: Canonical format for plan Steps tables and BlockedBy column entries. Load this when creating or editing plans.
 ---
-# Plan Steps Table and BlockedBy Format
+# loom — Plan Steps Table and BlockedBy Format
 
 Canonical reference for the Steps table format used in all Loom plan documents.
 Load this via `requires_load` when creating or editing plans.

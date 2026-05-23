@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Next4 Chat
 
 ## Rafa:
 test-vscode.sh - all 7 passed OK

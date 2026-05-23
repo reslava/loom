@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Mcp Test 2 Chat
 
 # Rafa:
 

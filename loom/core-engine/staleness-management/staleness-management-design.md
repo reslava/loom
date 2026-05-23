@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDDCKTVHTZZE0NTS504V
 requires_load: []
 ---
-# Staleness Management — Design
+# Staleness Management
 
 ## Goal
 

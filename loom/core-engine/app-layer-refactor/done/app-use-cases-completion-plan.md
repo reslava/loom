@@ -11,7 +11,7 @@ requires_load: [de_01KQYDFDDA1XV31SK6N64VS0ST]
 target_version: 0.5.0
 ---
 
-# Plan — Complete Application Layer Use‑Cases and Thin CLI Wrappers
+# Complete Application Layer Use‑Cases and Thin CLI Wrappers
 
 | | |
 |---|---|

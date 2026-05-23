@@ -12,7 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Wire steps array through loom_create_plan
+# Wire steps array through loom_create_plan
 
 | | |
 |---|---|
@@ -22,7 +22,7 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Add `steps?: string[]` parameter all the way from `loom_create_plan` tool → `weavePlan()` app function → `generatePlanBody()` core generator, so that a single `loom_create_plan` call produces a plan doc with both the steps table and the detailed step sections populated from the same source array. Eliminates the follow-up `loom_update_doc` pattern that dropped the table.
 
@@ -30,7 +30,7 @@ Also fixed `findDocumentById` and `gatherAllDocumentIds` in `packages/fs/src/uti
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -41,7 +41,7 @@ Also fixed `findDocumentById` and `gatherAllDocumentIds` in `packages/fs/src/uti
 | ✅ | 4 | Build all packages and verify | `packages/core`, `packages/app`, `packages/mcp`, `packages/vscode` | 3 |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

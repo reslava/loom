@@ -11,7 +11,7 @@ parent_id: null
 requires_load: [vision, workflow]
 load: always
 ---
-# Loom — Global Context
+# loom — Global Context
 
 **This is the global ctx doc. Read at the start of every session.** It bundles the
 three views you need to operate Loom: what it is (concept), how it's built

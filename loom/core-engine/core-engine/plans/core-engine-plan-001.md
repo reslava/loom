@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.1.0
 ---
 
-# Plan — Core Engine Types and Reducers
+# Core Engine Implementation — Types and Reducers
 
 | | |
 |---|---|
@@ -25,7 +25,7 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Implement the minimal core engine for the document-driven REslava Loom system:
 - document types
@@ -37,7 +37,7 @@ This establishes the foundation for filesystem integration and future CLI/VSIX c
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -49,7 +49,7 @@ This establishes the foundation for filesystem integration and future CLI/VSIX c
 | ✅ | 6 | Basic tests / usage example | `packages/core/test/` | — |
 ---
 
-## Step 1 — Define TypeScript Core Types
+### Step 1 — Define TypeScript Core Types
 
 **File:** `packages/core/src/types.ts`
 
@@ -132,7 +132,7 @@ export type ThreadPhase = 'ideating' | 'designing' | 'planning' | 'implementing'
 
 ---
 
-## Step 2 — Implement Design Reducer
+### Step 2 — Implement Design Reducer
 
 **File:** `packages/core/src/designReducer.ts`
 
@@ -197,7 +197,7 @@ export function designReducer(doc: DesignDoc, event: DesignEvent): DesignDoc {
 
 ---
 
-## Step 3 — Implement Plan Reducer
+### Step 3 — Implement Plan Reducer
 
 **File:** `packages/core/src/planReducer.ts`
 
@@ -270,7 +270,7 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
 
 ---
 
-## Step 4 — Implement `applyEvent` Orchestrator
+### Step 4 — Implement `applyEvent` Orchestrator
 
 **File:** `packages/core/src/applyEvent.ts`
 
@@ -314,7 +314,7 @@ export function applyEvent(thread: Thread, event: WorkflowEvent): Thread {
 
 ---
 
-## Step 5 — Implement Derived State Functions
+### Step 5 — Implement Derived State Functions
 
 **File:** `packages/core/src/derived.ts`
 
@@ -361,7 +361,7 @@ export function isPlanStale(plan: any, design: any): boolean {
 
 ---
 
-## Step 6 — Basic Tests / Usage Example
+### Step 6 — Basic Tests / Usage Example
 
 **File:** `packages/core/test/applyEvent.test.ts`
 
@@ -392,7 +392,7 @@ describe('applyEvent', () => {
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

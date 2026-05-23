@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Loom Setup
 
 ## Rafa:
 I need your help for this Loom project.

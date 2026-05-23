@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.3.0
 ---
 
-# Plan — CLI Interface (The `loom` Command)
+# CLI Interface — The `loom` Command
 
 | | |
 |---|---|
@@ -25,7 +25,7 @@ target_version: 0.3.0
 
 ---
 
-# Goal
+## Goal
 
 Provide a command‑line interface (`loom`) to interact with the REslava Loom workflow system. This enables developers to view thread status, trigger workflow events, and manage their looms before the VS Code extension is complete.
 
@@ -33,7 +33,7 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -48,7 +48,7 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 | ✅ | 9 | Test CLI with real looms | `looms/test/` | — |
 ---
 
-## Step 1 — Setup CLI Project Structure with `commander`
+### Step 1 — Setup CLI Project Structure with `commander`
 
 **File:** `packages/cli/package.json`
 
@@ -132,13 +132,13 @@ program.parse(process.argv);
 
 ---
 
-## Step 2 — Implement `loom status` Command (Enhanced with Dependency Visibility)
+### Step 2 — Implement `loom status` Command (Enhanced with Dependency Visibility)
 
 **File:** `packages/cli/src/commands/status.ts`
 
 The `loom status` command displays derived state for a thread or all threads. It now actively parses plan steps and evaluates the "Blocked by" column to surface dependencies and suggest the next actionable step.
 
-### 2.1 Core Types for Step Parsing
+#### 2.1 Core Types for Step Parsing
 
 ```typescript
 interface StepStatus {
@@ -155,7 +155,7 @@ interface PlanStepDisplay extends StepStatus {
 }
 ```
 
-### 2.2 Parsing the Steps Table from Markdown
+#### 2.2 Parsing the Steps Table from Markdown
 
 ```typescript
 function parseStepsFromPlan(plan: PlanDoc): StepStatus[] {
@@ -189,7 +189,7 @@ function parseStepsFromPlan(plan: PlanDoc): StepStatus[] {
 }
 ```
 
-### 2.3 Evaluating Blocked Status
+#### 2.3 Evaluating Blocked Status
 
 ```typescript
 function evaluateBlocked(
@@ -221,7 +221,7 @@ function evaluateBlocked(
 }
 ```
 
-### 2.4 Displaying Steps with Dependency Information
+#### 2.4 Displaying Steps with Dependency Information
 
 ```typescript
 function displayPlanSteps(plan: PlanDoc, allPlans: PlanDoc[]): void {
@@ -266,7 +266,7 @@ function displayPlanSteps(plan: PlanDoc, allPlans: PlanDoc[]): void {
 }
 ```
 
-### 2.5 Cross-Plan Dependency Summary
+#### 2.5 Cross-Plan Dependency Summary
 
 ```typescript
 function displayCrossPlanDependencies(thread: Thread): void {
@@ -289,7 +289,7 @@ function displayCrossPlanDependencies(thread: Thread): void {
 }
 ```
 
-### 2.6 Integration into `statusCommand`
+#### 2.6 Integration into `statusCommand`
 
 ```typescript
 export async function statusCommand(threadId?: string, options?: any): Promise<void> {
@@ -324,7 +324,7 @@ export async function statusCommand(threadId?: string, options?: any): Promise<v
 }
 ```
 
-### 2.7 Testing the Enhanced Status
+#### 2.7 Testing the Enhanced Status
 
 **Manual Test Cases:**
 
@@ -334,7 +334,7 @@ export async function statusCommand(threadId?: string, options?: any): Promise<v
 4. **All steps done:** Suggests finishing the plan.
 5. **All remaining blocked:** Shows summary of blockers.
 
-### 2.8 Future Enhancements (Post-MVP)
+#### 2.8 Future Enhancements (Post-MVP)
 
 - VS Code tree view icons for blocked steps (🔒).
 - `loom unblocked` command to list all actionable steps across threads.
@@ -342,7 +342,7 @@ export async function statusCommand(threadId?: string, options?: any): Promise<v
 
 ---
 
-## Step 3 — Implement `loom validate` Command
+### Step 3 — Implement `loom validate` Command
 
 **File:** `packages/cli/src/commands/validate.ts`
 
@@ -412,7 +412,7 @@ export async function validateCommand(threadId?: string, options?: any): Promise
 
 ---
 
-## Step 4 — Implement `loom refine-design` Command
+### Step 4 — Implement `loom refine-design` Command
 
 **File:** `packages/cli/src/commands/refine.ts`
 
@@ -428,7 +428,7 @@ export async function refineCommand(threadId: string): Promise<void> {
 
 ---
 
-## Step 5 — Implement `loom start-plan` Command
+### Step 5 — Implement `loom start-plan` Command
 
 **File:** `packages/cli/src/commands/startPlan.ts`
 
@@ -445,7 +445,7 @@ export async function startPlanCommand(planId: string): Promise<void> {
 
 ---
 
-## Step 6 — Implement `loom complete-step` Command
+### Step 6 — Implement `loom complete-step` Command
 
 **File:** `packages/cli/src/commands/completeStep.ts`
 
@@ -467,7 +467,7 @@ export async function completeStepCommand(planId: string, options: any): Promise
 
 ---
 
-## Step 7 — Implement `loom summarise-context` Command
+### Step 7 — Implement `loom summarise-context` Command
 
 **File:** `packages/cli/src/commands/summarise.ts`
 
@@ -533,7 +533,7 @@ function extractQuestions(content: string): string {
 
 ---
 
-## Step 8 — Wire All Commands into Main CLI Entry Point
+### Step 8 — Wire All Commands into Main CLI Entry Point
 
 **File:** `packages/cli/src/index.ts`
 
@@ -541,7 +541,7 @@ function extractQuestions(content: string): string {
 
 ---
 
-## Step 9 — Test CLI with Real Looms
+### Step 9 — Test CLI with Real Looms
 
 **Manual Test Plan:**
 
@@ -574,7 +574,7 @@ function extractQuestions(content: string): string {
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

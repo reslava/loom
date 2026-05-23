@@ -43,7 +43,7 @@ export async function chatNew(
         ...frontmatter,
         type: 'chat',
         status: 'active',
-        content: `# CHAT\n\n## ${getUserName(deps.loomRoot)}\n`,
+        content: `## ${getUserName(deps.loomRoot)}\n`,
     };
 
     const filePath = path.join(chatsDir, `${chatFilename}.md`);

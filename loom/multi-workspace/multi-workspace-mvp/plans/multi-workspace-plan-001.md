@@ -13,7 +13,7 @@ requires_load: [de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.2.0
 ---
 
-# Plan — Implement Minimal Multi-Loom Workspace Support
+# Implement Minimal Multi-Loom Workspace Support
 
 | | |
 |---|---|

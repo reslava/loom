@@ -12,7 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — vsix body-builder fixes
+# vsix body-builder fixes
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Remove `# Title` headers from all doc body generators (frontmatter title is the only source of truth) and ensure exactly one blank line between the frontmatter `---` close and the first body line.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -37,7 +37,7 @@ Remove `# Title` headers from all doc body generators (frontmatter title is the 
 | ✅ | 3 | Build all packages with `./scripts/build-all.sh` and verify new docs (idea, design, plan, ctx, done) have no title heading and have one blank line after frontmatter | — | — |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

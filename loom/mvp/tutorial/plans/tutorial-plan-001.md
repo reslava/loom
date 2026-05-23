@@ -27,7 +27,7 @@ Install → Idea → Design → Plan → Implement → Done
 
 The GIF captures the VS Code tree view updating live through each stage.
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -36,7 +36,7 @@ The GIF captures the VS Code tree view updating live through each stage.
 | 🔳 | 3 | Record GIF — screen capture the VS Code window during the validated flow. Target: under 45 seconds, 1280×720, shows tree view + terminal side by side | GIF file (to be stored in `docs/` or linked from CDN) | 2 |
 | 🔳 | 4 | Write `README.md` tutorial section — install command, embed GIF, five-stage walkthrough (one sentence per stage), under 200 words total | `README.md` | 1, 2, 3 |
 | 🔳 | 5 | Review: confirm the tutorial matches the actual UX after plan-008 and vscode-tests-plan-001 polish is applied | `README.md` | 4, vscode-extension-plan-008, vscode-tests-plan-001 |
-## Notes
+### Notes
 
 - Tutorial must be finalized **after** the extension UX is locked. Do not write it before
   plan-008 and any other VS Code polish are done — the GIF will be wrong.

@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Document, serializeFrontmatter, updateStepsTableInContent } from '../../../core/dist';
+import { Document, serializeFrontmatter, updateStepsTableInContent, syncBodyH1 } from '../../../core/dist';
 
 export class FileWriteError extends Error {
   constructor(public filePath: string, originalError: Error) {
@@ -23,6 +23,9 @@ export async function saveDoc(doc: Document, filePath: string): Promise<void> {
   let bodyContent = content;
   if (doc.type === 'plan' && steps) {
     bodyContent = updateStepsTableInContent(content, steps);
+  }
+  if (frontmatter.title) {
+    bodyContent = syncBodyH1(bodyContent ?? '', frontmatter.title);
   }
 
   // Serialize frontmatter using the canonical serializer

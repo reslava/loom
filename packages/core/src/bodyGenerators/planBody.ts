@@ -17,10 +17,10 @@ export function generatePlanBody(title: string, goal?: string, steps?: string[])
 
 ---
 
-# Goal
+## Goal
 ${goalSection}---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@ ${tableRows}
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

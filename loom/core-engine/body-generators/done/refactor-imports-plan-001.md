@@ -12,7 +12,7 @@ requires_load: []
 target_version: 0.5.0
 ---
 
-# Plan — Update Client Imports to Use Domain Modules Directly
+# Update Client Imports to Use Domain Modules Directly
 
 | | |
 |---|---|

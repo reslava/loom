@@ -17,7 +17,7 @@ requires_load: [migration-reference]
 Prepare all `weaves/` docs for the thread migration (Phase 7/8 of `weave-and-thread-plan-001`).
 All decisions resolved in `migration-reference.md`. Execute in order: delete/archive → move → frontmatter fixes → parent_id chain fixes → structural changes.
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -25,7 +25,7 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 | ✅ | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model |
 | ✅ | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions |
 | ✅ | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy |
-### Pass 2 — Move Misplaced Files
+#### Pass 2 — Move Misplaced Files
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
@@ -35,7 +35,7 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 | ✅ | 8 | Move `canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md` → `core-engine/canonical-frontmatter-serializer/canonical-frontmatter-serializer-idea.md`; delete `canonical-frontmatter-serializer/` weave | 1 file + dir | Thread in core-engine |
 | ✅ | 9 | Move `tests/references/fs-extra-esm-reference.md` → `core-engine/references/fs-extra-esm-reference.md`; delete `tests/` weave | 1 file + dir | Single-file weave absorbed into core-engine |
 
-### Pass 3 — Frontmatter Fixes
+#### Pass 3 — Frontmatter Fixes
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
@@ -47,7 +47,7 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 | ✅ | 15 | Remove stale `child_ids` pointing to non-existent template files: `workflow-app-version-design` → `[]`, `workflow-user-personalization-design` → `[]` | 2 files in `workflow/` | `design-template.md`, `AI_INTEGRATION.md` don't exist |
 | ✅ | 16 | Remove `updated` non-canonical field from `workflow-feature-model-design.md` (v2, now moved to workflow/) — done in Pass 2 step 5 | `workflow/workflow-feature-model-design.md` | Not in canonical schema |
 
-### Pass 4 — parent_id / child_ids Chain Fixes
+#### Pass 4 — parent_id / child_ids Chain Fixes
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
@@ -59,14 +59,14 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 | ✅ | 22 | Fix `workflow-feature-model-design` parent_id: `workflow-design` → `workflow-design-v2` (correct id) — done in Pass 2 step 5 | `workflow/workflow-feature-model-design.md` | Broken ref fixed |
 | ✅ | 23 | Update child_ids in designs where plans were added or threads changed (audit: core-engine-design, vscode-extension-design, ai-integration-design) | ~3 files | Ensure child_ids lists are consistent with actual plan files |
 
-### Pass 5 — Verify
+#### Pass 5 — Verify
 
 | Done | # | Step | Files touched | Notes |
 |------|---|------|---------------|-------|
 | ✅ | 24 | Run `loom status` (or `loadWeave`) against each weave; all must load without errors | all weaves | All 6 weaves ACTIVE; chat files skipped as expected |
 | ✅ | 25 | Confirm `weaves/` has no stale references in `requires_load` pointing to moved files | all weaves | Fixed 3 stale refs: weave-and-thread-design (anchor-free), vscode-tests-plan-001 (tests/ path), multi-workspace-mvp-design (archived v1) |
 
-## Outcome
+### Outcome
 
 After this plan:
 - No duplicate files; no misplaced docs

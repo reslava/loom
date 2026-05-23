@@ -10,7 +10,7 @@ parent_id: de_01KQYDFDDA1XV31SK6N64VS0ST
 requires_load: [de_01KQYDFDDA1XV31SK6N64VS0ST]
 ---
 
-# Feature — Refactor Architecture to Introduce Application Layer
+# Refactor Architecture to Introduce Application Layer
 
 | | |
 |---|---|
@@ -21,13 +21,13 @@ requires_load: [de_01KQYDFDDA1XV31SK6N64VS0ST]
 
 ---
 
-# Goal
+## Goal
 
 Introduce an explicit Application Layer (`app/`) to centralize orchestration logic, enforce clean separation of concerns, and improve maintainability without altering existing behavior.
 
 ---
 
-# Steps
+## Steps
 
 | # | Done | Step | Files touched |
 |---|---|---|---|
@@ -42,7 +42,7 @@ Introduce an explicit Application Layer (`app/`) to centralize orchestration log
 
 ---
 
-## Step 1 — Create app package structure
+### Step 1 — Create app package structure
 
 Create a new package:
 
@@ -58,15 +58,15 @@ No logic is moved at this stage.
 
 ---
 
-## Step 2 — Extract first use-case (completeStep)
+### Step 2 — Extract first use-case (completeStep)
 
 Select `completeStep` as the pilot use-case.
 
-### Actions:
+#### Actions:
 - Create `app/completeStep.ts`
 - Move orchestration logic from CLI into this file
 
-### Target structure:
+#### Target structure:
 
 ```ts
 export async function completeStep(input, deps) {
@@ -83,19 +83,19 @@ export async function completeStep(input, deps) {
 }
 ```
 
-### CLI adjustment:
+#### CLI adjustment:
 - Replace inline logic with call to use-case
 - Inject dependencies from `fs`
 
 ---
 
-## Step 3 — Refactor fs orchestration leakage
+### Step 3 — Refactor fs orchestration leakage
 
 Audit:
 - `runEvent.ts`
 - `saveThread.ts`
 
-### Actions:
+#### Actions:
 - Identify orchestration logic (multi-step flows)
 - Move orchestration into `app/`
 - Keep `fs/` limited to:
@@ -103,12 +103,12 @@ Audit:
   - serialization
   - indexing
 
-### Outcome:
+#### Outcome:
 `fs/` becomes a pure infrastructure adapter layer.
 
 ---
 
-## Step 4 — Migrate remaining CLI commands to app layer
+### Step 4 — Migrate remaining CLI commands to app layer
 
 For each command:
 
@@ -121,19 +121,19 @@ For each command:
 - `summarise`
 - etc.
 
-### Actions:
+#### Actions:
 - Create corresponding use-case in `app/`
 - Move orchestration logic
 - Replace CLI logic with delegation
 
-### Rule:
+#### Rule:
 CLI must not:
 - call `applyEvent` directly
 - coordinate multiple steps
 
 ---
 
-## Step 5 — Normalize fs into repositories/adapters
+### Step 5 — Normalize fs into repositories/adapters
 
 Refactor `fs/` structure:
 
@@ -148,29 +148,29 @@ fs/
     loadThread.ts
 ```
 
-### Actions:
+#### Actions:
 - Consolidate load/save into repository-like modules
 - Isolate frontmatter logic
 - Remove cross-module coupling
 
 ---
 
-## Step 6 — Enforce core purity constraints
+### Step 6 — Enforce core purity constraints
 
 Audit all files in `core/`.
 
-### Ensure:
+#### Ensure:
 - no imports from `fs` or `cli`
 - no side effects
 - no hidden state
 - deterministic outputs
 
-### Optional:
+#### Optional:
 - remove async where unnecessary
 
 ---
 
-## Step 7 — Add dependency injection patterns
+### Step 7 — Add dependency injection patterns
 
 Standardize use-case signatures:
 
@@ -178,16 +178,16 @@ Standardize use-case signatures:
 (input, deps)
 ```
 
-### Actions:
+#### Actions:
 - Define consistent dependency shapes
 - Avoid direct imports of infrastructure
 - Enable mocking for tests
 
 ---
 
-## Step 8 — Validate behavior parity and regressions
+### Step 8 — Validate behavior parity and regressions
 
-### Actions:
+#### Actions:
 - Run CLI commands before/after refactor
 - Compare outputs (files, logs)
 - Validate no regression in:
@@ -195,12 +195,12 @@ Standardize use-case signatures:
   - design state
   - frontmatter integrity
 
-### Optional:
+#### Optional:
 - Add snapshot tests for key flows
 
 ---
 
-# Notes
+## Notes
 
 - Refactor should be incremental; avoid large-bang rewrite
 - Each step must leave the system in a runnable state
@@ -208,6 +208,6 @@ Standardize use-case signatures:
 
 ---
 
-# Status
+## Status
 
 Ready for implementation.

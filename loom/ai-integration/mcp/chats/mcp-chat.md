@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Mcp Chat
 
 ## Rafa:
 I am realizing something very important

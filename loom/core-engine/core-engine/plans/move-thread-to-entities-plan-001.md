@@ -11,7 +11,7 @@ requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.5.0
 ---
 
-# Plan — Move Thread and Derived Types to `entities/thread.ts`
+# Move Thread and Derived Types to entities/thread.ts
 
 | | |
 |---|---|
@@ -28,7 +28,7 @@ Complete domain restructuring by moving `Thread`, `ThreadStatus`, and `ThreadPha
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|

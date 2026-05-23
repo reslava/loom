@@ -18,7 +18,7 @@ requires_load: [de_01KQYDFDD9PRVJT4JBAQ0JHRG6]
 Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's document graph to any MCP-compatible AI agent (Claude Code, Cursor). Replaces the standalone AI API layer entirely; all AI generation goes through MCP sampling or the host agent directly.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -29,7 +29,7 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 | ✅ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 |
 ---
 
-## Phase 2 — State & diagnostics resources
+### Phase 2 — State & diagnostics resources
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -46,7 +46,7 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 ---
 
-## Phase 3 — Document reading resources
+### Phase 3 — Document reading resources
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -61,7 +61,7 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 ---
 
-## Phase 4 — Document authoring tools
+### Phase 4 — Document authoring tools
 
 Each tool delegates to the corresponding existing `packages/app/` use case. The MCP layer is thin — validate args, call the use case, return the result.
 
@@ -81,7 +81,7 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 ---
 
-## Phase 5 — Workflow transition tools
+### Phase 5 — Workflow transition tools
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -99,7 +99,7 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 ---
 
-## Phase 6 — Search & query tools
+### Phase 6 — Search & query tools
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -112,7 +112,7 @@ Each tool delegates to the corresponding existing `packages/app/` use case. The 
 
 ---
 
-## Phase 7 — Prompts
+### Phase 7 — Prompts
 
 Prompts are registered via `server.prompt(name, handler)`. Each handler loads required context from Loom state/resources and returns an array of `{ role, content }` messages the agent uses as context.
 
@@ -127,7 +127,7 @@ Prompts are registered via `server.prompt(name, handler)`. Each handler loads re
 
 ---
 
-## Phase 8 — Sampling (VS Code AI buttons)
+### Phase 8 — Sampling (VS Code AI buttons)
 
 Sampling lets the MCP server request the host agent to run an LLM inference. This powers the VS Code "Weave Idea", "Weave Design", "Weave Plan", "AI Reply" buttons without a separate API key.
 
@@ -143,7 +143,7 @@ Sampling lets the MCP server request the host agent to run an LLM inference. Thi
 
 ---
 
-## Phase 9 — Testing
+### Phase 9 — Testing
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -154,7 +154,7 @@ Sampling lets the MCP server request the host agent to run an LLM inference. Thi
 
 ---
 
-## Phase 10 — Documentation & release
+### Phase 10 — Documentation & release
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -164,9 +164,9 @@ Sampling lets the MCP server request the host agent to run an LLM inference. Thi
 
 ---
 
-## Technical notes
+### Technical notes
 
-### Package structure
+#### Package structure
 
 ```
 packages/mcp/
@@ -218,7 +218,7 @@ packages/mcp/
   tsconfig.json
 ```
 
-### Claude Code MCP config
+#### Claude Code MCP config
 
 ```json
 {
@@ -236,10 +236,10 @@ packages/mcp/
 
 Config file location: `~/.claude.json` (global) or `{workspace}/.claude/mcp.json` (project-scoped).
 
-### Key invariant
+#### Key invariant
 
 The agent has direct file access to `loom/`. It *could* edit Loom docs directly but that bypasses frontmatter invariants, link index updates, and plan-step parsing. Every tool description includes: "use this tool to modify Loom documents — do not edit weave files directly." This rule is also in `CLAUDE.md`.
 
-### Dependency on existing app use cases
+#### Dependency on existing app use cases
 
 Phase 4–5 tools are thin MCP wrappers over existing `packages/app/` use cases. If the app use case doesn't exist yet (e.g., `promoteToDesign` may be partially implemented), the MCP tool exposes it but the app layer work is a blocker. This plan assumes app use cases are complete by Phase 4 start; if not, note the blocker per step.

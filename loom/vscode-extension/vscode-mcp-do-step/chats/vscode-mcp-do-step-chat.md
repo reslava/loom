@@ -10,7 +10,7 @@ parent_id: null
 requires_load: []
 ---
 
-# CHAT
+# Vscode Mcp Do Step Chat
 
 ## Rafa:
 do `loom/vscode-extension/vscode-mcp-do-step/plans/vscode-mcp-do-step-plan-001.md`

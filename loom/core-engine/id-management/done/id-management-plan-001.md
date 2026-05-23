@@ -12,7 +12,7 @@ requires_load: [de_01KQYDFDDC2GWRSG7TVP5Z5MAN]
 target_version: 0.3.0
 ---
 
-# Plan — Implement Automatic Document ID Management
+# Implement Automatic Document ID Management
 
 | | |
 |---|---|
@@ -23,13 +23,13 @@ target_version: 0.3.0
 
 ---
 
-# Goal
+## Goal
 
 Implement automatic ID generation, temporary draft IDs, and the `loom rename` command to eliminate manual ID maintenance and prevent broken links.
 
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -43,7 +43,7 @@ Implement automatic ID generation, temporary draft IDs, and the `loom rename` co
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

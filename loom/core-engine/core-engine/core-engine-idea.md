@@ -11,7 +11,7 @@ parent_id: null
 requires_load: [de_01KQYDFDDF4QG72MKRE0KB2HZ4]
 ---
 
-# AI-native Development Workflow System (Refined Vision)
+# Document-Driven AI Workflow System
 
 ## Problem (Revisited)
 

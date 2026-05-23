@@ -12,7 +12,7 @@ parent_id: null
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — VSCode tree ctx/reference nodes, context menus, and requires_load picker
+# VSCode tree ctx/reference nodes, context menus, and requires_load picker
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Extend the VS Code extension tree and commands to surface ctx and reference docs, add right-click context menus on special folder nodes (Chats, Context, References), implement reference creation (MCP-side create + generate), and add a requires_load multi-picker command.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -39,37 +39,37 @@ Extend the VS Code extension tree and commands to surface ctx and reference docs
 | ✅ | 5 | Add loom.addRequiresLoad command — right-click on any idea/design/plan node → Add References…; shows multi-select QuickPick listing all loom/refs/*.md docs (title + filename); on confirm calls loom_update_doc to merge selected ids into requires_load frontmatter array of the target doc. | — | — |
 ---
 
-## Step 1 — Add Context and References folder nodes to the tree — thread level shows *-ctx.md docs under Context and loom/refs/* under References; weave level shows weave-ctx docs; workspace root shows loom/ctx.md under a top-level Context node. Update treeProvider.ts to build these nodes from MCP state.
+### Step 1 — Add Context and References folder nodes to the tree — thread level shows *-ctx.md docs under Context and loom/refs/* under References; weave level shows weave-ctx docs; workspace root shows loom/ctx.md under a top-level Context node. Update treeProvider.ts to build these nodes from MCP state.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 2 — Add right-click context menus on special folder nodes — Chats/weave-Chats/thread-Chats → Create Chat (remove toolbar weave-chat button); Context/weave-Context → Create Ctx; References → Create Reference. Wire new contextValue entries in treeProvider and menu contributions in package.json.
+### Step 2 — Add right-click context menus on special folder nodes — Chats/weave-Chats/thread-Chats → Create Chat (remove toolbar weave-chat button); Context/weave-Context → Create Ctx; References → Create Reference. Wire new contextValue entries in treeProvider and menu contributions in package.json.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 3 — Add loom_create_reference MCP tool — accepts title and description, creates loom/refs/{id}-reference.md with correct frontmatter (type: reference, title, description). No body generation; returns the new doc id.
+### Step 3 — Add loom_create_reference MCP tool — accepts title and description, creates loom/refs/{id}-reference.md with correct frontmatter (type: reference, title, description). No body generation; returns the new doc id.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 4 — Add loom_generate_reference MCP tool — if sampling is available, reads weave ideas/designs/ctx docs relevant to the thread, then generates a structured reference body (prose + diagram if applicable) and writes it into the doc created by loom_create_reference. Falls back gracefully if sampling unavailable.
+### Step 4 — Add loom_generate_reference MCP tool — if sampling is available, reads weave ideas/designs/ctx docs relevant to the thread, then generates a structured reference body (prose + diagram if applicable) and writes it into the doc created by loom_create_reference. Falls back gracefully if sampling unavailable.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 5 — Add loom.addRequiresLoad command — right-click on any idea/design/plan node → Add References…; shows multi-select QuickPick listing all loom/refs/*.md docs (title + filename); on confirm calls loom_update_doc to merge selected ids into requires_load frontmatter array of the target doc.
+### Step 5 — Add loom.addRequiresLoad command — right-click on any idea/design/plan node → Add References…; shows multi-select QuickPick listing all loom/refs/*.md docs (title + filename); on confirm calls loom_update_doc to merge selected ids into requires_load frontmatter array of the target doc.
 
 <!-- Detailed spec. -->
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

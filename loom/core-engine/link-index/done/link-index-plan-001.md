@@ -10,7 +10,7 @@ parent_id: de_01KQYDFDDCQ0DBXVNCSCK57P7M
 requires_load: [de_01KQYDFDDCQ0DBXVNCSCK57P7M]
 ---
 
-# Plan — Implement Structured Link Index
+# Implement Structured Link Index
 
 | | |
 |---|---|

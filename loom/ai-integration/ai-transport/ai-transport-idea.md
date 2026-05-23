@@ -11,7 +11,7 @@ parent_id: null
 requires_load: []
 ---
 
-# AI Provider Transport Abstraction
+# AI Provider Transport Abstraction (API Key vs Subscription vs Ollama)
 
 ## Problem
 

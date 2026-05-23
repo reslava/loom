@@ -12,7 +12,7 @@ parent_id: de_01KR3HCJF2C79JFQHVX87S9WYD
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — MCP State Cache + Connection Resilience
+# MCP State Cache + Connection Resilience
 
 | | |
 |---|---|
@@ -23,12 +23,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Eliminate the freeze-reconnect loop by caching MCP state server-side, fixing the silent connect-failure hang, and adding a retry layer in the tree provider.
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -38,31 +38,31 @@ Eliminate the freeze-reconnect loop by caching MCP state server-side, fixing the
 | ✅ | 4 | Add readStateWithRetry helper in packages/vscode/src/tree/treeProvider.ts getRootChildren — 3 attempts, 500ms delay, skip retry on timeout errors (those go straight to reconnect node) | — | — |
 ---
 
-## Step 1 — Add stateCache.ts module in packages/mcp/src/ — module-level LoomState|null cache + fs.watch watcher (recursive) on {root}/loom — exports initStateCache(root), getCachedState(), setCachedState(state), invalidateStateCache()
+### Step 1 — Add stateCache.ts module in packages/mcp/src/ — module-level LoomState|null cache + fs.watch watcher (recursive) on {root}/loom — exports initStateCache(root), getCachedState(), setCachedState(state), invalidateStateCache()
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 2 — Wire cache into handleStateResource in packages/mcp/src/resources/state.ts — call initStateCache(root), return cached state for unfiltered reads (no weaveId/status params), store result after computing; filtered reads bypass cache
+### Step 2 — Wire cache into handleStateResource in packages/mcp/src/resources/state.ts — call initStateCache(root), return cached state for unfiltered reads (no weaveId/status params), store result after computing; filtered reads bypass cache
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 3 — Fix silent connect-failure in packages/vscode/src/mcp-client.ts — capture connectError in closure, rethrow in ensureConnected() so callers get an immediate throw instead of hanging on a dead transport
+### Step 3 — Fix silent connect-failure in packages/vscode/src/mcp-client.ts — capture connectError in closure, rethrow in ensureConnected() so callers get an immediate throw instead of hanging on a dead transport
 
 <!-- Detailed spec. -->
 
 ---
 
-## Step 4 — Add readStateWithRetry helper in packages/vscode/src/tree/treeProvider.ts getRootChildren — 3 attempts, 500ms delay, skip retry on timeout errors (those go straight to reconnect node)
+### Step 4 — Add readStateWithRetry helper in packages/vscode/src/tree/treeProvider.ts getRootChildren — 3 attempts, 500ms delay, skip retry on timeout errors (those go straight to reconnect node)
 
 <!-- Detailed spec. -->
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

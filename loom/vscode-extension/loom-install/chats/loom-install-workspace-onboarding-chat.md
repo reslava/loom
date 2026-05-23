@@ -11,7 +11,7 @@ parent_id: de_01KQYDFDDDW3C3JYPHQV085GAC
 requires_load: []
 source_version: 2
 ---
-# Context Summary — Loom Install — Workspace Onboarding
+# Loom Install — Workspace Onboarding
 
 ## Problem Statement
 

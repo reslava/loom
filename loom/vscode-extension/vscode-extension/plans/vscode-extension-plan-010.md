@@ -11,6 +11,7 @@ parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: []
 target_version: 0.1.0
 ---
+# Doc title H1 sync, section demotion, refs tree fix
 
 | | |
 |---|---|
@@ -21,12 +22,12 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Make frontmatter `title` the single source of truth for doc titles, with a derived `# {Title}` H1 in every body kept in sync at the save-path chokepoint (so VS Code markdown preview renders a title). All other body H1s become H2s (with cascading demotion — H2→H3, H3→H4, etc., to preserve hierarchy). Drop dead `# CHAT` scaffolding from designs and chats. Fix the refs tree section so an empty `refs/` folder still renders (enabling Create Reference). Migrate existing docs with a dry-run script that skips old design docs (preserve their inline chat history).
 ---
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
@@ -44,7 +45,7 @@ Make frontmatter `title` the single source of truth for doc titles, with a deriv
 | 🔳 | 12 | Commit migration + format changes with clear message; push. | — | — |
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

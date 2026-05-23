@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Done Doc Chat
 
 ## Rafa:
 - should be -done.md a first class loom doc type? or just a AI makrdown generated ? pros and cons?

@@ -12,7 +12,7 @@ parent_id: de_01KQYDFDDBE8A6JD6P57DM5HV4
 requires_load: []
 target_version: 0.1.0
 ---
-# Plan — Doc IDs — ULID migration
+# Doc IDs — ULID migration
 
 | | |
 |---|---|
@@ -23,18 +23,18 @@ target_version: 0.1.0
 
 ---
 
-# Goal
+## Goal
 
 Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite existing frontmatter, update the link index, adjust repo lookups, update the MCP surface, rename ctx files to plain `ctx.md`, consolidate weave-local refs into `loom/refs/`, ship the migration script, and add validation diagnostics.
 
 ---
 
-# Steps
+## Steps
 
 
 ---
 
-## ✅ Step 3 — Link index rewrite
+### ✅ Step 3 — Link index rewrite
 
 **Goal:** replace the slug-primary link index with a ULID-primary index, add slug secondary index for refs, add backlink index.
 
@@ -57,7 +57,7 @@ Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite ex
 
 ---
 
-## ✅ Step 4 — Repo + loader — lookup by `id` in frontmatter
+### ✅ Step 4 — Repo + loader — lookup by `id` in frontmatter
 
 **Goal:** all repo lookups use the `id` field in frontmatter as primary key; file path becomes a derived value from the index.
 
@@ -72,7 +72,7 @@ Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite ex
 
 ---
 
-## ✅ Step 5 — MCP surface
+### ✅ Step 5 — MCP surface
 
 **Goal:** MCP tools mint ULIDs at creation, refs get slug support, rename and find work by ULID/slug, and `validate-state` surfaces the new diagnostics.
 
@@ -94,7 +94,7 @@ Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite ex
 
 ---
 
-## ✅ Step 6 — Migration script (`migrate-to-ulid.ts`)
+### ✅ Step 6 — Migration script (`migrate-to-ulid.ts`)
 
 **Goal:** one-shot, idempotent script that migrates the current `loom/` tree to ULID identity in a single atomic pass.
 
@@ -125,7 +125,7 @@ Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite ex
 
 ---
 
-## ✅ Step 7 — Test fixtures + legacy test cleanup
+### ✅ Step 7 — Test fixtures + legacy test cleanup
 
 **Goal:** bring the test suite in sync with the ULID identity world; remove pre-thread-layout legacy tests.
 
@@ -142,7 +142,7 @@ Implement ULID-based doc identity end-to-end: mint ULIDs at creation, rewrite ex
 
 ---
 
-## Legend
+### Legend
 
 | Symbol | Meaning |
 |--------|---------|

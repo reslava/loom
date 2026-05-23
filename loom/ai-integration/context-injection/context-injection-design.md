@@ -10,7 +10,7 @@ tags: []
 parent_id: id_01KQYDFDD8QAB8TD0JXC8D31J4
 requires_load: []
 ---
-# Context Injection for Chats — Design
+# Context Injection for Chats
 
 ## Goal
 

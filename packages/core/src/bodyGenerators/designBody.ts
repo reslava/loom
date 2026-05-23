@@ -11,10 +11,5 @@ export function generateDesignBody(title: string, userName: string = 'User'): st
 
 ## Context
 <!-- Background, constraints, prior art, related designs. -->
-
-# CHAT
-
-## ${userName}:
-<!-- Start here — describe the problem or idea to explore. -->
 `;
 }

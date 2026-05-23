@@ -10,7 +10,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Vscode Icons Chat
 
 ## Rafa:
 I think vscode icons should be unified and not harcoded

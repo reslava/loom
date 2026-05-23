@@ -18,5 +18,5 @@ requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM, pl_01KQYDFDDEC0K7FANZWDV9AMVH]
 Fix small UX issues identified during real usage of the extension.
 
 
-# Steps
+## Steps
 

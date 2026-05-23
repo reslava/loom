@@ -13,7 +13,7 @@ target_release: 0.4.0
 actual_release: null
 ---
 
-# Toolbar & ViewState Interaction Model — REslava Loom
+# Toolbar & ViewState Interaction Model
 
 ## Goal
 

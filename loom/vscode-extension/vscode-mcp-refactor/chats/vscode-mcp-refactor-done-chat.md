@@ -9,7 +9,7 @@ tags: []
 parent_id: null
 requires_load: []
 ---
-# CHAT
+# Vscode Mcp Refactor Done Chat
 
 ## Rafa:
 

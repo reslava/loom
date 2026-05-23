@@ -12,21 +12,21 @@ parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ---
 
-# Context Injection — Implementation Plan (MVP scope only)
+# Context Injection — MVP Rule and Tool Metadata
 
 ## Goal
 
 Lock in the MVP-scope context-injection rule ("first chat-reply in a thread loads thread context") in both `CLAUDE.md` surfaces, and confirm the MCP tools surface enough metadata for the AI to apply the rule correctly. Defer the delta-only optimization to a post-MVP plan.
 
 
-# Steps
+## Steps
 
 | Done | # | Step | Files touched | Blocked by |
 |---|---|---|---|---|
 | 🔳 | 1 | Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files. | `CLAUDE.md`, `packages/app/src/installWorkspace.ts` | — |
 ---
 
-## Phase 2 — MCP tool metadata check
+### Phase 2 — MCP tool metadata check
 
 | Done | # | Step | Files touched | Blocked by |
 |------|---|------|---------------|------------|
@@ -38,7 +38,7 @@ Lock in the MVP-scope context-injection rule ("first chat-reply in a thread load
 - Steps 2 and 3 may turn out to be no-ops if the threadId is already in the response. If so, mark them done with a one-line "verified, no change needed" note.
 - The post-MVP delta-only optimization (server-side session state, transcript awareness) lives in a future `context-injection-plan-002`. Do not start it from this plan.
 
-## Out of scope
+### Out of scope
 
 - Server-side `loadedContexts` / `contextDirty` tracking — explicitly deferred per `mvp-scope` and the design's `### Where this state lives` section.
 - Bundling thread context into the chat-reply tool response (vs returning threadId only) — call this out as an open decision in step 2; if it requires architectural change, defer to plan-002.
