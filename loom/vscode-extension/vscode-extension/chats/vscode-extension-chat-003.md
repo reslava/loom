@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KS7NZ463WFBEECKK43X15432
 title: VSCode features
-status: active
+status: done
 created: 2026-05-22
 version: 1
 tags: []

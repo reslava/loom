@@ -29,9 +29,19 @@ export async function promoteToPlanCommand(treeProvider: LoomTreeProvider, node?
         const readInstruction = sourceFilePath
             ? `Read the source file at "${sourceFilePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${sourceId}" to get the file path, then read it with the Read tool.`;
-        const threadArg = targetThreadId ? `, targetThreadId="${targetThreadId}"` : '';
+        const threadArg = targetThreadId ? `, threadId="${targetThreadId}"` : '';
         await launchClaude(root, `Loom: Promote to Plan`,
-            `Loom promote to plan task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${threadArg}. ${readInstruction} Use MCP tool loom_create_plan with weaveId="${targetWeaveId}"${targetThreadId ? ` threadId="${targetThreadId}"` : ''}, then use MCP tool loom_update_doc with a plan steps table derived from the source. Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
+            [
+                `Loom promote to plan task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${targetThreadId ? `, targetThreadId="${targetThreadId}"` : ''}.`,
+                readInstruction,
+                `Then call MCP tool loom_create_plan ONCE with these arguments:`,
+                `  - weaveId="${targetWeaveId}"${threadArg}`,
+                `  - title: one concise line describing the plan`,
+                `  - goal: 1-2 sentences on what this plan implements`,
+                `  - steps: an array of concrete implementation step descriptions (strings, in order). Each becomes a row in the Steps table.`,
+                `Do NOT call loom_update_doc afterwards to add steps — pass them in the steps array of loom_create_plan. Do NOT write a separate "## Implementation" section with "### Step N" headings; the plan's Steps table is the only step surface.`,
+                `Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`,
+            ].join(' ')
         );
     } else {
         try {
