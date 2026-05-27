@@ -173,7 +173,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             if (await isClaudeInstalled()) {
                 const scope = weaveId ? `weaveId="${weaveId}"${threadId ? `, threadId="${threadId}"` : ''}` : 'global';
                 await launchClaude(root, 'Loom: Refresh Ctx',
-                    `Loom refresh ctx task. scope=${scope}. Use the loom MCP server: read thread docs${weaveId ? ` in weave "${weaveId}"` : ' across all weaves'} via loom://thread-context or loom://state, write an updated ctx summary, then use MCP tool loom_update_doc on the ctx doc. Do not use loom_refresh_ctx or loom_generate_global_ctx — sampling is unavailable in Claude Code CLI.`
+                    `Loom refresh ctx task. scope=${scope}. Use the loom MCP server: read thread docs${weaveId ? ` in weave "${weaveId}"` : ' across all weaves'} via loom://context/thread/{weaveId}/{threadId} or loom://state, write an updated ctx summary, then use MCP tool loom_update_doc on the ctx doc. Do not use loom_refresh_ctx or loom_generate_global_ctx — sampling is unavailable in Claude Code CLI.`
                 );
             } else {
                 try {

@@ -2,7 +2,7 @@ import * as path from 'path';
 import { findDocumentById, loadDoc } from '../../../fs/dist';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 import { Document } from '../../../core/dist';
-import { handleThreadContextResource } from '../resources/threadContext';
+import { handleContextResource } from '../resources/context';
 
 const INSTRUCTIONS = `Implement this step using your file-editing tools (Read, Edit, Write, Bash, etc.).
 After implementation:
@@ -60,9 +60,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
 
     let threadContext = '';
     try {
-        const ctx = await handleThreadContextResource(
+        const ctx = await handleContextResource(
             root,
-            `loom://thread-context/${weaveId}/${threadId}`
+            `loom://context/${planId}?mode=implementing`
         );
         threadContext = ctx.contents[0].text;
     } catch { /* proceed without ctx if unavailable */ }

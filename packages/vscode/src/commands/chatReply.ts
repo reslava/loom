@@ -4,6 +4,32 @@ import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { handleMcpError } from '../mcpErrorUtils';
 import { isClaudeInstalled, launchClaude } from './claudeTerminal';
 
+let _ctxOut: vscode.OutputChannel | undefined;
+function ctxOut(): vscode.OutputChannel {
+    if (!_ctxOut) _ctxOut = vscode.window.createOutputChannel('Loom Context');
+    return _ctxOut;
+}
+
+/**
+ * Derive the `📄 …` visibility lines from the SAME serialised bundle the agent
+ * receives, so the prompt and the visible record cannot diverge (context
+ * pipeline design §5). Parses the provenance headers serializeBundle emits.
+ */
+function visibilityLinesFromBundle(bundleText: string): string[] {
+    const lines: string[] = [];
+    for (const line of bundleText.split('\n')) {
+        const m = /^### \[(\w+) (\w+)\] (.+?) · id: /.exec(line);
+        if (m) {
+            const stale = line.includes('⚠️ stale:') ? ' (⚠️ stale)' : '';
+            lines.push(`📄 ${m[3]} — loaded for context${stale}`);
+            continue;
+        }
+        const miss = /^### ⚠️ requires_load target missing: (.+)$/.exec(line);
+        if (miss) lines.push(`⚠️ requires_load target missing: ${miss[1]}`);
+    }
+    return lines;
+}
+
 export async function chatReplyCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
@@ -19,11 +45,31 @@ export async function chatReplyCommand(treeProvider: LoomTreeProvider, node?: Tr
     }
 
     if (await isClaudeInstalled()) {
+        // Unified context pipeline: assemble + inject context BEFORE launching the
+        // agent, so it never has to grep the project to reconstruct context.
+        let contextBlock = '';
+        try {
+            const bundle = await getMCP(root).readResource(`loom://context/${chatId}?mode=chat`);
+            if (bundle && bundle.trim()) {
+                contextBlock =
+                    `# Loom context (pre-loaded — do NOT grep or re-read these; they are already provided below)\n\n` +
+                    `${bundle}\n\n---\n\n`;
+                const lines = visibilityLinesFromBundle(bundle);
+                if (lines.length) {
+                    ctxOut().appendLine(`[chat-reply ${chatId}] injected ${lines.length} context doc(s):`);
+                    for (const l of lines) ctxOut().appendLine(`  ${l}`);
+                    ctxOut().show(true);
+                }
+            }
+        } catch (e: any) {
+            ctxOut().appendLine(`[chat-reply ${chatId}] context pipeline unavailable: ${e?.message ?? e}`);
+        }
+
         const readInstruction = filePath
-            ? `Read the chat file at "${filePath}" using the Read tool (not Bash, not loom_find_doc).`
-            : `Use MCP tool loom_find_doc with id="${chatId}" to get the file path, then read it with the Read tool.`;
+            ? `The chat document is already included in the Loom context above; you may also read the file at "${filePath}" with the Read tool if needed (not Bash, not loom_find_doc).`
+            : `The chat document is already included in the Loom context above.`;
         await launchClaude(root, `Loom: Chat Reply`,
-            `Loom chat reply task. chatId="${chatId}". ${readInstruction} Understand the conversation, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="${chatId}", role="ai", body="<your reply>". Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.`
+            `${contextBlock}Loom chat reply task. chatId="${chatId}". ${readInstruction} Using the pre-loaded context, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="${chatId}", role="ai", body="<your reply>". Emit one "📄 <title> — loaded for context" line per context doc above before replying. Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {

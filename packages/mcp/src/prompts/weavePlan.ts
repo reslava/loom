@@ -1,4 +1,4 @@
-import { handleThreadContextResource } from '../resources/threadContext';
+import { handleContextResource } from '../resources/context';
 
 export const promptDef = {
     name: 'weave-plan',
@@ -14,7 +14,7 @@ export async function handle(root: string, args: Record<string, string | undefin
     const threadId = args['threadId'];
     if (!weaveId || !threadId) throw new Error('weaveId and threadId are required');
 
-    const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
+    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}?mode=plan`);
     const contextText = ctx.contents[0].text;
 
     return {

@@ -13,7 +13,9 @@ export function parseStepsTable(content: string): PlanStep[] {
     const steps: PlanStep[] = [];
     
     // Find the steps section: matches "## Steps" (canonical) or "# Steps" (legacy, pre-H1-sync).
-    const stepsSectionMatch = content.match(/(?:^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,2}\s|$)/i);
+    // Boundary is any heading (#{1,6}) or a --- rule, so an h3 section (e.g. "### Notes")
+    // directly after the table is treated as the end of the section, not part of it.
+    const stepsSectionMatch = content.match(/(?:^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,6}\s|$)/i);
     if (!stepsSectionMatch) return steps;
     
     const section = stepsSectionMatch[1];
@@ -69,8 +71,12 @@ export function generateStepsTable(steps: PlanStep[]): string {
  */
 export function updateStepsTableInContent(originalContent: string, steps: PlanStep[]): string {
     const newTable = generateStepsTable(steps);
-    
-    const stepsRegex = /(?<=^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,2}\s|$)/i;
+
+    // Boundary is any heading (#{1,6}) or a --- rule. Critically, this must stop at an
+    // h3 such as "### Notes" sitting directly after the table with no preceding ---,
+    // otherwise the lazy match runs to EOF and the replacement deletes that section
+    // (data-loss bug — h3 content after the steps table was silently dropped on save).
+    const stepsRegex = /(?<=^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,6}\s|$)/i;
     if (stepsRegex.test(originalContent)) {
         return originalContent.replace(stepsRegex, `## Steps\n\n${newTable}`);
     }

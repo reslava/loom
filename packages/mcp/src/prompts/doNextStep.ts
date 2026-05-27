@@ -1,5 +1,5 @@
 import { findDocumentById, loadDoc } from '../../../fs/dist';
-import { handleThreadContextResource } from '../resources/threadContext';
+import { handleContextResource } from '../resources/context';
 
 export const promptDef = {
     name: 'do-next-step',
@@ -19,14 +19,6 @@ export async function handle(root: string, args: Record<string, string | undefin
     const plan = await loadDoc(filePath);
     if (plan.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);
 
-    // Extract weaveId/threadId from file path: .../loom/{weaveId}/{threadId}/plans/{planId}.md
-    const normalised = filePath.replace(/\\/g, '/');
-    const loomIdx = normalised.lastIndexOf('/loom/');
-    const afterLoom = loomIdx >= 0 ? normalised.slice(loomIdx + 6) : '';
-    const segments = afterLoom.split('/');
-    const weaveId = segments[0];
-    const threadId = segments[1];
-
     // Find first incomplete step
     const steps: Array<{ order?: number; description?: string; done?: boolean }> =
         (plan as any).steps ?? [];
@@ -34,18 +26,13 @@ export async function handle(root: string, args: Record<string, string | undefin
 
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
-    // Load thread context if path parsed cleanly
-    if (weaveId && threadId && threadId !== 'plans') {
-        try {
-            const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
-            messages.push({ role: 'user', content: { type: 'text', text: ctx.contents[0].text } });
-        } catch { /* thread context is best-effort */ }
-    }
-
-    messages.push({
-        role: 'user',
-        content: { type: 'text', text: `Plan: ${planId}\n\n${(plan as any).content ?? ''}` },
-    });
+    // Unified context pipeline: bundles global/weave/thread ctx + the plan's
+    // parent chain + the plan itself (as target) + requires_load. Replaces the
+    // old ad-hoc thread-context + separate plan-content push.
+    try {
+        const ctx = await handleContextResource(root, `loom://context/${planId}?mode=implementing`);
+        messages.push({ role: 'user', content: { type: 'text', text: ctx.contents[0].text } });
+    } catch { /* context is best-effort */ }
 
     const instruction = nextStep
         ? [

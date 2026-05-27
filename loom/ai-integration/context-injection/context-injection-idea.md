@@ -4,13 +4,23 @@ id: id_01KQYDFDD8QAB8TD0JXC8D31J4
 title: Context Injection for Chats
 status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
-version: 3
+updated: "2026-05-24T00:00:00.000Z"
+version: 4
 tags: []
 parent_id: null
 requires_load: []
 ---
 # Context Injection for Chats
+
+> **⚠️ Superseded by [[context-pipeline]] (`id_01KSDJ2C59Z1XY11W336B0W9YS`).**
+> The chat-reply context-injection rule defined here is replaced by the unified
+> assembler pipeline at `loom/ai-integration/context-pipeline/`. This doc is kept
+> for lineage; the canonical idea / design / plan lives in the new thread.
+>
+> **Why superseded:** the rule here was AI-side (CLAUDE.md), which breaks for
+> one-shot CLI subprocess launches (e.g. the extension's `chatReply.ts`) and for
+> non-Claude agents. The pipeline injects context server-side, before any AI is
+> launched, removing both failure modes.
 
 ## Problem
 

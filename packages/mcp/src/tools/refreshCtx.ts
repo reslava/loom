@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { handleThreadContextResource } from '../resources/threadContext';
+import { handleContextResource } from '../resources/context';
 import { requestSampling } from '../sampling';
 
 function makeCtxId(weaveId: string, threadId: string | undefined): string {
@@ -32,7 +32,7 @@ export function createRefreshCtxTool(server: Server) {
 
             if (threadId) {
                 try {
-                    const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}?mode=ctx`);
                     messages.push({ role: 'user', content: { type: 'text', text: `Thread documents:\n\n${ctx.contents[0].text}` } });
                 } catch (e: any) {
                     throw new Error(`Could not load thread context for ${weaveId}/${threadId}: ${e.message}`);

@@ -51,7 +51,7 @@ Loom works best with an MCP-capable AI agent (Claude Code, Cursor). Add `.mcp.js
 }
 ```
 
-The agent then has access to all Loom tools (`loom_create_idea`, `loom_do_step`, `loom_complete_step`, etc.) and resources (`loom://thread-context/...`).
+The agent then has access to all Loom tools (`loom_create_idea`, `loom_do_step`, `loom_complete_step`, etc.) and resources (`loom://context/...`).
 
 ---
 

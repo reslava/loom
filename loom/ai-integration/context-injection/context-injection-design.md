@@ -4,13 +4,21 @@ id: de_01KQYDFDD8B5XJDQBP4P429R61
 title: Context Injection for Chats
 status: done
 created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
-version: 3
+updated: "2026-05-24T00:00:00.000Z"
+version: 4
 tags: []
 parent_id: id_01KQYDFDD8QAB8TD0JXC8D31J4
 requires_load: []
 ---
 # Context Injection for Chats
+
+> **⚠️ Superseded by [[context-pipeline]] (`id_01KSDJ2C59Z1XY11W336B0W9YS`).**
+> The three-tier injection model and per-operation rules defined here are absorbed
+> into the unified assembler pipeline at `loom/ai-integration/context-pipeline/`.
+> The new pipeline keeps the same conceptual model but moves enforcement from
+> AI-side (CLAUDE.md rule) to server-side (deterministic context blob injected
+> into the prompt before AI launch). This doc is kept for lineage and historical
+> reasoning.
 
 ## Goal
 

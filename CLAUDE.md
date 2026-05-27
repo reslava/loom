@@ -218,7 +218,7 @@ Verify with `claude mcp list`.
 
 | Entry point | When to use |
 |-------------|-------------|
-| `loom://thread-context/{weaveId}/{threadId}` resource | Load full context for a thread before working on it |
+| `loom://context/{docId}` resource (or `loom://context/thread/{weaveId}/{threadId}`) | Load the assembled context bundle (global/weave/thread ctx + parent chain + requires_load) for a doc or thread before working on it |
 | `do-next-step` prompt | Get the next incomplete step with full context pre-loaded |
 | `continue-thread` prompt | Review thread state and get a next-action suggestion |
 | `validate-state` prompt | Review diagnostics and identify issues to fix |
@@ -226,7 +226,7 @@ Verify with `claude mcp list`.
 ### Rules
 
 - **All writes to `loom/**/*.md` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
-- Use `loom://thread-context` before starting any thread work. It bundles everything the agent needs (idea, design, active plan, requires_load refs) in a single read.
+- Use `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) before starting any thread work. The Unified Context Pipeline bundles everything the agent needs (global/weave/thread ctx, idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
 - **`loom_generate_*` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths, different behavior:
   - **VS Code extension**: sampling works — the extension's `mcp-client.ts` advertises `{ sampling: {} }` and routes `sampling/createMessage` through its configured AI API key. Use `loom_generate_*` buttons freely.
@@ -278,18 +278,19 @@ When replying inside a chat doc that lives in a thread (`loom/{weave}/{thread}/c
 
 - **First reply for this thread in the current conversation** — read the thread context (idea + design + active plan + any `requires_load` docs) before responding. Emit one visibility line per doc:
   ```
-  📡 MCP: loom://thread-context/{weave}/{thread}
+  📡 MCP: loom://context/{chat-id}?mode=chat
   📄 {thread}-idea.md — loaded for context
   📄 {thread}-design.md — loaded for context
   📄 {plan-id}.md — loaded for context  (only if an active plan exists)
   ```
+  (The Unified Context Pipeline assembles global/weave/thread ctx + the chat's parent chain + requires_load; the chat itself is the target.)
 - **Same thread, no `refine` / `generate` since last reply** — context is already in the conversation transcript. Do NOT re-read. Emit only the tool-call visibility line:
   ```
   🔧 MCP: loom_append_to_chat(id="{chat-id}")
   ```
 - **Same thread, but a `refine` or `generate` ran since last reply** — re-read the context (it may have changed) and re-emit the doc-loaded visibility lines.
 
-For a chat at weave root (loose fiber, no thread), load the parent doc(s) the chat refers to and emit `📄 {doc}.md — loaded for context` for each. No thread-context resource call.
+For a chat at weave root (loose fiber, no thread), load the parent doc(s) the chat refers to and emit `📄 {doc}.md — loaded for context` for each. No thread-scoped context call.
 
 The "is this thread already in transcript?" decision lives **in the AI**, not in the MCP server — the server is stateless across calls and cannot see the LLM transcript.
 

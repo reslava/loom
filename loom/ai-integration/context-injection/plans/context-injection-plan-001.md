@@ -4,8 +4,8 @@ id: pl_01KQYDFDD811TEXADDXS6CMC6Y
 title: Context Injection — MVP Rule and Tool Metadata
 status: done
 created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
-version: 2
+updated: "2026-05-24T00:00:00.000Z"
+version: 3
 design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
 parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
@@ -13,6 +13,15 @@ requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 ---
 
 # Context Injection — MVP Rule and Tool Metadata
+
+> **⚠️ Superseded by [[context-pipeline]] (`id_01KSDJ2C59Z1XY11W336B0W9YS`).**
+> The CLAUDE.md-rule approach this plan locked in is being replaced by the
+> server-side assembler pipeline. The pipeline absorbs both the MVP rule and the
+> post-MVP delta-only optimization, and additionally fixes the gap this plan did
+> not address: AI-launch paths that don't go through Claude Code interactive
+> sessions (e.g. the extension's one-shot CLI subprocess in `chatReply.ts`).
+> This doc is kept for lineage; the implementation work is now tracked in the
+> new thread.
 
 ## Goal
 

@@ -38,6 +38,12 @@ run_test tests/close-plan.test.ts
 # Step 6: doStep use-case (mock AI)
 run_test tests/do-step.test.ts
 
+# Context pipeline: pure assembler + serialiser (no IO)
+run_test tests/context-assembler.test.ts
+
+# Plan table utils: steps-table rewrite must not truncate trailing sections
+run_test tests/plan-table-utils.test.ts
+
 # Step 7: summarise use-case (mock AI)
 run_test tests/summarise.test.ts
 

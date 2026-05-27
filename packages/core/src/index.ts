@@ -16,6 +16,16 @@ export { ReferenceDoc, ReferenceStatus } from './entities/reference';
 export { Weave, WeaveStatus, WeavePhase } from './entities/weave';
 export { Thread, ThreadStatus, Fiber } from './entities/thread';
 export { LoomState, LoomMode } from './entities/state';
+export {
+    OperationMode,
+    DocScope,
+    EmitReason,
+    ExcludeReason,
+    ContextOverrides,
+    BundledDoc,
+    ExcludedDoc,
+    ContextBundle,
+} from './entities/context';
 
 // ============================================================================
 // Events

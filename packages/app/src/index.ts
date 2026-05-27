@@ -27,6 +27,12 @@ export { currentLoom, CurrentLoomInfo, CurrentDeps } from './current';
 export { getState, GetStateDeps, GetStateInput } from './getState';
 
 // ============================================================================
+// Use‑Cases — Context Pipeline
+// ============================================================================
+export { assembleContext, classifyScope } from './context/assembleContext';
+export { serializeBundle, bundleVisibilityLines } from './context/serializeBundle';
+
+// ============================================================================
 // Utilities
 // ============================================================================
 export { resolveThread } from './utils/resolveThread';

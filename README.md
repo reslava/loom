@@ -1,19 +1,18 @@
-# <img src="packages/vscode/media/loom.png" alt="Loom" width="32" /> Loom
+# <img src="packages/vscode/media/loom.png" alt="Loom" width="64" /> Loom
 
 **Document-native workflow for AI-assisted development.**
 
 Loom gives AI agents structured, scoped, persistent context — so every session is as sharp
 as the first, and every decision is traceable.
 
-| Context | Reference |
-|---|---|
-|<img src="packages/vscode/media/icons/ctx.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/reference.svg" alt="Loom" width="32" />|
-
-
 > *"The workflow of serious projects needs to be organised and persistent: ideas, designs,
 > plans, reference material, appropriate context. Documents represent the state of the project —
 > fresh, defined and auditable — as opposed to an ever-expanding, opaque and degraded chat history."*
 > — Rafa Eslava
+
+| Context | Reference |
+|---|---|
+|<img src="packages/vscode/media/icons/ctx.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/reference.svg" alt="Loom" width="32" />|
 
 ---
 
@@ -127,7 +126,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 
 | Resource | What it returns |
 |----------|----------------|
-| `loom://thread-context/{weaveId}/{threadId}` | Bundled idea + design + active plan + ctx — the complete "what am I working on" payload |
+| `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) | Unified context pipeline: global/weave/thread ctx + parent chain (idea + design + active plan) + requires_load — the complete "what am I working on" payload |
 | `loom://state?weaveId=&threadId=` | Full project state JSON, filterable |
 | `loom://plan/{id}` | Plan doc with parsed steps array |
 | `loom://requires-load/{id}` | Recursively resolved context chain |
@@ -177,7 +176,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 Human approves each phase transition. The agent never advances without a checkpoint.
 
 ### Chat — a better AI window
-
+<img src="packages/vscode/media/icons/chat.svg" alt="Loom" width="24" />
 Loom chats look like a normal AI chat window but work completely differently:
 
 | | Usual AI chat | Loom chat |
@@ -215,7 +214,7 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 
 ## VS Code Extension
 
-<img src="packages/vscode/media/loom.png" alt="Loom" width="80" />
+<img src="packages/vscode/media/loom.png" alt="Loom" width="64" />
 
 The VS Code extension is the **human surface** over the same document graph.
 

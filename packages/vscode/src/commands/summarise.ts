@@ -15,7 +15,7 @@ export async function summariseCommand(treeProvider: LoomTreeProvider, node?: Tr
 
     if (await isClaudeInstalled()) {
         await launchClaude(root, `Loom: Summarise`,
-            `Loom summarise weave task. weaveId="${weaveId}". Use the loom MCP server: read all thread docs in this weave via loom://state or loom://thread-context resources, write a concise ctx summary, then use MCP tool loom_update_doc on the weave ctx doc. Do not use loom_summarise — sampling is unavailable in Claude Code CLI.`
+            `Loom summarise weave task. weaveId="${weaveId}". Use the loom MCP server: read all thread docs in this weave via loom://state or loom://context/thread/{weaveId}/{threadId} resources, write a concise ctx summary, then use MCP tool loom_update_doc on the weave ctx doc. Do not use loom_summarise — sampling is unavailable in Claude Code CLI.`
         );
     } else {
         try {

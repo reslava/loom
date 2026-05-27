@@ -5,7 +5,7 @@ import { Document } from '../../../core/dist';
 import { weaveIdea } from '../../../app/dist/weaveIdea';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
 import { weavePlan } from '../../../app/dist/weavePlan';
-import { handleThreadContextResource } from '../resources/threadContext';
+import { handleContextResource } from '../resources/context';
 import { requestSampling, SamplingMessage } from '../sampling';
 import { handle as appendToChatHandle } from './appendToChat';
 
@@ -106,14 +106,20 @@ export function createGenerateTools(server: Server): ToolModule[] {
 
                 const messages: SamplingMessage[] = [];
                 try {
-                    const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
                     messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                 } catch { /* best-effort */ }
                 if (contextIds.length > 0) {
                     const extra = await loadExtraContext(root, contextIds);
                     if (extra) messages.push(msg('user', `Additional context:\n\n${extra}`));
                 }
-                messages.push(msg('user', `Draft a Loom design document titled "${title}". Write only the markdown body — no frontmatter. Include architecture, components, data flow, key decisions, and open questions.`));
+                messages.push(msg('user', [
+                    `Draft a Loom design document titled "${title}". Write only the markdown body — no frontmatter.`,
+                    'Include: Goal, Architecture (high-level structure), Key Decisions (with rationale), Open Questions.',
+                    'Do NOT include a "Next Steps" or "Implementation Steps" section — those belong in the plan, not the design.',
+                    'Do NOT pre-decompose implementation into a numbered list. Designs describe *what* and *why*; plans describe *how* and *in what order*.',
+                    'Respect scope exclusions from the idea/chat — if the user said "no JS" or "no responsive QA", do not introduce them in the design.',
+                ].join('\n')));
 
                 const body = await requestSampling(
                     server,
@@ -154,7 +160,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
 
                 const messages: SamplingMessage[] = [];
                 try {
-                    const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
                     messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                 } catch { /* best-effort */ }
                 if (contextIds.length > 0) {
@@ -163,6 +169,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 }
                 messages.push(msg('user', [
                     `Generate an implementation plan for "${title}".`,
+                    '',
+                    'Rules:',
+                    '- Steps map to **deliverables**, not design subsections. If the idea or design names a "Deliverables" list, use it as the step skeleton.',
+                    '- Aim for the smallest step count that ships every deliverable. 2-4 steps is normal; >5 is suspect — collapse fine-grained sub-tasks into the deliverable they belong to.',
+                    '- Each step description names a concrete output (e.g. "Create pricing.html with three-tier markup and inline CSS, Pro highlighted") not a sub-decision (e.g. "Add box-shadow to Pro tier").',
+                    '- Do NOT invent QA, testing, accessibility-review, responsive-check, or post-implementation review steps unless the design names them as explicit deliverables.',
+                    '- Respect scope exclusions stated in the idea or chat (e.g. "no JS", "no responsive QA") — do not add steps for excluded work.',
+                    '',
                     'Return ONLY a JSON array of steps — no prose, no markdown fences:',
                     '[{"order":1,"description":"..."},{"order":2,"description":"..."}]',
                 ].join('\n')));
@@ -218,7 +232,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
 
                 if (weaveId && threadId) {
                     try {
-                        const ctx = await handleThreadContextResource(root, `loom://thread-context/${weaveId}/${threadId}`);
+                        const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
                         messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                     } catch { /* best-effort */ }
                 }

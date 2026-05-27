@@ -163,6 +163,16 @@ async function run(): Promise<void> {
         assert(Array.isArray(state.weaves), 'state.weaves should be an array');
     });
 
+    // (b2) read loom://context for the plan (mode=implementing) — unified pipeline
+    await test('read loom://context returns serialised bundle with provenance headers', async () => {
+        const result = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const text = result.contents[0].text as string;
+        assert(text.includes('<!-- loom:context-bundle target=tw-plan-001 mode=implementing'), 'leading bundle comment missing');
+        assert(text.includes('id: tw-plan-001'), 'target plan header missing');
+        assert(text.includes('id: t1-idea'), 'idea should be in the parent chain');
+        assert(text.includes('id: t1-design'), 'design should be in the parent chain');
+    });
+
     // (c) call loom_create_idea with valid args
     await test('loom_create_idea creates an idea doc', async () => {
         const result = await client.callTool({

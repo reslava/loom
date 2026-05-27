@@ -14,7 +14,7 @@ import { handleLinkIndexResource } from './resources/linkIndex';
 import { handleDiagnosticsResource } from './resources/diagnostics';
 import { handleSummaryResource } from './resources/summary';
 import { handleDocsResource } from './resources/docs';
-import { handleThreadContextResource } from './resources/threadContext';
+import { handleContextResource } from './resources/context';
 import { handlePlanResource } from './resources/plan';
 import { handleRequiresLoadResource } from './resources/requiresLoad';
 import * as createIdea from './tools/createIdea';
@@ -75,7 +75,7 @@ const CONCRETE_RESOURCES = [
 
 const RESOURCE_TEMPLATES = [
     { uriTemplate: 'loom://docs/{id}', name: 'Document', description: 'Raw markdown of any Loom document by id', mimeType: 'text/plain' },
-    { uriTemplate: 'loom://thread-context/{weaveId}/{threadId}', name: 'Thread Context', description: 'Bundled context for a thread: ctx summary, idea, design, active plan, requires_load refs', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/{docId}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target doc. Forms: loom://context/{docId} or loom://context/thread/{weaveId}/{threadId}. Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
     { uriTemplate: 'loom://plan/{id}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
     { uriTemplate: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];
@@ -126,8 +126,8 @@ export function createLoomMcpServer(root: string): Server {
         if (uri.startsWith('loom://docs/')) {
             return handleDocsResource(root, uri);
         }
-        if (uri.startsWith('loom://thread-context/')) {
-            return handleThreadContextResource(root, uri);
+        if (uri.startsWith('loom://context/')) {
+            return handleContextResource(root, uri);
         }
         if (uri.startsWith('loom://plan/')) {
             return handlePlanResource(root, uri);
