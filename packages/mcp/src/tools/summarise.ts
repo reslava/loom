@@ -6,7 +6,7 @@ import { samplingAiClient } from '../samplingAiClient';
 
 const toolDef = {
     name: 'loom_summarise',
-    description: 'Generate or refresh a weave-level context summary at loom/{weaveId}/{weaveId}-ctx.md using MCP sampling. Idempotent: skips when source design version unchanged unless force=true.',
+    description: 'Generate or refresh a weave-level context summary at loom/{weaveId}/ctx.md using MCP sampling. Idempotent: skips when source design version unchanged unless force=true.',
     inputSchema: {
         type: 'object' as const,
         properties: {

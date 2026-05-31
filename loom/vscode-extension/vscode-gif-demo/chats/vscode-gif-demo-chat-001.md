@@ -1295,3 +1295,46 @@ Option C executed — all five artifacts created/updated. Nothing built or commi
 1. commit
 2. implement event-save-scope and fix bug you mentioend in line 1273
 3. commit
+
+## AI:
+
+All three done. Two commits pushed.
+
+**1. Commit — planning docs:** `b5e1dad` (Option C: pipeline §14, Phase 2 plan, event-save-scope design+plan, 2 archives).
+
+**2. Implemented `event-save-scope` + fixed the pipe bug:** `55db0d4` (21 files, +287/−66). `build-all` + `test-all` green (incl. 8/8 MCP).
+
+**event-save-scope** — a workflow event now persists exactly the docs it changed, never the whole weave:
+- `core/applyEvent.ts` returns `ApplyResult { weave, changed }`, collecting the changed-id set at each reassignment site (including the `REFINE_DESIGN` → stale-child-plan cascade).
+- new fs `saveDocs(loomRoot, weave, docIds)`; `runEvent` saves only the changed set; `RunEventDeps.saveWeave` → `saveDocs`; all 5 injection sites + 3 test files updated.
+- regression test: a `COMPLETE_STEP` on one plan leaves a sibling plan **byte-identical** (the sibling is non-canonical, so any accidental re-save would differ — a decisive guard).
+
+⚠️ **One design deviation, recorded honestly.** The design/plan first said "each reducer returns its touched id." On implementation the cleaner locality was obvious: `applyEvent` is the orchestrator that places each reducer's output, so it already knows every id it reassigned — collecting there keeps **reducers pure** with the same external contract (`ApplyResult`, save-only-changed, serialisation-independent). I updated design §3/§5 and the plan to match the build, with a dated note explaining the change rather than silently diverging.
+
+**Pipe fix** — `generateStepsTable` escapes `|`→`\|`; `parseStepsTable` splits on unescaped pipes and un-escapes. A step description containing a literal pipe (the plan-002 step-1 class of bug) now round-trips losslessly instead of corrupting the row. Round-trip test added.
+
+`event-save-scope-plan-001` marked **done**.
+
+---
+
+**Not done (deliberately deferred):**
+- The `saveWeave` idempotency guard (design §6) — optional secondary net, not implemented; flagged as deferred in the design.
+- **Phase 2 of the context pipeline** (`context-pipeline-plan-002`) is still pending — that was the other branch of the earlier A/B/C choice.
+
+**Next:** implement context-pipeline **Phase 2**, or stop here. Waiting for direction.
+
+## Rafa:
+
+Line 1281, you archive docs:
+
+```markdown
+**5. Both threads archived** (banner-noted first, pointing at pipeline §14):
+- `load-when` → `loom/ai-integration/load-when/.archive/load-when-design.md`
+- `reference-load-context` → `loom/ai-integration/reference-load-context/.archive/reference-load-context-design.md`
+```
+
+This is not the way .archived works and do not show up in tree.
+
+there is just one `loom/.archive` is and both threads should be moved there.
+
+Review where you get wrong way to archive and update/fix it.

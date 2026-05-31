@@ -6,7 +6,7 @@ import { requestSampling, SamplingMessage } from '../sampling';
 
 const toolDef = {
     name: 'loom_generate_global_ctx',
-    description: 'Generate or refresh the workspace-level loom/loom-ctx.md from current state using MCP sampling. Captures concept, architecture, active weaves, and operating rules so every session starts pre-loaded.',
+    description: 'Generate or refresh the workspace-level loom/ctx.md from current state using MCP sampling. Captures concept, architecture, active weaves, and operating rules so every session starts pre-loaded.',
     inputSchema: {
         type: 'object' as const,
         properties: {},
@@ -14,7 +14,7 @@ const toolDef = {
     },
 };
 
-const SYSTEM_PROMPT = `You are a Loom context summarizer. You are writing the workspace-level loom/loom-ctx.md doc that every Loom session reads at startup.
+const SYSTEM_PROMPT = `You are a Loom context summarizer. You are writing the workspace-level loom/ctx.md doc that every Loom session reads at startup.
 Output structure (markdown body only — no frontmatter, no H1, no surrounding code fences; the save chokepoint adds the H1 from frontmatter title):
 
 ## 1. Concept
@@ -43,14 +43,14 @@ export function createGenerateGlobalCtxTool(server: Server) {
                     role: 'user',
                     content: {
                         type: 'text',
-                        text: `Workspace state JSON:\n\n${stateText}\n\nProduce the workspace-level loom-ctx.md body per the structure in the system prompt.`,
+                        text: `Workspace state JSON:\n\n${stateText}\n\nProduce the workspace-level loom/ctx.md body per the structure in the system prompt.`,
                     },
                 },
             ];
 
             const body = await requestSampling(server, messages, SYSTEM_PROMPT, 4096);
 
-            const ctxPath = path.join(root, 'loom', 'loom-ctx.md');
+            const ctxPath = path.join(root, 'loom', 'ctx.md');
             const today = new Date().toISOString().split('T')[0];
 
             const existing = await fsExtra.pathExists(ctxPath)

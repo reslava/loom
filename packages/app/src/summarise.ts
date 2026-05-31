@@ -17,7 +17,7 @@ export interface SummariseDeps {
 }
 
 const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system.
-Produce a concise context summary for this weave. The summary will be saved as a -ctx.md file that developers load to quickly understand the current state of a feature.
+Produce a concise context summary for this weave. The summary will be saved as the weave's ctx.md file that developers load to quickly understand the current state of a feature.
 Respond with plain Markdown content only (no frontmatter, no title heading) with exactly these sections:
 
 ## Problem Statement
@@ -46,7 +46,7 @@ export async function summarise(
     }
 
     const loomRoot = deps.getActiveLoomRoot(deps.loomRoot);
-    const ctxPath = path.join(loomRoot, 'loom', input.weaveId, `${input.weaveId}-ctx.md`);
+    const ctxPath = path.join(loomRoot, 'loom', input.weaveId, 'ctx.md');
 
     if (!input.force && deps.fs.existsSync(ctxPath)) {
         const raw = await deps.fs.readFile(ctxPath, 'utf8');

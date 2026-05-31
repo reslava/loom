@@ -4,10 +4,19 @@
     "pr": ""
   },
   "permissions": {
-      "allow": [
-      "Edit", "Write", "Read", "Glob", "Grep",
-      "Bash(npm:*)", "Bash(node:*)", "Bash(git:*)",
-      "mcp__loom"
+    "allow": [
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "mcp__loom",
+      "Bash(npx ts-node *)",
+      "Bash(./scripts/build-all.sh)",
+      "Bash(./scripts/test-all.sh)"
     ]
   },
   "enableAllProjectMcpServers": true,

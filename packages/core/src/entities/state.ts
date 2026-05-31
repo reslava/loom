@@ -15,7 +15,7 @@ export interface LoomState {
     /** The name of the active loom (for multi‑loom) or '(local)' for mono‑loom. */
     loomName: string;
 
-    /** Docs living directly at the loom/ root (outside any weave), e.g. loom-ctx.md. */
+    /** Docs living directly at the loom/ root (outside any weave), e.g. ctx.md. */
     globalDocs: Document[];
 
     /** Chats living in loom/chats/ (outside any weave). */

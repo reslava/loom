@@ -3,6 +3,7 @@ import {
     Document,
     PlanDoc,
     DesignDoc,
+    ReferenceDoc,
     ContextBundle,
     BundledDoc,
     ExcludedDoc,
@@ -82,14 +83,27 @@ function activePlan(plans: PlanDoc[]): PlanDoc | undefined {
 }
 
 /**
+ * Does a reference doc's `load_when` allow the given effective mode?
+ * Absent or empty `load_when` ⇒ relevant to all modes.
+ */
+function loadWhenAllows(doc: ReferenceDoc, effectiveMode: string): boolean {
+    const lw = doc.load_when;
+    if (!lw || lw.length === 0) return true;
+    return lw.includes(effectiveMode);
+}
+
+/**
  * Assemble the deterministic context bundle for a target document.
  *
  * Pure: no IO, no async, no side effects. Everything is read from `state`
  * (bodies via BaseDoc.content, id/slug lookups via state.index).
  *
- * Phase 1 scope: auto-load global/weave/thread ctx (all ctx treated as
- * load:always) + the target's parent chain + eager/transitive requires_load.
- * No load_when filter (Phase 2), no token budget (Phase 5). The `overrides`
+ * Scope: auto-load global + weave ctx (all ctx treated as load:always; thread
+ * scope has no ctx — a thread's idea/design/plan load in full via the parent chain)
+ * + load:always reference docs in matching scope, filtered by `load_when` vs
+ * the effective mode (Phase 2) + the target's parent chain + eager/transitive
+ * requires_load. by-request refs are excluded from auto-load but remain
+ * reachable via requires_load. No token budget yet (Phase 5). The `overrides`
  * argument is honoured (exclude wins, include adds) — the sidebar UX that
  * *produces* overrides is Phase 3.
  */
@@ -106,6 +120,10 @@ export function assembleContext(
     if (!targetEntry) {
         throw new Error(`Context target not found in loom state: ${targetId}`);
     }
+
+    // `refine` is compound — load_when filtering applies per the *target's* type, not
+    // the literal mode string (design §8). Every other mode filters against itself.
+    const effectiveMode: string = mode === 'refine' ? targetEntry.doc.type : mode;
 
     const emitted = new Map<string, BundledDoc>();
     const order: string[] = [];
@@ -134,6 +152,21 @@ export function assembleContext(
         return true;
     };
 
+    // Auto-load gate for reference docs (Phase 2). Only `load: always` refs are
+    // auto-loaded; `by-request` (and unset) refs are skipped here but stay reachable
+    // via requires_load. An always-ref whose `load_when` omits the effective mode is
+    // dropped with reason 'load_when-filter' (cleared later if requires_load pulls it).
+    const addReference = (doc: Document, scope: DocScope): void => {
+        if (doc.type !== 'reference') return;
+        if (doc.id === canonicalTargetId || emitted.has(doc.id)) return;
+        if (doc.load !== 'always') return;
+        if (!loadWhenAllows(doc, effectiveMode)) {
+            if (!excluded.some(e => e.id === doc.id)) excluded.push({ id: doc.id, reason: 'load_when-filter' });
+            return;
+        }
+        add(doc, scope, 'auto');
+    };
+
     const { weaveId, threadId } = targetEntry;
     const weave = weaveId ? state.weaves.find(w => w.id === weaveId) : undefined;
     const thread = weave && threadId ? weave.threads.find(t => t.id === threadId) : undefined;
@@ -148,11 +181,19 @@ export function assembleContext(
             if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'weave', 'auto');
         }
     }
-    // 2c. Thread ctx (forward-compatible — present once getState loads thread ctx docs)
+    // No thread-scoped ctx: a thread's idea/design/plan are loaded in full by the
+    // parent chain (step 4), so a thread-ctx would duplicate context, not compress it.
+    // ctx exists at global + weave scope only.
+
+    // 2d/3. Reference docs (Phase 2): auto-load load:always refs in matching scope, filtered
+    // by load_when vs the effective mode. Ordered global → weave → thread — after ctx and before
+    // the parent chain, per the deterministic ordering rule.
+    for (const doc of state.globalDocs) addReference(doc, 'global');
+    if (weave) {
+        for (const doc of [...weave.looseFibers, ...weave.refDocs]) addReference(doc, 'weave');
+    }
     if (thread) {
-        for (const doc of thread.allDocs) {
-            if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'thread', 'auto');
-        }
+        for (const doc of thread.allDocs) addReference(doc, 'thread');
     }
 
     // 4. Parent chain (idea → design → active plan) for a thread target.
@@ -177,7 +218,11 @@ export function assembleContext(
     const docs = order.map(id => emitted.get(id)!);
     const totalTokens = docs.reduce((sum, d) => sum + d.tokenEstimate, 0);
 
-    return { targetId: canonicalTargetId, mode, docs, excluded, totalTokens };
+    // requires_load / user-include are explicit and win over the load_when auto-load gate:
+    // if a filtered ref ended up emitted, drop its 'load_when-filter' exclusion (no contradiction).
+    const finalExcluded = excluded.filter(e => !(e.reason === 'load_when-filter' && emitted.has(e.id)));
+
+    return { targetId: canonicalTargetId, mode, docs, excluded: finalExcluded, totalTokens };
 }
 
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {

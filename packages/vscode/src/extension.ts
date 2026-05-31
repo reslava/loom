@@ -169,11 +169,10 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
             const weaveId = node?.weaveId;
-            const threadId = node?.threadId;
             if (await isClaudeInstalled()) {
-                const scope = weaveId ? `weaveId="${weaveId}"${threadId ? `, threadId="${threadId}"` : ''}` : 'global';
+                const scope = weaveId ? `weaveId="${weaveId}"` : 'global';
                 await launchClaude(root, 'Loom: Refresh Ctx',
-                    `Loom refresh ctx task. scope=${scope}. Use the loom MCP server: read thread docs${weaveId ? ` in weave "${weaveId}"` : ' across all weaves'} via loom://context/thread/{weaveId}/{threadId} or loom://state, write an updated ctx summary, then use MCP tool loom_update_doc on the ctx doc. Do not use loom_refresh_ctx or loom_generate_global_ctx — sampling is unavailable in Claude Code CLI.`
+                    `Loom refresh ctx task. scope=${scope}. ctx exists at global + weave scope only (there is no thread ctx). Use the loom MCP server: read ${weaveId ? `the docs in weave "${weaveId}"` : 'workspace state across all weaves'} via loom://state, write an updated ctx summary, then use MCP tool loom_update_doc on the ${weaveId ? "weave's ctx.md" : 'global loom/ctx.md'}. Do not use loom_refresh_ctx or loom_generate_global_ctx — sampling is unavailable in Claude Code CLI.`
                 );
             } else {
                 try {
@@ -182,7 +181,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                         { location: vscode.ProgressLocation.Notification, title: 'Loom: Refreshing context…', cancellable: false },
                         async () => {
                             if (weaveId) {
-                                result = await getMCP(root).callTool('loom_refresh_ctx', { weaveId, ...(threadId ? { threadId } : {}) });
+                                result = await getMCP(root).callTool('loom_refresh_ctx', { weaveId });
                             } else {
                                 result = await getMCP(root).callTool('loom_generate_global_ctx', {});
                             }

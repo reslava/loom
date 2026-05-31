@@ -116,6 +116,63 @@ async function testThreadEntity() {
     console.log('\n✨ All Thread entity tests passed!\n');
 }
 
+function makeCtx(id: string) {
+    return {
+        type: 'ctx' as const,
+        id,
+        title: id,
+        status: 'active' as const,
+        created: '2026-04-23',
+        version: 1,
+        tags: [],
+        parent_id: null,
+        child_ids: [],
+        requires_load: [],
+        content: '',
+    };
+}
+
+async function testStatusExcludesCtxAndReference() {
+    console.log('🧷 Running status ctx/reference exclusion tests...\n');
+
+    const donePlan = makePlan('ctx-load-plan-001', 'done');
+    const ctx = makeCtx('core-engine-ctx');
+
+    // Thread: a done plan + a perpetual ctx → still DONE (ctx excluded from every-done)
+    const thread = {
+        id: 'ctx-load', weaveId: 'core-engine',
+        plans: [donePlan], dones: [], chats: [],
+        allDocs: [donePlan, ctx],
+    };
+    console.log('  • getThreadStatus — done plan + active ctx → DONE...');
+    const ts = getThreadStatus(thread as any);
+    assert(ts === 'DONE', `expected DONE, got ${ts}`);
+    console.log('    ✅ DONE');
+
+    // Weave: a done plan + a ctx loose fiber → still DONE
+    const weave = {
+        id: 'core-engine', threads: [thread], looseFibers: [ctx], chats: [],
+        allDocs: [donePlan, ctx],
+    };
+    console.log('  • getWeaveStatus — done plan + active ctx → DONE...');
+    const ws = getWeaveStatus(weave as any);
+    assert(ws === 'DONE', `expected DONE, got ${ws}`);
+    console.log('    ✅ DONE');
+
+    // Guard: only a ctx, no deliverables → NOT a false DONE
+    const ctxOnly = {
+        id: 'x', weaveId: 'core-engine',
+        plans: [], dones: [], chats: [],
+        allDocs: [ctx],
+    };
+    console.log('  • getThreadStatus — only ctx, no deliverables → not DONE...');
+    const ts2 = getThreadStatus(ctxOnly as any);
+    assert(ts2 === 'ACTIVE', `expected ACTIVE, got ${ts2}`);
+    console.log('    ✅ ACTIVE (no false DONE)');
+
+    console.log('\n✨ All status ctx/reference exclusion tests passed!\n');
+}
+
 async function testWeaveWithThreads() {
     console.log('🧵 Running Weave-with-threads aggregation tests...\n');
 
@@ -152,6 +209,7 @@ Promise.all([
     testDoneDocEntity(),
     testThreadEntity(),
     testWeaveWithThreads(),
+    testStatusExcludesCtxAndReference(),
 ]).catch(err => {
     console.error('❌ entity.test.ts failed:', err.message);
     process.exit(1);

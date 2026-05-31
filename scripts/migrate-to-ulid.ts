@@ -50,7 +50,7 @@ function isUlidId(id: string): boolean {
 const ORDERED_KEYS = [
     'type', 'id', 'title', 'status', 'created', 'updated', 'version',
     'design_version', 'tags', 'parent_id', 'requires_load',
-    'slug', 'loadWhen', 'role', 'target_release', 'actual_release',
+    'slug', 'load', 'load_when', 'role', 'target_release', 'actual_release',
     'target_version', 'source_version', 'staled', 'refined',
 ];
 

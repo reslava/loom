@@ -28,9 +28,9 @@ export async function summariseCommand(treeProvider: LoomTreeProvider, node?: Tr
             if (result?.generated && result?.ctxPath) {
                 const doc = await vscode.workspace.openTextDocument(result.ctxPath);
                 await vscode.window.showTextDocument(doc);
-                vscode.window.showInformationMessage(`Context summary generated: ${weaveId}-ctx.md`);
+                vscode.window.showInformationMessage(`Context summary generated: ${weaveId}/ctx.md`);
             } else {
-                vscode.window.showInformationMessage(`Context summary is up to date: ${weaveId}-ctx.md`);
+                vscode.window.showInformationMessage(`Context summary is up to date: ${weaveId}/ctx.md`);
             }
         } catch (e: any) {
             vscode.window.showErrorMessage(`Failed to summarise: ${e.message}`);

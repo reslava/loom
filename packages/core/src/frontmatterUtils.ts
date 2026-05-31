@@ -89,7 +89,8 @@ const ORDERED_KEYS = [
     'requires_load',
     // reference-doc fields
     'slug',
-    'loadWhen',
+    'load',
+    'load_when',
     // design-specific
     'role',
     'target_release',

@@ -54,6 +54,35 @@ function buildFixture() {
     return state;
 }
 
+// Dedicated fixture for the Phase-2 load / load_when matrix (kept separate so the
+// Phase-1 ordering assertions above are not disturbed by auto-loaded references).
+function buildLoadFixture() {
+    const refAlways = doc({ id: 'r-always', type: 'reference', slug: 'r-always', load: 'always', content: 'ALWAYS' });
+    const refDesign = doc({ id: 'r-design', type: 'reference', slug: 'r-design', load: 'always', load_when: ['design'], content: 'DESIGN-REF' });
+    const refByReq  = doc({ id: 'r-byreq',  type: 'reference', slug: 'r-byreq',  load: 'by-request', content: 'BYREQ' });
+
+    const designT = doc({ id: 'd-T', type: 'design', content: 'DESIGN-T' });
+    const chatT   = doc({ id: 'c-T', type: 'chat', content: 'CHAT-T', requires_load: ['r-byreq'] });
+
+    const thread = { id: 't1', weaveId: 'w1', idea: undefined, design: designT, plans: [], dones: [], chats: [chatT], refDocs: [],
+        allDocs: [designT, chatT] };
+    const weave = { id: 'w1', threads: [thread], looseFibers: [], chats: [], refDocs: [refAlways, refDesign, refByReq],
+        allDocs: [designT, chatT, refAlways, refDesign, refByReq] };
+
+    const index = createEmptyIndex();
+    for (const d of [refAlways, refDesign, refByReq, designT, chatT]) {
+        index.byId.set(d.id, `/fake/${d.id}.md`);
+    }
+
+    const state: any = {
+        loomRoot: '/fake', mode: 'mono', loomName: '(local)',
+        globalDocs: [], globalChats: [], weaves: [weave],
+        archivedWeaves: [], archivedLooseDocs: [], index,
+        generatedAt: '2026-05-27T00:00:00.000Z', summary: {},
+    };
+    return state;
+}
+
 async function run() {
     console.log('🔁 Running assembleContext tests...\n');
 
@@ -145,6 +174,46 @@ async function run() {
     assert(lines.some((l: string) => l === '⚠️ requires_load target missing: ghost'), 'missing visibility line wrong');
     assert(lines.some((l: string) => l.startsWith('📄 p1 — loaded for context (⚠️ stale)')), 'stale visibility marker missing');
     console.log('    ✅ visibility lines correct');
+
+    // ── load / load_when filter (Phase 2) ─────────────────────────────────────
+    console.log('  • load/load_when filter (Phase 2)...');
+    const ls = buildLoadFixture();
+
+    // design mode: always ref + design-scoped always ref auto-load; by-request only via requires_load.
+    const designB = assembleContext('c-T', 'design', { include: [], exclude: [] }, ls);
+    const dIds = designB.docs.map((d: any) => d.id);
+    assert(dIds.includes('r-always'), 'r-always should auto-load in design mode');
+    assert(dIds.includes('r-design'), 'r-design (load_when:[design]) should auto-load in design mode');
+    assert(designB.docs.find((d: any) => d.id === 'r-always').reason === 'auto', 'r-always reason should be auto');
+    assert(designB.docs.find((d: any) => d.id === 'r-design').reason === 'auto', 'r-design reason should be auto');
+    const dByReq = designB.docs.find((d: any) => d.id === 'r-byreq');
+    assert(dByReq && dByReq.reason === 'requires_load', 'r-byreq should load via requires_load, not auto');
+    assert(!designB.excluded.some((e: any) => e.id === 'r-design'), 'r-design must not be excluded in design mode');
+    console.log('    ✅ design mode: always + design-scoped auto-load; by-request via requires_load');
+
+    // implementing mode: design-scoped always ref is filtered out (load_when-filter).
+    const implB = assembleContext('c-T', 'implementing', { include: [], exclude: [] }, ls);
+    const iIds = implB.docs.map((d: any) => d.id);
+    assert(iIds.includes('r-always'), 'r-always (no load_when) should auto-load in every mode');
+    assert(!iIds.includes('r-design'), 'r-design should be filtered out in implementing mode');
+    assert(implB.excluded.some((e: any) => e.id === 'r-design' && e.reason === 'load_when-filter'),
+        'r-design should be excluded:load_when-filter in implementing mode');
+    assert(iIds.includes('r-byreq'), 'r-byreq should still load via requires_load in implementing mode');
+    console.log('    ✅ implementing mode: design-scoped ref dropped (load_when-filter)');
+
+    // by-request is excluded from auto-load when nothing requires it (design target has no requires_load).
+    const noReqB = assembleContext('d-T', 'design', { include: [], exclude: [] }, ls);
+    const nIds = noReqB.docs.map((d: any) => d.id);
+    assert(nIds.includes('r-always') && nIds.includes('r-design'), 'always refs auto-load for the design target');
+    assert(!nIds.includes('r-byreq'), 'by-request ref must NOT auto-load when unreferenced');
+    console.log('    ✅ by-request excluded from auto-load when unreferenced');
+
+    // refine mode filters by the target's type (design §8): refine on a design → design-scoped ref loads.
+    const refineB = assembleContext('d-T', 'refine', { include: [], exclude: [] }, ls);
+    const rIds = refineB.docs.map((d: any) => d.id);
+    assert(rIds.includes('r-design'), 'refine on a design target should include the design-scoped ref');
+    assert(rIds.includes('r-always'), 'refine on a design target should include the unconditional always ref');
+    console.log('    ✅ refine mode filters by target type');
 
     console.log('\n✅ assembleContext + serializeBundle tests passed\n');
 }

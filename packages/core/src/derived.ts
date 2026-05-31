@@ -2,12 +2,23 @@ import { Weave, WeaveStatus, WeavePhase } from './entities/weave';
 import { Thread, ThreadStatus } from './entities/thread';
 import { PlanDoc } from './entities/plan';
 import { DesignDoc } from './entities/design';
+import { Document } from './entities/document';
+
+/**
+ * ctx and reference docs are perpetual context, not workstream deliverables —
+ * they carry `status: active` forever, so counting them in the every-done check
+ * would permanently block a weave/thread from reaching DONE. Exclude them.
+ */
+function isDeliverable(doc: Document): boolean {
+    return doc.type !== 'ctx' && doc.type !== 'reference';
+}
 
 export function getWeaveStatus(weave: Weave): WeaveStatus {
     const plans = weave.threads.flatMap(t => t.plans);
+    const deliverables = weave.allDocs.filter(isDeliverable);
 
     if (plans.some(p => p.status === 'implementing')) return 'IMPLEMENTING';
-    if (weave.allDocs.length > 0 && weave.allDocs.every(d => d.status === 'done')) return 'DONE';
+    if (deliverables.length > 0 && deliverables.every(d => d.status === 'done')) return 'DONE';
     if (plans.some(p => p.status === 'active' || p.status === 'draft')) return 'ACTIVE';
     if (plans.some(p => p.status === 'blocked')) return 'BLOCKED';
     return 'ACTIVE';
@@ -36,9 +47,10 @@ export function getStalePlans(weave: Weave): PlanDoc[] {
 
 export function getThreadStatus(thread: Thread): ThreadStatus {
     const plans = thread.plans;
+    const deliverables = thread.allDocs.filter(isDeliverable);
 
     if (plans.some(p => p.status === 'implementing')) return 'IMPLEMENTING';
-    if (thread.allDocs.length > 0 && thread.allDocs.every(d => d.status === 'done')) return 'DONE';
+    if (deliverables.length > 0 && deliverables.every(d => d.status === 'done')) return 'DONE';
     if (plans.some(p => p.status === 'active' || p.status === 'draft')) return 'ACTIVE';
     if (plans.some(p => p.status === 'blocked')) return 'BLOCKED';
     return 'ACTIVE';
