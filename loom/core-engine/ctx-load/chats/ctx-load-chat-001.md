@@ -203,3 +203,68 @@ Net effect: weave ctx is now a live part of the assembled context, and the three
 
 to consolidate the three ctx generators into one for global and weave ctx, what decisions should be taken?
 
+create the thread and idea
+
+
+## AI:
+
+Decisions to take before consolidating the three generators into one. The first is the crux — the rest mostly fall out of it.
+
+**D1 — Inference path (the fork I flagged).** Where does the LLM call happen?
+- (a) Server-side inside the tool — MCP sampling and/or app `AIClient`. Problem: *neither works in Claude Code CLI* (sampling → MethodNotFound; AIClient needs a key the CLI doesn't use), and it forks on host capability.
+- (b) **No server-side inference** — the tool assembles the scope's *source* context + ensures the ctx doc shell exists at the canonical path; the **agent writes the body** via `loom_update_doc` (same pattern as do-step). Uniform across CLI + extension, agent-agnostic, deletes the AIClient-vs-sampling fork entirely. **My lean — it's the context-pipeline philosophy (assemble context, let the agent act) applied to ctx generation.**
+- (c) Hybrid — server-side when the host supports it, else agent-writes. Two code paths.
+
+**D2 — Tool surface.** One tool `loom_refresh_ctx(scope: 'global' | 'weave', weaveId?)`; **remove** `loom_summarise` + `loom_generate_global_ctx` (clean break, no aliases).
+
+**D3 — Source per scope.** Global → workspace state (active/implementing weaves). Weave → the weave's design + ideas + plans + dones (richer than raw state JSON). Decide: reuse the context pipeline (`assembleContext`) for the source, or a dedicated summariser input?
+
+**D4 — Idempotency.** Keep "skip unless source changed or `force=true`". Weave source-version = primary design version (exists today). **Open: what's the *global* source signal?** (state hash / newest doc timestamp).
+
+**D5 — Frontmatter template (resolve today's inconsistencies).** One template: id (`loom-ctx`/`{weave}-ctx`), parent_id (weave → primary design id? or null), version (increment on regen vs reset to 1), `source_version`. Today the three tools disagree on parent_id + versioning.
+
+**D6 — Layering.** One use-case in `packages/app` (`(scope, ids, deps) → result`), MCP tool a thin wrapper; any inference injected via `deps`. Matches `mcp → app → core+fs`.
+
+**D7 — CLI create gap.** There's no `loom_create_ctx`. If D1=(b), decide how the ctx shell gets created so the agent can `loom_update_doc` it: a new `loom_create_ctx`, or `loom_refresh_ctx` ensures the shell then the agent fills it.
+
+Creating the thread + idea now (`core-engine/ctx-generate`) capturing these as the open questions. It coordinates with `global-ctx` (likely subsumes it) and the `ctx-load` convention. I'll point at it.
+
+## Rafa:
+
+D1 b
+
+Create the design
+
+## AI:
+
+D1=(b) noted — design written: `core-engine/ctx-generate/ctx-generate-design.md`. Headline: **assemble, don't generate.**
+
+How the rest fell out of (b):
+- **D2/D7** — one tool `loom_refresh_ctx(scope, weaveId?)`: it *ensures* the ctx shell at the canonical path (so no new `loom_create_ctx`) and *returns* the assembled `source` + `ctxId`; the agent writes the body via `loom_update_doc`. Remove `loom_summarise` + `loom_generate_global_ctx`.
+- **D3** — pure `buildCtxSource(scope, ids, state)` in app; lift `summarise.ts`'s weave roll-up; global from active-state. Not reusing `assembleContext` (that's parent-chain-centric; ctx source is a cross-thread roll-up).
+- **D4** — scope-agnostic **`source_hash`** for idempotency → kills the "what's the global source signal?" question entirely (hash works for both scopes).
+- **D5** — one frontmatter template; **parent_id null** (a weave ctx summarises all threads, not one design), version increments, `source_hash` replaces `source_version`.
+- **D6** — pure source builder + impure shell-ensure + thin tool; zero AIClient/sampling deps.
+- **Extension** — the two launch paths collapse into one (ensure shell → launch agent with source → `loom_update_doc`), same as the do-step button.
+
+Two open sub-points I left in the design: (1) ship tool-only vs also add a `refresh-ctx` prompt; (2) `buildCtxSource` weave depth (lean: match summarise's current depth). Both are minor — not blockers for a plan.
+
+This **subsumes `core-engine/global-ctx`** — flagged for confirm/close.
+
+Review when you can. Say `go` (or "plan it") and I'll write plan-001; or push back on any of D2–D7.
+
+## Rafa:
+
+go
+
+implement the whole plan
+
+## AI:
+
+Shipped — `ctx-generate-plan-001` is **done** (all 7 steps ✅, build + full suite green, end-to-end smoke passing).
+
+One tool now: `loom_refresh_ctx(scope: "global" | "weave", weaveId?)` — assembles the scope source, ensures the `ctx.md` shell at the canonical path with a `source_hash`, returns the source; the agent writes the body via `loom_update_doc`. No server-side inference, so it works the same in CLI and the extension.
+
+Removed: `loom_summarise`, `loom_generate_global_ctx`, the CLI `summarise-context` command, and the redundant `loom.summarise` / `loom.generateGlobalCtx` extension commands (+ menus). Lifted the weave roll-up into a pure `buildCtxSource`. `global-ctx` marked superseded.
+
+Heads-up on one consequence of D1=b: there's no longer a standalone pure-CLI ctx generator (`loom summarise-context` is gone) — ctx generation is now always an agent flow. That follows directly from "no server-side inference"; flag if you'd rather keep a CLI escape hatch.

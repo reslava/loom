@@ -5,7 +5,6 @@ export { completeStep, CompleteStepInput, CompleteStepDeps } from './completeSte
 export { finalize, FinalizeInput, FinalizeDeps } from './finalize';
 export { rename, RenameInput, RenameDeps } from './rename';
 export { runEvent, RunEventDeps } from './runEvent';
-export { summarise, SummariseInput, SummariseDeps } from './summarise';
 export { validate, ValidateInput, ValidateDeps, ValidationResult } from './validate';
 export { weaveIdea, WeaveIdeaInput, WeaveIdeaDeps } from './weaveIdea';
 export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
@@ -31,6 +30,10 @@ export { getState, GetStateDeps, GetStateInput } from './getState';
 // ============================================================================
 export { assembleContext, classifyScope } from './context/assembleContext';
 export { serializeBundle, bundleVisibilityLines } from './context/serializeBundle';
+export {
+    buildCtxSource, ctxTarget, computeSourceHash, buildCtxFrontmatter, buildCtxShell,
+    CtxScope, CtxTarget,
+} from './buildCtxSource';
 
 // ============================================================================
 // Utilities

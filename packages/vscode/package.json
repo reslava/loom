@@ -171,12 +171,6 @@
         "icon": "$(shield)"
       },
       {
-        "command": "loom.summarise",
-        "title": "Summarise Context",
-        "category": "Loom",
-        "icon": "$(book)"
-      },
-      {
         "command": "loom.setGrouping",
         "title": "Set Grouping",
         "category": "Loom",
@@ -199,12 +193,6 @@
           "light": "media/icons/filter.svg",
           "dark": "media/icons/filter.svg"
         }
-      },
-      {
-        "command": "loom.generateGlobalCtx",
-        "title": "Generate / Refine Global Context",
-        "category": "Loom",
-        "icon": "$(book)"
       },
       {
         "command": "loom.toggleArchived",
@@ -619,11 +607,6 @@
           "command": "loom.promoteToReference",
           "when": "view == loom.threads && viewItem == chat-refs",
           "group": "ai@1"
-        },
-        {
-          "command": "loom.summarise",
-          "when": "view == loom.threads && (viewItem == weave || viewItem =~ /^thread/)",
-          "group": "ai@4"
         },
         {
           "command": "loom.restoreItem",

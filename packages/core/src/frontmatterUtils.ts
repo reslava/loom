@@ -100,6 +100,8 @@ const ORDERED_KEYS = [
     'source_version',
     'staled',
     'refined',
+    // ctx-specific
+    'source_hash',
 ];
 
 /**

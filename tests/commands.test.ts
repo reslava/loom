@@ -77,15 +77,6 @@ async function testCommands() {
     assert(result.stdout.includes('REFINE_DESIGN'), 'Missing REFINE_DESIGN message');
     console.log('    ✅ loom refine-design works');
 
-    console.log('  • Testing `loom summarise-context`...');
-    result = runLoom('summarise-context example');
-    if (result.stderr.includes('No AI client configured')) {
-        console.log('    ⚠️  summarise-context skipped — no API key configured');
-    } else {
-        assert(result.exitCode === 0, `summarise-context failed: ${result.stderr}`);
-        console.log('    ✅ loom summarise-context works');
-    }
-
     console.log('  • Creating test plan (thread layout)...');
     const planId = `${threadId}-plan-001`;
     await seedThreadPlan(weavePath, threadId, planId, 'draft');

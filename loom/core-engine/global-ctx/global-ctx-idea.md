@@ -4,12 +4,15 @@ id: id_01KQYDFDDC5KQMGQJKN66H5RX9
 title: Global Ctx — Project-Level Context Summary
 status: done
 created: "2026-04-26T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
-version: 2
+updated: 2026-05-31
+version: 3
 tags: [ctx, ai, core-engine, mcp]
 parent_id: null
 requires_load: [rf_01KQYDFDDDMS4N0V9G73MNV5JR]
 ---
+# Global Ctx — Project-Level Context Summary
+
+> **Superseded (2026-05-31) by `core-engine/ctx-generate`.** This idea shipped the global ctx at `loom/ctx.md` and proposed a 3-layer hierarchy. Two threads evolved it: `ctx-load` established that ctx exists at **global + weave only** (no thread ctx — the `{thread}/ctx/` layer in the table below is obsolete), and `ctx-generate` consolidated all ctx generation into one assemble-not-generate tool, `loom_refresh_ctx(scope, weaveId?)`. The "loom_refresh_ctx with no args → global ctx" idea below is realised there as `scope: 'global'`. Kept for history.
 
 # Global Ctx — Project-Level Context Summary
 

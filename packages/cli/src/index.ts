@@ -12,7 +12,6 @@ import { validateCommand } from './commands/validate';
 import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
 import { completeStepCommand } from './commands/completeStep';
-import { summariseCommand } from './commands/summarise';
 import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
@@ -99,12 +98,6 @@ program
     .description('Mark a plan step as done')
     .requiredOption('--step <n>', 'Step number to complete')
     .action(completeStepCommand);
-
-program
-    .command('summarise-context <weave-id>')
-    .description('Generate or regenerate -ctx.md summary')
-    .option('--force', 'Overwrite existing summary')
-    .action(summariseCommand);
 
 const weaveCmd = program
     .command('weave')

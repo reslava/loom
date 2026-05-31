@@ -47,8 +47,8 @@ run_test tests/plan-table-utils.test.ts
 # Event save scope: a single event persists only the doc it changed (no blast radius)
 run_test tests/event-save-scope.test.ts
 
-# Step 7: summarise use-case (mock AI)
-run_test tests/summarise.test.ts
+# Step 7: buildCtxSource — pure ctx source assembler + helpers (no IO)
+run_test tests/build-ctx-source.test.ts
 
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
