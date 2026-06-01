@@ -32,16 +32,16 @@ cd ../fs && npx tsc --build --force
 echo "📦 Building app..."
 cd ../app && npx tsc --build --force
 
-echo "📦 Building cli..."
-cd ../cli && npx tsc --build --force
+echo "📦 Building mcp..."
+cd ../mcp && npx tsc --build --force
+
+echo "📦 Building cli (bundled with esbuild)..."
+cd ../cli && node esbuild.js
 
 echo "🔗 Linking CLI globally..."
 npm link --force
 
 echo "📦 Building vscode..."
 cd ../vscode && npx tsc --build --force
-
-echo "📦 Building mcp..."
-cd ../mcp && npx tsc --build --force
 
 echo "✅ Build complete. 'loom' command is ready."

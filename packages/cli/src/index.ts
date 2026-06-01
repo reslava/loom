@@ -1,6 +1,6 @@
-#!/usr/bin/env node
 import { Command } from 'commander';
-import * as path from 'path';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { createLoomMcpServer } from '../../mcp/dist/server';
 import { initCommand } from './commands/init';
 import { installCommand } from './commands/install';
 import { setupCommand } from './commands/setup';
@@ -139,12 +139,15 @@ program
 program
     .command('mcp')
     .description('Start the Loom MCP server (stdio transport)')
-    .action(() => {
-        const mcpEntry = path.resolve(__dirname, '../../mcp/dist/index.js');
+    .action(async () => {
+        // Server is bundled in-process (see esbuild.js) — no runtime path to mcp/dist.
+        const root = process.env['LOOM_ROOT'] ?? process.cwd();
+        const server = createLoomMcpServer(root);
+        const transport = new StdioServerTransport();
         try {
-            require(mcpEntry);
-        } catch (e: any) {
-            console.error('Loom MCP server not built. Run: ./scripts/build-all.sh');
+            await server.connect(transport);
+        } catch (err: any) {
+            console.error('Failed to start Loom MCP server:', err.message);
             process.exit(1);
         }
     });
