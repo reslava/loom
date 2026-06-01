@@ -2,10 +2,10 @@
 type: design
 id: de_01KSTFZXP06VXHFDYG1FGAK1KT
 title: Sidebar CONTEXT UX — see and toggle what the AI gets
-status: draft
+status: done
 created: "2026-05-29T00:00:00.000Z"
-updated: 2026-05-31
-version: 3
+updated: 2026-06-01
+version: 4
 tags: []
 parent_id: id_01KSTFYVRPJF86BEYYNTT81C4N
 requires_load: []

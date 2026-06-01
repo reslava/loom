@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KSYYTMESC1RBPMEENKWDBS9K
 title: context-sidebar Chat
-status: active
-created: 2026-05-31
-version: 1
+status: done
+created: "2026-05-31T00:00:00.000Z"
+updated: 2026-06-01
+version: 2
 tags: []
 parent_id: null
 requires_load: []
@@ -348,3 +349,26 @@ Next: waiting for direction — want me to add a link to these from the repo `RE
 - bump extension 0.7.0
 - update main README and extension README
 - commit ALL, push to main
+
+
+## AI:
+
+All shipped. Tests green (multi-loom + 9/9 MCP integration) before push.
+
+**README links** — added guide links to the repo `README.md` (top banner + References table) and the extension `README.md` (top banner + Documentation list).
+
+**Reference docs rewritten to match reality:**
+- `vscode-commands-reference.md` — rebuilt from the live `package.json`: real command IDs, the Threads + Context views, context-panel commands, settings; dropped the fictional keybindings and Stage-1 commands.
+- `cli-commands-reference.md` — rebuilt from `cli/src/index.ts`: only commands that exist; removed `loom ai respond` / `loom doctor` / `loom chat *` etc.; framed the CLI as setup + inspection + CRUD with the MCP agent as the AI surface.
+
+**READMEs refreshed** — fixed the nonexistent "Generate Idea" button, the Threads-vs-Context panel conflation, the old Pinned/Opt-in table (now the 7-symbol panel), and the `loom init` → `loom install` quick-start.
+
+**Versions** — all seven `package.json` files bumped to **0.7.0** (root, core, fs, app, cli, mcp, vscode).
+
+**Committed & pushed to `main`:** `1539ef6` (commit ALL — included the in-flight P3 tooling, the sidebar double-parse fix, guides, ref/README updates, version bumps).
+
+**GitHub release:** [v0.7.0 — CONTEXT panel & User Guides](https://github.com/reslava/loom/releases/tag/v0.7.0).
+
+One thing to flag: `git add -A` also committed `.loom/context-prefs.json` (this repo's own sidebar overrides) since you said commit ALL. The design called it gitignorable — say the word and I'll `git rm --cached` it and add a `.gitignore` entry.
+
+Next: waiting for direction.
