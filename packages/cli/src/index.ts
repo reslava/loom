@@ -18,16 +18,21 @@ import { weavePlanCommand } from './commands/weavePlan';
 import { finalizeCommand } from './commands/finalize';
 import { renameCommand } from './commands/rename';
 
+// Single source of truth for the version. esbuild inlines this JSON at build
+// time (so the published bundle carries the real version); when run from source
+// via ts-node, '../package.json' resolves to the same file. No drift either way.
+const pkg = require('../package.json');
+
 const program = new Command();
 
 program
     .name('loom')
     .description('REslava Loom — Weave ideas into features with AI')
-    .version('0.2.0');
+    .version(pkg.version);
 
 program
     .command('install')
-    .description('Install Loom into this workspace: creates .loom/, writes .loom/CLAUDE.md, patches CLAUDE.md, writes .claude/mcp.json')
+    .description('Install Loom into this workspace: creates .loom/, writes .loom/CLAUDE.md, patches CLAUDE.md, writes .mcp.json')
     .option('--force', 'Overwrite existing configuration')
     .action(installCommand);
 
