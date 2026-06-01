@@ -1,12 +1,15 @@
 import * as path from 'path';
+import * as os from 'os';
 import * as fsNative from 'fs';
 import { remove, ensureDir, outputFile } from 'fs-extra';
 import { serializeFrontmatter } from '../packages/core/dist/index.js';
 
-export const WORKSPACE_ROOT = 'j:/temp/loom';
+// Stable per-OS temp location so the suite runs cross-platform (Linux CI included)
+// while staying in one place for manual inspection between runs.
+export const WORKSPACE_ROOT = path.join(os.tmpdir(), 'loom-test-workspace');
 
 export async function setupWorkspace(): Promise<string> {
-    // Remove only loom/ so j:/temp/loom is stable for manual inspection
+    // Remove only loom/ so WORKSPACE_ROOT is stable for manual inspection
     await remove(path.join(WORKSPACE_ROOT, 'loom'));
     await ensureDir(path.join(WORKSPACE_ROOT, '.loom'));
     await outputFile(path.join(WORKSPACE_ROOT, '.loom', 'workflow.yml'), 'version: 1\n');

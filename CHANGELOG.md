@@ -5,6 +5,28 @@ All notable changes to Loom will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> The `## [X.Y.Z]` section for a tag is extracted verbatim by the release
+> workflow as that version's GitHub release notes — write it for a human reader.
+
+## [Unreleased]
+
+## [0.7.0] - 2026-06-01
+
+### Added
+- **Loom user guides** and refreshed root / CLI / extension READMEs.
+- **Context sidebar** — see and toggle exactly what context the AI receives,
+  with per-doc and total token counts, fed by the unified context pipeline.
+
+### Changed
+- **Unified context pipeline** — the three separate ctx generators consolidated
+  into one `loom_refresh_ctx`. Weave-level ctx auto-load activated; per-thread
+  ctx dropped (the parent chain loads idea/design/plan in full).
+- Stopped tracking `.loom/context-prefs.json` (local sidebar overrides).
+
+### Fixed
+- CLI is now bundled with esbuild so the published `@reslava/loom` package runs
+  standalone (fixes the prior unrunnable publish).
+
 ## [0.5.0] - 2026-05-14
 
 ### Added
@@ -161,6 +183,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
+[Unreleased]: https://github.com/reslava/loom/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/reslava/loom/releases/tag/v0.7.0
+[0.5.0]: https://github.com/reslava/loom/releases/tag/v0.5.0
 [0.3.1]: https://github.com/reslava/loom/releases/tag/v0.3.1
 [0.3.0]: https://github.com/reslava/loom/releases/tag/v0.3.0
 [0.2.0]: https://github.com/reslava/loom/releases/tag/v0.2.0
