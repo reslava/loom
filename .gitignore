@@ -25,6 +25,8 @@ dist/
 # Derived state cache (local only)
 .loom/cache/
 .loom/prompts/
+# Per-workspace sidebar CONTEXT overrides (local only)
+.loom/context-prefs.json
 
 # Auto-generated context summaries (optional to ignore)
 # Uncomment if you prefer to regenerate summaries rather than version them
