@@ -57,22 +57,25 @@ Test plan.
 async function testCommands() {
     console.log('🧵 Running CLI commands tests...\n');
 
-    const globalLoomPath = path.join(os.homedir(), 'looms', 'default');
-    const weavePath = path.join(globalLoomPath, 'loom', 'example');
+    // Hermetic workspace: an isolated temp root with its own .loom/ marker. The
+    // CLI resolves the workspace by walking up from its cwd looking for .loom/
+    // (see getActiveLoomRoot), so passing this root as runLoom's cwd is all that's
+    // needed — no dependency on, or pollution of, the developer's ~/looms/default.
+    const loomRoot = path.join(os.tmpdir(), 'loom-commands-tests');
+    const weaveId = 'example';
     const threadId = 'example';
-    await fs.remove(weavePath);
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
 
-    console.log('  • Ensuring global loom exists...');
-    let result = runLoom('init');
+    await fs.remove(loomRoot);
+    await fs.ensureDir(path.join(loomRoot, '.loom'));
+    await fs.outputFile(path.join(loomRoot, '.loom', 'workflow.yml'), 'version: 1\n');
 
     // Thread-based layout: design and plan inside thread subdir
     await seedThreadDesign(weavePath, threadId, 'active');
     console.log('    ✅ Test weave (thread layout) created');
 
-    process.chdir(globalLoomPath);
-
     console.log('  • Testing `loom refine-design`...');
-    result = runLoom('refine-design example');
+    let result = runLoom(`refine-design ${weaveId}`, loomRoot);
     assert(result.exitCode === 0, `refine-design failed: ${result.stderr}`);
     assert(result.stdout.includes('REFINE_DESIGN'), 'Missing REFINE_DESIGN message');
     console.log('    ✅ loom refine-design works');
@@ -83,20 +86,20 @@ async function testCommands() {
     console.log('    ✅ Test plan created');
 
     console.log('  • Testing `loom start-plan`...');
-    result = runLoom(`start-plan ${planId}`);
+    result = runLoom(`start-plan ${planId}`, loomRoot);
     assert(result.exitCode === 0, `start-plan failed: ${result.stderr}`);
     console.log('    ✅ loom start-plan works');
 
     console.log('  • Testing `loom complete-step`...');
-    result = runLoom(`complete-step ${planId} --step 1`);
+    result = runLoom(`complete-step ${planId} --step 1`, loomRoot);
     assert(result.exitCode === 0, `complete-step failed: ${result.stderr}`);
     console.log('    ✅ loom complete-step works');
 
-    result = runLoom('status example --verbose');
+    result = runLoom(`status ${weaveId} --verbose`, loomRoot);
     assert(result.stdout.includes('1/2 steps'), 'Step progress not updated');
     console.log('    ✅ Plan progress tracked correctly');
 
-    await fs.remove(weavePath);
+    await fs.remove(loomRoot);
     console.log('\n✨ All CLI commands tests passed!\n');
 }
 
