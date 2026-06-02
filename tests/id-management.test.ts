@@ -19,46 +19,59 @@ async function testIdManagement() {
     const tempId = tempIdMatch![0];
     console.log(`    ✅ ULID generated: ${tempId}`);
 
-    console.log('  • Testing `loom finalize` generates permanent ID...');
+    console.log('  • Testing `loom finalize` flips status to active, keeps the ULID id...');
+    // The draft is created with its final slug filename + a permanent ULID id;
+    // finalize only flips draft -> active. Identity (id) and filename are preserved.
+    const draftPath = path.join(weavePath, 'temporary-test-idea.md');
+    assert(fsNative.existsSync(draftPath), `Draft file not at expected slug path ${draftPath}`);
+
     result = runLoom(`finalize ${tempId}`, loomRoot);
     assert(result.exitCode === 0, `finalize failed: ${result.stderr}`);
-    
-    const newIdMatch = result.stdout.match(/New ID: ([a-z0-9-]+)/);
-    assert(newIdMatch !== null, 'Could not parse new ID from output');
-    const permanentId = newIdMatch![1];
-    console.log(`    ✅ Finalized to: ${permanentId}`);
-    
-    const permPath = path.join(weavePath, `${permanentId}.md`);
-    assert(fsNative.existsSync(permPath), `Permanent file not created at ${permPath}`);
-    
-    const oldPath = path.join(weavePath, `${tempId}.md`);
-    assert(!fsNative.existsSync(oldPath), 'Temporary file not removed');
-    console.log(`    ✅ Permanent file created`);
 
-    console.log('  • Testing `loom rename` updates ID and references...');
-    
+    // Output reports the unchanged ULID, not a re-minted slug id.
+    assert(result.stdout.includes(`ID (unchanged): ${tempId}`), 'Finalize must not change the id');
+    console.log(`    ✅ Finalized, id preserved: ${tempId}`);
+
+    // Filename unchanged (no re-mint, no move), id still the ULID, status now active.
+    const permPath = draftPath;
+    assert(fsNative.existsSync(permPath), 'Finalized file should stay at its slug path');
+    const finalizedDoc = fsNative.readFileSync(permPath, 'utf8');
+    assert(finalizedDoc.includes(`id: ${tempId}`), 'Frontmatter id should remain the ULID');
+    assert(finalizedDoc.includes('status: active'), 'Status should be active after finalize');
+    console.log(`    ✅ Filename + ULID preserved, status active`);
+
+    console.log('  • Testing `loom rename` changes the title only (id + filename stable)...');
+
     const designPath = path.join(weavePath, 'reference-test-design.md');
     await createDesignDoc(weavePath, 'reference-test', { role: 'primary', status: 'active' });
-    
+
     const designContent = fsNative.readFileSync(designPath, 'utf8');
     const updatedContent = designContent.replace(
         'parent_id: null',
-        `parent_id: ${permanentId}`
+        `parent_id: ${tempId}`
     );
     await fs.outputFile(designPath, updatedContent);
-    
-    result = runLoom(`rename ${permanentId} "Renamed Title"`, loomRoot);
+
+    result = runLoom(`rename ${tempId} "Renamed Title"`, loomRoot);
     assert(result.exitCode === 0, `rename failed: ${result.stderr}`);
-    
-    const renamedIdMatch = result.stdout.match(/New ID: ([a-z0-9-]+)/);
-    assert(renamedIdMatch !== null, 'Could not parse renamed ID');
-    const renamedId = renamedIdMatch![1];
-    
-    assert(result.stdout.includes('Updated 1 reference'), 'Reference count mismatch');
-    
+
+    // Identity is permanent: rename must NOT change the id, only the title.
+    assert(result.stdout.includes(`ID (unchanged): ${tempId}`), 'Rename should not change the id');
+    assert(result.stdout.includes('Title: Renamed Title'), 'Rename should report the new title');
+
+    // The file is not moved (filename is the stable human slug, decoupled from title).
+    assert(fsNative.existsSync(permPath), 'Renamed doc file should stay at its original path');
+
+    // Frontmatter title and body H1 are both synced to the new title.
+    const renamedDoc = fsNative.readFileSync(permPath, 'utf8');
+    assert(renamedDoc.includes('title: "Renamed Title"') || renamedDoc.includes('title: Renamed Title'),
+        'Frontmatter title not synced');
+    assert(renamedDoc.includes('# Renamed Title'), 'Body H1 not synced to new title');
+
+    // The backlink still resolves because the id never changed — nothing to rewrite.
     const updatedDesign = fsNative.readFileSync(designPath, 'utf8');
-    assert(updatedDesign.includes(`parent_id: ${renamedId}`), 'Reference not updated in design');
-    console.log('    ✅ Rename updated references correctly');
+    assert(updatedDesign.includes(`parent_id: ${tempId}`), 'Backlink should still point at the unchanged id');
+    console.log('    ✅ Rename changed title + H1, left id/filename/backlinks intact');
 
     console.log('  • Testing draft rejection...');
     result = runLoom('weave idea "Draft Test" --weave id-test --loose', loomRoot);

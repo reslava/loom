@@ -50,7 +50,7 @@ export { planReducer } from './reducers/planReducer';
 export { applyEvent, ApplyResult } from './applyEvent';
 export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus } from './derived';
 export { createBaseFrontmatter, serializeFrontmatter } from './frontmatterUtils';
-export { generateDocId, parseDocId, isUlidId, toKebabCaseId, ensureUniqueId, generateTempId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
+export { generateDocId, parseDocId, isUlidId, toKebabCaseId, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
 export { ConfigRegistry } from './registry';
 export { AIClient, Message } from './ai';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent } from './planTableUtils';

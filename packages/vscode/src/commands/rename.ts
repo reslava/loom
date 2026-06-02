@@ -14,7 +14,7 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
 
     try {
         const result = await getMCP(root).callTool('loom_rename', { oldId, newTitle }) as any;
-        vscode.window.showInformationMessage(`🧵 Renamed: ${result.oldId} → ${result.newId} (${result.updatedCount} references updated)`);
+        vscode.window.showInformationMessage(`🧵 Renamed to "${result.title}" (id unchanged: ${result.id})`);
         treeProvider.refresh();
     } catch (e: any) {
         vscode.window.showErrorMessage(`Failed to rename: ${e.message}`);

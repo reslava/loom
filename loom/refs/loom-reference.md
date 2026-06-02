@@ -96,7 +96,7 @@ Cross-plan blockers in `isStepBlocked`: missing plan = blocked, existing plan = 
 | Plan IDs | `{parent-id}-plan-{NNN}` | `payment-system-plan-001` |
 | Done IDs | `{plan-id}-done-{NNN}` or `{plan-id}-done` | `payment-system-plan-001-done` |
 
-`generateTempId`, `generatePermanentId`, `generatePlanId` all live in `packages/core/src/idUtils.ts`.
+`generatePermanentId`, `generatePlanId`, `generateChatId` all live in `packages/core/src/idUtils.ts`.
 
 `generatePlanId` regex matches the ID string, not the filename — no `.md` suffix in the pattern.
 

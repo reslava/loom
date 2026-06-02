@@ -86,15 +86,6 @@ export function ensureUniqueId(baseId: string, existingIds: Set<string>): string
 }
 
 /**
- * Generates a temporary ID for a new draft document.
- * Format: new-{timestamp}-{type}
- */
-export function generateTempId(type: string): string {
-    const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
-    return `new-${timestamp}-${type}`;
-}
-
-/**
  * Generates a permanent ID from a title and document type.
  * Format: {kebab-title}-{type}
  */

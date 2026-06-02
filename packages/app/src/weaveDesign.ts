@@ -58,42 +58,28 @@ async function findIdeaFile(weavePath: string, deps: WeaveDesignDeps): Promise<I
 }
 
 /**
- * Finalizes a temporary idea using loadDoc/saveDoc.
+ * Finalizes a draft idea = flips its status to active. The permanent ULID id and
+ * the filename are left as created — finalize never re-mints the id from the title.
  */
 async function finalizeIdea(
     ideaPath: string,
-    weavePath: string,
     deps: WeaveDesignDeps
 ): Promise<{ newId: string; title: string }> {
     const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
-    
-    if (!idea.id.startsWith('new-')) {
+
+    if (idea.status !== 'draft') {
         return { newId: idea.id, title: idea.title };
     }
-    
-    const existingIds = new Set<string>();
-    const entries = await deps.fs.readdir(weavePath);
-    for (const entry of entries) {
-        if (entry.endsWith('.md')) {
-            existingIds.add(entry.replace('.md', ''));
-        }
-    }
-    existingIds.delete(idea.id);
-    
-    const permanentId = generatePermanentId(idea.title, 'idea', existingIds);
-    
+
     const updatedIdea: IdeaDoc = {
         ...idea,
-        id: permanentId,
         status: 'active',
         updated: new Date().toISOString().split('T')[0],
     };
-    
-    const newPath = path.join(weavePath, `${permanentId}.md`);
-    await deps.saveDoc(updatedIdea, newPath);
-    await deps.fs.remove(ideaPath);
-    
-    return { newId: permanentId, title: idea.title };
+
+    await deps.saveDoc(updatedIdea, ideaPath);
+
+    return { newId: idea.id, title: idea.title };
 }
 
 /**
@@ -142,9 +128,9 @@ export async function weaveDesign(
         let ideaId = idea.id;
         let ideaTitle = idea.title;
         
-        // Auto‑finalize if the idea has a temporary ID
-        if (ideaId.startsWith('new-')) {
-            const finalized = await finalizeIdea(idea.filePath, weavePath, deps);
+        // Auto‑finalize the parent idea if it's still a draft
+        if (idea.status === 'draft') {
+            const finalized = await finalizeIdea(idea.filePath, deps);
             ideaId = finalized.newId;
             ideaTitle = finalized.title;
             autoFinalized = true;

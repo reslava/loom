@@ -1,7 +1,5 @@
-import { generatePermanentId, Document } from '../../core/dist';
-import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds } from '../../fs/dist';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import { Document } from '../../core/dist';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById } from '../../fs/dist';
 
 export interface FinalizeInput {
     tempId: string;
@@ -12,44 +10,41 @@ export interface FinalizeDeps {
     saveDoc: typeof saveDoc;
     getActiveLoomRoot: typeof getActiveLoomRoot;
     findDocumentById: typeof findDocumentById;
-    gatherAllDocumentIds: typeof gatherAllDocumentIds;
-    fs: typeof fs;
 }
 
+/**
+ * Finalizes a draft document = flips `status` from draft to active.
+ *
+ * The `id` (a permanent ULID assigned at creation) and the filename (a human slug
+ * assigned at creation, e.g. `payment-design.md` or `{thread}-idea.md`) are both
+ * left untouched. Finalize used to re-mint the id from the title — that destroyed a
+ * perfectly good permanent ULID, broke the threaded filename convention, and could
+ * produce double-suffix ids; identity must never be re-derived from a mutable title.
+ */
 export async function finalize(
     input: FinalizeInput,
     deps: FinalizeDeps
-): Promise<{ oldId: string; newId: string; newPath: string }> {
+): Promise<{ id: string; newPath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
 
     const docPath = await deps.findDocumentById(loomRoot, input.tempId);
     if (!docPath) {
-        throw new Error(`Document with temporary ID '${input.tempId}' not found.`);
+        throw new Error(`Document with ID '${input.tempId}' not found.`);
     }
 
     const doc = await deps.loadDoc(docPath) as Document;
-    
+
     if (doc.status !== 'draft') {
         throw new Error(`Only draft documents can be finalized. Current status: ${doc.status}`);
     }
 
-    const existingIds = await deps.gatherAllDocumentIds(loomRoot);
-    const permanentId = generatePermanentId(doc.title, doc.type, existingIds);
-
     const updatedDoc = {
         ...doc,
-        id: permanentId,
         status: 'active' as const,
         updated: new Date().toISOString().split('T')[0],
     } as Document;
 
-    const threadPath = path.dirname(docPath);
-    const newPath = path.join(threadPath, `${permanentId}.md`);
+    await deps.saveDoc(updatedDoc, docPath);
 
-    await deps.saveDoc(updatedDoc, newPath);
-    if (docPath !== newPath) {
-        await deps.fs.remove(docPath);
-    }
-
-    return { oldId: input.tempId, newId: permanentId, newPath };
+    return { id: doc.id, newPath: docPath };
 }

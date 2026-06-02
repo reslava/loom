@@ -561,8 +561,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private createDocumentNode(doc: Document, baseContextValue: string, weaveId?: string, threadId?: string, staleIds?: Set<string>): TreeNode {
-        const isTemp = doc.id.startsWith('new-');
-        const contextValue = isTemp ? `${baseContextValue}-temp` : baseContextValue;
+        const isDraft = doc.status === 'draft';
+        const contextValue = isDraft ? `${baseContextValue}-temp` : baseContextValue;
         const node = new vscode.TreeItem(doc.title || doc.id, vscode.TreeItemCollapsibleState.None);
         const isStale = staleIds?.has(doc.id) ?? false;
         node.description = isStale ? `${doc.status} ⚠️ stale` : doc.status;

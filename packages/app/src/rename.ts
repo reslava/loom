@@ -1,7 +1,5 @@
-import { Document, PlanDoc, generatePermanentId } from '../../core/dist';
-import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../fs/dist';
-import * as fs from 'fs-extra';
-import * as path from 'path';
+import { Document, syncBodyH1 } from '../../core/dist';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById } from '../../fs/dist';
 
 export interface RenameInput {
     oldId: string;
@@ -13,64 +11,27 @@ export interface RenameDeps {
     saveDoc: typeof saveDoc;
     getActiveLoomRoot: typeof getActiveLoomRoot;
     findDocumentById: typeof findDocumentById;
-    gatherAllDocumentIds: typeof gatherAllDocumentIds;
-    findMarkdownFiles: typeof findMarkdownFiles;
-    fs: typeof fs;
 }
 
-async function updateAllReferences(
-    loomRoot: string,
-    oldId: string,
-    newId: string,
-    deps: Pick<RenameDeps, 'loadDoc' | 'saveDoc' | 'findMarkdownFiles'>
-): Promise<number> {
-    const docsDir = path.join(loomRoot, 'loom');
-    const files = await deps.findMarkdownFiles(docsDir);
-    let updatedCount = 0;
-
-    for (const file of files) {
-        const doc = await deps.loadDoc(file) as Document;
-        let modified = false;
-
-        // Update parent_id
-        if (doc.parent_id === oldId) {
-            doc.parent_id = newId;
-            modified = true;
-        }
-
-        // Update Blocked by column in plan steps
-        if (doc.type === 'plan') {
-            const planDoc = doc as PlanDoc;
-            let stepsModified = false;
-            const updatedSteps = planDoc.steps?.map(step => {
-                if (step.blockedBy && step.blockedBy.includes(oldId)) {
-                    stepsModified = true;
-                    return {
-                        ...step,
-                        blockedBy: step.blockedBy.map(id => id === oldId ? newId : id),
-                    };
-                }
-                return step;
-            });
-            if (stepsModified) {
-                planDoc.steps = updatedSteps;
-                modified = true;
-            }
-        }
-
-        if (modified) {
-            await deps.saveDoc(doc, file);
-            updatedCount++;
-        }
-    }
-
-    return updatedCount;
-}
-
+/**
+ * Renames a document = changes its human-facing **title** only.
+ *
+ * The permanent `id` (a content-independent ULID, e.g. `ch_01J…`) and the filename
+ * are deliberately left untouched. Identity must not be re-derived from a mutable
+ * title: backlinks (`parent_id`, `requires_load`, plan `blockedBy`) all reference
+ * the id, and the tree view displays `title`, so a title change is fully reflected
+ * without moving the file or rewriting a single reference. With the id fixed there
+ * is nothing to update across the workspace — which is also why this no longer walks
+ * every doc under `loom/` (that scan was what crashed on the frontmatter-free
+ * `loom/refs/CLAUDE-reference.md`).
+ *
+ * Frontmatter title is the single source of truth; the body `# H1` is synced to match
+ * (same contract as create/refine).
+ */
 export async function rename(
     input: RenameInput,
     deps: RenameDeps
-): Promise<{ oldId: string; newId: string; updatedCount: number }> {
+): Promise<{ id: string; title: string }> {
     const loomRoot = deps.getActiveLoomRoot();
 
     const docPath = await deps.findDocumentById(loomRoot, input.oldId);
@@ -84,29 +45,14 @@ export async function rename(
         throw new Error(`Draft documents cannot be renamed. Use 'loom finalize' first.`);
     }
 
-    const allIds = await deps.gatherAllDocumentIds(loomRoot);
-    allIds.delete(input.oldId);
-
-    const newId = generatePermanentId(input.newTitle, doc.type, allIds);
-
-    const updatedCount = await updateAllReferences(loomRoot, input.oldId, newId, {
-        loadDoc: deps.loadDoc,
-        saveDoc: deps.saveDoc,
-        findMarkdownFiles: deps.findMarkdownFiles,
-    });
-
     const updatedDoc = {
         ...doc,
-        id: newId,
         title: input.newTitle,
+        content: syncBodyH1((doc as { content?: string }).content ?? '', input.newTitle),
         updated: new Date().toISOString().split('T')[0],
     } as Document;
 
-    const threadPath = path.dirname(docPath);
-    const newPath = path.join(threadPath, `${newId}.md`);
+    await deps.saveDoc(updatedDoc, docPath);
 
-    await deps.saveDoc(updatedDoc, newPath);
-    await deps.fs.remove(docPath);
-
-    return { oldId: input.oldId, newId, updatedCount };
+    return { id: doc.id, title: input.newTitle };
 }
