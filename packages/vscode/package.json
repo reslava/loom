@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",
@@ -399,29 +399,49 @@
             "id": "installCli",
             "title": "Install Loom CLI",
             "description": "Install the Loom CLI globally.\n\n[Open Terminal](command:loom.install.openCliTerminal)",
-            "completionEvents": ["onContext:loom.cliDetected"],
-            "media": { "image": "media/loom.png", "altText": "Loom" }
+            "completionEvents": [
+              "onContext:loom.cliDetected"
+            ],
+            "media": {
+              "image": "media/loom.png",
+              "altText": "Loom"
+            }
           },
           {
             "id": "initWorkspace",
             "title": "Initialize this workspace",
             "description": "Run `loom install` to create `.loom/`, write the session contract, and set up MCP.\n\n[Initialize](command:loom.install.runInstall)",
-            "completionEvents": ["onContext:loom.workspaceInitialized"],
-            "media": { "image": "media/loom.png", "altText": "Loom" }
+            "completionEvents": [
+              "onContext:loom.workspaceInitialized"
+            ],
+            "media": {
+              "image": "media/loom.png",
+              "altText": "Loom"
+            }
           },
           {
             "id": "configureAi",
             "title": "Configure an AI provider",
             "description": "Add your Claude (Anthropic), DeepSeek, or OpenAI API key to enable AI commands.\n\n[Open Settings](command:loom.install.openAiSettings)",
-            "completionEvents": ["onContext:loom.aiConfigured"],
-            "media": { "image": "media/loom.png", "altText": "Loom" }
+            "completionEvents": [
+              "onContext:loom.aiConfigured"
+            ],
+            "media": {
+              "image": "media/loom.png",
+              "altText": "Loom"
+            }
           },
           {
             "id": "createWeave",
             "title": "Create your first weave",
             "description": "Start a new project weave from the Loom panel toolbar.\n\n[New Weave](command:loom.weaveCreate)",
-            "completionEvents": ["onContext:loom.hasWeaves"],
-            "media": { "image": "media/loom.png", "altText": "Loom" }
+            "completionEvents": [
+              "onContext:loom.hasWeaves"
+            ],
+            "media": {
+              "image": "media/loom.png",
+              "altText": "Loom"
+            }
           }
         ]
       }

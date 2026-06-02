@@ -10,6 +10,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-02
+
+### Added
+- **Automated release pipeline** — a tag-driven `release` workflow: push a
+  `vX.Y.Z` tag and CI runs `guard → build-test → publish (npm · VS Code
+  Marketplace · Open VSX) → GitHub release`. Every publish job is
+  skip-if-already-published, so re-running a tag safely retries only what
+  failed. A `dry_run` manual trigger exercises the whole pipeline without
+  publishing. New `RELEASING.md` runbook documents setup and the release flow.
+- **Agent doc-tooling DX (MCP)** — create-with-body on doc-creation tools,
+  id/path transparency in tool results, and suggest-on-miss when a doc lookup
+  finds no match.
+
+### Fixed
+- CLI `--version` now reads from `package.json` instead of a hardcoded string,
+  so it always reports the installed version. Added a CLI README.
+
 ## [0.7.0] - 2026-06-01
 
 ### Added
@@ -183,7 +200,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/reslava/loom/releases/tag/v0.8.0
 [0.7.0]: https://github.com/reslava/loom/releases/tag/v0.7.0
 [0.5.0]: https://github.com/reslava/loom/releases/tag/v0.5.0
 [0.3.1]: https://github.com/reslava/loom/releases/tag/v0.3.1
