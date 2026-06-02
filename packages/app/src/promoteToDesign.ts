@@ -8,6 +8,10 @@ export interface PromoteToDesignInput {
     filePath: string;
     targetWeaveId?: string;
     targetThreadId?: string;
+    /** Optional title for the new doc, used when `body` is provided (skips AI). Defaults to the source doc title. */
+    title?: string;
+    /** Optional inline body. When provided, sampling is skipped and this is used verbatim — required in Claude Code where sampling is blocked. */
+    body?: string;
 }
 
 export interface PromoteToDesignDeps {
@@ -49,18 +53,22 @@ export async function promoteToDesign(
         ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
         : deriveLocation(input.filePath, deps.loomRoot);
 
-    if (!doc.content || doc.content.trim().length === 0) {
-        throw new Error(`${doc.type} document is empty.`);
+    let title: string;
+    let body: string;
+    if (input.body !== undefined) {
+        body = input.body;
+        title = input.title ?? doc.title;
+    } else {
+        if (!doc.content || doc.content.trim().length === 0) {
+            throw new Error(`${doc.type} document is empty.`);
+        }
+        const label = doc.type === 'chat'
+            ? 'chat conversation'
+            : `${doc.type} document titled "${doc.title}"`;
+        const messages = buildSummarizationMessages(SYSTEM_PROMPT, label, doc.content);
+        const reply = await deps.aiClient.complete(messages);
+        ({ title, body } = parseTitleAndBody(reply));
     }
-
-    const label = doc.type === 'chat'
-        ? 'chat conversation'
-        : `${doc.type} document titled "${doc.title}"`;
-    const messages = buildSummarizationMessages(SYSTEM_PROMPT, label, doc.content);
-
-    const reply = await deps.aiClient.complete(messages);
-
-    const { title, body } = parseTitleAndBody(reply);
 
     const targetDir = threadId
         ? path.join(deps.loomRoot, 'loom', weaveId, threadId)
@@ -89,7 +97,7 @@ export async function promoteToDesign(
         ...frontmatter,
         type: 'design',
         status: 'draft',
-        content: `# ${title}\n\n${body}`,
+        content: input.body !== undefined ? body : `# ${title}\n\n${body}`,
     } as DesignDoc;
 
     await deps.saveDoc(designDoc, filePath);

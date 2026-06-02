@@ -56,6 +56,12 @@ run_test tests/build-ctx-source.test.ts
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
 
+# resolution-dx: link-index path exposure + suggest-on-miss resolver (real fs)
+run_test tests/resolution-dx.test.ts
+
+# create-with-body: one-call body on create_* + sampling-free promote (real fs)
+run_test tests/create-with-body.test.ts
+
 # Legacy integration tests
 run_test tests/id-management.test.ts
 run_test tests/multi-loom.test.ts

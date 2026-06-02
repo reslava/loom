@@ -1,4 +1,4 @@
-import { findDocumentById, loadDoc, saveDoc } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
 import { Document, parseStepsTable } from '../../../core/dist';
 
 export const toolDef = {
@@ -26,10 +26,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         throw new Error('At least one of content, status, or requires_load must be provided');
     }
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Document not found: ${id}`);
-    }
+    const { id: resolvedId, filePath } = await resolveDocIdOrThrow(root, id);
 
     const doc = await loadDoc(filePath) as Document;
     const content = newContent ?? (doc as any).content ?? '';
@@ -44,5 +41,5 @@ export async function handle(root: string, args: Record<string, unknown>) {
     } as Document;
 
     await saveDoc(updated, filePath);
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ id, filePath }) }] };
+    return { content: [{ type: 'text' as const, text: JSON.stringify({ id: resolvedId, filePath }) }] };
 }

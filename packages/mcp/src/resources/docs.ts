@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { findDocumentById } from '../../../fs/dist';
+import { resolveDocIdOrThrow } from '../../../fs/dist';
 
 export async function handleDocsResource(root: string, uri: string) {
     const url = new URL(uri.replace('loom://', 'loom://host/'));
@@ -11,10 +11,8 @@ export async function handleDocsResource(root: string, uri: string) {
         throw new Error('loom://docs requires a document id: loom://docs/{id}');
     }
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Document not found: ${id}`);
-    }
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, id);
 
     const text = await fs.readFile(filePath, 'utf8');
 

@@ -1,4 +1,4 @@
-import { findDocumentById } from '../../../fs/dist';
+import { resolveDocIdOrThrow } from '../../../fs/dist';
 
 export const toolDef = {
     name: 'loom_find_doc',
@@ -14,9 +14,6 @@ export const toolDef = {
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const id = args['id'] as string;
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Document not found: ${id}`);
-    }
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ id, filePath }) }] };
+    const resolved = await resolveDocIdOrThrow(root, id);
+    return { content: [{ type: 'text' as const, text: JSON.stringify(resolved) }] };
 }

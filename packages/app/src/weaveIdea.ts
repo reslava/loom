@@ -11,6 +11,8 @@ export interface WeaveIdeaInput {
     title: string;
     weave?: string;
     threadId?: string;
+    /** Optional body. When provided, it replaces the generated stub so the doc is born at version 1 with real content. */
+    content?: string;
 }
 
 export interface WeaveIdeaDeps {
@@ -34,7 +36,7 @@ export async function weaveIdea(
         const id = generateDocId('idea');
         const filename = `${input.threadId}-idea`;
         const frontmatter = createBaseFrontmatter('idea', id, input.title);
-        const content = generateIdeaBody(input.title);
+        const content = input.content ?? generateIdeaBody(input.title);
         const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
@@ -45,7 +47,7 @@ export async function weaveIdea(
     const id = generateDocId('idea');
     const filename = toKebabCaseId(input.title) + '-idea';
     const frontmatter = createBaseFrontmatter('idea', id, input.title);
-    const content = generateIdeaBody(input.title);
+    const content = input.content ?? generateIdeaBody(input.title);
     const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
     const filePath = path.join(weavePath, `${filename}.md`);
     await deps.saveDoc(doc, filePath);

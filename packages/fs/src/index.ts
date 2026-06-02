@@ -9,7 +9,7 @@ export { saveDoc, FileWriteError, FilePermissionError } from './serializers/fron
 // Repositories
 export { loadWeave, saveWeave, saveDocs } from './repositories/weaveRepository';
 export { loadThread, saveThread, docPathInThread } from './repositories/threadRepository';
-export { buildLinkIndex, updateIndexForFile } from './repositories/linkRepository';
+export { buildLinkIndex, updateIndexForFile, resolveDocIdOrThrow, ResolvedDoc } from './repositories/linkRepository';
 export {
     readContextPrefs,
     readContextPrefsEntry,

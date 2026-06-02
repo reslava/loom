@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { findDocumentById, loadDoc } from '../../../fs/dist';
+import { findDocumentById, resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 
 interface RefEntry {
     id: string;
@@ -40,10 +40,10 @@ export async function handleRequiresLoadResource(root: string, uri: string) {
         throw new Error('loom://requires-load requires a document id: loom://requires-load/{id}');
     }
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Document not found: ${id}`);
-    }
+    // Primary (agent-supplied) id → suggest-on-miss. The internal requires_load
+    // graph-walk in fetchRefs stays on findDocumentById: a miss there is a dangling
+    // reference, not a user typo.
+    const { filePath } = await resolveDocIdOrThrow(root, id);
 
     const doc = await loadDoc(filePath);
     const visited = new Set<string>([id]);

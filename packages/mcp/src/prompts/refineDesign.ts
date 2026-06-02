@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { findDocumentById } from '../../../fs/dist';
+import { resolveDocIdOrThrow } from '../../../fs/dist';
 
 export const promptDef = {
     name: 'refine-design',
@@ -14,8 +14,8 @@ export async function handle(root: string, args: Record<string, string | undefin
     const designId = args['designId'];
     if (!designId) throw new Error('designId is required');
 
-    const filePath = await findDocumentById(root, designId);
-    if (!filePath) throw new Error(`Design not found: ${designId}`);
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, designId);
 
     const designContent = await fs.readFile(filePath, 'utf8');
 

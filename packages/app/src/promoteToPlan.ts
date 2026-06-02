@@ -1,13 +1,17 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId, parseStepsTable } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToPlanInput {
     filePath: string;
     targetWeaveId?: string;
     targetThreadId?: string;
+    /** Optional title for the new plan, used when `body` is provided (skips AI). Defaults to the source doc title. */
+    title?: string;
+    /** Optional inline body. When provided, sampling is skipped and steps are parsed from it (table first, numbered-list fallback) — required in Claude Code where sampling is blocked. */
+    body?: string;
 }
 
 export interface PromoteToPlanDeps {
@@ -51,25 +55,30 @@ export async function promoteToPlan(
         ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
         : deriveLocation(input.filePath, deps.loomRoot);
 
-    if (!doc.content || doc.content.trim().length === 0) {
-        throw new Error(`${doc.type} document is empty.`);
+    let title: string;
+    let body: string;
+    if (input.body !== undefined) {
+        body = input.body;
+        title = input.title ?? doc.title;
+    } else {
+        if (!doc.content || doc.content.trim().length === 0) {
+            throw new Error(`${doc.type} document is empty.`);
+        }
+        const label = doc.type === 'chat'
+            ? 'chat conversation'
+            : `${doc.type} document titled "${doc.title}"`;
+        const messages = buildSummarizationMessages(SYSTEM_PROMPT, label, doc.content);
+        const reply = await deps.aiClient.complete(messages);
+        ({ title, body } = parseTitleAndBody(reply));
     }
 
-    const label = doc.type === 'chat'
-        ? 'chat conversation'
-        : `${doc.type} document titled "${doc.title}"`;
-    const messages = buildSummarizationMessages(SYSTEM_PROMPT, label, doc.content);
-
-    const reply = await deps.aiClient.complete(messages);
-
-    const { title, body } = parseTitleAndBody(reply);
-
-    const parsedSteps = parseNumberedSteps(body);
+    // For an inline body, prefer a real steps table (how plans are normally structured),
+    // falling back to a numbered list. The AI path always emits a numbered list.
+    const parsedSteps = input.body !== undefined
+        ? (parseStepsTable(body).length > 0 ? parseStepsTable(body) : parseNumberedSteps(body))
+        : parseNumberedSteps(body);
     if (parsedSteps.length === 0) {
-        throw new Error(
-            `promoteToPlan: AI generated no steps. A plan must have at least one step.\n` +
-            `Full reply:\n${reply}`
-        );
+        throw new Error('promoteToPlan: no steps found. A plan must have at least one step (provide a Steps table or a numbered Steps list).');
     }
 
     const plansDir = threadId
@@ -91,7 +100,7 @@ export async function promoteToPlan(
         type: 'plan',
         status: 'active',
         steps: parsedSteps,
-        content: `# ${title}\n\n${body}`,
+        content: input.body !== undefined ? body : `# ${title}\n\n${body}`,
     } as unknown as PlanDoc;
 
     const filePath = path.join(plansDir, `${planFilename}.md`);

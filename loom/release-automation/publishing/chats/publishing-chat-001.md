@@ -2,10 +2,10 @@
 type: chat
 id: ch_01KT2FSYB9F8GBRD780524DCXR
 title: publishing Chat
-status: done
+status: active
 created: "2026-06-01T00:00:00.000Z"
-updated: 2026-06-01
-version: 2
+updated: 2026-06-02
+version: 3
 tags: []
 parent_id: null
 requires_load: []
@@ -103,3 +103,4 @@ That leaves **`versioning`** as the last thread — the synchronized bump comman
 ## Rafa:
 
 create thread `versioning` and a chat there to continue
+

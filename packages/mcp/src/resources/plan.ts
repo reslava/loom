@@ -1,4 +1,4 @@
-import { findDocumentById, loadDoc } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 
 export async function handlePlanResource(root: string, uri: string) {
     const url = new URL(uri.replace('loom://', 'loom://host/'));
@@ -10,10 +10,8 @@ export async function handlePlanResource(root: string, uri: string) {
         throw new Error('loom://plan requires a plan id: loom://plan/{id}');
     }
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Plan not found: ${id}`);
-    }
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, id);
 
     const doc = await loadDoc(filePath);
     if (doc.type !== 'plan') {

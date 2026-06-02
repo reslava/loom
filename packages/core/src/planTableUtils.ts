@@ -24,14 +24,17 @@ export function parseStepsTable(content: string): PlanStep[] {
     for (const line of lines) {
         // Skip lines that don't look like table rows
         if (!line.includes('|') || line.includes('|---')) continue;
-        // Skip the header row
-        if (line.includes('Done') && line.includes('Step')) continue;
-        
+
         // Split on UNESCAPED pipes only, then un-escape \| back to | so a step
         // description containing a literal pipe (e.g. a code span "a | b") is read
         // back as a single cell rather than spilling across columns.
         const cols = line.split(/(?<!\\)\|/).slice(1, -1).map(c => c.trim().replace(/\\\|/g, '|'));
         if (cols.length < 4) continue;
+
+        // Skip the header row by exact cell match. A substring test (line includes
+        // "Done" && "Step") false-positived on data rows whose Files cell names files
+        // like appendDone.ts and doStep.ts, silently dropping that step from the plan.
+        if (cols[0] === 'Done' && cols[2] === 'Step') continue;
         
         // Expected columns: Done, #, Step, Files touched, Blocked by
         const doneSymbol = cols[0];

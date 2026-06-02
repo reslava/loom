@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { findDocumentById } from '../../../fs/dist';
+import { resolveDocIdOrThrow } from '../../../fs/dist';
 import { getUserName, getAiName } from '../../../app/dist/utils/chatNames';
 
 export const toolDef = {
@@ -21,10 +21,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const role = args['role'] as string;
     const body = args['body'] as string;
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Chat document not found: ${id}`);
-    }
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, id);
 
     const displayName = role === 'ai' ? getAiName(root) : getUserName(root);
     const existing = await fs.readFile(filePath, 'utf8');

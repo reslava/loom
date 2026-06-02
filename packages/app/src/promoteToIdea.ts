@@ -8,6 +8,10 @@ export interface PromoteToIdeaInput {
     filePath: string;
     targetWeaveId?: string;
     targetThreadId?: string;
+    /** Optional title for the new doc, used when `body` is provided (skips AI). Defaults to the source doc title. */
+    title?: string;
+    /** Optional inline body. When provided, sampling is skipped and this is used verbatim — required in Claude Code where sampling is blocked. */
+    body?: string;
 }
 
 export interface PromoteToIdeaDeps {
@@ -50,15 +54,19 @@ export async function promoteToIdea(
         ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
         : deriveLocation(input.filePath, deps.loomRoot);
 
-    if (!doc.content || doc.content.trim().length === 0) {
-        throw new Error('Chat document is empty.');
+    let title: string;
+    let body: string;
+    if (input.body !== undefined) {
+        body = input.body;
+        title = input.title ?? doc.title;
+    } else {
+        if (!doc.content || doc.content.trim().length === 0) {
+            throw new Error('Chat document is empty.');
+        }
+        const messages = buildSummarizationMessages(SYSTEM_PROMPT, 'chat conversation', doc.content);
+        const reply = await deps.aiClient.complete(messages);
+        ({ title, body } = parseTitleAndBody(reply));
     }
-
-    const messages = buildSummarizationMessages(SYSTEM_PROMPT, 'chat conversation', doc.content);
-
-    const reply = await deps.aiClient.complete(messages);
-
-    const { title, body } = parseTitleAndBody(reply);
 
     const targetDir = threadId
         ? path.join(deps.loomRoot, 'loom', weaveId, threadId)
@@ -89,7 +97,7 @@ export async function promoteToIdea(
         ...frontmatter,
         type: 'idea',
         status: 'draft',
-        content: `# ${title}\n\n${body}`,
+        content: input.body !== undefined ? body : `# ${title}\n\n${body}`,
     } as IdeaDoc;
 
     await deps.saveDoc(ideaDoc, filePath);

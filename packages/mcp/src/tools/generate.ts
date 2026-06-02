@@ -1,6 +1,6 @@
 import * as fsExtra from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { getActiveLoomRoot, saveDoc, loadDoc, findDocumentById, loadWeave } from '../../../fs/dist';
+import { getActiveLoomRoot, saveDoc, loadDoc, findDocumentById, resolveDocIdOrThrow, loadWeave } from '../../../fs/dist';
 import { Document } from '../../../core/dist';
 import { weaveIdea } from '../../../app/dist/weaveIdea';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
@@ -224,8 +224,8 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 const threadId = args['threadId'] as string | undefined;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
-                const fp = await findDocumentById(root, id);
-                if (!fp) throw new Error(`Reference doc not found: ${id}`);
+                // Primary (agent-supplied) id → suggest-on-miss.
+                const { filePath: fp } = await resolveDocIdOrThrow(root, id);
                 const doc = await loadDoc(fp) as Document;
 
                 const messages: SamplingMessage[] = [];
@@ -277,8 +277,8 @@ export function createGenerateTools(server: Server): ToolModule[] {
             async (root, args) => {
                 const chatId = args['chatId'] as string;
 
-                const filePath = await findDocumentById(root, chatId);
-                if (!filePath) throw new Error(`Chat not found: ${chatId}`);
+                // Primary (agent-supplied) id → suggest-on-miss.
+                const { filePath } = await resolveDocIdOrThrow(root, chatId);
 
                 const chatContent = await fsExtra.readFile(filePath, 'utf8');
 

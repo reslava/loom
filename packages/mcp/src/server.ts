@@ -69,7 +69,7 @@ const PROMPTS = [
 const CONCRETE_RESOURCES = [
     { uri: 'loom://state', name: 'Loom State', description: 'Full project state (weaves, threads, plans)', mimeType: 'application/json' },
     { uri: 'loom://status', name: 'Loom Status', description: 'Raw .loom/_status.md content (Stage 1 only)', mimeType: 'text/plain' },
-    { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph (parent_id / child_ids)', mimeType: 'application/json' },
+    { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph: id→path (byId, documents), parent/child relationships, backlinks, slugs', mimeType: 'application/json' },
     { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
     { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
 ];

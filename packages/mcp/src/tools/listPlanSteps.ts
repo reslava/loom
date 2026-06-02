@@ -1,4 +1,4 @@
-import { findDocumentById, loadDoc } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 
 export const toolDef = {
@@ -7,7 +7,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan ID (e.g. "my-weave-plan-001")' },
+            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
         },
         required: ['planId'],
     },
@@ -16,8 +16,8 @@ export const toolDef = {
 export async function handle(root: string, args: Record<string, unknown>) {
     const planId = args['planId'] as string;
 
-    const planFilePath = await findDocumentById(root, planId);
-    if (!planFilePath) throw new Error(`Plan not found: ${planId}`);
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath: planFilePath } = await resolveDocIdOrThrow(root, planId);
 
     const planDoc = await loadDoc(planFilePath) as PlanDoc;
     if (planDoc.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);

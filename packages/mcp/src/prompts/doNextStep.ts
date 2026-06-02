@@ -1,11 +1,11 @@
-import { findDocumentById, loadDoc } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { handleContextResource } from '../resources/context';
 
 export const promptDef = {
     name: 'do-next-step',
     description: 'Load plan and thread context, return an instruction to implement the next incomplete step.',
     arguments: [
-        { name: 'planId', description: 'Plan ID (e.g. "my-weave-plan-001")', required: true },
+        { name: 'planId', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.', required: true },
     ],
 };
 
@@ -13,8 +13,8 @@ export async function handle(root: string, args: Record<string, string | undefin
     const planId = args['planId'];
     if (!planId) throw new Error('planId is required');
 
-    const filePath = await findDocumentById(root, planId);
-    if (!filePath) throw new Error(`Plan not found: ${planId}`);
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, planId);
 
     const plan = await loadDoc(filePath);
     if (plan.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);

@@ -5,7 +5,7 @@ import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
 import { generatePlanBody } from '../../core/dist/bodyGenerators/planBody';
-import { PlanDoc, DesignDoc, PlanStep } from '../../core/dist';
+import { PlanDoc, DesignDoc, PlanStep, parseStepsTable } from '../../core/dist';
 
 export interface WeavePlanInput {
     weaveId: string;
@@ -14,6 +14,12 @@ export interface WeavePlanInput {
     steps?: string[];
     parentId?: string;
     threadId?: string;
+    /**
+     * Optional full plan body. When provided it replaces the generated body and the
+     * frontmatter steps are parsed from it (so the table and steps stay in sync);
+     * takes precedence over `goal`/`steps`.
+     */
+    content?: string;
 }
 
 export interface WeavePlanDeps {
@@ -55,9 +61,12 @@ export async function weavePlan(
             }
         }
 
-        const planSteps: PlanStep[] = (input.steps ?? []).map((s, i) => ({
-            order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
-        }));
+        const body = input.content ?? generatePlanBody(planTitle, input.goal, input.steps);
+        const planSteps: PlanStep[] = input.content
+            ? parseStepsTable(input.content)
+            : (input.steps ?? []).map((s, i) => ({
+                order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
+            }));
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
         const doc: PlanDoc = {
             ...baseFrontmatter,
@@ -66,7 +75,7 @@ export async function weavePlan(
             design_version: 1,
             target_version: '0.1.0',
             steps: planSteps,
-            content: generatePlanBody(planTitle, input.goal, input.steps),
+            content: body,
         } as PlanDoc;
 
         const filePath = path.join(plansDir, `${planFilename}.md`);
@@ -85,9 +94,12 @@ export async function weavePlan(
     const planFilename = generatePlanId(input.weaveId, existingPlanIds);
     const planId = generateDocId('plan');
 
-    const planSteps: PlanStep[] = (input.steps ?? []).map((s, i) => ({
-        order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
-    }));
+    const body = input.content ?? generatePlanBody(planTitle, input.goal, input.steps);
+    const planSteps: PlanStep[] = input.content
+        ? parseStepsTable(input.content)
+        : (input.steps ?? []).map((s, i) => ({
+            order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
+        }));
     const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, input.parentId ?? null);
     const doc: PlanDoc = {
         ...baseFrontmatter,
@@ -96,7 +108,7 @@ export async function weavePlan(
         design_version: 1,
         target_version: '0.1.0',
         steps: planSteps,
-        content: generatePlanBody(planTitle, input.goal, input.steps),
+        content: body,
     } as PlanDoc;
 
     const plansDir = path.join(weavePath, 'plans');

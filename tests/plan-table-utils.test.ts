@@ -106,6 +106,32 @@ async function run() {
         console.log('    ✅ pipe-bearing description round-trips intact');
     }
 
+    // ── A data row whose Files cell names "Done"/"Step" files is NOT a header ──
+    // Bug: the header was detected by `line.includes('Done') && line.includes('Step')`,
+    // which false-positived on any step whose Files cell listed files like appendDone.ts
+    // ("Done") and doStep.ts ("Step") — silently dropping that whole step from the plan.
+    console.log('  • a step row naming appendDone.ts / doStep.ts is not mistaken for the header...');
+    {
+        const body = [
+            '## Steps',
+            '',
+            '| Done | # | Step | Files touched | Blocked by |',
+            '|---|---|---|---|---|',
+            '| 🔳 | 1 | Route read resources | packages/mcp/src/resources/docs.ts | — |',
+            '| 🔳 | 2 | Route prompts | packages/mcp/src/prompts/doNextStep.ts | — |',
+            '| 🔳 | 3 | Route tool ids | packages/mcp/src/tools/appendDone.ts, packages/mcp/src/tools/doStep.ts, packages/mcp/src/tools/listPlanSteps.ts | — |',
+            '| 🔳 | 4 | Tests + build | tests/x.test.ts | — |',
+        ].join('\n');
+        const parsed = parseStepsTable(body);
+        assert(parsed.length === 4, `expected 4 steps, got ${parsed.length} (orders ${parsed.map(s => s.order).join(',')})`);
+        assert(parsed.some(s => s.order === 3), 'the appendDone.ts/doStep.ts step (order 3) must not be dropped');
+        assert(
+            parsed[2].files_touched.includes('packages/mcp/src/tools/doStep.ts'),
+            'the tool step files must parse intact',
+        );
+        console.log('    ✅ tool-file step survives header detection');
+    }
+
     console.log('\n✅ planTableUtils tests passed\n');
 }
 

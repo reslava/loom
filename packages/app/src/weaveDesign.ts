@@ -13,6 +13,8 @@ export interface WeaveDesignInput {
     weaveId: string;
     title?: string;
     threadId?: string;
+    /** Optional body. When provided, it replaces the generated stub so the doc is born at version 1 with real content. */
+    content?: string;
 }
 
 export interface WeaveDesignDeps {
@@ -120,7 +122,7 @@ export async function weaveDesign(
         const id = generateDocId('design');
         const filename = `${input.threadId}-design`;
         const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
-        const content = generateDesignBody(designTitle, getUserName(loomRoot));
+        const content = input.content ?? generateDesignBody(designTitle, getUserName(loomRoot));
         const doc: DesignDoc = { ...frontmatter, content } as DesignDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
@@ -164,7 +166,7 @@ export async function weaveDesign(
     const id = generateDocId('design');
     const filename = generatePermanentId(designTitle, 'design', existingIds);
     const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
-    const content = generateDesignBody(designTitle, 'User');
+    const content = input.content ?? generateDesignBody(designTitle, 'User');
 
     const doc: DesignDoc = {
         ...frontmatter,

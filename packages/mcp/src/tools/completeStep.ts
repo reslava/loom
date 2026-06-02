@@ -8,7 +8,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (e.g. "my-weave-plan-001")' },
+            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
             stepNumber: { type: 'number', description: 'Step number (1-based)' },
         },
         required: ['planId', 'stepNumber'],

@@ -1,5 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { loadDoc, saveDoc, findDocumentById } from '../../../fs/dist';
+import { loadDoc, saveDoc, findDocumentById, resolveDocIdOrThrow } from '../../../fs/dist';
 import { refinePlan } from '../../../app/dist/refinePlan';
 import { samplingAiClient } from '../samplingAiClient';
 import { Document } from '../../../core/dist';
@@ -23,8 +23,9 @@ export function createRefinePlanTool(server: Server) {
         async handle(root: string, args: Record<string, unknown>) {
             const id = args['id'] as string;
             const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
-            const filePath = await findDocumentById(root, id);
-            if (!filePath) throw new Error(`Plan document not found: ${id}`);
+            // Primary (agent-supplied) id → suggest-on-miss. The context_ids lookups
+            // below stay on findDocumentById (best-effort enrichment).
+            const { filePath } = await resolveDocIdOrThrow(root, id);
 
             let extraContext: string | undefined;
             if (contextIds.length > 0) {

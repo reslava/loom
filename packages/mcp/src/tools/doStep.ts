@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { findDocumentById, loadDoc } from '../../../fs/dist';
+import { findDocumentById, resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 import { Document } from '../../../core/dist';
 import { handleContextResource } from '../resources/context';
@@ -16,7 +16,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan ID (e.g. "my-weave-plan-001")' },
+            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
             stepNumber: { type: 'number', description: 'Optional. Specific step number to brief. If omitted, the first not-done step is used.' },
             context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject into the brief context.' },
         },
@@ -29,8 +29,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const stepNumber = typeof args['stepNumber'] === 'number' ? (args['stepNumber'] as number) : undefined;
     const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
-    const planFilePath = await findDocumentById(root, planId);
-    if (!planFilePath) throw new Error(`Plan not found: ${planId}`);
+    // Primary (agent-supplied) id → suggest-on-miss. The contextIds lookups below
+    // stay on findDocumentById (best-effort enrichment, not the agent's target id).
+    const { filePath: planFilePath } = await resolveDocIdOrThrow(root, planId);
 
     const planDoc = await loadDoc(planFilePath) as PlanDoc;
     if (planDoc.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);

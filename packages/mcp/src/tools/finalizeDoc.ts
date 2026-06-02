@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds } from '../../../fs/dist';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, resolveDocIdOrThrow, gatherAllDocumentIds } from '../../../fs/dist';
 import { finalize } from '../../../app/dist/finalize';
 
 export const toolDef = {
@@ -17,7 +17,12 @@ export const toolDef = {
 export async function handle(root: string, args: Record<string, unknown>) {
     const id = args['id'] as string;
 
-    const result = await finalize({ tempId: id }, {
+    // Resolve the primary (agent-supplied) tempId at the delivery boundary so a
+    // wrong-but-close id surfaces a suggest-on-miss error before the use-case runs.
+    // The finalize use-case keeps its injected findDocumentById for path resolution.
+    const { id: resolvedId } = await resolveDocIdOrThrow(root, id);
+
+    const result = await finalize({ tempId: resolvedId }, {
         loadDoc,
         saveDoc,
         getActiveLoomRoot: () => getActiveLoomRoot(root),

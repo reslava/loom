@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KT2HD31DD4H326AT6AQ0PE29
 title: versioning
-status: active
-created: 2026-06-01
-version: 1
+status: done
+created: "2026-06-01T00:00:00.000Z"
+updated: 2026-06-02
+version: 2
 tags: []
 parent_id: null
 requires_load: []

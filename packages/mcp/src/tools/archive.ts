@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { findDocumentById } from '../../../fs/dist';
+import { resolveDocIdOrThrow } from '../../../fs/dist';
 
 export const toolDef = {
     name: 'loom_archive',
@@ -17,17 +17,20 @@ export const toolDef = {
 export async function handle(root: string, args: Record<string, unknown>) {
     const id = args['id'] as string;
 
-    const filePath = await findDocumentById(root, id);
-    if (!filePath) {
-        throw new Error(`Document not found: ${id}`);
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath } = await resolveDocIdOrThrow(root, id);
+
+    // Archive convention: mirror the doc's path under a single top-level
+    // loom/.archive/ tree (e.g. loom/core-engine/foo/plans/x.md →
+    // loom/.archive/core-engine/foo/plans/x.md). Never an in-thread .archive/.
+    // Mirrors the VS Code archiveItem command so both surfaces agree.
+    const loomDir = path.join(root, 'loom') + path.sep;
+    if (!filePath.startsWith(loomDir)) {
+        throw new Error(`Cannot archive: ${filePath} is not inside loom/`);
     }
-
-    const dir = path.dirname(filePath);
-    const archiveDir = path.join(dir, '.archive');
-    await fs.ensureDir(archiveDir);
-
-    const fileName = path.basename(filePath);
-    const archivedPath = path.join(archiveDir, fileName);
+    const rel = filePath.slice(loomDir.length);
+    const archivedPath = path.join(root, 'loom', '.archive', rel);
+    await fs.ensureDir(path.dirname(archivedPath));
     await fs.move(filePath, archivedPath, { overwrite: false });
 
     return { content: [{ type: 'text' as const, text: JSON.stringify({ id, archivedPath }) }] };

@@ -2,10 +2,10 @@
 type: design
 id: de_01KT2J0C0AMZHR41BA09XJDTAD
 title: Synchronized version bump + canonical version-source list
-status: draft
+status: done
 created: "2026-06-01T00:00:00.000Z"
-updated: 2026-06-01
-version: 2
+updated: 2026-06-02
+version: 3
 tags: []
 parent_id: null
 requires_load: []

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { findDocumentById, loadDoc, saveDoc } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
 import { createBaseFrontmatter } from '../../../core/dist';
 import { DoneDoc } from '../../../core/dist/entities/done';
 import { PlanDoc } from '../../../core/dist/entities/plan';
@@ -11,7 +11,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan ID (e.g. "my-weave-plan-001")' },
+            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
             stepNumber: { type: 'number', description: 'Step number (1-based)' },
             notes: { type: 'string', description: 'Markdown notes describing what was implemented (files created/edited, decisions, etc.)' },
         },
@@ -59,8 +59,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const stepNumber = args['stepNumber'] as number;
     const notes = args['notes'] as string;
 
-    const planFilePath = await findDocumentById(root, planId);
-    if (!planFilePath) throw new Error(`Plan not found: ${planId}`);
+    // Primary (agent-supplied) id → suggest-on-miss.
+    const { filePath: planFilePath } = await resolveDocIdOrThrow(root, planId);
 
     const planDoc = await loadDoc(planFilePath) as PlanDoc;
     if (planDoc.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);

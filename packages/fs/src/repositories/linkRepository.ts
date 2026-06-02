@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { findMarkdownFiles } from '../utils/pathUtils';
 import { loadDoc } from '../serializers/frontmatterLoader';
-import { LinkIndex, createEmptyIndex, DocumentEntry, StepBlocker } from '../../../core/dist/linkIndex';
+import { LinkIndex, createEmptyIndex, DocumentEntry, StepBlocker, resolveId } from '../../../core/dist/linkIndex';
 import { Document } from '../../../core/dist/entities/document';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 
@@ -194,4 +194,103 @@ export async function updateIndexForFile(
     } catch (e) {
         index.documents.set(docId, { path: filePath, type: 'idea', exists: false, archived: filePath.includes('.archive') });
     }
+}
+
+// ---------------------------------------------------------------------------
+// Doc id resolution with suggest-on-miss
+// ---------------------------------------------------------------------------
+
+const MAX_SUGGESTIONS = 3;
+
+export interface ResolvedDoc {
+    id: string;
+    filePath: string;
+}
+
+/** Plain Levenshtein distance — used to rank close ids/slugs on a lookup miss. */
+function levenshtein(a: string, b: string): number {
+    const m = a.length;
+    const n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    let prev = Array.from({ length: n + 1 }, (_, i) => i);
+    let curr = new Array<number>(n + 1);
+    for (let i = 1; i <= m; i++) {
+        curr[0] = i;
+        for (let j = 1; j <= n; j++) {
+            const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+            curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+        }
+        [prev, curr] = [curr, prev];
+    }
+    return prev[n];
+}
+
+function stemOf(filePath: string): string {
+    return path.basename(filePath, '.md');
+}
+
+/**
+ * Ranks candidate doc ids for a key that did not resolve. Three signals, best first:
+ *  1. The key is a doc's filename stem (the canonical filename-vs-id mis-call, e.g.
+ *     passing `agent-doc-dx-plan-001` instead of the ULID `pl_…`).
+ *  2. The key is a substring of (or contains) a filename stem.
+ *  3. The key is within edit distance of a known id or slug (typos).
+ */
+function suggestIds(index: LinkIndex, key: string): string[] {
+    const lowerKey = key.toLowerCase();
+    const scored: { id: string; score: number }[] = [];
+
+    for (const [id, entry] of index.documents) {
+        const stem = stemOf(entry.path).toLowerCase();
+        if (stem === lowerKey) {
+            scored.push({ id, score: 0 });
+        } else if (stem.includes(lowerKey) || lowerKey.includes(stem)) {
+            scored.push({ id, score: 1 });
+        }
+    }
+
+    for (const id of index.byId.keys()) {
+        const d = levenshtein(id.toLowerCase(), lowerKey);
+        if (d <= Math.max(2, Math.floor(id.length * 0.3))) scored.push({ id, score: 2 + d });
+    }
+
+    for (const [slug, id] of index.bySlug) {
+        const d = levenshtein(slug.toLowerCase(), lowerKey);
+        if (d <= Math.max(2, Math.floor(slug.length * 0.3))) scored.push({ id, score: 2 + d });
+    }
+
+    const best = new Map<string, number>();
+    for (const { id, score } of scored) {
+        const cur = best.get(id);
+        if (cur === undefined || score < cur) best.set(id, score);
+    }
+
+    return [...best.entries()]
+        .sort((a, b) => a[1] - b[1])
+        .slice(0, MAX_SUGGESTIONS)
+        .map(e => e[0]);
+}
+
+/**
+ * Resolves a doc id (ULID) or reference slug to its canonical id + absolute path
+ * using the link index. On miss, fuzzy-matches the key against known ids, slugs and
+ * filename stems and throws an error that names the closest candidates.
+ *
+ * The candidate set comes from the link index (one FS pass via `buildLinkIndex`), not
+ * a second filesystem walk. Pass a prebuilt `index` to avoid even that pass.
+ */
+export async function resolveDocIdOrThrow(loomRoot: string, key: string, index?: LinkIndex): Promise<ResolvedDoc> {
+    const idx = index ?? await buildLinkIndex(loomRoot);
+    const canonical = resolveId(idx, key);
+    if (canonical) {
+        const filePath = idx.byId.get(canonical) ?? idx.documents.get(canonical)?.path;
+        if (filePath) return { id: canonical, filePath };
+    }
+
+    const suggestions = suggestIds(idx, key);
+    const hint = suggestions.length
+        ? ` — did you mean ${suggestions.map(s => `'${s}'`).join(', ')}?`
+        : '';
+    throw new Error(`Document not found: '${key}'${hint}`);
 }

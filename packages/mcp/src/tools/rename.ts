@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, gatherAllDocumentIds, findMarkdownFiles } from '../../../fs/dist';
+import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById, resolveDocIdOrThrow, gatherAllDocumentIds, findMarkdownFiles } from '../../../fs/dist';
 import { rename as renameUseCase } from '../../../app/dist/rename';
 
 export const toolDef = {
@@ -16,8 +16,14 @@ export const toolDef = {
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
+    // Resolve the primary (agent-supplied) oldId at the delivery boundary: gives
+    // suggest-on-miss, and converts a filename-stem to the canonical id so
+    // updateAllReferences matches parent_id / blockedBy correctly (a non-canonical
+    // id would otherwise update zero references silently).
+    const { id: resolvedOldId } = await resolveDocIdOrThrow(root, args['oldId'] as string);
+
     const result = await renameUseCase(
-        { oldId: args['oldId'] as string, newTitle: args['newTitle'] as string },
+        { oldId: resolvedOldId, newTitle: args['newTitle'] as string },
         {
             loadDoc,
             saveDoc,

@@ -1,4 +1,5 @@
-import { loadWeave, saveDocs, resolveWeaveIdForPlan } from '../../../fs/dist';
+import * as path from 'path';
+import { loadWeave, saveDocs, resolveDocIdOrThrow } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 
 export const toolDef = {
@@ -7,15 +8,18 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (e.g. "my-weave-plan-001")' },
+            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
         },
         required: ['planId'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
-    const weaveId = await resolveWeaveIdForPlan(root, planId);
+    const planKey = args['planId'] as string;
+    // Resolve filename-stems / typos to the canonical plan id (with suggest-on-miss),
+    // then derive the weave from the resolved path.
+    const { id: planId, filePath } = await resolveDocIdOrThrow(root, planKey);
+    const weaveId = path.relative(path.join(root, 'loom'), filePath).split(path.sep)[0];
 
     const loadWeaveStrict = async (r: string, w: string) => {
         const result = await loadWeave(r, w);
