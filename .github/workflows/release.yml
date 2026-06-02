@@ -71,6 +71,29 @@ jobs:
             echo "Version mismatch — bump every package.json to $VERSION before tagging."
             exit 1
           fi
+          # Assert a dated "## [VERSION]" section exists in BOTH changelogs before
+          # anything is built or published. npm versions are immutable, so this has
+          # to fail-fast here in `guard` — checking only in the late `release` job
+          # would burn the version on every registry before the missing-changelog
+          # error fires. Index-based (literal) matching — a dynamic regex would
+          # treat [X.Y.Z] as a character class and never match. Runs on dry-runs too.
+          cl_fail=0
+          for cl in CHANGELOG.md packages/vscode/CHANGELOG.md; do
+            section="$(awk -v hdr="## [$VERSION]" '
+              index($0, hdr) == 1 { capture=1; next }
+              capture && index($0, "## [") == 1 { exit }
+              capture { print }
+            ' "$cl")"
+            if [ -z "$(printf '%s' "$section" | tr -d '[:space:]')" ]; then
+              echo "::error file=$cl::No [$VERSION] section in $cl — add it before tagging."
+              cl_fail=1
+            else
+              echo "ok: $cl has a [$VERSION] section"
+            fi
+          done
+          if [ "$cl_fail" -ne 0 ]; then
+            exit 1
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
   # ── build-test: build first (tests import packages/*/dist), then test, then ──

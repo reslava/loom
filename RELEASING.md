@@ -21,7 +21,14 @@ ships a broken or inconsistent release.
 - [ ] **Record changes under `## [Unreleased]`** in [`CHANGELOG.md`](CHANGELOG.md)
       (*Keep a Changelog* format) as you go. The bump (next step) rolls this into the
       dated `## [X.Y.Z]` section that becomes the GitHub release body.
-      *(Machine-checked: the `release` job fails if no `[X.Y.Z]` section exists.)*
+      *(Machine-checked: the `guard` job fails before any publish if no `[X.Y.Z]` section exists.)*
+- [ ] **Add the extension's user-facing changes** to
+      [`packages/vscode/CHANGELOG.md`](packages/vscode/CHANGELOG.md) under a new dated
+      `## [X.Y.Z]` heading. This is the changelog the VS Code Marketplace and Open VSX
+      display; it is **not** rolled by `bump-version.sh`, so write it by hand. If the
+      extension had no functional changes this release, say so explicitly (still add the
+      section — the guard requires it).
+      *(Machine-checked: the `guard` job fails before any publish if no `[X.Y.Z]` section exists.)*
 - [ ] **Bump the synchronized version:** `bash scripts/bump-version.sh X.Y.Z` —
       bumps all 7 `package.json`s and rolls `CHANGELOG.md` `[Unreleased]` → `[X.Y.Z]`.
       It does **not** commit or tag.

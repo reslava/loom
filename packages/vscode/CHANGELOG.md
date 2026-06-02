@@ -1,5 +1,31 @@
 # Loom VS Code Extension — Changelog
 
+## [0.8.0] - 2026-06-02
+
+### Changed
+- Synchronized version bump with the CLI and release-automation work (monorepo lockstep — all packages share one version).
+- Added the `repository` field to the extension manifest (packaging metadata; required for npm OIDC provenance on the sibling CLI package).
+
+_No functional extension changes in this release — behaviour is identical to 0.7.0._
+
+---
+
+## [0.7.0] - 2026-06-01
+
+### Added
+- **Unified context pipeline** — a single assembled context bundle (global/weave ctx + parent chain + `requires_load`) is now loaded per doc/thread in one read.
+- **Loom user guides** — new end-user documentation, with refreshed READMEs.
+
+### Changed
+- **Weave-level ctx auto-load** activated; thread-level ctx dropped (the parent chain already loads idea/design/plan in full).
+- **Ctx generation consolidated** — the three separate ctx generators are now one tool (`loom_refresh_ctx`).
+
+### Fixed
+- Context sidebar rendering.
+- Plan-table truncation in generated/refined plans.
+
+---
+
 ## [0.6.5] - 2026-05-24
 
 ### Added
