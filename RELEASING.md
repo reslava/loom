@@ -104,3 +104,8 @@ npm versions are immutable — never try to reuse a consumed version.
   `vsce show … --json`, Open VSX via its HTTP version API. If a format changes the
   skip-if-published guard could mis-fire; a re-run is always safe (publish is
   idempotent), but watch the logs on the first release.
+- **OIDC publish requires `repository.url` in the published package.json.** Trusted
+  publishing auto-generates a provenance statement, and npm rejects the publish with
+  `422 … Error verifying sigstore provenance bundle` if `repository.url` doesn't match
+  the GitHub repo. `packages/cli` and `packages/vscode` both set it — any new published
+  package must too.
