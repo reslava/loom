@@ -264,3 +264,43 @@ STOP — waiting on 1/2/3.
 2. I restored ID and filename already
 
 then commit
+
+## AI:
+
+Done — fixes landed and pushed to `main` (build + full suite green). Three atomic commits:
+
+- `00fe996` **fix(identity)** — rename = title + H1 only; finalize = status flip only; neither re-mints the id. Deleted `updateAllReferences` and the defunct `generateTempId`; replaced the dead `id.startsWith('new-')` guards with `status === 'draft'` (finalizeIdea + caller, vscode tree + finalize prefill); callers/tool descriptions/tests updated.
+- `c733100` **ci(release)** — both changelogs guarded in the fail-fast `guard` job (pre-publish, pre-immutable-npm); extension CHANGELOG backfilled to 0.8.0; RELEASING.md checklist + note corrected.
+- `8e26d90` **docs(publishing)** — this chat record.
+
+Note: this chat doc carries the restored id `ch_01KT4F0224R6EN6CS5FR41ABHA` and filename `publishing-chat-002.md` again — thanks for the manual repair.
+
+Two follow-ups I'm **not** doing without your nod (flagging, not acting):
+1. `loom/refs/loom-reference.md` still has an id-model table describing the old "after finalize → kebab-from-title" behaviour, which is now wrong. Worth a broader pass to match the ULID model — separate from this fix.
+2. The live `loom mcp` in this session still runs the pre-fix rename/finalize until the MCP/session restarts (built `dist` is correct; the running process isn't).
+
+Next: waiting for direction.
+
+## Rafa:
+
+1. update `loom/refs/loom-reference.md` (line 279)
+   
+
+## AI:
+
+Done — `loom/refs/loom-reference.md` "ID lifecycle" section rewritten to the ULID model (bumped to `version: 3`).
+
+What was wrong (the old table):
+- `Freshly woven (draft) → tmp-{timestamp}` — there is no `tmp-` phase anymore.
+- `After finalize → kebab-case from title` — this is the dead behaviour. Verified against `packages/core/src/idUtils.ts` and the app use-cases: nothing re-mints an id on finalize/rename.
+
+What it says now (grounded in the code):
+- A doc's `id` is a **ULID minted once at creation** (`generateDocId(type)`) and never re-minted — finalize/rename touch only filename + title. Shape: `{2-char-prefix}_{26-char-ULID}`.
+- Prefix table from `TYPE_PREFIX`: `id_ de_ pl_ dn_ ch_ rf_ cx_`, with real example ids (e.g. this chat's `ch_01KT4F0224R6EN6CS5FR41ABHA`, the ref doc's `rf_01KQYDFDDDRH48GS6GK97QS23P`).
+- `parseDocId` / `isUlidId` validate the shape; all three live in `idUtils.ts`.
+- **IDs are not filenames.** The slug helpers `toKebabCaseId` / `generatePermanentId` / `generatePlanId` / `generateChatId` now produce **filenames, not ids** — confirmed in `weaveIdea.ts`, `weavePlan.ts`, `chatNew.ts` (each does `generateDocId(type)` for the id and a slug/counter helper for the filename). Pointed at the existing "File naming conventions" section for filename patterns rather than duplicating it.
+- Kept the `generatePlanId` regex note, reframed: it matches the `-plan-{NNN}` suffix of the *filename*, not a `.md` filename.
+
+`loom/refs/*.md` is gate-excluded, so this was a direct edit (not an MCP write) — expected per the CLAUDE.md gate carve-out.
+
+Next: waiting for direction — follow-up #2 from above (the live `loom mcp` still runs pre-fix rename/finalize until session/MCP restart) is still just flagged, not acted on.

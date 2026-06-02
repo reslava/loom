@@ -4,7 +4,7 @@ id: rf_01KQYDFDDDRH48GS6GK97QS23P
 title: loom — Implementation Contract
 status: active
 created: "2026-04-22T00:00:00.000Z"
-version: 2
+version: 3
 tags: [reference, implementation, contract, packages]
 parent_id: null
 requires_load: []
@@ -89,16 +89,31 @@ Cross-plan blockers in `isStepBlocked`: missing plan = blocked, existing plan = 
 
 ## ID lifecycle
 
-| Stage | ID format | Example |
-|-------|-----------|---------|
-| Freshly woven (draft) | `tmp-{timestamp}` | `tmp-1713780000000` |
-| After finalize | Kebab-case from title | `payment-system` |
-| Plan IDs | `{parent-id}-plan-{NNN}` | `payment-system-plan-001` |
-| Done IDs | `{plan-id}-done-{NNN}` or `{plan-id}-done` | `payment-system-plan-001-done` |
+A doc's `id` is a **ULID minted once at creation** and never re-minted — finalize
+and rename leave it untouched (they change only the filename/title, never the id).
+IDs have the shape `{2-char-prefix}_{26-char-ULID}`; the prefix encodes the type.
 
-`generatePermanentId`, `generatePlanId`, `generateChatId` all live in `packages/core/src/idUtils.ts`.
+| Type | Prefix | Example id |
+|------|--------|------------|
+| Idea | `id_` | `id_01JT8Y3R4P7M6K2N9D5QF8A1BC` |
+| Design | `de_` | `de_01JT8Y3R4P7M6K2N9D5QF8A1BC` |
+| Plan | `pl_` | `pl_01JT8Y3R4P7M6K2N9D5QF8A1BC` |
+| Done | `dn_` | `dn_01JT8Y3R4P7M6K2N9D5QF8A1BC` |
+| Chat | `ch_` | `ch_01KT4F0224R6EN6CS5FR41ABHA` |
+| Reference | `rf_` | `rf_01KQYDFDDDRH48GS6GK97QS23P` |
+| Ctx | `cx_` | semantic id preferred — `loom-ctx` |
 
-`generatePlanId` regex matches the ID string, not the filename — no `.md` suffix in the pattern.
+`generateDocId(type)` mints the id; `parseDocId` / `isUlidId` validate the
+`{prefix}_{ulid}` shape. All three live in `packages/core/src/idUtils.ts`.
+
+**IDs are not filenames.** Filenames stay human-readable and are generated
+*separately* at creation — see [File naming conventions](#file-naming-conventions)
+below. The slug helpers `toKebabCaseId` / `generatePermanentId` / `generatePlanId`
+/ `generateChatId` now produce **filenames, not ids**; the old
+"finalize → kebab-from-title id" behaviour is gone.
+
+`generatePlanId`'s counter regex matches the `-plan-{NNN}` suffix of the *filename*,
+not a `.md` filename — no `.md` suffix in the pattern.
 
 ---
 
