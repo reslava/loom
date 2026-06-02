@@ -47,13 +47,24 @@ and a token minted, then the token stored as a GitHub secret at
 
 | Secret | Used by | How to mint it |
 |--------|---------|----------------|
-| `NPM_TOKEN` | `publish-npm` | npmjs.com → **Access Tokens** → *Automation* token with publish rights. The `@reslava` scope/org must exist on the account first. |
 | `VSCE_PAT` | `publish-vsce` | Create the **`reslava` publisher** in the VS Code Marketplace (needs an Azure DevOps org), then Azure DevOps → **Personal Access Tokens** → a PAT with **Marketplace → Manage** scope. |
 | `OVSX_TOKEN` | `publish-ovsx` | Sign in at open-vsx.org, accept the **Publisher Agreement**, create an **Access Token**, then create the namespace once: `npx ovsx create-namespace reslava -p <token>`. |
 | `GITHUB_TOKEN` | `release` | Auto-provided by Actions — no setup. |
 
+Store both as **Repository secrets** (Settings → Secrets and variables → Actions). They are read directly by the publish jobs.
+
+**npm uses Trusted Publishing (OIDC) — no secret.** `publish-npm` authenticates via a
+short-lived GitHub OIDC token instead of an `NPM_TOKEN`, so there is nothing to store
+or rotate for npm. One-time setup: the `@reslava/loom` package must already exist on
+npm (it does), then on npmjs.com open the package → **Settings → Trusted Publisher**,
+add a **GitHub Actions** publisher pointing at repo **`reslava/loom`** and workflow
+**`release.yml`**. The `publish-npm` job already declares `permissions: id-token: write`
+and upgrades npm to a version that supports OIDC publish. (npm cannot pre-register a
+trusted publisher for a package that does not exist yet — if you ever publish a *new*
+scoped package, seed it once with an interactive `npm publish` before configuring OIDC.)
+
 First-publish notes:
-- **npm:** `@reslava/loom` is scoped, so the first publish carries `--access public` (already wired in the workflow).
+- **npm:** `@reslava/loom` is scoped, so publishes carry `--access public` (already wired in the workflow).
 - **Marketplace + Open VSX:** the `reslava` publisher and the `reslava` Open VSX namespace must exist before the first push, or the publish step 404s.
 
 ---

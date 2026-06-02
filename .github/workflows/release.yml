@@ -114,11 +114,21 @@ jobs:
   publish-npm:
     needs: [guard, build-test]
     runs-on: ubuntu-latest
+    # OIDC Trusted Publishing — no NPM_TOKEN. GitHub mints a short-lived id-token
+    # that npm (>=11.5.1) exchanges for publish auth, so there is no long-lived
+    # secret to leak or rotate. Configure the trusted publisher once on npmjs.com
+    # (package @reslava/loom → Settings → Trusted Publisher: repo reslava/loom,
+    # workflow release.yml). See RELEASING.md.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+      - name: Upgrade npm for OIDC publish support
+        run: npm install -g npm@latest
       - name: Download release artifacts
         uses: actions/download-artifact@v4
         with:
@@ -138,7 +148,6 @@ jobs:
       - name: Publish to npm
         if: steps.check.outputs.skip == 'false'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         run: |
           set -euo pipefail

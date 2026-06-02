@@ -54,5 +54,28 @@ fs.writeFileSync(file, s);
 console.log(`   [Unreleased] -> [${version}] - ${date}`);
 NODE
 
+# 3. Assert every version-bearing package.json now matches — this mirrors the
+#    `release` workflow's guard job exactly, so the bump fails loudly here rather
+#    than at CI if any file was missed (e.g. a name collision swallowing the root).
+echo "🔎 Verifying all 7 package.json versions match $VERSION ..."
+fail=0
+for pkg in package.json \
+           packages/core/package.json \
+           packages/fs/package.json \
+           packages/app/package.json \
+           packages/mcp/package.json \
+           packages/cli/package.json \
+           packages/vscode/package.json; do
+    pv="$(node -p "require('./$pkg').version")"
+    if [ "$pv" != "$VERSION" ]; then
+        echo "   ✗ $pkg = $pv (expected $VERSION)" >&2
+        fail=1
+    fi
+done
+if [ "$fail" -ne 0 ]; then
+    echo "Bump incomplete — some package.json files were not updated. Fix before tagging." >&2
+    exit 1
+fi
+
 echo "✅ Bumped to $VERSION. Next: review the 3 READMEs + CHANGELOG, then:"
 echo "     git commit -am \"release: v$VERSION\" && git tag \"v$VERSION\" && git push --follow-tags"
