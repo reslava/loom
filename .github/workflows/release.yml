@@ -151,7 +151,15 @@ jobs:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         run: |
           set -euo pipefail
-          TARBALL="artifacts/reslava-loom-${{ needs.guard.outputs.version }}.tgz"
+          # Absolute path is required: npm-package-arg classifies a bare "dir/file.tgz"
+          # (no leading ./ or /) as a GitHub owner/repo shorthand and tries git, not a
+          # local tarball. A leading / forces file resolution.
+          TARBALL="$GITHUB_WORKSPACE/artifacts/reslava-loom-${{ needs.guard.outputs.version }}.tgz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "::error::npm tarball not found at $TARBALL"
+            ls -la "$GITHUB_WORKSPACE/artifacts" || true
+            exit 1
+          fi
           if [ "$DRY_RUN" = "true" ]; then
             echo "DRY-RUN: npm publish --dry-run (nothing is published)"
             npm publish "$TARBALL" --access public --dry-run
