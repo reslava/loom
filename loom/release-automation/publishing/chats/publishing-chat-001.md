@@ -2,10 +2,10 @@
 type: chat
 id: ch_01KT2FSYB9F8GBRD780524DCXR
 title: publishing Chat
-status: active
+status: done
 created: "2026-06-01T00:00:00.000Z"
 updated: 2026-06-02
-version: 3
+version: 6
 tags: []
 parent_id: null
 requires_load: []
@@ -568,3 +568,14 @@ One small suggestion if you want it even tighter later: a `scripts/release.sh X.
 - **"versioning thread"** = a *different, already-existing* thread you created earlier for the synchronized-bump command + the canonical version-source list. Today I fixed the root/CLI name collision and hardened `bump-version.sh` reactively, mid-release — that work *belongs to* the versioning thread's scope, so that thread is where you'd formally design/document it. Nothing moves; it's just where that follow-up work lives.
 
 Next: want me to commit the chat doc, or leave the tidy-up to you?
+
+## AI:
+
+Both done and pushed to main:
+
+- **Committed this chat doc** — `0adda94 docs(publishing): record 0.8.0 release session in publishing chat` (left `.claude/settings.local.json` alone — that's local-only).
+- **Updated the `versioning` design** — `30f92f5`. I judged it needed: the design assumed `--include-workspace-root` bumps the root, which the release disproved (root/CLI name collision). Added a corrected grounding fact, a **First-release findings** section (the collision, the `@reslava-loom/monorepo` rename, the post-bump 7-file assertion), Shape step 4 for the assertion, and a 2026-06-02 decisions-log entry. Kept `status: done` — just recording reality, version bumped to 4.
+
+That closes the loop: the `versioning` design now matches what `bump-version.sh` actually does, so the next release won't re-trip the collision.
+
+Next: 0.8.0 is fully shipped and the release-automation docs are current — nothing outstanding. Ping me with "release X.Y.Z" in a new chat here when you want the next one.
