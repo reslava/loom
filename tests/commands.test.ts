@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
-import { runLoom, assert, createPlanDoc } from './test-utils.ts';
+import { runLoom, assert, createPlanDoc, setupHermeticLoom } from './test-utils.ts';
 import { loadWeave, saveDocs } from '../packages/fs/dist/index.js';
 import { completeStep } from '../packages/app/dist/completeStep.js';
 import { runEvent } from '../packages/app/dist/runEvent.js';
@@ -61,14 +61,10 @@ async function testCommands() {
     // CLI resolves the workspace by walking up from its cwd looking for .loom/
     // (see getActiveLoomRoot), so passing this root as runLoom's cwd is all that's
     // needed — no dependency on, or pollution of, the developer's ~/looms/default.
-    const loomRoot = path.join(os.tmpdir(), 'loom-commands-tests');
+    const loomRoot = await setupHermeticLoom('loom-commands-tests');
     const weaveId = 'example';
     const threadId = 'example';
     const weavePath = path.join(loomRoot, 'loom', weaveId);
-
-    await fs.remove(loomRoot);
-    await fs.ensureDir(path.join(loomRoot, '.loom'));
-    await fs.outputFile(path.join(loomRoot, '.loom', 'workflow.yml'), 'version: 1\n');
 
     // Thread-based layout: design and plan inside thread subdir
     await seedThreadDesign(weavePath, threadId, 'active');

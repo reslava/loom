@@ -33,6 +33,21 @@ export async function setupTestLoom(name: string): Promise<string> {
     return loomPath;
 }
 
+/**
+ * Creates an isolated mono-loom workspace in a temp dir with its own `.loom/`
+ * marker, and returns its root. The CLI resolves a workspace by walking up from
+ * its cwd looking for a `.loom/` dir (see getActiveLoomRoot), so pass this root
+ * as runLoom's `cwd` to keep CLI tests hermetic — independent of, and never
+ * polluting, the developer's global `~/looms/default`.
+ */
+export async function setupHermeticLoom(name: string): Promise<string> {
+    const loomRoot = path.join(os.tmpdir(), name);
+    await fs.remove(loomRoot);
+    await fs.ensureDir(path.join(loomRoot, '.loom'));
+    await fs.outputFile(path.join(loomRoot, '.loom', 'workflow.yml'), 'version: 1\n');
+    return loomRoot;
+}
+
 export async function cleanupTestLoom(loomPath: string): Promise<void> {
     const maxRetries = 5;
     const delayMs = 300;
