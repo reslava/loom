@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(loom:*)",
+      "Bash(npx:*)",
+      "mcp__loom"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "loom"
+  ]
+}

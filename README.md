@@ -212,6 +212,8 @@ the warning and knows to re-read the design before implementing. Context can't s
 **`requires_load`:** documents declare their own dependencies. Before working on any doc, the agent
 reads everything in its `requires_load` chain. It can't miss context it doesn't know exists.
 
+> 🎬 **See the loop in motion** — `packages/vscode/media/loom-demo-workflow.gif` *(coming soon)*: one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
+
 ---
 
 ## VS Code Extension
@@ -220,21 +222,22 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 
 The VS Code extension is the **human surface** over the same document graph.
 
-> Demo GIF coming — see `packages/vscode/media/loom-demo.gif` once recorded.
+> 🎬 Workflow demo: `packages/vscode/media/loom-demo-workflow.gif` *(coming soon)* — same asset as above, rendered inline on the marketplace listing.
 
 The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads → idea / design / plans / chats / done) and a **Context** view showing exactly what the AI will receive for the selected node. Full walkthrough in the **[Extension User Guide](./docs/EXTENSION_USER_GUIDE.md)**.
 
 | Button | What it does |
 |--------|-------------|
-| *Generate Design* | Turn an idea into an architecture + decisions doc |
-| *Generate Plan* | Break a design into numbered, reviewable implementation steps |
+| *Generate Design (AI)* | Turn an idea into an architecture + decisions doc |
+| *Generate Plan (AI)* | Break a design into numbered, reviewable implementation steps |
 | *Do Step(s)* | AI implements the next pending step; marks it ✅ and writes a done note |
 | *AI Reply* | Continue the conversation inside a chat doc with full thread context loaded |
 | *Refine Idea / Design / Plan* | Re-run generation on a stale doc after its parent was updated |
-| *Refresh Context* | Regenerate the ctx summary for a weave or thread |
-| *Promote* | chat → idea → design → plan in one click |
+| *Refresh Context* | Regenerate the `ctx.md` summary for a weave |
+| *Weave Idea / Design / Plan / Chat* | Create a new doc of that type on a thread |
+| *Promote to Idea / Design / Plan / Reference* | Turn a chat or doc into the next doc type in one click |
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
-| *Rename / Archive* | Inline doc management |
+| *Rename / Archive / Delete* | Inline doc management |
 
 ### AI button paths
 

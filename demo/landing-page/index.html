@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nimbus — Analytics that gets out of your way</title>
+  <style>
+    :root {
+      --brand-primary: #4F46E5;
+      --brand-accent: #F59E0B;
+      --bg: #0B1120;
+      --surface: #111827;
+      --surface-alt: #0F172A;
+      --border: #1F2937;
+      --text: #E5E7EB;
+      --text-muted: #94A3B8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+    /* Nav */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 0;
+    }
+    .logo { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.02em; }
+    .logo span { color: var(--brand-primary); }
+    nav a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 0.9375rem; }
+    nav a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero { text-align: center; padding: 96px 0 72px; }
+    .hero h1 {
+      font-size: 3rem; font-weight: 700; letter-spacing: -0.03em;
+      line-height: 1.1; margin-bottom: 20px;
+    }
+    .hero h1 .accent { color: var(--brand-primary); }
+    .hero p { font-size: 1.25rem; color: var(--text-muted); max-width: 560px; margin: 0 auto 32px; }
+    .cta {
+      display: inline-block; background: var(--brand-primary); color: #fff;
+      font-weight: 600; padding: 12px 24px; border-radius: 8px;
+      text-decoration: none; transition: filter 0.15s, transform 0.15s;
+    }
+    .cta:hover { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* Features */
+    .features { padding: 56px 0 96px; }
+    .features h2 {
+      text-align: center; font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.02em; margin-bottom: 40px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px;
+    }
+    .card .icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      background: rgba(79, 70, 229, 0.15); color: var(--brand-primary);
+      display: grid; place-items: center; font-size: 1.25rem; margin-bottom: 16px;
+    }
+    .card h3 { font-size: 1.125rem; font-weight: 600; margin-bottom: 8px; }
+    .card p { color: var(--text-muted); font-size: 0.9375rem; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 32px 0;
+      text-align: center; color: var(--text-muted); font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <div class="logo">Nimbus<span>.</span></div>
+      <div>
+        <a href="#features">Features</a>
+        <a href="#">Docs</a>
+        <a href="#">Sign in</a>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+      <h1>Analytics that <span class="accent">gets out of your way</span></h1>
+      <p>Ship faster with metrics you actually understand. No tag managers, no dashboards you never open — just the numbers that move the product.</p>
+      <a class="cta" href="#">Start free</a>
+    </header>
+
+    <!-- Features -->
+    <section class="features" id="features">
+      <h2>Everything you need, nothing you don't</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="icon">⚡</div>
+          <h3>Real-time events</h3>
+          <p>See user actions land the moment they happen — no batching delay, no sampling.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔒</div>
+          <h3>Privacy-first</h3>
+          <p>Cookieless by default. EU data stays in the EU. GDPR and CCPA out of the box.</p>
+        </div>
+        <div class="card">
+          <div class="icon">📈</div>
+          <h3>Funnels that explain</h3>
+          <p>Drop-off points, retention curves, and cohort breakdowns without writing SQL.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing section gets added here during the Loom demo -->
+
+    <footer>© 2026 Nimbus, Inc. — Built section by section with Loom.</footer>
+  </div>
+</body>
+</html>

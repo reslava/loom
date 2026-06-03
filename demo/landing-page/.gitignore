@@ -1,0 +1,9 @@
+# This folder is a clean *starting state* for recording the Loom workflow demo.
+# Running `loom install` here during recording generates a Loom workspace —
+# keep that out of the main repo so the demo project stays pristine in git.
+loom/
+.loom/
+.mcp.json
+
+# Artifacts produced on-camera during the demo (regenerated each take)
+pricing.html

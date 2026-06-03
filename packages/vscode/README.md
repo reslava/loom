@@ -2,7 +2,7 @@
 
 <img src="media/loom.png" alt="Loom" width="80" />
 
-> Demo GIF coming — see `media/loom-demo.gif` once recorded.
+> 🎬 **Workflow demo** — `media/loom-demo-workflow.gif` *(coming soon)*: `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
 
 Loom turns your project into a structured collaboration surface between you and AI. Instead of a chat window that forgets everything, you get a document-driven loop:
 
@@ -75,19 +75,37 @@ The **Loom** Activity Bar icon opens the Loom sidebar, which contains two views:
 
 ### Threads view
 
-Shows your **weaves** (project areas) → **threads** (workstreams) → docs (idea, design, plans, chats, done docs). Toolbar buttons act on the selected node.
+Shows your **weaves** (project areas) → **threads** (workstreams) → docs (idea, design, plans, chats, done docs). Buttons appear inline on a node and in its right-click menu, grouped by what they do.
+
+**AI actions** (run the agent):
 
 | Button | What it does |
 |--------|-------------|
-| *Generate Design* | Turn an idea into an architecture + decisions doc |
-| *Generate Plan* | Break a design into numbered, reviewable implementation steps |
+| *Generate Design (AI)* | Turn an idea into an architecture + decisions doc |
+| *Generate Plan (AI)* | Break a design into numbered, reviewable implementation steps |
 | *Do Step(s)* | AI implements the next pending step; marks it ✅ and writes a done note |
 | *AI Reply* | Continue the conversation inside a chat doc with full thread context loaded |
 | *Refine Idea / Design / Plan* | Re-run generation on a stale doc after its parent was updated |
-| *Refresh Context* | Regenerate the ctx summary for a weave or thread |
-| *Promote* | chat → idea → design → plan in one click |
+| *Refresh Context* | Regenerate the `ctx.md` summary for a weave |
+
+**Create & promote** (structure, no AI):
+
+| Button | What it does |
+|--------|-------------|
+| *Weave Idea / Design / Plan* | Create an idea, design, or plan doc on a thread |
+| *Weave Chat* | Start a new chat doc on a thread |
+| *Promote to Idea / Design / Plan / Reference* | Turn a chat or doc into the next doc type in one click |
+| *Create Reference* / *Add References…* | Add a `loom/refs/` doc, or wire one into a doc's `requires_load` |
+
+**Manage** (state & tree):
+
+| Button | What it does |
+|--------|-------------|
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
-| *Rename / Archive* | Inline doc management from the tree |
+| *Complete Step* | Mark the current step ✅ without running the AI |
+| *Mark Done* / *Mark Active* | Flip a doc's status |
+| *Rename* / *Archive* / *Delete* | Inline doc management from the tree |
+| *Validate* | Check a weave for broken links and stale docs |
 
 Right-click any node for the same actions as a context menu.
 
