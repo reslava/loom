@@ -212,7 +212,9 @@ the warning and knows to re-read the design before implementing. Context can't s
 **`requires_load`:** documents declare their own dependencies. Before working on any doc, the agent
 reads everything in its `requires_load` chain. It can't miss context it doesn't know exists.
 
-> 🎬 **See the loop in motion** — `packages/vscode/media/loom-demo-workflow.gif` *(coming soon)*: one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
+> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
+
+![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
 ---
 
@@ -222,7 +224,9 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 
 The VS Code extension is the **human surface** over the same document graph.
 
-> 🎬 Workflow demo: `packages/vscode/media/loom-demo-workflow.gif` *(coming soon)* — same asset as above, rendered inline on the marketplace listing.
+> 🎬 Workflow demo — the same loop, rendered inline on the marketplace listing.
+
+![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
 The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads → idea / design / plans / chats / done) and a **Context** view showing exactly what the AI will receive for the selected node. Full walkthrough in the **[Extension User Guide](./docs/EXTENSION_USER_GUIDE.md)**.
 
