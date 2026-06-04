@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-06-04
+
+### Fixed
+- **Extension README images render on Open VSX.** The logo and workflow demo GIF
+  now use absolute `raw.githubusercontent.com` URLs instead of relative paths.
+  Open VSX (unlike the VS Code Marketplace) does not rewrite relative image
+  paths, so both images were broken on the Open VSX listing.
+- **GitHub release step no longer breaks on backticks in the changelog.** The
+  release notes are now passed to `gh release create` via an env var and
+  `--notes-file` instead of being inlined into the shell, which had let
+  backticks in the notes execute as commands and fail the release job.
+
 ## [0.9.0] - 2026-06-04
 
 ### Fixed
@@ -224,7 +236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/reslava/loom/releases/tag/v0.9.1
 [0.9.0]: https://github.com/reslava/loom/releases/tag/v0.9.0
 [0.8.0]: https://github.com/reslava/loom/releases/tag/v0.8.0
 [0.7.0]: https://github.com/reslava/loom/releases/tag/v0.7.0

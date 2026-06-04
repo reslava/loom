@@ -1,5 +1,14 @@
 # Loom VS Code Extension — Changelog
 
+## [0.9.1] - 2026-06-04
+
+### Fixed
+- **README images now render on the Open VSX listing.** The logo and workflow
+  demo GIF use absolute image URLs; Open VSX does not rewrite relative paths, so
+  they previously showed as broken images.
+
+---
+
 ## [0.9.0] - 2026-06-04
 
 ### Fixed

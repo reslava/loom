@@ -79,3 +79,14 @@ git push --follow-tags     # → CI: guard → build-test → publish(npm·vsce�
 Once the tag pushes, CI publishes to all three registries and npm's 0.9.0 is immutable.
 
 One note: this chat doc (`publishing-chat-003.md`) is untracked, so `commit -am` won't include it — I'll `git add` it into the same release commit so the session is recorded. Say **go** and I'll commit, tag, and push.
+
+## AI:
+
+**Shipped — tag pushed, pipeline running.**
+
+- Commit `eb27759` `release: v0.9.0` on `main` (11 files: changelogs + 7 package.json + lock + this chat doc).
+- Tag `v0.9.0` on origin → release workflow **queued** (run `26967609307`).
+
+**Snag worth recording:** the first push didn't carry the tag. I used `git tag v0.9.0` (lightweight) + `git push --follow-tags`, but `--follow-tags` only pushes *annotated* tags — the commit went up, the tag silently didn't, and no workflow fired. Fixed with an explicit `git push origin v0.9.0`. For next release: either annotate the tag (`git tag -a v0.9.0 -m ...`) so `--follow-tags` works, or always push the tag explicitly. Worth a one-line note in RELEASING.md's tag step — flag if you want me to add it.
+
+Now watching `guard → build-test → publish(npm·vsce·ovsx) → GitHub release` to completion.

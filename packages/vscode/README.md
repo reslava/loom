@@ -1,10 +1,10 @@
 # Loom — AI-assisted workflow for VS Code
 
-<img src="media/loom.png" alt="Loom" width="80" />
+<img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom.png" alt="Loom" width="80" />
 
 > 🎬 **Workflow demo** — `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
 
-![Loom workflow demo](media/loom-demo-workflow.gif)
+![Loom workflow demo](https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom-demo-workflow.gif)
 
 Loom turns your project into a structured collaboration surface between you and AI. Instead of a chat window that forgets everything, you get a document-driven loop:
 
