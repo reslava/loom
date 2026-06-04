@@ -12,9 +12,9 @@ as the first, and every decision is traceable.
 > fresh, defined and auditable — as opposed to an ever-expanding, opaque and degraded chat history."*
 > — Rafa Eslava
 
-| Context | Reference |
-|---|---|
-|<img src="packages/vscode/media/icons/ctx.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/reference.svg" alt="Loom" width="32" />|
+> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
+
+![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
 ---
 
@@ -219,10 +219,6 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 <img src="packages/vscode/media/loom.png" alt="Loom" width="64" />
 
 The VS Code extension is the **human surface** over the same document graph.
-
-> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
-
-![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
 The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads → idea / design / plans / chats / done) and a **Context** view showing exactly what the AI will receive for the selected node. Full walkthrough in the **[Extension User Guide](./docs/EXTENSION_USER_GUIDE.md)**.
 
