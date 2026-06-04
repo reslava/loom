@@ -131,3 +131,84 @@ The wording flipped from neutral ("omit it to get a stub you fill in later") to 
 **One gotcha before you test:** the `loom mcp` server running inside *this* session (and any other open session) is still the pre-edit process — it won't advertise the new descriptions until restarted. To verify the fix in `J:/landing-page`, start a **fresh** Claude Code session there (which spawns a fresh `loom mcp`) and run the demo opener. If the model still splits create+update after that, it's a genuine model-prior problem and we'd escalate to the harder structural option (content-less-create nudge) — but I expect the directive description to hold.
 
 Net: D2 recording is unblocked either way (the 2-call cost is invisible after post-trim), and future runs + every downstream `loom install` now get the stronger steer.
+
+## Rafa:
+
+New try, same path `J:/landing-page`
+
+Still same issue, even after updating mcp tools, use 2 calls to promote chat to idea:
+loom_create_idea
+loom_update_doc
+
+This is lasting forever, it is a simple question of economy and AI always choose the longest way instead of short one.
+
+## AI:
+
+Found the real root cause — and it means my two earlier replies in this chat were both wrong about the layer. You're right that it's economy; you're wrong that it's the model choosing the long way. **The extension is explicitly telling it to.**
+
+### The smoking gun
+
+You promote chat→idea with the **Promote to Idea** button. When Claude is installed, that button doesn't call an MCP tool directly — it *launches a Claude session with a task prompt*. Here is the verbatim prompt it injects (`packages/vscode/src/commands/promoteToIdea.ts:34`):
+
+> "…Use MCP tool **loom_create_idea** with weaveId=… **then use MCP tool loom_update_doc** with idea content derived from the source."
+
+The launch prompt **mandates the two-call pattern in the model's own instructions.** That instruction sits closer to the model than CLAUDE.md prose *and* closer than the tool description — it's the literal task it was handed. The model isn't being lazy or uneconomical; it's being obedient to a prompt that says "create, then update." Every fix I shipped earlier (CLAUDE.md wording, then the directive tool descriptions) was steering against an instruction that out-ranks both. That's why nothing moved.
+
+`promoteToDesign.ts:34` has the identical bug ("create_design … then loom_update_doc").
+
+### Proof it's the prompt, not the model
+
+`promoteToPlan.ts` was **already fixed** and does it right (`:37-42`):
+
+> "Then call MCP tool loom_create_plan **ONCE** … **Do NOT call loom_update_doc afterwards** — pass them in the steps array."
+
+Promote-to-plan got the single-call treatment; promote-to-idea and promote-to-design never did. Same button family, two of three still carry the old two-call script. So the behavior tracks the *prompt text*, not the model — which kills the "AI always picks the long way" framing. Give it a one-call instruction and it makes one call (as plan already proves).
+
+### The fix (correct-path, root cause)
+
+Rewrite the two launch prompts to mirror `promoteToPlan`: read source → call `loom_create_idea`/`loom_create_design` **ONCE with the `content` parameter** (the body derived from the source) → explicitly "do NOT call loom_update_doc afterwards." Two ~3-line edits:
+- `promoteToIdea.ts:33-34`
+- `promoteToDesign.ts:33-34`
+
+Note this is a `packages/vscode/` change, so it needs `build-all.sh` **+ an Extension Host reload** (Developer: Reload Window) to take effect — *not* an MCP restart. The launch prompt lives in the extension, not the MCP server, which is also why restarting `loom mcp` (what I told you to do last time) couldn't have helped.
+
+### Two cleanups while we're here
+1. **`demo-script-reference.md:220`** still repeats the now-dead "the installed `.loom/CLAUDE.md` is stale; regenerate it" theory as the cause of the two-call pattern. That diagnosis is false — leaving it will send the next recording session chasing a regeneration that does nothing. Should be corrected to point at the promote-command prompt.
+2. The earlier tool-description + CLAUDE.md edits I made aren't wasted — they're correct belt-and-suspenders for *direct* `loom_create_*` calls (e.g. the `do-next-step` authoring path). They just were never the lever for the *promote* path. I'd keep them.
+
+### For the recording
+Still not blocked. At Opus low + post-trim the extra round-trip is invisible. But this is a clean, cheap, durable fix and it removes the thing that's been annoying you across three runs — worth doing before the next record so the demo session is honest.
+
+Want me to apply the two promote-command edits + the reference correction, then `build-all`? Say `go`. (Two edits are `packages/**` = outside the MCP gate; the reference edit goes through `loom_update_doc`.)
+
+## AI:
+
+Done — but the fix was bigger than the two promote commands, and I want to be explicit that I widened scope without re-asking.
+
+### What I found mid-fix
+
+After fixing `promoteToIdea`/`promoteToDesign`, I grepped the compiled output to verify — and the same two-call instruction turned up in **two more launch prompts**: the **Generate Design** and **Generate Plan** buttons (`extension.ts:207` and `:231`). Both said "loom_create_* … **then** loom_update_doc". And those are exactly the buttons your **D2 demo uses** — scenes 5 ("Generate Design") and 6 ("Generate Plan") in `demo-script-reference.md`. So fixing only Promote would have left the demo *still* doing the two-call dance on the parts you actually record. Same root-cause class, the decision was already given, so I fixed all four rather than stopping to ask again.
+
+### All four, now single-call
+
+| Launch prompt | Before | After |
+|---|---|---|
+| `promoteToIdea.ts` | create_idea → update_doc | **create_idea ONCE with `content`** |
+| `promoteToDesign.ts` | create_design → update_doc | **create_design ONCE with `content`** |
+| `extension.ts` Generate Design | create_design → update_doc | **create_design ONCE with `content`** |
+| `extension.ts` Generate Plan | create_plan → update_doc | **create_plan ONCE with `goal`+`steps`** (mirrors the already-correct `promoteToPlan`) |
+
+Verified: grep for any `loom_create_* … then … loom_update_doc` in `packages/vscode/src` now returns **zero matches**. `promoteToPlan` was already correct and is the template the other three now follow.
+
+### Also corrected
+- **`demo-script-reference.md`** — the speed note no longer blames a "stale `.loom/CLAUDE.md`"; it now points at the promote/generate launch prompts as the real cause, with the fix recipe.
+
+### Left intentionally untouched
+- **Refine** commands (`refineIdea`/`refine`/`refinePlan`) correctly use `loom_update_doc` — they edit an existing doc, that's not the bug.
+- **`createReference`/`promoteToReference`** create the shell *in the extension process* and launch Claude only to fill the body — that's a structurally different two-step (not the model making two calls), and reference isn't on the demo path. Flagging it, not changing it now.
+
+### To take effect
+`build-all.sh` is done (green, twice). These are **extension** changes, so the live effect needs **Developer: Reload Window** in the VS Code instance running the Loom extension — *not* an MCP restart. After reload, the Generate/Promote buttons in `J:/landing-page` should drive a single create call. If you record before reloading, you'll still see the old two-call behavior — so reload first.
+
+### The honest meta-lesson
+This burned three of my replies because I kept fixing layers the launch prompt out-ranks (CLAUDE.md prose → tool descriptions). The actual instruction the model obeys is the **task prompt the extension button hands it**. For any "the AI did the wrong tool sequence from a button" bug, that launch prompt is the first place to look, not the last. Your "simple question of economy" read was right; the economy was being overridden by an explicit instruction, not chosen away by the model.

@@ -230,7 +230,7 @@ Verify with `claude mcp list`.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
 - **`loom_generate_*` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths, different behavior:
   - **VS Code extension**: sampling works — the extension's `mcp-client.ts` advertises `{ sampling: {} }` and routes `sampling/createMessage` through its configured AI API key. Use `loom_generate_*` buttons freely.
-  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference is not supported and returns `MethodNotFound`. **Always use `loom_create_*` + `loom_update_doc`** instead: create the doc shell, then write the content directly with `loom_update_doc`.
+  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference is not supported and returns `MethodNotFound`. **Create docs in a single call by passing `content` to `loom_create_*`** (idea/design/plan all accept it — the doc is born at version 1 with real content). Use `loom_update_doc` only for *later* edits to an existing doc, never as a second step right after creation.
 
 ---
 

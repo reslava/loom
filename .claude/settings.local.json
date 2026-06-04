@@ -16,10 +16,7 @@
       "mcp__loom",
       "Bash(npx ts-node *)",
       "Bash(./scripts/build-all.sh)",
-      "Bash(./scripts/test-all.sh)",
-      "Bash(loom --version)",
-      "Bash(rm -f \"loom/core-engine/agent-doc-dx/plans/agent-doc-dx-plan-003.md\" \"loom/core-engine/agent-doc-dx/plans/.archive/agent-doc-dx-plan-003.md\")",
-      "Bash(rmdir \"loom/core-engine/agent-doc-dx/plans/.archive\")"
+      "Bash(./scripts/test-all.sh)"      
     ]
   },
   "enableAllProjectMcpServers": true,

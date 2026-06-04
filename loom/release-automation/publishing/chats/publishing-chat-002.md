@@ -2,10 +2,10 @@
 type: chat
 id: ch_01KT4F0224R6EN6CS5FR41ABHA
 title: changelog rename Chat
-status: active
+status: done
 created: "2026-06-02T00:00:00.000Z"
 updated: 2026-06-02
-version: 1
+version: 2
 tags: []
 parent_id: null
 requires_load: []

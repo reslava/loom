@@ -24,9 +24,11 @@ Durable capture of the demo prompts and seed assets that were refined in `loom/v
 
 ### Chat opener prompt (verbatim — use exactly)
 
-> Add a pricing section to the landing page. Three tiers — Free, Pro, Enterprise — each with price, 4 feature bullets, and a CTA button. **Pro is visually highlighted as the recommended plan.** Scope is markup + inline CSS only; no JS, no responsive QA, no interaction testing. Two deliverables: (1) a self-contained `pricing.html` snippet, (2) integration into `index.html` in the right spot. That's the whole job.
+> Add a pricing section to the landing page. Three tiers — Free, Pro, Enterprise — each with price, 4 feature bullets, and a CTA button. **Pro is visually highlighted as the recommended plan.** Scope is markup + inline CSS only; no JS, no responsive QA, no interaction testing. Two deliverables: (1) a self-contained `pricing.html` snippet, (2) integration into `index.html` in the right spot. **Produce a plan of at most three steps, one per deliverable — no verification, smoke-test, browser-check, or palette-confirmation step.** That's the whole job.
 
-**Why this wording:** "Two deliverables" + the numbered (1)(2) tells the planner the work is exactly two units; the explicit "no JS / no responsive QA / no interaction testing" closes the doors that previously produced invented QA steps; naming `pricing.html` / `index.html` gives concrete Files-touched entries. This is the rewrite that turned a 6-step plan into a tight 2–3 step plan.
+**Why this wording:** "Two deliverables" + the numbered (1)(2) tells the planner the work is exactly two units; the explicit "no JS / no responsive QA / no interaction testing" closes the doors that previously produced invented QA steps; the explicit **"at most three steps … no verification, smoke-test, browser-check, or palette-confirmation step"** clause closes the gap a weaker/cheaper model still exploited (Sonnet produced a 5-step plan with a manual smoke-test from the original wording); naming `pricing.html` / `index.html` gives concrete Files-touched entries. This is the rewrite that turned a 6-step plan into a tight 2–3 step plan.
+
+> **Acceptance bar (hard):** ≤3 steps, **no smoke-test / verification step**. If live generation produces more, re-run — do not record. This is a prompt-level hedge only; the cheap/Sonnet model still drifts without the explicit clause above, so the durable fix (hardening `packages/mcp/src/tools/generate.ts` so the planner never invents QA steps and never decomposes a single deliverable file) remains open.
 
 ### Expected plan output (2 steps)
 
@@ -37,19 +39,28 @@ Durable capture of the demo prompts and seed assets that were refined in `loom/v
 
 3 steps (e.g. splitting create/style) is acceptable for the GIF. >3 means the prompt drifted — re-tighten before recording.
 
-### 8-scene caption script (one-line overlays)
+### 11-scene caption script (one-line overlays)
 
 | Scene | Action shown | Caption |
 |---|---|---|
 | 1 | Terminal: `loom install` | **"One command sets up the whole workspace"** |
 | 2 | CONTEXT panel appears, empty tree | **"Your document graph lives in the sidebar"** |
-| 3 | New Chat → type prompt → AI replies inside the doc | **"Chat with AI inside a persistent doc — not a throwaway window"** |
-| 4 | Generate Idea → idea node appears | **"One click turns the conversation into a scoped idea"** |
-| 5 | Generate Design → design node | **"Promote to a design — decisions recorded"** |
-| 6 | Generate Plan → plan with steps table | **"Break the design into reviewable steps"** |
-| 7 | Do Step → code appears, step ✅ | **"AI implements one step at a time — you stay in control"** |
-| 8 | Done doc in tree | **"What was built is recorded. Nothing disappears."** |
+| 3 | New Weave → name it `landing-page` | **"Start a project: create a weave"** |
+| 4 | New Thread under the weave → name it `pricing-section` | **"Group the work into a thread"** |
+| 5 | New Chat → type prompt → AI replies inside the doc | **"Chat with AI inside a persistent doc — not a throwaway window"** |
+| 6 | Generate Idea → idea node appears | **"One click turns the conversation into a scoped idea"** |
+| 7 | Generate Design → design node | **"Promote to a design — decisions recorded"** |
+| 8 | Generate Plan → plan with steps table | **"Break the design into reviewable steps"** |
+| 9 | Do Step → AI implements all plan steps, each marked ✅ | **"AI implements the plan, step by step — you stay in control"** |
+| 10 | Done doc in tree | **"What was built is recorded. Nothing disappears."** |
+| 11 | Browser: rendered pricing page | **"And the result is live."** |
 | hold (2s) | — | `chat → idea → design → plan → done` |
+
+**Scene 3–4 (weave + thread):** a chat must live inside a thread, so the demo creates the `landing-page` weave and `pricing-section` thread *before* the first chat. Use proper, real-looking names (not `test`/`foo`) — the names appear in the tree for the rest of the GIF.
+
+**Scene 9 (implement all steps):** trigger the plan to run *all* steps in one go rather than recording a separate Do-Step take per step — keeps the GIF short. The steps still land one-by-one in the plan table (each ⬜ → ✅), so the "step by step / you stay in control" message holds; only the recording is collapsed.
+
+**Scene 11 (final result):** after the done doc appears, cut to the rendered `index.html`/`pricing.html` in a browser so the GIF closes on a real, working web page — proof the workflow produced something, not just documents.
 
 **Key visual:** slow the tree-update transitions to ~0.5s each — the graph building node-by-node is the hook.
 
@@ -198,3 +209,13 @@ The tightening that makes the D2 prompt land ≤3 steps is **already in the code
 - **Design prompt:** no `## Next Steps` / pre-decomposition section; respect scope exclusions.
 
 Before recording, run `./scripts/build-all.sh` and restart any running `loom mcp` so the recording uses the current prompts (stale-after-build gotcha).
+
+---
+
+## Recording session settings (speed)
+
+Agent-loop latency is the enemy of a tight GIF. Settings that matter, in order of impact:
+
+- **Effort: Opus *low*.** The D2 prompt is hardened enough (the ≤3-step clause above) that low-effort drift risk is acceptable for a scripted recording. Medium/high buys invisible thinking budget on every reply and step — keep those for real authoring, not recording. (First run at Opus medium was 7:10 total; most of that is thinking budget the viewer never sees.)
+- **Expect single-call doc creation.** `loom_create_idea/design/plan` take an optional `content` param that writes the body in the same call. The AI should create each doc in **one** call — not a `create` stub followed by `loom_update_doc`. A 3-doc run that does create+update is doing ~3 wasted round-trips. **If you see the two-call pattern when promoting via the extension's Promote buttons**, the cause is the launch prompt in `packages/vscode/src/commands/promoteTo*.ts` — those prompts must instruct a single `loom_create_*` call with `content` (as `promoteToPlan.ts` already does), not "create then loom_update_doc". This is *not* a stale `.loom/CLAUDE.md` (CLAUDE.md and the tool descriptions are already single-call; the launch prompt out-ranks them). Fix the command prompt, `build-all`, and reload the Extension Host.
+- **Trim latency in post — expected, not a failure.** Even at low effort the loop won't be snappy on camera. Record the full run, then cut dead air; slow *only* the tree-update transitions (~0.5s) so the node-by-node graph build stays the visible hook. Viewers should see the loop, not the wait.

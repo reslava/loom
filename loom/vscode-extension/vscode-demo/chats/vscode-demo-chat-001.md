@@ -181,3 +181,159 @@ Next: in the extension — build-all.sh + restart loom mcp, open
   and record the GIF (Step 5). Tell me when each is done and I'll mark
   it ✅. Or say the word to commit the README + demo-project changes
   to main now. STOP — waiting for go.
+
+---
+
+Committed to main — 2540624, 12 files (clean subject line now). Only
+  the task files went in; the unrelated pre-existing changes
+  (.claude/settings.local.json, the publishing/0-6-5/gif-demo chats)
+  were left untouched.
+
+  What's in the commit:
+  - READMEs — README.md, packages/vscode/README.md (real button
+  titles, workflow-GIF placeholder)
+  - Demo project — demo/landing-page/ (4 files; allowlist force-added
+  past the .claude/ ignore)
+  - Thread docs — vscode-demo idea/design/plan/chat/done +
+  demo-script-reference.md
+
+  Not committed (correctly): no loom-demo-workflow.gif yet — that's
+  produced in Step 5.
+
+  Next: Steps 4–5 are yours in the extension (build + restart MCP,
+  loom install in demo/landing-page/, dry-run, record). Ping me to
+  mark them ✅ when done, or if you want me to push main.
+
+## Rafa:
+
+I ran a first try in `J:\landing-page`
+First I tried with Haiku, very bad results
+Then I trief with Sonnet, better
+You can check the results in the path files
+Plan created has 5 steps and even a smoke test, installed
+playwright and chromium
+
+Here is a summary from terminal:
+
+All 5 steps complete. Plan status is now done. Here's a summary of what was done per step:
+
+  ┌──────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Step │                                                         What was done                                                         │
+  ├──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 1    │ Created pricing.html — three-column inline-flex card layout with plan name, price, 4 feature bullets, and CTA button per      │
+  │      │ tier, all inline CSS                                                                                                          │
+  ├──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 2    │ Pro highlight was already fully applied in step 1: indigo #4F46E5 background, box-shadow, amber #F59E0B "Recommended" badge   │
+  ├──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 3    │ Read index.html, confirmed dark palette (#0B1120 bg, #111827 surface, Inter font). Updated pricing.html to match —            │
+  │      │ Free/Enterprise cards now use dark surface colors and muted text; Pro accent colors were already the exact brand tokens       │
+  ├──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 4    │ Replaced the <!-- Pricing section gets added here... --> placeholder in index.html with the full inline pricing markup, after │
+  │      │  the features section                                                                                                         │
+  ├──────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 5    │ Playwright smoke-test (headless Chromium): 3 cards rendered, amber "Recommended" badge present, 3 CTA buttons present, Pro    │
+  │      │ card background confirmed rgb(79,70,229). Screenshot verified visually — PASS                                                 │
+  └──────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+### GIF
+
+I think demo plan should have 3 steps at maximun, no smooke test
+
+Please, review the files in the path to refine the prompt for demo purposes.
+
+I should open web page index.html in some moment to show the result.
+
+## AI:
+
+Read the `J:\landing-page` run (idea → design → plan → done). Here's the diagnosis and how I'd refine.
+
+**What Sonnet produced (verbatim opener):** a 5-step plan — create cards / Pro highlight / confirm palette + update / integrate / **smoke-test**. The [[demo-script-reference]] expects **2** steps (≤3 acceptable). So it drifted by +2, and step 5 is exactly the "open in a browser and verify" smoke-test we said shouldn't exist.
+
+**Three leaks caused the drift:**
+
+1. **Over-decomposition of one deliverable.** Steps 1–3 are all "build `pricing.html`" (create → style → palette). The generate.ts "smallest step count, map steps to deliverables" instruction held on the model I validated earlier (6→3) but **did not generalize to Sonnet** — which is the model the extension's sampling actually uses.
+2. **Invented smoke-test (step 5).** "No responsive QA, no interaction testing" didn't literally cover "open `index.html` and verify rendering," so the model found the gap and added it anyway.
+3. **Design Open Questions bled into the plan.** Your demo-design still carries an `## Open Questions` section ("what is the existing palette?"). Step 3 ("confirm palette") is that question turned into a step. Open Questions in a design reliably become invented steps.
+
+So the verbatim prompt alone isn't enough, and the behavior is **model-dependent** — which is the real finding: the earlier "ships ≤3 steps" fix was validated on one model and silently doesn't hold on Sonnet.
+
+**Where to fix — your call:**
+
+- **Option A (demo-only, cheap):** add one clause to the verbatim opener in [[demo-script-reference]] — *"Produce exactly two steps, one per deliverable. No verification, smoke-test, browser-check, or palette-confirmation step."* Makes the recording deterministic. But it's a band-aid: only this exact prompt benefits; every other Loom user still gets smoke-test steps.
+- **Option B (root cause, durable):** strengthen the plan prompt in `packages/mcp/src/tools/generate.ts` — (a) never emit a verification / smoke-test / manual-QA / "open in browser" step under any wording; (b) collapse steps that touch the same single deliverable file; (c) never convert a design's Open Questions into steps. Plus the design prompt: stop emitting an `## Open Questions` section (or mark it explicitly non-actionable). Fixes the actual bug — the planner inventing QA despite scope exclusions — for every user, not just the demo.
+
+**I'd do B, with A's one clause as a determinism hedge for the recording.** B is the cause; A alone leaves the bug live for everyone downstream.
+
+This is a `generate.ts` prompt change affecting all plan output → design decision, so I'm stopping for your call before touching anything.
+
+Noted for the record: **≤3 steps / no smoke-test** as the hard demo acceptance bar, and you'll open `index.html` live to show the result — both fit scenes 7–8 of the caption script.
+
+## Rafa:
+
+Option A. ≤3 steps / no smoke-test. Update demo-script-reference 
+Question: will be better if I use Opus model for demo?
+
+## AI:
+
+Done — updated `demo-script-reference.md`:
+
+- Added the clause to the verbatim opener: *"Produce a plan of at most three steps, one per deliverable — no verification, smoke-test, browser-check, or palette-confirmation step."*
+- Updated the **Why this wording** note to record that the original wording let Sonnet drift to a 5-step plan with a smoke-test, and that this clause closes the gap.
+- Added a hard **Acceptance bar** callout (≤3 steps, no smoke-test; re-run, don't record, if it drifts) and flagged that Option B — hardening `generate.ts` — stays open as the durable fix.
+
+**On the Opus question — yes, use Opus for the recording.** Two reasons:
+
+1. **Tighter instruction-following = fewer retakes.** Your own run is the evidence: Haiku was bad, Sonnet was "better" but still added the smoke-test step and over-split `pricing.html`. Opus follows the scope-exclusion and step-count constraints more reliably, so you're much likelier to land the clean 2-step plan on take 1. For a recorded asset where every retake costs time, that matters.
+2. **The GIF is a showcase, not a benchmark.** It's fair to record with your best model — you're demonstrating the *workflow*, not claiming a specific model. The honest caveat lives in the reference: real users on Haiku/Sonnet may see drift, which is exactly why the durable `generate.ts` fix still matters.
+
+One caveat: the demo records inside the **VS Code extension**, so the model is whatever that extension's sampling is configured to call — make sure its AI key/model is set to Opus before recording, not just your CLI session.
+
+Net: Option A clause is in; record with Opus; keep Option B on the backlog so the tight plan isn't model-dependent forever.
+
+## Rafa:
+
+I do not like updating `generate.ts` with more restrictive prompt becuase what happen if 
+(a) user want to add for example a smooke test, then there is a contradiction with the prompt. 
+(b) the deliverable is comples and could require 2+ steps, contradiction with prompt
+
+This conditions, specifications should be explicit mentioned by the user in the chat and promoted to idea, design and plan
+
+What you think?
+
+## AI:
+
+You're right, and I'll withdraw Option B as I framed it. "Never emit a smoke-test, smallest step count, one step per deliverable" hardcodes a *preference* into a general-purpose tool — which is the exact same over-fitting mistake as the original demo prompt, just moved into `generate.ts` where it does more damage. Your (a) and (b) are correct: a user who wants a smoke-test, or a deliverable that genuinely needs 3 steps, would now be fighting the generator. Constraints belong in the user's spec, flowing chat → idea → design → plan. The generator's job is **faithful translation of the spec, not imposing policy.** Agreed.
+
+But let me separate two things that got tangled in my Option B, because one of them is still a real bug:
+
+1. **Preference** — "terse, no QA, demo-shaped." This belongs in the spec, full stop. You're right. → That's literally what **Option A does**: the *demo user* (the recording) states "≤3 steps, no smoke-test" explicitly in the chat opener. So Option A isn't a band-aid after all — it's the constraint living in the spec exactly where you say it should. By your own logic, A is the *correct* mechanism, not a hack.
+
+2. **Faithfulness** — this is the part that's still broken, and it's not about restriction. Look at what actually happened to your run:
+   - Your chat opener said **"no interaction testing."** When promoted to design, that exclusion got **dropped** — the design's goals read "no JS, no external CSS, no responsive QA" but *lost* "no interaction testing." So the smoke-test step wasn't the planner overriding you; it was the planner working from a design that no longer carried your exclusion. **Promotion leaked the constraint.**
+   - And separately, the planner *added* a palette-confirmation step the design only listed as an Open Question, not a deliverable — inventing scope.
+
+So the durable bug isn't "the generator is too permissive about QA." It's **the generator is unfaithful in both directions**: it drops constraints the user stated (on promotion) and invents scope the design didn't ask for. Fixing *that* serves everyone — the user who wants a smoke-test gets one when they ask, and doesn't get one when they say "no interaction testing." It's neutral policy, not restrictive policy.
+
+So my revised position:
+- **Option A stays** — and it's the right call, not a compromise. ✅ (already shipped)
+- **Drop "restrictive Option B."** You killed it correctly.
+- **Real backlog item = faithfulness, not restriction:** (i) promotion must carry the user's stated inclusions *and* exclusions through each stage without silently dropping them; (ii) the planner must not invent scope absent from the design (Open Questions ≠ deliverables). No step-count rule, no banned-step list.
+
+Want me to write that up as an idea in the right thread (this is core-engine / generate territory, not the demo thread), or park it for now and keep moving on the recording?
+
+## Rafa:
+
+Yes, now I agree with you, promotion should carry user requirements all the way along.
+I am thinking in a kind of `Requirements Driven Development` where user can specify what should be included and excluded in a thread workflow in a clear way. We will chat and design this depper after demo GIF is launched.
+
+Create a new thread and idea for this core-engine improvement.
+
+## AI:
+
+Created — new thread `core-engine/requirements-driven-development/` with idea `requirements-driven-development-idea.md` (`id_01KT77TXDA9H80GMW62NY0GD7B`, status: draft).
+
+It captures: the problem (promotion drops user-stated constraints + planner invents scope, with the `J:\landing-page` run as evidence), why the restrictive-`generate.ts` fix was rejected, the RDD concept (explicit include/exclude carried faithfully through every promotion; generator = faithful translator, not policy-maker), goal, open questions for the design phase, and the note that we design this deeper **after the demo GIF launches**. Option A is recorded as the shipped interim workaround.
+
+Parked there as you asked — nothing else touched in core-engine.
+
+Next: back to the recording — the demo thread's plan still has Step 4 (assemble + dry-run the demo script) and Step 5 (record + publish) open. Want to pick that up, or close here for now?

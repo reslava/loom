@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KSCSR06669YTC3SM0GR054YH
 title: vscode-0-6-5 Chat
-status: active
-created: 2026-05-24
-version: 1
+status: done
+created: "2026-05-24T00:00:00.000Z"
+updated: 2026-06-02
+version: 2
 tags: []
 parent_id: null
 requires_load: []

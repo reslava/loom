@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KRQT5P4KDZQN1PHTEDPSATVV
 title: vscode-gif-demo Chat
-status: active
+status: done
 created: "2026-05-16T00:00:00.000Z"
-version: 1
+updated: 2026-06-02
+version: 2
 tags: []
 parent_id: null
 requires_load: []

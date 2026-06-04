@@ -29,9 +29,8 @@ export async function promoteToIdeaCommand(treeProvider: LoomTreeProvider, node?
         const readInstruction = sourceFilePath
             ? `Read the source file at "${sourceFilePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${sourceId}" to get the file path, then read it with the Read tool.`;
-        const threadArg = targetThreadId ? `, targetThreadId="${targetThreadId}"` : '';
         await launchClaude(root, `Loom: Promote to Idea`,
-            `Loom promote to idea task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${threadArg}. ${readInstruction} Use MCP tool loom_create_idea with weaveId="${targetWeaveId}"${targetThreadId ? ` threadId="${targetThreadId}"` : ''}, then use MCP tool loom_update_doc with idea content derived from the source. Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
+            `Loom promote to idea task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${targetThreadId ? `, targetThreadId="${targetThreadId}"` : ''}. ${readInstruction} Then call MCP tool loom_create_idea ONCE with weaveId="${targetWeaveId}"${targetThreadId ? `, threadId="${targetThreadId}"` : ''}, a concise title, and content (the full idea body derived from the source). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_idea, in the same single call. Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {
