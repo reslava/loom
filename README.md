@@ -212,10 +212,6 @@ the warning and knows to re-read the design before implementing. Context can't s
 **`requires_load`:** documents declare their own dependencies. Before working on any doc, the agent
 reads everything in its `requires_load` chain. It can't miss context it doesn't know exists.
 
-> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
-
-![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
-
 ---
 
 ## VS Code Extension
@@ -224,7 +220,7 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 
 The VS Code extension is the **human surface** over the same document graph.
 
-> 🎬 Workflow demo — the same loop, rendered inline on the marketplace listing.
+> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
 
 ![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
