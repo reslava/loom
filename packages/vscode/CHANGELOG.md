@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [0.9.2] - 2026-06-04
+
+### Documentation
+- **Marketplace listing README refreshed.** Added a canonical tagline and
+  cross-links (GitHub · npm · Marketplace), and corrected the `.mcp.json` setup
+  text to note that `loom install` writes the file for you.
+
+_No functional extension changes in this release — behaviour is identical to 0.9.1._
+
+---
+
 ## [0.9.1] - 2026-06-04
 
 ### Fixed

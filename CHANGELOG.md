@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-06-04
+
+### Documentation
+- **README overhaul across all three surfaces (repo, npm, Marketplace).** The
+  workflow demo GIF is now the hero image at the top of the main README; the CLI
+  and extension READMEs gained a shared canonical tagline and cross-links
+  (GitHub · npm · Marketplace); the CLI README gained the guide links and demo GIF
+  it was missing; and the `.mcp.json` setup guidance was corrected everywhere to
+  state that `loom install` writes the file for you, dropping the stale
+  "create it by hand" instructions. The main README also dropped the all-green
+  Status table and tightened the Problem and Architecture sections.
+
 ## [0.9.1] - 2026-06-04
 
 ### Fixed
@@ -236,7 +248,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v0.9.2...HEAD
+[0.9.2]: https://github.com/reslava/loom/releases/tag/v0.9.2
 [0.9.1]: https://github.com/reslava/loom/releases/tag/v0.9.1
 [0.9.0]: https://github.com/reslava/loom/releases/tag/v0.9.0
 [0.8.0]: https://github.com/reslava/loom/releases/tag/v0.8.0
