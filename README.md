@@ -5,6 +5,8 @@
 Loom gives AI agents structured, scoped, persistent context — so every session is as sharp
 as the first, and every decision is traceable.
 
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
+
 📚 **User Guides:** [Core concepts & workflow](./docs/USER_GUIDE.md) · [VS Code Extension](./docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code](./docs/CLI_USER_GUIDE.md)
 
 > *"The workflow of serious projects needs to be organised and persistent: ideas, designs,
@@ -20,19 +22,16 @@ as the first, and every decision is traceable.
 
 ## The Problem
 
-AI is capable of nothing unless directed by someone competent, with knowledge. And the current
-interface of AI-assisted development makes that direction almost impossible to sustain.
-
 Every AI coding tool has the same structural flaw: **context is a shared garbage bag**. One long
-session accumulates everything — old decisions, abandoned paths, half-finished discussions — and
-the model degrades as it tries to reason over all of it simultaneously. You either hit the context
-limit and lose history, or keep a bloated context and pay with quality.
+session accumulates everything — old decisions, abandoned paths, half-finished discussions — and the
+model degrades as it reasons over all of it at once. You either hit the context limit and lose
+history, or keep a bloated context and pay with quality.
 
-- Session 1 is the best session. By session 10 the AI has forgotten sessions 2–9.
-- Re-explaining context every session is expensive. Letting the AI make suggestions that contradict
-  earlier decisions is damaging.
-- There's no guidance, no structure, no persistent state — just a chat window that grows forever
-  with no memory of what was actually decided.
+- **Session 1 is the best session.** By session 10 the AI has forgotten sessions 2–9.
+- **Re-explaining context every session is expensive** — and letting the AI contradict earlier
+  decisions is worse.
+- **No structure, no persistent state** — just a chat window that grows forever with no memory of
+  what was decided.
 
 The cause isn't model quality. It's that there's no workflow beneath the chat.
 
@@ -110,10 +109,13 @@ The docs remember everything.
 Loom exposes its document graph as an **MCP server** (Model Context Protocol). Any MCP-compatible
 agent — Claude Code, Cursor, Continue, Cline — can read and write Loom state via standard tools.
 
+`loom install` writes this `.mcp.json` to your project root automatically — it's shown here for reference:
+
 ```json
 {
   "mcpServers": {
     "loom": {
+      "type": "stdio",
       "command": "loom",
       "args": ["mcp"],
       "env": { "LOOM_ROOT": "${workspaceFolder}" }
@@ -256,32 +258,10 @@ Install from the VS Code marketplace: search **`reslava.loom`**.
 cli / vscode / mcp  →  app (use-cases)  →  core (domain) + fs (infrastructure)
 ```
 
-- **`core`**: Pure domain logic — entities, reducers, events, validation. No IO.
-- **`app`**: Orchestration use-cases. All state changes go through here.
-- **`fs`**: Infrastructure — file IO, frontmatter parsing, link index, repositories.
-- **`cli`**: Thin delivery layer — command parsing, console output.
-- **`vscode`**: Human surface — tree view, commands, toolbar.
-- **`mcp`**: Agent surface — MCP resources, tools, prompts, sampling.
-
-No layer imports upward. All MCP tools delegate to `app` — no bypassing.
-
----
-
-## Status
-
-| Feature | Status |
-|---------|--------|
-| Core engine (entities, reducers, events) | ✅ Shipped |
-| Filesystem layer (repositories, link index) | ✅ Shipped |
-| App use-cases (idea, design, plan, step, finalize, rename, archive) | ✅ Shipped |
-| CLI commands | ✅ Shipped |
-| VS Code extension (tree view, toolbar, commands) | ✅ Shipped |
-| MCP server (`loom mcp`, resources, tools, prompts) | ✅ Shipped (v0.5.0) |
-| VS Code AI buttons — CLI terminal path (Claude Pro) | ✅ Shipped (v0.6.0) |
-| VS Code AI buttons — API key path (sampling fallback) | ✅ Shipped (v0.5.0) |
-| Unified context pipeline (`loom://context`) | ✅ Shipped |
-| Sidebar CONTEXT panel + persistent context overrides | ✅ Shipped (v0.7.0) |
-| `loom install` with CLAUDE.md fusion | ✅ Shipped |
+Pure domain logic in `core`, infrastructure (file IO, frontmatter, link index) in `fs`, orchestration
+use-cases in `app`, and thin delivery layers in `cli` / `vscode` / `mcp`. No layer imports upward; all
+MCP tools delegate to `app` — no bypassing. Full breakdown in the
+**[Architecture Reference](./loom/refs/architecture-reference.md)**.
 
 ---
 

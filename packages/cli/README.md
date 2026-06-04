@@ -1,6 +1,12 @@
 # @reslava/loom
 
-**REslava Loom — Weave ideas into features with AI.**
+**Document-native workflow for AI-assisted development.** Weave ideas into features with AI.
+
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
+
+📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
+
+![Loom workflow demo](https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom-demo-workflow.gif)
 
 Loom is a document-driven, event-sourced workflow system for AI-assisted development.
 Markdown files are the database; state is derived; AI collaborates step-by-step with

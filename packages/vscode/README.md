@@ -1,5 +1,7 @@
 # Loom — AI-assisted workflow for VS Code
 
+**Document-native workflow for AI-assisted development.**
+
 <img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom.png" alt="Loom" width="80" />
 
 > 🎬 **Workflow demo** — `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
@@ -11,6 +13,8 @@ Loom turns your project into a structured collaboration surface between you and 
 **chat → idea → design → plan → implement → done**
 
 Every stage is a Markdown document. The AI reads them, writes to them, and tracks progress through them — across sessions, without losing context.
+
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
 
 📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
 
@@ -38,7 +42,7 @@ This creates `.loom/` (config), `loom/` (your doc workspace), and a `CLAUDE.md` 
 
 ## Connect an AI agent
 
-Loom works best with an MCP-capable AI agent (Claude Code, Cursor). Add `.mcp.json` to your project root:
+Loom works best with an MCP-capable AI agent (Claude Code, Cursor). `loom install` already wrote `.mcp.json` to your project root — shown here for reference:
 
 ```json
 {
