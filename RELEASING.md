@@ -40,9 +40,12 @@ ships a broken or inconsistent release.
 - [ ] **Commit, tag, push:**
       ```bash
       git commit -am "release: vX.Y.Z"
-      git tag vX.Y.Z
-      git push && git push --tags
+      git tag -a vX.Y.Z -m "vX.Y.Z"
+      git push --follow-tags
       ```
+      The tag **must be annotated** (`-a`) — `git push --follow-tags` only pushes
+      annotated tags, so a lightweight `git tag vX.Y.Z` would push the branch but
+      silently leave the tag local, and the release workflow would never fire.
 
 ---
 
