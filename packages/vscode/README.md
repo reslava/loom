@@ -2,8 +2,6 @@
 
 **Document-native workflow for AI-assisted development.**
 
-<img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom.png" alt="Loom" width="80" />
-
 > 🎬 **Workflow demo** — `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
 
 ![Loom workflow demo](https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom-demo-workflow.gif)
