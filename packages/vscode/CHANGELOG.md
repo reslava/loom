@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [0.9.0] - 2026-06-04
+
+### Fixed
+- **Finalize preserves the permanent ID.** Finalizing a document from the
+  extension no longer re-mints its permanent ULID.
+- **Generate/Promote create docs in a single call.** The launch prompts behind
+  the Generate and Promote buttons now produce a doc with real content in one
+  step, instead of creating an empty doc and writing into it a second time.
+
+---
+
 ## [0.8.0] - 2026-06-02
 
 ### Changed

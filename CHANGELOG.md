@@ -10,6 +10,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-06-04
+
+### Fixed
+- **Permanent IDs survive rename and finalize.** Renaming or finalizing a
+  document no longer re-mints its permanent ULID — the identity assigned at
+  creation is now preserved for the life of the doc, so links and history stay
+  intact across both operations.
+- **Single-call document creation.** The `loom_create_*` tools and the
+  extension's generate/promote launch prompts now create a doc in one call with
+  real content, instead of creating an empty doc and following up with a second
+  write. This removes a spurious double-write and the false "step completed"
+  behavior it could trigger.
+
+### Changed
+- **Release guard now checks both changelogs.** The `guard` job fails before any
+  publish unless *both* the root `CHANGELOG.md` and the extension's
+  `packages/vscode/CHANGELOG.md` carry a section for the tag being released.
+
+### Docs
+- Rewrote the ID-lifecycle reference around the ULID model (permanent id vs.
+  human-readable slug).
+- New CLI README and an embedded workflow demo GIF in the root and extension
+  READMEs.
+
 ## [0.8.0] - 2026-06-02
 
 ### Added
@@ -200,7 +224,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/reslava/loom/releases/tag/v0.9.0
 [0.8.0]: https://github.com/reslava/loom/releases/tag/v0.8.0
 [0.7.0]: https://github.com/reslava/loom/releases/tag/v0.7.0
 [0.5.0]: https://github.com/reslava/loom/releases/tag/v0.5.0
