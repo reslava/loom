@@ -132,6 +132,39 @@ async function run() {
         console.log('    ✅ tool-file step survives header detection');
     }
 
+    // ── Satisfies column round-trips; legacy 5-column tables parse as [] ──
+    console.log('  • Satisfies column round-trips; legacy 5-col table → satisfies []...');
+    {
+        const steps = [
+            { order: 1, description: 'Cite step', done: false, files_touched: ['a.ts'], blockedBy: [], satisfies: ['IN1', 'C2'] },
+            { order: 2, description: 'No cite', done: true, files_touched: [], blockedBy: [], satisfies: [] },
+        ];
+        const table = generateStepsTable(steps);
+        assert(table.includes('| Done | # | Step | Files touched | Blocked by | Satisfies |'), '6-column header expected');
+
+        const parsed = parseStepsTable(`## Steps\n\n${table}\n`);
+        assert(parsed.length === 2, `expected 2 steps, got ${parsed.length}`);
+        assert(
+            JSON.stringify(parsed[0].satisfies) === JSON.stringify(['IN1', 'C2']),
+            `satisfies must round-trip, got ${JSON.stringify(parsed[0].satisfies)}`,
+        );
+        assert(parsed[1].satisfies.length === 0, 'empty satisfies parses back to []');
+
+        // A legacy 5-column table (no Satisfies column) must still parse, satisfies → [].
+        const legacy = [
+            '## Steps',
+            '',
+            '| Done | # | Step | Files touched | Blocked by |',
+            '|---|---|---|---|---|',
+            '| ✅ | 1 | Legacy step | src/ | — |',
+        ].join('\n');
+        const legacyParsed = parseStepsTable(legacy);
+        assert(legacyParsed.length === 1, 'legacy table parses to 1 step');
+        assert(legacyParsed[0].satisfies.length === 0, 'legacy step → satisfies []');
+        assert(legacyParsed[0].blockedBy.length === 0 && legacyParsed[0].done === true, 'legacy columns still parse');
+        console.log('    ✅ Satisfies round-trips; legacy tables default to []');
+    }
+
     console.log('\n✅ planTableUtils tests passed\n');
 }
 

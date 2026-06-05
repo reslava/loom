@@ -177,9 +177,10 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     '- Each step description names a concrete output (e.g. "Create pricing.html with three-tier markup and inline CSS, Pro highlighted") not a sub-decision (e.g. "Add box-shadow to Pro tier").',
                     '- Do NOT invent QA, testing, accessibility-review, responsive-check, or post-implementation review steps unless the design names them as explicit deliverables.',
                     '- Respect scope exclusions stated in the idea or chat (e.g. "no JS", "no responsive QA") — do not add steps for excluded work.',
+                    '- If the thread has a locked req (it appears first in the context), treat its ❌ Excluded items and ⛓ Constraints as HARD BOUNDARIES, cover every ✅ Included requirement, and cite the requirement ids (IN/C handles) each step advances in `satisfies`.',
                     '',
                     'Return ONLY a JSON array of steps — no prose, no markdown fences:',
-                    '[{"order":1,"description":"..."},{"order":2,"description":"..."}]',
+                    '[{"order":1,"description":"...","satisfies":["IN1"]},{"order":2,"description":"...","satisfies":[]}]',
                 ].join('\n')));
 
                 const generated = await requestSampling(

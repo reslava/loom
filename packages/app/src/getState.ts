@@ -11,6 +11,8 @@ import { getWeaveStatus } from '../../core/dist/derived';
 import { filterWeavesByStatus, filterWeavesByPhase, filterWeavesById } from '../../core/dist/filters/weaveFilters';
 import { sortWeavesById } from '../../core/dist/filters/sorting';
 import { isStepBlocked } from '../../core/dist/planUtils';
+import { parseReq } from '../../core/dist/entities/req';
+import { checkReqCoverage } from '../../core/dist/reqCoverage';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 
@@ -172,6 +174,20 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         }
     }
     
+    // req scope-coverage gaps: for each thread with a locked req and plans, check
+    // the thread's combined plan steps against the req (uncovered Included, steps
+    // citing an Excluded id, dangling citations).
+    let reqCoverageGaps = 0;
+    for (const weave of filteredWeaves) {
+        for (const thread of weave.threads) {
+            if (thread.req?.status !== 'locked' || thread.plans.length === 0) continue;
+            const parsed = parseReq((thread.req as { content?: string }).content ?? '');
+            const steps = thread.plans.flatMap(p => p.steps ?? []);
+            const cov = checkReqCoverage(parsed, steps);
+            reqCoverageGaps += cov.uncovered.length + cov.excludedViolations.length + cov.unknownCitations.length;
+        }
+    }
+
     return {
         loomRoot,
         mode,
@@ -193,6 +209,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             staleIdeas,
             staleDesigns,
             blockedSteps,
+            reqCoverageGaps,
         },
     };
 }

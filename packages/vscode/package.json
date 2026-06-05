@@ -147,6 +147,12 @@
         "icon": "$(sync)"
       },
       {
+        "command": "loom.verifyReq",
+        "title": "Verify Plan Against Requirements",
+        "category": "Loom",
+        "icon": "$(verified)"
+      },
+      {
         "command": "loom.rename",
         "title": "Rename Document",
         "category": "Loom",
@@ -579,6 +585,11 @@
           "group": "inline@1"
         },
         {
+          "command": "loom.verifyReq",
+          "when": "view == loom.threads && (viewItem == req || viewItem == req-temp)",
+          "group": "inline@2"
+        },
+        {
           "command": "loom.weaveCreate",
           "when": "view == loom.threads && viewItem =~ /^weave/",
           "group": "create@1"
@@ -622,6 +633,11 @@
           "command": "loom.refineReq",
           "when": "view == loom.threads && viewItem == req",
           "group": "edit@1"
+        },
+        {
+          "command": "loom.verifyReq",
+          "when": "view == loom.threads && (viewItem == req || viewItem == req-temp)",
+          "group": "edit@2"
         },
         {
           "command": "loom.startPlan",

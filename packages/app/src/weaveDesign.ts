@@ -8,6 +8,7 @@ import { createBaseFrontmatter } from '../../core/dist';
 import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
+import { lockedReqVersion } from './req';
 
 export interface WeaveDesignInput {
     weaveId: string;
@@ -109,7 +110,9 @@ export async function weaveDesign(
         const filename = `${input.threadId}-design`;
         const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
         const content = input.content ?? generateDesignBody(designTitle, getUserName(loomRoot));
-        const doc: DesignDoc = { ...frontmatter, content } as DesignDoc;
+        // Stamp the locked req version this design was built against (req-staleness baseline).
+        const reqV = await lockedReqVersion(loomRoot, input.weaveId, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+        const doc: DesignDoc = { ...frontmatter, content, ...(reqV !== undefined ? { req_version: reqV } : {}) } as DesignDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
         return { id, filePath, autoFinalized: false };

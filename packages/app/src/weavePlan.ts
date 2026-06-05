@@ -6,6 +6,7 @@ import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
 import { generatePlanBody } from '../../core/dist/bodyGenerators/planBody';
 import { PlanDoc, DesignDoc, PlanStep, parseStepsTable } from '../../core/dist';
+import { lockedReqVersion } from './req';
 
 export interface WeavePlanInput {
     weaveId: string;
@@ -65,9 +66,11 @@ export async function weavePlan(
         const planSteps: PlanStep[] = input.content
             ? parseStepsTable(input.content)
             : (input.steps ?? []).map((s, i) => ({
-                order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
+                order: i + 1, description: s, done: false, files_touched: [], blockedBy: [], satisfies: [],
             }));
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
+        // Stamp the locked req version this plan was built against (req-staleness baseline).
+        const reqV = await lockedReqVersion(deps.loomRoot, input.weaveId, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
         const doc: PlanDoc = {
             ...baseFrontmatter,
             type: 'plan',
@@ -76,6 +79,7 @@ export async function weavePlan(
             target_version: '0.1.0',
             steps: planSteps,
             content: body,
+            ...(reqV !== undefined ? { req_version: reqV } : {}),
         } as PlanDoc;
 
         const filePath = path.join(plansDir, `${planFilename}.md`);
@@ -98,7 +102,7 @@ export async function weavePlan(
     const planSteps: PlanStep[] = input.content
         ? parseStepsTable(input.content)
         : (input.steps ?? []).map((s, i) => ({
-            order: i + 1, description: s, done: false, files_touched: [], blockedBy: [],
+            order: i + 1, description: s, done: false, files_touched: [], blockedBy: [], satisfies: [],
         }));
     const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, input.parentId ?? null);
     const doc: PlanDoc = {

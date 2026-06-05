@@ -12,7 +12,7 @@ const AI_TOOL_TIMEOUT_MS = 10 * 60 * 1000;    // promote / refine / generate / d
 const TOOL_TIMEOUT_MS = 2 * 60 * 1000;        // non-AI mutations
 const RESOURCE_READ_TIMEOUT_MS = 30 * 1000; // state reads — if stalled, reconnect is better than a 5-min freeze
 
-const AI_TOOL_PREFIXES = ['loom_promote', 'loom_refine_', 'loom_generate_', 'loom_do_step'];
+const AI_TOOL_PREFIXES = ['loom_promote', 'loom_refine_', 'loom_generate_', 'loom_do_step', 'loom_verify_req'];
 
 function isAIBoundTool(name: string): boolean {
     return AI_TOOL_PREFIXES.some(p => name.startsWith(p));

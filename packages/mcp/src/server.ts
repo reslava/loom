@@ -42,6 +42,7 @@ import * as getBlockedSteps from './tools/getBlockedSteps';
 import * as getStalePlans from './tools/getStalePlans';
 import * as getStaleDocs from './tools/getStaleDocs';
 import { createGenerateTools } from './tools/generate';
+import { createVerifyReqTool } from './tools/verifyReq';
 import { createRefreshCtxTool } from './tools/refreshCtx';
 import * as doStep from './tools/doStep';
 import * as appendDone from './tools/appendDone';
@@ -98,6 +99,7 @@ export function createLoomMcpServer(root: string): Server {
         createRefinePlanTool(server),
         createRefineDesignTool(server),
         ...createGenerateTools(server),
+        createVerifyReqTool(server),
         createRefreshCtxTool(),
     ];
 

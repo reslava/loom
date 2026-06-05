@@ -84,6 +84,7 @@ const ORDERED_KEYS = [
     'updated',
     'version',
     'design_version',
+    'req_version',
     'tags',
     'parent_id',
     'requires_load',

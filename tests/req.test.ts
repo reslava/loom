@@ -1,5 +1,5 @@
 import { assert } from './test-utils.ts';
-import { parseReq, getThreadStatus } from '../packages/core/dist/index.js';
+import { parseReq, getThreadStatus, isReqStale, getReqStaleDocs } from '../packages/core/dist/index.js';
 
 async function run() {
     console.log('🔁 Running req tests...\n');
@@ -66,6 +66,30 @@ async function run() {
         };
         assert(getThreadStatus(thread as any) === 'DONE', 'a perpetual locked req must not block DONE');
         console.log('    ✅ req excluded from every-done predicate');
+    }
+
+    // ── req-staleness: a locked req newer than a doc's req_version ──
+    console.log('  • isReqStale + getReqStaleDocs flag docs built against an older locked req...');
+    {
+        const lockedReqV2: any = { type: 'req', status: 'locked', version: 2 };
+        const draftReqV2: any = { type: 'req', status: 'draft', version: 2 };
+        assert(isReqStale({ req_version: 1 }, lockedReqV2) === true, 'v1 doc vs locked req v2 → stale');
+        assert(isReqStale({ req_version: 2 }, lockedReqV2) === false, 'v2 doc vs req v2 → not stale');
+        assert(isReqStale({}, lockedReqV2) === false, 'no baseline → not stale');
+        assert(isReqStale({ req_version: 1 }, draftReqV2) === false, 'a draft req never makes anything stale');
+
+        const idea: any = { type: 'idea', id: 'i', status: 'active', req_version: 1, version: 1 };
+        const design: any = { type: 'design', id: 'd', status: 'active', req_version: 2, version: 1 };
+        const donePlan: any = { type: 'plan', id: 'p', status: 'done', req_version: 1, version: 1 };
+        const thread: any = {
+            id: 't', weaveId: 'w', idea, design, req: lockedReqV2,
+            plans: [donePlan], dones: [], chats: [], refDocs: [], allDocs: [idea, design, donePlan],
+        };
+        const stale = getReqStaleDocs(thread).map((d: any) => d.id);
+        assert(stale.includes('i'), 'the v1 idea must be req-stale');
+        assert(!stale.includes('d'), 'the v2 design must not be req-stale');
+        assert(!stale.includes('p'), 'a done plan is never flagged stale (even with an old req_version)');
+        console.log('    ✅ isReqStale + getReqStaleDocs correct');
     }
 
     console.log('\n✅ req tests passed\n');

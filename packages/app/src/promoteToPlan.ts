@@ -116,7 +116,7 @@ function parseNumberedSteps(body: string): PlanStep[] {
     for (const line of match[1].split('\n')) {
         const m = line.match(/^\s*\d+\.\s+(.+)/);
         if (m) {
-            steps.push({ order: steps.length + 1, description: m[1].trim(), done: false, files_touched: [], blockedBy: [] });
+            steps.push({ order: steps.length + 1, description: m[1].trim(), done: false, files_touched: [], blockedBy: [], satisfies: [] });
         }
     }
     return steps;

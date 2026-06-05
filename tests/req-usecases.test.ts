@@ -2,8 +2,8 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
-import { createReq, refineReq, finalizeReq } from '../packages/app/dist/index.js';
-import { saveDoc, loadDoc } from '../packages/fs/dist/index.js';
+import { createReq, refineReq, finalizeReq, weavePlan } from '../packages/app/dist/index.js';
+import { saveDoc, loadDoc, loadWeave } from '../packages/fs/dist/index.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-req-usecase-tests');
 
@@ -66,6 +66,16 @@ async function run() {
     req = await loadDoc(created.filePath);
     assert(req.status === 'locked' && req.version === 2, 'locked at v2');
     console.log('    ✅ locked v2, finalize idempotent');
+
+    // ── weavePlan stamps req_version from the locked req (req-staleness baseline) ──
+    console.log('  • weavePlan stamps req_version from the locked req...');
+    {
+        const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
+        const { filePath } = await weavePlan({ weaveId, threadId, title: 'P', steps: ['do a thing'] }, planDeps);
+        const plan: any = await loadDoc(filePath);
+        assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
+        console.log('    ✅ plan.req_version stamped from locked req');
+    }
 
     await fs.remove(TMP);
     console.log('\n✅ req use-case tests passed\n');

@@ -1,6 +1,6 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry } from '../../../core/dist';
+import { ConfigRegistry, parseReq, checkReqCoverage } from '../../../core/dist';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import * as fs from 'fs-extra';
 
@@ -8,6 +8,17 @@ interface DiagnosticIssue {
     docId: string;
     issue: 'broken_parent_id' | 'dangling_child_id';
     detail: string;
+}
+
+interface ReqCoverageIssue {
+    weaveId: string;
+    threadId: string;
+    /** Included requirement ids no plan step cites. */
+    uncovered: string[];
+    /** Steps citing an Excluded id. */
+    excludedViolations: Array<{ stepOrder: number; id: string }>;
+    /** Cited ids matching no Included/Constraint id. */
+    unknownCitations: Array<{ stepOrder: number; id: string }>;
 }
 
 export async function handleDiagnosticsResource(root: string) {
@@ -34,11 +45,32 @@ export async function handleDiagnosticsResource(root: string) {
         }
     }
 
+    // req scope-coverage: per thread with a locked req + plans, where the plan(s)
+    // dropped an Included requirement, cited an Excluded one, or cited a dangling id.
+    const reqCoverage: ReqCoverageIssue[] = [];
+    for (const weave of state.weaves) {
+        for (const thread of weave.threads) {
+            if (thread.req?.status !== 'locked' || thread.plans.length === 0) continue;
+            const parsed = parseReq((thread.req as { content?: string }).content ?? '');
+            const steps = thread.plans.flatMap(p => p.steps ?? []);
+            const cov = checkReqCoverage(parsed, steps);
+            if (cov.uncovered.length || cov.excludedViolations.length || cov.unknownCitations.length) {
+                reqCoverage.push({
+                    weaveId: weave.id,
+                    threadId: thread.id,
+                    uncovered: cov.uncovered.map(i => i.id),
+                    excludedViolations: cov.excludedViolations,
+                    unknownCitations: cov.unknownCitations,
+                });
+            }
+        }
+    }
+
     return {
         contents: [{
             uri: 'loom://diagnostics',
             mimeType: 'application/json',
-            text: JSON.stringify({ issueCount: issues.length, issues }, null, 2),
+            text: JSON.stringify({ issueCount: issues.length, issues, reqCoverage }, null, 2),
         }],
     };
 }

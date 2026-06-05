@@ -8,7 +8,7 @@ import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
 import { finalizeCommand } from './commands/finalize';
-import { generateReqCommand, finalizeReqCommand, refineReqCommand } from './commands/req';
+import { generateReqCommand, finalizeReqCommand, refineReqCommand, verifyReqCommand } from './commands/req';
 import { renameCommand } from './commands/rename';
 import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
@@ -138,6 +138,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.generateReq', (node?: TreeNode) => generateReqCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.finalizeReq', (node?: TreeNode) => finalizeReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refineReq', (node?: TreeNode) => refineReqCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.verifyReq', (node?: TreeNode) => verifyReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.rename', (node?: TreeNode) => renameCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refineDesign', (node?: TreeNode) => refineCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.startPlan', (node?: TreeNode) => startPlanCommand(treeProvider, node)),
@@ -232,7 +233,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 const weaveId = node?.weaveId ?? '';
                 const threadId = node?.threadId ?? '';
                 await launchClaude(root, 'Loom: Generate Plan',
-                    `Loom generate plan task. designId="${id}", weaveId="${weaveId}", threadId="${threadId}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the design, then call MCP tool loom_create_plan ONCE with weaveId="${weaveId}" threadId="${threadId}", a concise title, a goal (1-2 sentences on what this plan implements), and steps (an array of concrete implementation step descriptions, in order — each becomes a row in the Steps table). Do NOT call loom_update_doc afterwards to add steps — pass them in the steps array of loom_create_plan. Do not use loom_generate_plan — sampling is unavailable in Claude Code CLI.`
+                    `Loom generate plan task. designId="${id}", weaveId="${weaveId}", threadId="${threadId}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the design, and read loom://context/thread/${weaveId}/${threadId}?mode=plan for the thread's locked requirements (the req doc — appears first). Treat its Excluded items and Constraints as HARD BOUNDARIES (no steps for excluded work), cover every Included requirement, and cite the requirement ids (IN/C handles) each step advances. Then call MCP tool loom_create_plan ONCE with weaveId="${weaveId}" threadId="${threadId}", a concise title, and a content markdown body whose Steps table has a Satisfies column listing the cited ids per step (comma-separated, — when none). Do NOT call loom_update_doc afterwards. Do not use loom_generate_plan — sampling is unavailable in Claude Code CLI.`
                 );
             } else {
                 try {

@@ -42,6 +42,48 @@ export async function generateReqCommand(
     }
 }
 
+/**
+ * Verify a thread's plan against its locked req: structural coverage + (in the
+ * extension) an AI semantic pass. Findings go to the "Loom Req Verify" output.
+ */
+export async function verifyReqCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
+    const weaveId = node?.weaveId;
+    const threadId = node?.threadId;
+    if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req (or its thread) to verify the plan against it.'); return; }
+
+    try {
+        let result: any;
+        await vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification, title: 'Loom: Verifying plan against requirements…', cancellable: false },
+            async () => { result = await getMCP(root).callTool('loom_verify_req', { weaveId, threadId }); },
+        );
+
+        if (result?.ok === false) { vscode.window.showWarningMessage(`Requirements check: ${result.reason}.`); return; }
+
+        const s = result?.structural ?? {};
+        const sem = result?.semantic ?? {};
+        const structuralGaps = (s.uncovered?.length ?? 0) + (s.excludedViolations?.length ?? 0) + (s.unknownCitations?.length ?? 0);
+        const semanticFlags = (sem.violations?.length ?? 0) + (sem.uncited?.length ?? 0);
+
+        if (structuralGaps === 0 && semanticFlags === 0 && !result?.semanticError) {
+            vscode.window.showInformationMessage('✅ Plan honours the requirements — no coverage gaps or semantic flags.');
+            return;
+        }
+
+        const out = vscode.window.createOutputChannel('Loom Req Verify');
+        out.clear();
+        out.appendLine(JSON.stringify(result, null, 2));
+        out.show(true);
+        const parts: string[] = [];
+        if (structuralGaps) parts.push(`${structuralGaps} structural gap(s)`);
+        if (semanticFlags) parts.push(`${semanticFlags} semantic flag(s)`);
+        if (result?.semanticError) parts.push('semantic pass unavailable here (run in the extension)');
+        vscode.window.showWarningMessage(`Requirements check: ${parts.join(', ')} — see the "Loom Req Verify" output.`);
+    } catch (e: any) { handleMcpError(e, treeProvider); }
+}
+
 /** Finalize (lock) a thread's draft req. */
 export async function finalizeReqCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

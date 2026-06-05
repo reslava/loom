@@ -11,7 +11,7 @@ export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
 export { weavePlan, WeavePlanInput, WeavePlanDeps } from './weavePlan';
 export { refineDesign, RefineDesignInput, RefineDesignDeps } from './refineDesign';
 export {
-    createReq, refineReq, finalizeReq,
+    createReq, refineReq, finalizeReq, lockedReqVersion,
     CreateReqInput, RefineReqInput, FinalizeReqInput, ReqDeps,
 } from './req';
 

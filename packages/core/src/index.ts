@@ -14,6 +14,7 @@ export { ChatDoc, ChatStatus } from './entities/chat';
 export { DoneDoc, DoneStatus } from './entities/done';
 export { ReferenceDoc, ReferenceStatus, LoadAxis } from './entities/reference';
 export { ReqDoc, ReqStatus, ReqItem, ParsedReq, parseReq } from './entities/req';
+export { checkReqCoverage, isReqSatisfied, ReqCoverage } from './reqCoverage';
 export { Weave, WeaveStatus, WeavePhase } from './entities/weave';
 export { Thread, ThreadStatus, Fiber } from './entities/thread';
 export { LoomState, LoomMode } from './entities/state';
@@ -49,7 +50,7 @@ export { planReducer } from './reducers/planReducer';
 // Core Utilities
 // ============================================================================
 export { applyEvent, ApplyResult } from './applyEvent';
-export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus } from './derived';
+export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, getReqStaleDocs } from './derived';
 export { createBaseFrontmatter, serializeFrontmatter } from './frontmatterUtils';
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
 export { ConfigRegistry } from './registry';

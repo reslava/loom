@@ -10,7 +10,7 @@ import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
 import { DesignDoc } from '@reslava-loom/core/dist/entities/design';
 import { ChatDoc } from '@reslava-loom/core/dist/entities/chat';
 import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
-import { getWeaveStatus, getThreadStatus } from '@reslava-loom/core/dist/derived';
+import { getWeaveStatus, getThreadStatus, getReqStaleDocs } from '@reslava-loom/core/dist/derived';
 import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
 import { ViewStateManager } from '../view/viewStateManager';
 import { GroupingMode, ViewState } from '../view/viewState';
@@ -152,12 +152,14 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const nodes = this.groupWeaves(normalWeaves, viewState.grouping);
 
             // Summary warning row — shown only when there are stale plans or blocked steps
-            const { stalePlans, staleIdeas, staleDesigns, blockedSteps } = this.state.summary;
+            const { stalePlans, staleIdeas, staleDesigns, blockedSteps, reqCoverageGaps } = this.state.summary;
             const staleDocs = (stalePlans ?? 0) + (staleIdeas ?? 0) + (staleDesigns ?? 0);
-            if (staleDocs > 0 || blockedSteps > 0) {
+            const coverageGaps = reqCoverageGaps ?? 0;
+            if (staleDocs > 0 || blockedSteps > 0 || coverageGaps > 0) {
                 const parts: string[] = [];
                 if (staleDocs > 0) parts.push(`${staleDocs} stale`);
                 if (blockedSteps > 0) parts.push(`${blockedSteps} plan steps blocked`);
+                if (coverageGaps > 0) parts.push(`${coverageGaps} req coverage gaps`);
                 const warningNode = new vscode.TreeItem(`⚠️ ${parts.join(' · ')}`, vscode.TreeItemCollapsibleState.None);
                 warningNode.contextValue = 'summary-warning';
                 warningNode.iconPath = new vscode.ThemeIcon('warning');
@@ -263,6 +265,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private threadHasStale(t: Thread): boolean {
+        if (getReqStaleDocs(t).length > 0) return true;
         if (t.design) {
             for (const plan of t.plans) {
                 if (plan.status !== 'done' && plan.status !== 'cancelled' && plan.design_version < t.design.version) {
@@ -419,6 +422,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                     if (plan.design_version < thread.design.version) staleIds.add(plan.id);
                 }
             }
+            for (const d of getReqStaleDocs(thread)) staleIds.add(d.id);
         }
 
         const children: TreeNode[] = [];

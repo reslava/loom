@@ -8,6 +8,8 @@ export interface PlanStep {
     done: boolean;
     files_touched: string[];
     blockedBy: string[];
+    /** Requirement ids (IN/C handles from the thread's req) this step advances. */
+    satisfies: string[];
 }
 
 export interface PlanDoc extends BaseDoc<PlanStatus> {
@@ -17,4 +19,6 @@ export interface PlanDoc extends BaseDoc<PlanStatus> {
     target_version: string;
     staled?: boolean;
     steps: PlanStep[];
+    /** Locked req version this plan was last built against (req-staleness baseline). */
+    req_version?: number;
 }

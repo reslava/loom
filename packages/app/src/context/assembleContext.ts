@@ -11,6 +11,7 @@ import {
     OperationMode,
     DocScope,
     isPlanStale,
+    isReqStale,
     resolveId,
 } from '../../../core/dist';
 
@@ -259,9 +260,18 @@ export function assembleContext(
 }
 
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {
-    if (doc.type !== 'plan') return null;
     const weave = state.weaves.find(w => w.id === targetEntry.weaveId);
     const thread = weave?.threads.find(t => t.id === targetEntry.threadId);
+
+    // req-staleness applies to idea/design/plan: the locked req moved past the
+    // version this doc was built against.
+    if (thread?.req && (doc.type === 'idea' || doc.type === 'design' || doc.type === 'plan')) {
+        if (isReqStale(doc as { req_version?: number }, thread.req)) {
+            return `req v${thread.req.version} is newer than this doc's req_version`;
+        }
+    }
+
+    if (doc.type !== 'plan') return null;
     if (!thread?.design) return null;
     return isPlanStale(doc as PlanDoc, thread.design as DesignDoc)
         ? `design v${(thread.design as DesignDoc).version} is newer than this plan's design_version`

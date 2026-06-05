@@ -265,6 +265,7 @@ async function run(): Promise<void> {
         assert(names.includes('loom_refine_req'), 'should include loom_refine_req');
         assert(names.includes('loom_finalize_req'), 'should include loom_finalize_req');
         assert(names.includes('loom_generate_req'), 'should include loom_generate_req');
+        assert(names.includes('loom_verify_req'), 'should include loom_verify_req');
     });
 
     // (f) req lifecycle: create → finalize → surfaces in the context bundle before the idea
@@ -294,6 +295,26 @@ async function run(): Promise<void> {
         const reqPos = text.indexOf(created.id);
         const ideaPos = text.indexOf('id: t1-idea');
         assert(reqPos !== -1 && ideaPos !== -1 && reqPos < ideaPos, 'req should be injected before the idea');
+    });
+
+    // (g) diagnostics report req scope-coverage gaps (depends on f: t1 now has a locked req)
+    await test('loom://diagnostics reports req scope-coverage gaps (IN1 uncovered)', async () => {
+        const res = await client.readResource({ uri: 'loom://diagnostics' });
+        const data = JSON.parse(res.contents[0].text as string);
+        assert(Array.isArray(data.reqCoverage), 'diagnostics includes a reqCoverage array');
+        const entry = data.reqCoverage.find((e: any) => e.weaveId === 'tw' && e.threadId === 't1');
+        assert(!!entry, 'tw/t1 should have a coverage entry (req locked; plan cites no req)');
+        assert(entry.uncovered.includes('IN1'), `IN1 should be uncovered, got ${JSON.stringify(entry?.uncovered)}`);
+    });
+
+    // (h) loom_verify_req: structural findings always; semantic blocked without a sampling-capable client
+    await test('loom_verify_req returns structural findings (semantic blocked without sampling)', async () => {
+        const res = await client.callTool({ name: 'loom_verify_req', arguments: { weaveId: 'tw', threadId: 't1' } });
+        const data = JSON.parse((res.content[0] as { text: string }).text);
+        assert(data.structural && Array.isArray(data.structural.uncovered), 'structural findings present');
+        assert(data.structural.uncovered.some((i: any) => i.id === 'IN1'), `IN1 should be structurally uncovered, got ${JSON.stringify(data.structural?.uncovered)}`);
+        // The test client does not advertise sampling capability, so the semantic pass is unavailable.
+        assert(data.semantic === null && typeof data.semanticError === 'string', 'semantic pass blocked → semanticError set');
     });
 
     // list prompts smoke test

@@ -363,3 +363,36 @@ Next: nothing pending — say the word to commit, or to start the Phase 2 plan.
 i reconnected mcp, generate updated vsix and loaded
 commit, push
 draft plan phase 2
+
+## AI:
+
+Phase 1 committed + pushed to `main` (`5eebb53`, 32 files; the unrelated `global-chat-003.md` left out so the commit stays scoped).
+
+Phase 2 plan drafted → `requirements-driven-development-plan-002` (`pl_01KTBD34X8RKH6F2K80GD10XJ2`), 7 layered steps:
+
+1. **core** — `satisfies` on `PlanStep` + round-trip a `Satisfies` table column
+2. **core** — pure `checkReqCoverage` reducer (uncovered Included / Excluded-cited steps)
+3. **core+app** — `req_version` staleness propagation (downstream stale on re-lock)
+4. **app+mcp** — surface coverage diagnostics (`getState` summary, `loom://diagnostics`, prompts)
+5. **mcp** — planner cites requirements as it generates (prevention)
+6. **mcp+vscode** — `loom_verify_req` semantic backstop (sampling / CLI agent)
+7. **build + full test + smoke**
+
+**One sub-decision I defaulted** (redirect before step 1 if you disagree): store `satisfies` as a comma-separated **`Satisfies` table column** on plan steps (like `Files touched`), not a frontmatter array — matches the current table-as-source-of-truth reality, and an absent column parses as empty so existing plans are untouched.
+
+Next: review the plan + that storage call. Say `go` (or "do whole plan") to start, or redirect.
+
+## AI:
+
+**Phase 2 shipped.** Plan `requirements-driven-development-plan-002` complete (all 7 steps ✅, auto-closed). Full suite green; MCP integration **12/12**.
+
+The locked req is now **verifiable**, not just injected:
+- **Citation** — plan steps carry a `Satisfies` column (`IN`/`C` ids), round-tripped through the table; legacy 5-col plans still parse.
+- **Structural check** — pure `checkReqCoverage` (uncovered Included / Excluded-citation / dangling) surfaced in `getState` summary, `loom://diagnostics`, the validate-state prompt, and the tree warning row.
+- **Staleness** — `req_version` stamped on plans/designs at creation; `isReqStale` flags downstream when the req is re-locked at a higher version (assembler + tree badge).
+- **Prevention** — the weave-plan / generate-plan / extension prompts instruct the planner to treat Excluded+Constraints as hard boundaries, cover every Included, and cite per step.
+- **Semantic backstop** — `loom_verify_req`: deterministic coverage always + an AI sampling pass (extension) flagging phrased-differently violations; CLI returns structural + a pointer for the agent to judge.
+
+RDD is now end-to-end: chat → **req** (locked, injected first) → idea/design/plan built against it → cited → checked.
+
+Next: nothing pending — say the word to commit + push, or pick the next thread.

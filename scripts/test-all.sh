@@ -26,6 +26,9 @@ run_test tests/entity.test.ts
 # req doc-type: parseReq buckets by IN/EX/C prefix; locked req never blocks DONE
 run_test tests/req.test.ts
 
+# req coverage: pure structural check (uncovered / excluded-violation / unknown citation)
+run_test tests/req-coverage.test.ts
+
 # Step 2: weaveRepository (done/ subfolder)
 run_test tests/weave-repository.test.ts
 

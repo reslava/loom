@@ -4,6 +4,8 @@ export interface PlanStep {
     done: boolean;
     files_touched: string[];
     blockedBy: string[];
+    /** Requirement ids (IN/C handles from the thread's req) this step advances. */
+    satisfies: string[];
 }
 
 /**
@@ -36,18 +38,21 @@ export function parseStepsTable(content: string): PlanStep[] {
         // like appendDone.ts and doStep.ts, silently dropping that step from the plan.
         if (cols[0] === 'Done' && cols[2] === 'Step') continue;
         
-        // Expected columns: Done, #, Step, Files touched, Blocked by
+        // Expected columns: Done, #, Step, Files touched, Blocked by, [Satisfies].
+        // Satisfies is appended last so older 5-column tables still parse (→ []).
         const doneSymbol = cols[0];
         const order = parseInt(cols[1], 10);
         const description = cols[2];
         const filesTouched = (cols[3] === '—' || cols[3] === '-') ? [] : cols[3].split(',').map(s => s.trim());
         const blockedByRaw = cols[4] || '—';
-        
+        const satisfiesRaw = cols[5] || '—';
+
         const done = doneSymbol === '✅';
         const blockedBy = (blockedByRaw === '—' || blockedByRaw === '-') ? [] : blockedByRaw.split(',').map(s => s.trim());
-        
+        const satisfies = (satisfiesRaw === '—' || satisfiesRaw === '-') ? [] : satisfiesRaw.split(',').map(s => s.trim());
+
         if (!isNaN(order)) {
-            steps.push({ order, description, done, files_touched: filesTouched, blockedBy });
+            steps.push({ order, description, done, files_touched: filesTouched, blockedBy, satisfies });
         }
     }
     
@@ -65,13 +70,14 @@ function escapeCell(value: string): string {
 export function generateStepsTable(steps: PlanStep[]): string {
     if (!steps.length) return '';
 
-    const header = '| Done | # | Step | Files touched | Blocked by |';
-    const separator = '|---|---|---|---|---|';
+    const header = '| Done | # | Step | Files touched | Blocked by | Satisfies |';
+    const separator = '|---|---|---|---|---|---|';
     const rows = steps.map(s => {
         const done = s.done ? '✅' : '🔳';
         const files = s.files_touched?.length ? s.files_touched.join(', ') : '—';
         const blockers = s.blockedBy?.length ? s.blockedBy.join(', ') : '—';
-        return `| ${done} | ${s.order} | ${escapeCell(s.description)} | ${escapeCell(files)} | ${escapeCell(blockers)} |`;
+        const satisfies = s.satisfies?.length ? s.satisfies.join(', ') : '—';
+        return `| ${done} | ${s.order} | ${escapeCell(s.description)} | ${escapeCell(files)} | ${escapeCell(blockers)} | ${escapeCell(satisfies)} |`;
     });
 
     return [header, separator, ...rows].join('\n');

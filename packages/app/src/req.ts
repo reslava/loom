@@ -35,6 +35,23 @@ function reqPathFor(loomRoot: string, weaveId: string, threadId: string): string
     return path.join(loomRoot, 'loom', weaveId, threadId, 'req.md');
 }
 
+/**
+ * The version of a thread's req when it is **locked**, else undefined.
+ * Downstream doc creators stamp this onto `req_version` so re-locking the req
+ * (version+1) marks the doc stale.
+ */
+export async function lockedReqVersion(
+    loomRoot: string,
+    weaveId: string,
+    threadId: string,
+    deps: { loadDoc: typeof loadDoc; fs: typeof fsExtra },
+): Promise<number | undefined> {
+    const filePath = reqPathFor(loomRoot, weaveId, threadId);
+    if (!(await deps.fs.pathExists(filePath))) return undefined;
+    const req = (await deps.loadDoc(filePath)) as ReqDoc;
+    return req.status === 'locked' ? req.version : undefined;
+}
+
 export interface CreateReqInput {
     weaveId: string;
     threadId: string;

@@ -47,5 +47,7 @@ export interface LoomState {
         staleIdeas: number;
         staleDesigns: number;
         blockedSteps: number;
+        /** Total req scope-coverage problems (uncovered Included + excluded/unknown citations) across locked-req threads. */
+        reqCoverageGaps: number;
     };
 }

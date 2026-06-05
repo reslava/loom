@@ -8,4 +8,6 @@ export interface DesignDoc extends BaseDoc<DesignStatus> {
     target_release?: string;
     actual_release?: string | null;
     refined?: boolean;
+    /** Locked req version this doc was last built against (req-staleness baseline). */
+    req_version?: number;
 }
