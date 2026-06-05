@@ -5,10 +5,11 @@ title: tests — fs-extra ESM Import Behaviour in ts-node Tests
 status: active
 created: "2026-04-23T00:00:00.000Z"
 version: 1
-tags: [tests, ts-node, fs-extra, esm, imports]
+tags: [tests, ts-node, fs-extra, esm, imports, internal]
 parent_id: null
 requires_load: []
 slug: fs-extra-esm-reference
+load: by-request
 ---
 
 # tests — fs-extra ESM Import Behaviour in ts-node Tests

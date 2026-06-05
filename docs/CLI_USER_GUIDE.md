@@ -90,6 +90,8 @@ Once connected, you collaborate in natural language; the agent calls Loom tools 
 |--------------|--------------------|
 | Work the next plan step | the `do-next-step` prompt |
 | Review a thread and get a suggestion | the `continue-thread` prompt |
+| Lock a thread's scope (requirements) | `loom_create_req` (with `content`) → `loom_finalize_req` |
+| Check the plan honours the requirements | `loom_verify_req` |
 | Create an idea / design / plan | `loom_create_*` then fill it in |
 | Reply inside a chat | the agent appends via `loom_append_to_chat` |
 | Mark a step done | `loom_complete_step` |
@@ -97,7 +99,9 @@ Once connected, you collaborate in natural language; the agent calls Loom tools 
 
 **The stop rhythm.** Like the extension, the agent does **one step**, records it, names the next step and files, then **stops for `go`**. You can authorize a range ("do steps 2–4") when you want it to run ahead.
 
-> **Note on generation:** in a Claude Code session, the AI *is* Claude — so the `loom_generate_*` (sampling) tools are intentionally disabled. The agent instead creates the doc shell (`loom_create_*`) and writes the content directly (`loom_update_doc`). You don't need to think about this; it's automatic.
+> **Note on generation:** in a Claude Code session, the AI *is* Claude — so the `loom_generate_*` (sampling) tools are intentionally disabled. The agent instead creates the doc in a single call by passing `content` to `loom_create_*`. You don't need to think about this; it's automatic.
+
+**Locking scope (requirements).** Before the design and plan, you can have the agent extract a `req` doc from your chat — the thread's *include / exclude / constraints*. The agent calls `loom_create_req` with the content, you curate, then `loom_finalize_req` locks it. From there the locked spec auto-loads into every action in the thread, and `loom_verify_req` checks the plan covers what was asked and avoids what was excluded. Full model: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md). The complete tool/resource catalogue is in [mcp-reference](../loom/refs/mcp-reference.md).
 
 ---
 
@@ -114,7 +118,7 @@ The context *model* (global/weave ctx, references, `requires_load`, `load_when`)
 
 ## 6. The `loom` CLI command reference
 
-Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent — see §4.)
+Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent — see §4.) The canonical, exhaustive list lives in [cli-commands-reference](../loom/refs/cli-commands-reference.md); the table below is the everyday subset.
 
 ### Workspace
 

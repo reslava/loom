@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KT7NF7PENCVA1N4NTZ2DTNE8
 title: requirements-driven-development Chat
-status: active
-created: 2026-06-03
-version: 1
+status: done
+created: "2026-06-03T00:00:00.000Z"
+updated: 2026-06-05
+version: 2
 tags: []
 parent_id: null
 requires_load: []

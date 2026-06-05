@@ -168,17 +168,15 @@ resolves the full chain recursively.
 
 ## Ctx hierarchy
 
-Three layers. Read from global → weave → thread for orientation; thread-level ctx is the most specific.
+Two layers. Read from global → weave for orientation. There is no thread-level ctx — a thread's idea, design, and plan load in full via the parent chain, so a thread ctx would just duplicate them.
 
 ```
 loom/ctx.md                          ← global ctx
 loom/{weave}/ctx.md                  ← weave ctx
-loom/{weave}/{thread}/ctx/           ← thread ctx
 ```
 
 - **Global ctx** (`loom/ctx.md`) — architecture refs + `load: always` docs + active weaves roster + project health
 - **Weave ctx** — all threads in weave, statuses, active plan summary, key decisions
-- **Thread ctx** — idea + design decisions + plan progress + open questions
 
 Ctx docs are AI-generated. Regenerate stale ones with `loom_refresh_ctx`. Check staleness with `loom_get_stale_docs`.
 

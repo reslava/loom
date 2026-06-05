@@ -50,6 +50,7 @@ In Loom, the durable artifacts of your work — what you want, how you'll build 
 | Type | What it is |
 |------|-----------|
 | **chat** | Free-form conversation with the AI. The thinking surface — no formal state. |
+| **req** | The thread's locked **scope spec**: what the work must *include*, *exclude*, and be *constrained* by. Born first, auto-loaded into everything built after it. |
 | **idea** | What you want to build and why it matters. |
 | **design** | How you'll build it: architecture, decisions, trade-offs. Carries a decisions log. |
 | **plan** | A numbered table of concrete implementation steps, each with the files it touches. |
@@ -64,8 +65,8 @@ The distinction between **ctx** and **reference** matters and is covered in §4.
 ## 3. The workflow loop
 
 ```
-chat  →  idea  →  design  →  plan  →  (implement step by step)  →  done
-  └────────────── refine any doc, any time ──────────────┘
+chat  →  req  →  idea  →  design  →  plan  →  (implement step by step)  →  done
+  └─────────────────── refine any doc, any time ───────────────────┘
 ```
 
 Each arrow is an action *you* trigger (a button in the extension, a prompt to Claude Code). The AI does the work and writes the result into the document; you review and approve.
@@ -73,11 +74,16 @@ Each arrow is an action *you* trigger (a button in the extension, a prompt to Cl
 | Stage | What it's for | What the AI does |
 |-------|---------------|------------------|
 | **chat** | Think out loud, explore, decide. | Replies inside the chat doc with full thread context loaded. |
+| **req** | Lock the *scope*: what's in, what's out, what's fixed. | Extracts the explicit include / exclude / constraints from your chat; you curate and **lock** them. |
 | **idea** | Lock down *what* and *why*. | Drafts the idea from your chat or prompt; you refine it. |
 | **design** | Decide *how*. | Generates an architecture + decisions doc from the idea. |
 | **plan** | Break the design into steps. | Generates a numbered steps table, each with files and dependencies. |
 | **implement** | Build it, one step at a time. | Implements the next step, records what it did in the `done` doc, marks the step ✅. |
 | **done** | Close the work. | The `done` doc is the permanent implementation record; the thread can move to a new plan or close. |
+
+### Requirements: lock the scope before you build
+
+`req` is the first formal artifact, extracted from your chat *before* the idea. It captures three ID'd lists — **✅ Included**, **❌ Excluded**, **⛓ Constraints** — and once you **lock** it, it becomes the thread's authoritative scope spec. Every doc generated after it (idea, design, plan) is built against the locked spec, and the planner cites which requirement each step satisfies. This is how a "no interaction testing" said once in a chat survives all the way to the plan instead of being silently dropped — and how an open question never gets mistaken for a deliverable. Full model: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
 
 ### The rhythm: one step, then stop
 
@@ -108,7 +114,11 @@ Every time you launch an AI action, Loom runs a **context pipeline** that gather
 
 You regenerate a stale ctx with *Refresh Context* (extension) / `loom_refresh_ctx` (agent). Keep them fresh — they're the broad backdrop every action starts from.
 
-### 4.3 reference docs — citable fact sheets
+### 4.3 req docs — the thread's locked scope, always loaded
+
+A thread's **`req`** doc is scope-loaded like ctx — but where ctx is a *regenerable summary*, `req` is an *authoritative spec*. Once locked, it is injected into the context bundle for **every** action in its thread, ordered ahead of the idea/design/plan so the scope frames everything the AI does. This is the slot thread-level ctx deliberately leaves empty (a thread's idea/design/plan already load in full, so summarizing them would just duplicate). The AI cannot quietly drift past an exclusion or invent scope, because the locked include/exclude/constraints travel with every prompt. See [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
+
+### 4.4 reference docs — citable fact sheets
 
 A **reference** is a static fact sheet (an API contract, a naming convention, a spec) living in a `refs/` folder. References have two loading controls in their frontmatter:
 
@@ -118,16 +128,16 @@ A **reference** is a static fact sheet (an API contract, a naming convention, a 
 
 > **ctx vs reference, in one line:** ctx is *scope-loaded* (pulled in automatically by where you are); a reference is *citation-loaded* (pulled in because something points at it). Don't conflate them.
 
-### 4.4 `requires_load` — explicit "read these first" links
+### 4.5 `requires_load` — explicit "read these first" links
 
 Any doc can list document IDs in its **`requires_load`** frontmatter. Those docs are loaded — transitively — before the AI works on it. This is how you say "to work on this plan, you must also have read the security reference and the API design." A `requires_load` link always wins: it will pull in a `by-request` reference, and it even overrides a doc you manually excluded (you'll see it marked as "required by …" rather than silently appearing).
 
-### 4.5 How it all combines
+### 4.6 How it all combines
 
 When you launch an action, the bundle is assembled in this order — broad context first, the thing you're working on last, its citations after:
 
 ```
-global ctx  →  weave ctx  →  always-on references (filtered by mode)
+global ctx  →  weave ctx  →  thread req  →  always-on references (filtered by mode)
             →  the parent chain (idea → design → plan)
             →  the document you're acting on
             →  everything pulled in by requires_load
@@ -135,7 +145,9 @@ global ctx  →  weave ctx  →  always-on references (filtered by mode)
 
 Then user overrides apply (you can force a doc out or in — see the [Extension Guide](EXTENSION_USER_GUIDE.md#the-context-panel)).
 
-### 4.6 Worked example
+> **Want the full internals?** The assembly order, the provenance model, the `ContextBundle`, and how the same bundle drives the prompt, the visibility lines, and the sidebar are all in [loom-context-pipeline-reference](../loom/refs/loom-context-pipeline-reference.md). This guide is the reader's-eye view of that reference.
+
+### 4.7 Worked example
 
 You open a chat in the `auth` weave's `login-throttle` thread and click *AI Reply*. Loom assembles:
 

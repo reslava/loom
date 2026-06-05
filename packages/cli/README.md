@@ -2,7 +2,7 @@
 
 **Document-native workflow for AI-assisted development.** Weave ideas into features with AI.
 
-🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) · [Open vsx](https://open-vsx.org/extension/reslava/loom-vscode)
 
 📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
 
@@ -17,6 +17,29 @@ at every action instead of starting each turn empty.
 > **The CLI does not run the AI.** It handles setup, inspection, and manual document
 > CRUD. The actual thinking and implementation happen through an MCP-capable agent
 > (Claude Code, Cursor, or any MCP client) connected to the Loom MCP server.
+
+---
+
+## Why Loom
+
+Loom started as a hand-built habit: while developing the .NET library
+[REslava.Result](https://github.com/reslava/nuget-package-reslava-result), I got tired of
+ephemeral AI chats that forgot every decision between sessions, so I began keeping ideas,
+designs, plans, and requirements as persistent Markdown — grouped by feature, so the AI
+always had the right context. Loom automates that.
+
+```
+Traditional AI chat:          Loom:
+  knowledge drifts & dies       knowledge becomes artifacts
+                                artifacts become context
+                                context drives implementation
+```
+
+**The part that matters most isn't the loop — it's how Loom decides what the AI sees.** A
+graph of typed docs, scope-loaded `ctx` summaries, reference docs with conditional
+`requires_load` / `load_when`, and locked **requirements** (include / exclude / constrain)
+route exactly the right context into every action — structural memory, not a growing chat.
+→ [How context works](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md#4-giving-the-ai-the-right-context)
 
 ---
 

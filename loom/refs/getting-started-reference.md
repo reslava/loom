@@ -5,7 +5,7 @@ title: "loom — Getting Started"
 status: active
 created: 2026-05-14
 version: 1
-tags: [onboarding, getting-started, tutorial]
+tags: [onboarding, getting-started, tutorial, public]
 parent_id: null
 requires_load: []
 slug: getting-started

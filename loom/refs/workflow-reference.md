@@ -5,7 +5,7 @@ title: loom — Workflow
 status: active
 created: "2026-04-30T00:00:00.000Z"
 version: 1
-tags: [workflow, loop, phases, onboarding]
+tags: [workflow, loop, phases, onboarding, public]
 parent_id: null
 requires_load: [vision]
 slug: workflow

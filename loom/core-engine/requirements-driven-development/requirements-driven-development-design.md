@@ -2,9 +2,10 @@
 type: design
 id: de_01KTBA3MSAGGDWC5G55A49JN4T
 title: Requirements-Driven Development — req doc-type, always-load, and scope verification
-status: draft
-created: 2026-06-05
-version: 1
+status: done
+created: "2026-06-05T00:00:00.000Z"
+updated: 2026-06-05
+version: 2
 tags: []
 parent_id: id_01KT77TXDA9H80GMW62NY0GD7B
 requires_load: []

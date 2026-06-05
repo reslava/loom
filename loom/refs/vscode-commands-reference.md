@@ -5,9 +5,10 @@ title: vscode — Commands Reference
 status: active
 created: "2026-04-14T00:00:00.000Z"
 version: 2
-tags: [vscode, commands, reference, ui, loom]
+tags: [vscode, commands, reference, ui, loom, public]
 requires_load: []
 slug: vscode-commands-reference
+load: by-request
 ---
 
 # Loom VS Code Commands Reference

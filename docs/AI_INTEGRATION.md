@@ -1,278 +1,128 @@
-# AI Integration & Handshake Protocol — REslava Loom
+# AI Integration — REslava Loom
 
-This document defines how REslava Loom interacts with Large Language Models (LLMs). It specifies the **native AI client**, **context injection strategy**, **dual interaction modes** (Chat vs. Action), and the **human approval flow** that ensures safe, predictable AI collaboration.
+How REslava Loom connects an AI agent to your documents: the **MCP server** that is the agent surface, the **two AI paths**, how **context is injected before the AI acts**, the **collaboration modes**, and the **approval gates** that keep it safe.
 
----
-
-## 1. Core Philosophy
-
-The system treats the AI as a **collaborator, not an autonomous agent**. The AI:
-
-- Reads **persistent Markdown documents** instead of relying on chat memory.
-- Participates in a **free-form conversation log** (`## User:` / `## AI:`) for exploration and reasoning.
-- Proposes **structured actions** only when explicitly requested or when a workflow state change is appropriate.
-- **Waits for human approval** before any state change occurs.
-
-This approach ensures:
-
-- **Traceability**: Every AI decision is captured in `design.md`.
-- **Safety**: The AI cannot accidentally corrupt state or execute destructive commands.
-- **Context Retention**: The AI has full access to the decision history stored in documents.
-- **Low Friction**: The conversation log remains the primary interaction surface; structured actions are optional.
+> **This is the reader's-eye view.** The canonical MCP surface — every resource, tool, and prompt with its exact arguments — lives in **[mcp-reference](../loom/refs/mcp-reference.md)**. How context is assembled lives in **[loom-context-pipeline-reference](../loom/refs/loom-context-pipeline-reference.md)**. The requirements model lives in **[loom-requirements-reference](../loom/refs/loom-requirements-reference.md)**. When this overview and a reference disagree, the reference wins.
 
 ---
 
-## 2. Document Writing Convention
+## 1. Philosophy: a collaborator, stateful through documents
 
-All Loom documents follow a consistent voice:
+Loom treats the AI as a **collaborator, not an autonomous agent**. The agent:
 
-- **First person** in conversation blocks (`## {{user.name}}:` and `## AI:`). These are direct dialogue between the human and the AI.
-- **Third person** in all other sections (Goal, Context, Architecture, etc.). This maintains objectivity and readability.
+- Reads **persistent Markdown documents** instead of relying on chat memory — the docs *are* its memory.
+- Has the right context **assembled and handed to it before it acts**, not left to chance or to a rule it might ignore.
+- Mutates state **only through Loom's tools**, each behind a human approval gate.
+- **Stops for your `go`** after each step — never barrels ahead.
 
----
-
-## 3. Architecture Overview
-
-The VS Code extension includes a **native AI client** that directly calls LLM provider APIs. No external chat tool is required.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      VS Code Extension                       │
-│  ┌─────────────────┐  ┌──────────────────────────────────┐  │
-│  │   UI Commands   │  │         Native AI Client         │  │
-│  │ loom ai respond │─▶│  - Prompt assembly               │  │
-│  │ loom ai propose │  │  - API call (DeepSeek/OpenAI)    │  │
-│  │ loom summarise  │  │  - Response parsing              │  │
-│  └─────────────────┘  │  - Token accumulation            │  │
-│                       └──────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   LLM Provider API  │
-                    │ (DeepSeek, OpenAI,  │
-                    │  local Ollama, etc.)│
-                    └─────────────────────┘
-```
-
-This design ensures **AI agnosticism** and **zero dependency** on extensions like Continue or Cursor.
+The payoff: every decision is captured in a durable doc, the AI can't corrupt state or run destructive commands behind your back, and what the AI saw is always visible to you.
 
 ---
 
-## 4. Interaction Modes
+## 2. The agent surface: the Loom MCP server
 
-The system supports two distinct modes of AI interaction.
+The AI reaches Loom through the **Model Context Protocol (MCP)**. `packages/mcp` exposes a stdio server (`loom mcp`) with four kinds of capability:
 
-### 4.1 Chat Mode (Default)
+| Capability | What it is | Examples |
+|------------|-----------|----------|
+| **Resources** | Read Loom state (read-only). | `loom://state`, `loom://context/{docId}`, `loom://diagnostics` |
+| **Tools** | Mutate Loom state (each is a workflow event). | `loom_create_idea/design/plan/req`, `loom_complete_step`, `loom_append_to_chat`, `loom_promote`, `loom_finalize_req` |
+| **Prompts** | Guided workflow templates with context pre-loaded. | `do-next-step`, `continue-thread` |
+| **Sampling** | The server asks the host to run an LLM inference on its behalf. | the `loom_generate_*` / verify paths (API-key host only) |
 
-**Purpose:** Brainstorming, clarifying requirements, exploring options.
+**All writes to Loom docs go through tools** — frontmatter, body, state mutation, prose alike. That's what makes MCP the single gate: reducers run, the link index updates, and plan-step validation fires on every change. The full catalogue is in [mcp-reference](../loom/refs/mcp-reference.md).
 
-**Invocation:** `loom ai respond` command (or toolbar button).
-
-**Behavior:**
-- The extension reads the current document (usually `design.md`).
-- It assembles context: thread state, full conversation log, and any documents listed in `requires_load`.
-- The prompt is sent to the configured LLM.
-- The AI's plain text response is appended to the document as a new `## AI:` block.
-- No workflow state changes occur.
-
-**Example:**
-```markdown
-## Rafa:
-I think we should consider using a message queue for async processing. Thoughts?
-
-## AI:
-That's a solid direction. A message queue would decouple the API from heavy processing tasks. 
-Do you have a preference between RabbitMQ, SQS, or Kafka?
-```
-
-### 4.2 Action Mode (Explicit)
-
-**Purpose:** Committing a decision to the workflow state (e.g., refining a design, starting a plan).
-
-**Invocation:** `loom ai propose` command.
-
-**Behavior:**
-- The extension assembles context **plus** the list of allowed events (from `.loom/workflow.yml`) for the current document type and status.
-- The LLM responds with a **structured JSON block** containing a proposed workflow event.
-- The extension displays a diff preview of the proposed frontmatter changes.
-- Upon user approval, the event is fired, updating the document and triggering any side effects.
-
-**Example JSON Response:**
-```json
-{
-  "proposed_action": "REFINE_DESIGN",
-  "reasoning": "The user confirmed PostgreSQL as the database choice. The design version should be incremented to reflect this change and mark dependent plans as stale.",
-  "target_document_id": "payment-system-design",
-  "requires_approval": true,
-  "next_step_description": "Review the updated design and regenerate any stale plans."
-}
-```
+The MCP server runs inside any MCP-capable host: **Claude Code (CLI)**, the **Claude desktop app**, Cursor, Continue, etc. (Note: the *Claude VS Code extension* does not host MCP today.)
 
 ---
 
-## 5. AI Handshake Protocol (Action Mode)
+## 3. Two AI paths
 
-When in Action Mode, the AI must respond with a strict JSON object adhering to the following schema:
+There is no built-in LLM client baked into Loom. The AI is whatever host you point at the MCP server, and there are two paths — chosen automatically:
+
+**Path A — the agent IS the host (Claude Code CLI, default).** Claude Code connects to `loom mcp` and calls the low-level tools directly (`loom_create_*` with `content`, `loom_update_doc`, `loom_append_to_chat`, `loom_complete_step`). Because Claude *is* the AI here, **sampling is intentionally disabled** — recursive server→client inference would be the host asking itself. No API key needed; works with a Claude Pro subscription.
+
+**Path B — the extension supplies inference (API-key sampling).** When the VS Code extension can't find Claude Code on PATH, it acts as the MCP client and services `sampling/createMessage` callbacks using a configured provider key. This is the path the `loom_generate_*` / `loom_refine_*` tools use. Configure it in VS Code settings (prefix `reslava-loom.`):
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "required": ["proposed_action", "reasoning"],
-  "properties": {
-    "proposed_action": {
-      "type": "string",
-      "enum": ["REFINE_DESIGN", "CREATE_PLAN", "START_PLAN", "COMPLETE_STEP", "REQUEST_CLARIFICATION", "NO_ACTION"],
-      "description": "The event to fire, or a special action."
-    },
-    "reasoning": {
-      "type": "string",
-      "description": "Explanation shown to the user in the approval dialog."
-    },
-    "target_document_id": {
-      "type": "string",
-      "description": "ID of the document to act upon. Defaults to the current primary document."
-    },
-    "requires_approval": {
-      "type": "boolean",
-      "description": "Should always be true for state-changing events."
-    },
-    "next_step_description": {
-      "type": "string",
-      "description": "Optional hint for the user after approval."
-    },
-    "clarification_question": {
-      "type": "string",
-      "description": "Required if proposed_action is REQUEST_CLARIFICATION."
-    }
-  }
-}
-```
-
-### Special Actions
-
-- `REQUEST_CLARIFICATION`: The AI asks a question instead of proposing an event.
-- `NO_ACTION`: The user's query doesn't require a state change.
-
----
-
-## 6. Context Injection Strategy
-
-The native AI client builds a system prompt containing:
-
-| Priority | Source |
-|----------|--------|
-| 1 | Thread derived state (status, phase) |
-| 2 | Full `design.md` (or `-ctx.md` if size exceeds threshold) |
-| 3 | Active plan steps (if any) |
-| 4 | Documents listed in `requires_load` |
-| 5 | Allowed events list (Action Mode only) |
-
-### Token Budget Management
-
-The extension respects the following VS Code settings (prefix `reslava-loom.`):
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `ai.maxContextTokens` | `8000` | Maximum tokens for the entire prompt. |
-| `ai.designSummaryThreshold` | `20000` | Characters in `design.md` before auto‑summary. |
-| `ai.reservedResponseTokens` | `1000` | Tokens reserved for the AI's response. |
-
-If the context exceeds `maxContextTokens`, the system truncates the conversation log to the most recent blocks and logs a warning.
-
----
-
-## 7. Approval Flow (Action Mode)
-
-```text
-1. Parse JSON response → If invalid, show error and offer retry.
-2. Check proposed_action:
-   - REQUEST_CLARIFICATION → Show question in chat.
-   - NO_ACTION → Do nothing.
-   - State-changing event → Continue.
-3. Generate diff preview of affected frontmatter.
-4. Show approval dialog with reasoning.
-5. Upon approval, fire event through orchestrator and apply effects.
-```
-
----
-
-## 8. Recording AI Interactions in `design.md`
-
-All AI responses are appended as `## AI:` blocks, regardless of mode:
-
-- **Chat Mode:** Plain text is appended directly.
-- **Action Mode:** The JSON proposal is wrapped in a code block, followed by a summary.
-
-This ensures a complete, searchable conversation history.
-
----
-
-## 9. Context Summarization (`-ctx.md`)
-
-To prevent context overflow, the system can auto‑generate a summary of `design.md`:
-
-- **Trigger:** Manual (`loom summarise-context <thread-id>`) or when `design.md` exceeds the configured character threshold.
-- **Content:** Problem statement, key decisions with timestamps, open questions, and plan references.
-- **AI Usage:** When fresh, the AI is instructed to read the summary first.
-
----
-
-## 10. Coexistence with External Chat Tools
-
-Users may still use external chat tools (Continue, Cursor, web ChatGPT). The system:
-
-- **Does not block or discourage this.**
-- Provides `loom import-chat` to paste external responses into `design.md` with proper formatting.
-- Clearly communicates that token tracking and context features **only apply to native AI usage**.
-
-This respects user freedom while offering a superior integrated experience.
-
----
-
-## 11. Provider Configuration
-
-Users configure their AI provider in VS Code settings:
-
-```json
-{
-  "reslava-loom.ai.provider": "deepseek",
+  "reslava-loom.ai.provider": "anthropic",
   "reslava-loom.ai.apiKey": "sk-...",
-  "reslava-loom.ai.model": "deepseek-chat",
-  "reslava-loom.ai.baseUrl": "https://api.deepseek.com/v1"
+  "reslava-loom.ai.model": "",
+  "reslava-loom.ai.baseUrl": ""
 }
 ```
 
-Supported providers: DeepSeek, OpenAI, Anthropic (via OpenAI‑compatible proxy), Ollama (local).
+Supported providers: `anthropic`, `openai`, `deepseek` (and OpenAI-compatible endpoints via `baseUrl`). You never choose between A and B — the extension uses Claude Code if present, otherwise the API key. See [architecture-reference §2a](../loom/refs/architecture-reference.md).
 
 ---
 
-## 12. Commands Summary
+## 4. Context injection — the pipeline
 
-| Command | Mode | Description |
-|---------|------|-------------|
-| `loom ai respond` | Chat | Get AI response and append to document. |
-| `loom ai propose` | Action | Request JSON event proposal; show diff approval. |
-| `loom summarise-context <thread-id>` | Utility | Force generation of `-ctx.md`. |
-| `loom import-chat` | Utility | Import external chat content into document. |
+Loom's core promise: **before the AI acts, it already holds exactly the documents it needs.** Every AI-launching action runs the **Unified Context Pipeline**, which assembles a `ContextBundle` and prepends it to the prompt:
 
----
+```
+global ctx → weave ctx → thread req → load:always references (filtered by mode)
+           → parent chain (idea → design → plan) → target doc → requires_load (transitive)
+```
 
-## 13. Troubleshooting
-
-| Symptom | Possible Cause | Solution |
-|---------|---------------|----------|
-| AI proposes invalid events | Allowed events list missing or `workflow.yml` invalid | Run `loom validate-config`. |
-| AI response truncated | Context exceeds token limit | Reduce `maxContextTokens` or summarize manually. |
-| Approval dialog shows no diff | Event does not change frontmatter | Expected for events like `CREATE_PLAN` (child creation). |
-| AI outputs JSON in Chat Mode | Mode detection failed | Ensure correct command was used. |
+The assembler is a pure function in `packages/app`; the impure boundary is the `loom://context/{id}` MCP resource. The *same* bundle drives the prompt, the `📄 {Title} — loaded for context` visibility lines, and the sidebar CONTEXT panel — so what the AI saw and what you see can never diverge. Each action passes a **mode** (`chat`, `implementing`, `design`, …) that filters which references are relevant via their `load_when`. Full design: [loom-context-pipeline-reference](../loom/refs/loom-context-pipeline-reference.md).
 
 ---
 
-## 14. Future Enhancements
+## 5. Collaboration modes
 
-- Streaming responses for real‑time feedback.
-- Hybrid mode: conversational text with embedded JSON proposals.
-- Custom prompt templates.
-- Per‑thread cost tracking.
+### Chat — think out loud, in a durable doc
+
+The agent replies **inside** the chat doc (appended under `## AI:`, with your turns under `## {your name}:`), with full thread context already loaded. The chat is durable memory, not a throwaway window — decisions made there become context for later work. No state changes occur from a chat reply.
+
+**Voice convention:** first person in conversation blocks (`## AI:` / `## {name}:`); third person in all structured sections (Goal, Architecture, decisions). The agent appends via `loom_append_to_chat`.
+
+### State changes — only through tools, behind approval
+
+A workflow transition (promote, start a plan, complete a step, lock a req) is **always** an explicit tool call, never a silent edit. In the extension these surface as buttons; in a Claude Code session the agent calls the tool and pauses. The non-negotiable **stop rhythm** applies: the agent does one step, records it in the `done` doc, marks it ✅, names the next step and the files it will touch — then **stops and waits for your `go`** (unless you authorized a range up front).
+
+---
+
+## 6. Generation
+
+Promoting a chat into a formal doc (idea/design/plan/req) is *generation*. It takes one of two forms, matching the two AI paths:
+
+- **Claude Code (Path A):** the agent creates the doc in a **single call** — `loom_create_*` with the `content` argument — born at version 1 with real content. (It must *not* follow with `loom_update_doc`; that's a wasted round-trip.)
+- **Extension (Path B):** `loom_generate_*` runs the generation through MCP sampling using the configured API key.
+
+Both produce the same doc; the difference is only *who* runs the inference.
+
+---
+
+## 7. Requirements verification
+
+When a thread has a locked `req`, Loom can check that the plan honours it — scope traceability, not functional correctness:
+
+1. **Planner citation (prevention).** Each `PlanStep` carries `satisfies: [reqIds]`; the planner is handed the *Excluded* / *Constraints* lists as hard boundaries, so most violations never occur.
+2. **Structural check (pure, always).** A deterministic check: every *Included* item has a covering step; no step cites an *Excluded* item; constraints carry through. No AI.
+3. **Semantic backstop (AI).** "Did a step violate `EX1` phrased differently?" — runs as a **sampling** diagnostic in the extension; in a Claude Code session the agent verifies directly (sampling is blocked there).
+
+In the extension this is the *Verify Plan Against Requirements* command (`loom_verify_req`), whose findings go to the *Loom Req Verify* output. Full model: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
+
+---
+
+## 8. Visibility — you see what the AI saw
+
+Two mechanisms keep the AI's context auditable:
+
+- **`📄 {Title} — loaded for context`** lines — one per doc that went into the prompt (the literal bundle).
+- **`🔧 MCP: loom_tool(...)` / `📡 MCP: loom://...`** lines — emitted before every tool call and resource read, so MCP usage is never hidden.
+- **The sidebar CONTEXT panel** — a live view of the same `ContextBundle`, with per-doc include/exclude toggles persisted to `.loom/context-prefs.json`.
+
+If you don't see the `📄` / `🔧` / `📡` markers, either MCP isn't running or it's being bypassed (which the session contract forbids).
+
+---
+
+## Related reading
+
+- [mcp-reference](../loom/refs/mcp-reference.md) — canonical MCP resources, tools, and prompts.
+- [loom-context-pipeline-reference](../loom/refs/loom-context-pipeline-reference.md) — how the context bundle is assembled.
+- [loom-requirements-reference](../loom/refs/loom-requirements-reference.md) — the requirements model and verification.
+- [ARCHITECTURE.md](ARCHITECTURE.md) — the layered system this surface sits on.
+- [USER_GUIDE.md §4](USER_GUIDE.md#4-giving-the-ai-the-right-context) — the same context model, for users.

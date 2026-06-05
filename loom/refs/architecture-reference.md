@@ -4,14 +4,20 @@ id: rf_01KQYDFDDDMS4N0V9G73MNV5JR
 title: loom — Architecture 
 status: active
 created: "2026-04-14T00:00:00.000Z"
-version: 2
-tags: [architecture, reference, loom, mcp]
+version: 4
+tags: [architecture, reference, loom, mcp, public]
 requires_load: []
 slug: architecture-reference
 load_when: [design, plan]
 ---
 
 # loom — Architecture
+
+> **This doc owns the structural facts** — package dependency rule, MCP surface,
+> doc-types table, frontmatter schema, directory layout, and file-naming rules.
+> For the *implementation* contract (the two API surfaces, DI pattern, reducer
+> purity, ID lifecycle, and gotchas) see
+> [implementation-contract-reference.md](implementation-contract-reference.md).
 
 ## 1. Package Relationships (Stage 2)
 
@@ -123,7 +129,7 @@ Button clicked
 | `plan` | `{thread}/plans/{plan-id}.md` | Implementation steps table |
 | `done` | `{thread}/done/{done-id}.md` | Post-implementation summary |
 | `chat` | `{thread}/chats/{chat-id}.md`, `{weave}/chats/{chat-id}.md`, or `loom/refs/chats/{id}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
-| `ctx` | `{thread}/ctx/` or `{weave}/ctx.md` | AI-optimised context summary (source of truth for agents) |
+| `ctx` | `loom/ctx.md` (global) or `{weave}/ctx.md` (weave) | AI-optimised context summary (source of truth for agents). Scope is global + weave only — there is no thread-level ctx; the parent chain loads idea/design/plan in full. |
 | `reference` | `loom/refs/{scope}/{id}.md` | Static/semi-static architectural facts |
 
 ### Frontmatter fields (canonical order)
@@ -200,7 +206,6 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
       {thread-id}/
         {thread-id}-idea.md
         {thread-id}-design.md
-        ctx/                ← thread-level context summary
         chats/              ← thread-level AI chat docs (promote to idea/design/plan)
         plans/
           {plan-id}.md
@@ -230,7 +235,6 @@ File suffixes are **enforced** — they are load-bearing for doc-type detection:
 | `-chat-MMM.md` | chat (MMM = zero-padded number or ULID) |
 | `-done.md` | done |
 | `-reference.md` | reference |
-| `-ctx.md` | ctx (thread-scoped) |
 
 Special forced filenames (exact, no prefix):
 
@@ -238,6 +242,8 @@ Special forced filenames (exact, no prefix):
 |----------|-------|
 | `ctx.md` | Global (`loom/ctx.md`) |
 | `{weave-id}/ctx.md` | Weave-level |
+
+There is no thread-level ctx file — ctx scope is global + weave only.
 
 Thread constraints define what docs can exist, not what they're named. Location implies the parent thread — no extra metadata needed. Physical file rename is left to the VS Code Explorer; Loom does not manage it.
 

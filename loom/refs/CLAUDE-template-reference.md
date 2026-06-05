@@ -1,3 +1,17 @@
+---
+type: reference
+id: rf_01KTBR4M8N2P5Q7R9S3T6V8WXY
+title: "loom — CLAUDE.md Install Template"
+status: active
+created: "2026-05-06T00:00:00.000Z"
+version: 1
+tags: [reference, internal, docs-infra, contract]
+parent_id: null
+requires_load: []
+slug: claude-template-reference
+load: by-request
+---
+
 # CLAUDE.md — Loom Session Contract
 
 > **This is the Loom template for end users.**
@@ -73,9 +87,9 @@ STOP — waiting for go
 ```
 loom/ctx.md                          ← global ctx  (read first)
 loom/{weave}/ctx.md                  ← weave ctx
-loom/{weave}/{thread}/ctx/           ← thread ctx  (most specific)
 ```
 
+There is no thread-level ctx — a thread's idea, design, and plan load in full via the parent chain.
 Prefer ctx docs over raw source docs when ctx is fresh. Check staleness with `loom_get_stale_docs`.
 Regenerate with `loom_refresh_ctx`.
 

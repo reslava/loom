@@ -5,9 +5,10 @@ title: cli — Commands
 status: active
 created: "2026-04-14T00:00:00.000Z"
 version: 2
-tags: [cli, commands, reference, loom]
+tags: [cli, commands, reference, loom, public]
 requires_load: []
 slug: cli-commands-reference
+load: by-request
 ---
 
 # Loom CLI Commands Reference

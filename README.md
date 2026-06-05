@@ -20,6 +20,39 @@ as the first, and every decision is traceable.
 
 ---
 
+## Why Loom exists
+
+The idea for Loom came to me while I was building the .NET library
+[REslava.Result](https://github.com/reslava/nuget-package-reslava-result). As the project
+grew, it became far more complex — and I ran into all the familiar problems of the AI-chat
+era. I came to dislike working in that window, with its ephemeral conversations that forgot
+everything between sessions.
+
+So I started keeping a `CLAUDE.md` file, to hold our design and planning discussions in a
+persistent Markdown document instead of a disposable chat. Soon I was organizing ideas,
+designs, and plans by feature — and I noticed that this gave the AI a precise context for
+each one. I began writing *done* documents with implementation notes, and reaching for
+context, reference, and requirements documents to give the AI a real sense of state: every
+session could start with exactly the information the work needed.
+
+I did all of this by hand on that project. Then it struck me — this should be an automated,
+visual collaboration environment. That environment is Loom.
+
+— *Rafa Eslava*
+
+```
+Traditional AI workflow:          Loom:
+
+  Chat                              Knowledge becomes artifacts.
+  Chat                              Artifacts become context.
+  Chat                              Context drives implementation.
+  Chat
+
+  Knowledge drifts & disappears.
+```
+
+---
+
 ## The Problem
 
 Every AI coding tool has the same structural flaw: **context is a shared garbage bag**. One long
@@ -80,6 +113,40 @@ thread, not by the length of the chat history.
 version-controlled), you know *why* the AI gave the answer it gave. In a chat tool that's opaque —
 the model's behaviour depends on 80 messages of invisible history. In Loom, the context *is* the
 docs.
+
+---
+
+## How Loom decides what the AI sees
+
+**This is the part of Loom that matters most — and the part most tools don't have.** The loop
+(`chat → idea → design → plan → done`) is legible, but it isn't unique; every task-decomposition
+tool has some version of it. What's genuinely different is the **context-routing system**: Loom
+treats *what the AI knows before it acts* as a first-class, controllable thing instead of an
+accident of chat history.
+
+Five mechanisms decide the AI's working context:
+
+| Mechanism | What it routes |
+|-----------|----------------|
+| **Graph document database** | Typed, linked Markdown docs — not a scrollback buffer. State is derived from the graph. |
+| **Scope context** (`ctx`) | A `loom/ctx.md` (global) and `{weave}/ctx.md` (weave) summary, auto-loaded by *where you're working*. |
+| **Reference docs** (`requires_load` + `load_when`) | Static facts a doc cites; `load_when` makes them *conditional* — an API spec that loads only while implementing, not while brainstorming. |
+| **Requirements** (`req`) | A thread's locked scope: **include / exclude / constrain**, auto-loaded into every action so a "no interaction testing" said once is never silently dropped. |
+| **Context panel** | Shows *exactly* what will be fed to the AI **before** you click — the same bundle that becomes the prompt. Most tools hide context assembly; Loom shows it and lets you toggle it. |
+
+Together they make the AI's memory **structural** rather than conversational, and they assemble in
+a deterministic order on every action:
+
+```
+chat → req → idea → design → plan → implement → done
+        │
+        └─ global ctx → weave ctx → thread req → references (filtered by mode)
+                      → parent chain (idea→design→plan) → target doc → requires_load
+```
+
+> Deep dives: **[How context is assembled](./loom/refs/loom-context-pipeline-reference.md)** ·
+> **[The requirements model](./loom/refs/loom-requirements-reference.md)** ·
+> **[USER_GUIDE §4 — Giving the AI the right context](./docs/USER_GUIDE.md#4-giving-the-ai-the-right-context)**
 
 ---
 
@@ -164,17 +231,19 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 |<img src="packages/vscode/media/icons/weave-implementing.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/thread-implementing.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/chat.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/idea.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/design.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/plan-implementing.svg" alt="Loom" width="32" />|<img src="packages/vscode/media/icons/status-done.svg" alt="Loom" width="32" />|
 
 ```
-0. Chat      → think with the AI, explore the problem space
+0. Chat         → think with the AI, explore the problem space
+   ↓ Lock scope
+1. Requirements → include / exclude / constraints, locked as the thread's spec (optional)
    ↓ Promote
-1. Idea      → raw concept, rough scope
+2. Idea         → raw concept, rough scope
    ↓ Promote
-2. Design    → decisions, trade-offs, rejected alternatives, conversation log
+3. Design       → decisions, trade-offs, rejected alternatives, conversation log
    ↓ Promote
-3. Plan      → numbered implementation steps, each reviewable
+4. Plan         → numbered implementation steps, each reviewable, each citing the req it satisfies
    ↓ DoStep
-4. Implement → agent executes one step at a time, marking progress
+5. Implement    → agent executes one step at a time, marking progress
    ↓
-5. Done      → post-implementation summary, links to what was built
+6. Done         → post-implementation summary, links to what was built
 ```
 
 Human approves each phase transition. The agent never advances without a checkpoint.
@@ -303,6 +372,8 @@ API keys.
 | [Extension User Guide](./docs/EXTENSION_USER_GUIDE.md) | The VS Code panel, buttons, and CONTEXT view |
 | [CLI / Claude Code Guide](./docs/CLI_USER_GUIDE.md) | Driving Loom from the terminal via an MCP agent |
 | [Architecture Reference](./loom/refs/architecture-reference.md) | Package relationships, AI integration, frontmatter fields, directory structure |
+| [Context Pipeline Reference](./loom/refs/loom-context-pipeline-reference.md) | How Loom decides what the AI sees — context assembly, internals |
+| [Requirements Reference](./loom/refs/loom-requirements-reference.md) | The `req` doc-type: include / exclude / constraints, lifecycle, verification |
 | [CLI Commands Reference](./loom/refs/cli-commands-reference.md) | Every `loom` command |
 | [VS Code Commands Reference](./loom/refs/vscode-commands-reference.md) | All VS Code commands and keybindings |
 | [Workspace Structure Reference](./loom/refs/workspace-directory-structure-reference.md) | Directory layout and file naming |

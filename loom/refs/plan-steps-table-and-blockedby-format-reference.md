@@ -6,11 +6,13 @@ status: active
 created: "2026-05-08T00:00:00.000Z"
 updated: 2026-05-08
 version: 2
-tags: []
+tags: [reference, internal, plan, workflow]
 parent_id: null
 requires_load: []
 slug: plan-steps-table-and-blockedby-format
 description: Canonical format for plan Steps tables and BlockedBy column entries. Load this when creating or editing plans.
+load: by-request
+load_when: [plan]
 ---
 # loom — Plan Steps Table and BlockedBy Format
 

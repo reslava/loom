@@ -5,7 +5,7 @@ title: loom — Vision
 status: active
 created: "2026-04-30T00:00:00.000Z"
 version: 1
-tags: [vision, north-star, onboarding]
+tags: [vision, north-star, onboarding, public]
 parent_id: null
 requires_load: []
 slug: vision

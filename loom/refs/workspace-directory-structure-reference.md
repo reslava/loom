@@ -4,8 +4,8 @@ id: rf_01KQYDFDDD31MDCMHA1TDAG0EG
 title: loom — Workspace Directory Structure
 status: active
 created: "2026-04-26T00:00:00.000Z"
-version: 2
-tags: [reference, structure, filesystem]
+version: 3
+tags: [reference, structure, filesystem, public]
 slug: workspace-directory-structure-reference
 load: always
 load_when: [idea, design, plan, implementing]
@@ -73,8 +73,6 @@ load_when: [idea, design, plan, implementing]
             ├── {thread}-idea.md       ← raw concept
             ├── {thread}-design.md     ← design decisions and conversation log
             │
-            ├── ctx/                   ← thread ctx: AI-generated summary
-            │
             ├── refs/                  ← thread-scoped references (e.g. API specs)
             │
             ├── chats/                 ← thread-level AI conversations
@@ -95,7 +93,7 @@ Every scope (project, weave, thread) supports the same set of directories:
 
 | Directory | At project level | At weave level | At thread level |
 |-----------|-----------------|----------------|-----------------|
-| `ctx.md` / `ctx/` | `loom/ctx.md` | `loom/{weave}/ctx.md` | `loom/{weave}/{thread}/ctx/` |
+| `ctx.md` | `loom/ctx.md` | `loom/{weave}/ctx.md` | — (no thread ctx) |
 | `refs/` | `loom/refs/` | `loom/{weave}/refs/` | `loom/{weave}/{thread}/refs/` |
 | `chats/` | `loom/chats/` | `loom/{weave}/chats/` | `loom/{weave}/{thread}/chats/` |
 | archived docs | `loom/.archive/` | `loom/.archive/{weave}/` | `loom/.archive/{weave}/{thread}/` |
@@ -103,7 +101,7 @@ Every scope (project, weave, thread) supports the same set of directories:
 Rules:
 
 - Create any directory only when first needed — don't pre-create empty dirs
-- `ctx.md` (project + weave) is a single file; `ctx/` (thread) is a directory of session summaries
+- `ctx.md` is a single file at project and weave scope; there is no thread-level ctx (a thread's idea/design/plan load in full via the parent chain, so a thread ctx would just duplicate them)
 - `refs/` contains static facts; never put AI-generated content in `refs/`
 - **Archiving uses one root.** There is a single `loom/.archive/` at the repo root — never a `.archive/` per weave or thread. Archive any doc by moving it to `loom/.archive/{weave}/{thread}/...`, mirroring its live path. `findMarkdownFiles` skips any directory named `.archive`, so archived docs drop out of derived state automatically. Use the `loom_archive` MCP tool rather than moving files by hand.
 
@@ -150,14 +148,14 @@ load_when: [idea, design, plan, implementing]
 
 ## Ctx hierarchy
 
-Agents read ctx top-down: project → weave → thread. Each level summarizes its scope without
-duplicating the level above.
+Agents read ctx top-down: project → weave. Each level summarizes its scope without
+duplicating the level above. There is no thread-level ctx — a thread's idea, design,
+and plan load in full via the parent chain.
 
 | Level | Path | Summarizes |
 |-------|------|-----------|
 | Project | `loom/ctx.md` | Architecture refs + `load: always` docs + active weaves roster |
 | Weave | `loom/{weave}/ctx.md` | All threads, statuses, active plan summary |
-| Thread | `loom/{weave}/{thread}/ctx/` | Idea + design decisions + plan progress |
 
 Regenerate stale ctx with `loom_refresh_ctx`. Check all stale docs with `loom_get_stale_docs`.
 

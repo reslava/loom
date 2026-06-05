@@ -2,10 +2,10 @@
 type: idea
 id: id_01KT77TXDA9H80GMW62NY0GD7B
 title: Requirements-Driven Development
-status: active
+status: done
 created: "2026-06-03T00:00:00.000Z"
 updated: 2026-06-05
-version: 3
+version: 4
 tags: []
 parent_id: null
 requires_load: []

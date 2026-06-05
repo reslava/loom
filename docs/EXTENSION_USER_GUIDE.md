@@ -85,8 +85,12 @@ Select a node in the Threads view; its available actions appear as inline icons 
 |------|--------|--------------|
 | Weave | **New Weave / Weave Thread** | Create a project area or a workstream inside it. |
 | Thread | **Weave Idea / Design / Plan**, **Weave Chat** | Create the doc shell of each type. |
+| Thread | **Generate Requirements** | Extract the explicit include / exclude / constraints from the thread's chat into a draft `req` doc. |
 | Chat | **AI Reply** | The AI replies *inside* the chat doc with full thread context loaded. |
 | Chat | **Promote to Idea / Design / Plan** | Turn the conversation into a formal doc in one click. |
+| Req (draft) | **Refine Requirements** | Re-extract from the chat (or open it for manual curation); bumps the version. |
+| Req (draft) | **Finalize (Lock) Requirements** | Lock the scope spec 🔒 — from here it auto-loads into every action in the thread. |
+| Req / Thread | **Verify Plan Against Requirements** | Check the plan covers every *Included* item and violates no *Excluded* one — structural check plus an AI semantic pass; findings go to the *Loom Req Verify* output. |
 | Idea | **Refine Idea** | AI fleshes out / updates the idea. |
 | Idea | **Generate Design (AI)** | Produce a design doc from the idea. |
 | Design | **Refine Design** | Re-run after the idea changed. |
@@ -102,7 +106,11 @@ Select a node in the Threads view; its available actions appear as inline icons 
 
 > **There is no "Generate Idea" button.** You start an idea with **Weave Idea** (creates the shell) and **Refine Idea** to have the AI fill it in — or **Promote to Idea** straight from a chat.
 
+> **Requirements are optional but powerful.** *Generate Requirements* → curate the draft → *Finalize (Lock)* gives the thread a scope spec that auto-loads into every later action and that the planner cites step-by-step. Lock it *before* generating the design and plan to get the full benefit. Concept and lifecycle: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
+
 **The stop rhythm applies here too:** *Do Step* implements one step and waits. Watch the **Loom AI** terminal, approve with `go`, or authorize a range in your prompt.
+
+> **Full command list:** every extension command and its menu placement is catalogued in [vscode-commands-reference](../loom/refs/vscode-commands-reference.md).
 
 ---
 

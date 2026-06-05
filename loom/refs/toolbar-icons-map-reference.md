@@ -5,9 +5,10 @@ title: vscode — Toolbar Icons Mapping Reference
 status: active
 created: "2026-04-20T00:00:00.000Z"
 version: 1
-tags: [vscode, icons, toolbar, reference]
+tags: [vscode, icons, toolbar, reference, internal]
 requires_load: []
 slug: toolbar-icons-map-reference
+load: by-request
 ---
 
 # VS Code Toolbar Icons Mapping Reference

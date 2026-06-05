@@ -5,10 +5,9 @@ title: loom — Claude's Own Vision
 status: active
 created: "2026-04-26T00:00:00.000Z"
 version: 1
-tags: [vision, ai, mcp, loom]
+tags: [vision, ai, context, public, messaging]
 slug: loom-claude-own-vision
 load: by-request
-load_when: [idea, design]
 ---
 
 # loom — Claude's Own Vision

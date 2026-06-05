@@ -5,9 +5,10 @@ title: mcp
 status: active
 created: "2026-04-27T00:00:00.000Z"
 version: 1
-tags: [mcp, reference, ai-integration]
+tags: [mcp, reference, ai-integration, ai, public]
 requires_load: []
 slug: mcp-reference
+load: by-request
 ---
 
 # mcp

@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KT9WBDNPVE8M5KEEBFFFMBK2
 title: update README
-status: active
-created: 2026-06-04
-version: 1
+status: done
+created: "2026-06-04T00:00:00.000Z"
+updated: 2026-06-05
+version: 2
 tags: []
 parent_id: null
 requires_load: []

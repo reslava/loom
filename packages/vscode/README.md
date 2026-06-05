@@ -12,9 +12,24 @@ Loom turns your project into a structured collaboration surface between you and 
 
 Every stage is a Markdown document. The AI reads them, writes to them, and tracks progress through them — across sessions, without losing context.
 
-🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) · [Open vsx](https://open-vsx.org/extension/reslava/loom-vscode)
 
 📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
+
+---
+
+## Why Loom
+
+Loom started as a hand-built habit: while developing the .NET library [REslava.Result](https://github.com/reslava/nuget-package-reslava-result), I got tired of ephemeral AI chats that forgot every decision between sessions, so I began keeping ideas, designs, plans, and requirements as persistent Markdown — grouped by feature, so the AI always had the right context. Loom automates that.
+
+```
+Traditional AI chat:          Loom:
+  knowledge drifts & dies       knowledge becomes artifacts
+                                artifacts become context
+                                context drives implementation
+```
+
+**The part that matters most isn't the loop — it's how Loom decides what the AI sees.** A graph of typed docs, scope-loaded `ctx` summaries, reference docs with conditional `requires_load` / `load_when`, locked **requirements** (include / exclude / constrain), and a **Context panel** that shows the exact bundle *before* you launch. The AI's memory is structural, not conversational. → [How context works](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md#4-giving-the-ai-the-right-context)
 
 ---
 
@@ -178,7 +193,7 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 - [User Guide](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) — concepts, the workflow loop, and how context works
 - [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) — the panel, buttons, and CONTEXT view
 - [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md) — driving Loom from the terminal
-- [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started.md) — install to first idea in five minutes
+- [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started-reference.md) — install to first idea in five minutes
 - [How Loom works](https://github.com/reslava/loom/blob/main/loom/refs/vision-reference.md) — the chat → design → plan → implement loop
 - [Architecture](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md) — MCP surface, doc types, frontmatter
 

@@ -5,12 +5,13 @@ title: "Demo Script Reference"
 status: active
 created: 2026-06-02
 version: 1
-tags: []
+tags: [reference, internal, vscode, demo]
 parent_id: null
 child_ids: []
 requires_load: []
 slug: demo-script-reference
 description: "Verbatim prompts, caption scripts, and seed assets for recording the Loom demo GIFs (D2 workflow + D3 ctx/reference). Cited by the vscode-demo plans."
+load: by-request
 ---
 Durable capture of the demo prompts and seed assets that were refined in `loom/vscode-extension/vscode-gif-demo/chats/vscode-gif-demo-chat-001.md` (now `status: done`). The recordings type these **verbatim**. Cited by the `vscode-demo` plans.
 

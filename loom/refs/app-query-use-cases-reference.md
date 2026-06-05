@@ -5,9 +5,10 @@ title: app — Query Use‑Cases
 status: active
 created: "2026-04-18T00:00:00.000Z"
 version: 1
-tags: [app, query, cli, vscode, reference]
+tags: [app, query, reference, internal]
 requires_load: []
 slug: app-query-use-cases-reference
+load: by-request
 ---
 
 # Application Layer Query Use‑Cases Reference

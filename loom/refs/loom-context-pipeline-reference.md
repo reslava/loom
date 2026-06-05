@@ -5,12 +5,14 @@ title: "loom — Context Pipeline"
 status: active
 created: 2026-05-25
 version: 1
-tags: []
+tags: [reference, public, context, architecture]
 parent_id: null
 child_ids: []
 requires_load: []
 slug: loom-context-pipeline
 description: "The Unified Context Pipeline: what it does for the user and how it assembles context internally."
+load: by-request
+load_when: [design, plan]
 ---
 # loom — Context Pipeline
 
