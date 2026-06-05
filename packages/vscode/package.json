@@ -129,6 +129,24 @@
         }
       },
       {
+        "command": "loom.generateReq",
+        "title": "Generate Requirements",
+        "category": "Loom",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "loom.finalizeReq",
+        "title": "Finalize (Lock) Requirements",
+        "category": "Loom",
+        "icon": "$(lock)"
+      },
+      {
+        "command": "loom.refineReq",
+        "title": "Refine Requirements",
+        "category": "Loom",
+        "icon": "$(sync)"
+      },
+      {
         "command": "loom.rename",
         "title": "Rename Document",
         "category": "Loom",
@@ -546,6 +564,21 @@
           "group": "inline@3"
         },
         {
+          "command": "loom.generateReq",
+          "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-req/)",
+          "group": "inline@0"
+        },
+        {
+          "command": "loom.finalizeReq",
+          "when": "view == loom.threads && viewItem == req-temp",
+          "group": "inline@1"
+        },
+        {
+          "command": "loom.refineReq",
+          "when": "view == loom.threads && viewItem == req",
+          "group": "inline@1"
+        },
+        {
           "command": "loom.weaveCreate",
           "when": "view == loom.threads && viewItem =~ /^weave/",
           "group": "create@1"
@@ -574,6 +607,21 @@
           "command": "loom.weavePlan",
           "when": "view == loom.threads && (viewItem =~ /^thread/ || viewItem == design)",
           "group": "create@3"
+        },
+        {
+          "command": "loom.generateReq",
+          "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-req/)",
+          "group": "create@0"
+        },
+        {
+          "command": "loom.finalizeReq",
+          "when": "view == loom.threads && viewItem == req-temp",
+          "group": "edit@1"
+        },
+        {
+          "command": "loom.refineReq",
+          "when": "view == loom.threads && viewItem == req",
+          "group": "edit@1"
         },
         {
           "command": "loom.startPlan",

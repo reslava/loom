@@ -5,12 +5,13 @@ import { DesignDoc } from './entities/design';
 import { Document } from './entities/document';
 
 /**
- * ctx and reference docs are perpetual context, not workstream deliverables —
- * they carry `status: active` forever, so counting them in the every-done check
- * would permanently block a weave/thread from reaching DONE. Exclude them.
+ * ctx, reference, and req docs are perpetual context, not workstream
+ * deliverables — they carry a non-`done` status forever (a locked req is the
+ * thread's standing spec), so counting them in the every-done check would
+ * permanently block a weave/thread from reaching DONE. Exclude them.
  */
 function isDeliverable(doc: Document): boolean {
-    return doc.type !== 'ctx' && doc.type !== 'reference';
+    return doc.type !== 'ctx' && doc.type !== 'reference' && doc.type !== 'req';
 }
 
 export function getWeaveStatus(weave: Weave): WeaveStatus {

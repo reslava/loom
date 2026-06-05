@@ -189,3 +189,177 @@ Done — banked into `requirements-driven-development-idea.md` (version bumped).
 - The Status section now notes the direction is settled enough to start the design doc the moment it's un-parked.
 
 Next: nothing pending — un-park when the demo GIF is out and say the word; I'll spin the design doc from the banked direction.
+
+## Rafa:
+
+- what you think about add `Constraints`, `Design Choices` and  `Open Questions` to reqirements docs?
+
+```markdown
+---
+type: requirements
+...
+---
+
+# Include
+...
+
+# Constraints
+...
+
+# Design Choices
+...
+
+# Exclude
+...
+
+# Open Questions
+...
+```
+
+| Type          | Who decides?                 | Can later designs change it?   |
+| ------------- | ---------------------------- | ------------------------------ |
+| Requirement   | Stakeholder/User             | No, unless requirements change |
+| Constraint    | Stakeholder/User/Environment | No, unless constraints change  |
+| Design Choice | User/AI                      | Yes                            |
+
+
+- Also I do not like `rdd.md`, I think `req.md` is more clear
+
+- req docs should be first in the workflow chain, generated from chat and loaded always 
+```
+Chat
+    ↓
+Requirements
+    ↓
+Idea
+    ↓
+Design
+    ↓
+Plan
+    ↓
+Implementation
+```
+
+What you think?
+
+## AI:
+
+Three good moves here — but they're not all the same *kind* of move, and your own table sorts them.
+
+### The sections — your table's third column is the partition key
+
+The column *"Can later designs change it?"* is exactly the rule for what belongs in this doc. The doc is the **immutable anchor** the whole verification story leans on. Sort each candidate by that column:
+
+| Section | Authority | Later designs change it? | Home |
+|---|---|---|---|
+| Include / Exclude | User | No | **req.md** ✅ (already there) |
+| Constraints | User/Environment | No | **req.md** ✅ add |
+| Design Choices | User/AI | **Yes** | **design.md** |
+| Open Questions | undecided | n/a — unresolved | idea / chat |
+
+**Constraints — yes, add them.** Same authority and same immutability class as requirements (your rows 1–2 are identical on the "change it?" column). They're another faithfulness surface a step can violate — "TypeScript only", "must run offline", "no new dependency" — so they get stable IDs (`C1`) and ride the *same* planner-citation + structural-coverage check as `IN`/`EX`. Near-zero marginal cost on top of what we already designed.
+
+**Design Choices — no, keep them in the design doc.** They're the one row in your table that says *Yes, later designs can change it*. The req doc is precisely the thing that **can't** silently drift — that's its whole job. Put a mutable section inside the locked anchor and you've recreated the two-scope-surfaces drift we killed in settled-point #2, just for "choices" instead of "scope". The design doc already *is* the home for User/AI decisions.
+
+**Open Questions — no, and this is the sharpest one.** This entire thread exists *because* an Open Question got treated as a deliverable in the demo (the palette-confirmation step — idea line 20). Putting an Open Questions section into the **most authoritative, always-loaded, planner-cited** doc is the single worst place to park them — it maximally re-exposes the exact failure RDD was built to prevent. They're also mutable by nature (resolved → become a requirement, a choice, or get dropped). And it fights our settled minimalism — *"keep the body dead simple, put the intelligence in the diagnostic"* (line 88). Open Questions live in the idea or the chat.
+
+**Net:** `req.md` = Include / Exclude / **Constraints** — three immutable, user/environment-authored lists, all ID'd and citable. Nothing mutable in the locked doc.
+
+### `req.md` over `rdd.md` — agreed
+
+Clearer, and more *honest* now that the doc holds constraints too: "requirements-driven-development" was always the methodology name, not the artifact's contents. One nit — pick a single stem for both type and file so it reads like `ctx`/`ctx.md`: I'd go `type: req` + `req.md`. The thread/feature keeps its name `requirements-driven-development`; only the artifact becomes `req.md`.
+
+### req first in the chain — agreed, with one refinement
+
+Your diagram captures only *half* of what req is.
+
+- **Birth order:** `chat → req → idea → design → plan → impl` is right. The demo constraint lived in the *chat opener* and was lost on the very first promotion (chat→idea→design). Authoring `req` as the first formal artifact means every later node — idea included — is built against a locked spec instead of re-deriving it.
+- **But "loaded always" is not a chain position — it's a cross-cutting property, like ctx.** req is *both*: created early **and** injected into every downstream action, anchoring all later transforms, not just the next one. Model it as a purely linear node and we lose the always-loaded property; model it as purely ctx-like and we lose the early-authored-then-locked lifecycle. It's both at once.
+- **Bonus:** we decided earlier there's no thread-level ctx (global + weave only). `req.md` quietly fills that slot — it becomes the thread-scope always-loaded doc, but with *authoritative-spec* semantics instead of *regenerable-summary* semantics. Clean fit, no new concept.
+
+Still parked behind the demo GIF — banking this, not building.
+
+## Rafa:
+
+Agreed all, update idea with these decisions.
+GIF was shipped.
+core, app, mcp and VSCode extension will need to be updated and wired.
+Do you think this chat and idea docs have enough info to create the design?
+If so create it, if not ask me what more we need?
+
+
+## AI:
+
+Idea updated and un-parked (GIF shipped → `status: active`, v3). It now records: the `req.md` rename, Constraints as the third immutable list, the "sort by *can a later design change it?*" rule that keeps Design Choices in `design.md` and Open Questions out, the chain position + dual nature, and a **Surface area** line naming core / app / mcp / vscode.
+
+**Enough info to create the design? — Honest answer: yes on the concept, but the gap isn't missing *facts*, it's two unmade *decisions*.** The chat + idea now contain a fully settled conceptual spec — doc shape, the three lists, IDs, the chain position, hybrid verification, and the planner-citation contract as the real cost. I don't need more information from you to describe *what* this is. What a buildable design has to commit to, and where I don't want to silently pick, is:
+
+**1. Phasing — the load-bearing fork.** Two honest shapes:
+
+- **Phase it (my lean).** *Phase 1:* `req` doc-type + always-load into the context pipeline + `generate-from-chat` + curate/lock + IDs designed in. This ships the faithfulness win immediately via injection — the same "start injected-only" call we made on line 78 — and touches core/app/mcp/vscode but *not* the plan-step schema. *Phase 2:* planner-citation (`satisfies: [IN1,…]`) + the structural reducer + the semantic backstop. The IDs already exist from Phase 1, so Phase 2 is additive, not a rewrite.
+- **One feature.** Everything at once. Cleaner single story, but the plan-step schema change (core + fs serialization + planner prompt + extension) is the heavy, riskiest part and it gates the whole thing shipping.
+
+Why this matters for the design *now*: it decides whether the design doc scopes one plan or two, and whether the schema change is in the critical path. Getting it wrong means rewriting a substantial doc.
+
+**2. Lock surface — smaller, but shapes the tool/button API.** Explicit `loom_finalize_req` (draft → locked) with re-open via a `refine` that bumps `version`, **vs** no explicit lock (status flips on first downstream use). My lean: explicit finalize — the lock is the whole point of the anchor, so it should be a deliberate user action with a visible button, mirroring how `generate` is deliberate.
+
+The other two open questions (loose-fiber home, migrating existing scope prose) are genuinely *design-doc* decisions — I can resolve them in the draft with a recommendation; they don't need your ruling first.
+
+So: tell me **phase it or one feature** (and confirm or redirect the lock-surface lean), and I'll write the design against that. Or say "use your judgment" and I'll draft it phased-with-explicit-lock and flag both inside the design as decisions for you to react to.
+
+STOP — waiting on your call on the phasing fork before I write the design.
+
+## AI:
+
+Design drafted → `requirements-driven-development-design.md` (`de_01KTBA3MSAGGDWC5G55A49JN4T`, draft v1, phased + explicit lock as you decided).
+
+**Shape:** Decision summary → §1 doc-type → §2 position & always-load → §3 lifecycle → §4 Phase 1 → §5 Phase 2 → §6 MCP surface → §7 resolved decisions → decisions log → follow-ups. Grounded in the real code: `loadThread` (`threadRepository.ts`), `assembleContext.ts` injection points, and the current `PlanStep` shape (`plan.ts`) that Phase 2 extends.
+
+**Three calls I made in the draft that I want you to sanity-check — each is a fork I resolved, not a fact:**
+
+1. **Body is the source of truth, not frontmatter.** Deliberately the *opposite* of plan-steps-v2: `req` is an authored spec, so its markdown ✅/❌/⛓ body is canonical and a pure `parseReq()` extracts the IDs. plan-steps-v2 fled frontmatter-vs-table fragility, but that was a multi-column status table; a flat `IN1`-prefixed bullet list is trivially parseable. If you'd rather have structured frontmatter + a generated body (full plan-steps-v2 parity), that flips §1 — say so.
+2. **Status is `draft | locked`** (not your earlier `draft | active`) — "locked" names the anchor state explicitly, which fits the explicit-lock decision. Minor; easy to rename.
+3. **`req_version` staleness lands in Phase 2, not Phase 1.** Making "bump version → downstream stale" real needs downstream docs to record the `req_version` they were built against (parallel to plan `design_version`) — that's schema work, so it rides with Phase 2. Phase 1 ships the locked injected spec without formal staleness propagation. If you want re-lock to mark downstream stale from day one, it moves to Phase 1.
+
+I also resolved the two leftover open questions in §7: `req` is **thread-scoped only** (pre-thread constraints live in chat, extracted at thread formation — no weave-root variant), and **no migration sweep** (legacy prose stays; opt-in extract).
+
+STOP — review the design and the three calls above. Tell me what to adjust, or `go` to start the Phase 1 plan.
+
+## AI:
+
+Phase 1 plan drafted → `requirements-driven-development-plan-001.md` (`pl_01KTBAD2HBVYD46HNZ019G1Y89`), 6 layered steps parented to the design:
+
+1. **core** — `ReqDoc` + `parseReq` + `Thread.req` + status-exclusion
+2. **fs** — `loadThread`/`docPathInThread` read & save `req.md`
+3. **app** — `assembleContext` injects `req` before the parent chain + create/refine/finalize use-cases
+4. **mcp** — `loom_create_req` / `loom_refine_req` / `loom_finalize_req` / `loom_generate_req` + `req` in the context resource
+5. **vscode** — `req` tree node + Generate/Refine/Finalize buttons + locked badge
+6. **build + full test + smoke** — locked `req` surfaces before the idea; perpetual `req` doesn't block `DONE`
+
+No plan-step schema change here — that's Phase 2. Steps are sequential by layer (no cross-plan blockers).
+
+Next: Step 1 — core `ReqDoc` entity + `parseReq` + status-exclusion. Say `go` and I'll start it (I'll move the plan to `implementing` and DoStep 1).
+
+## Rafa:
+
+Do whole plan
+
+## AI:
+
+**Phase 1 shipped.** Plan `requirements-driven-development-plan-001` is complete (all 6 steps ✅, auto-closed to `done`). Full build + test suite green; MCP integration 10/10 against a fresh `loom mcp`.
+
+What's live now:
+- **`req` doc-type** — flat `req.md` per thread, body = `✅ Included` / `❌ Excluded` / `⛓ Constraints` with `IN`/`EX`/`C` ID prefixes; pure `parseReq` extracts them. `draft | locked`.
+- **Always-loaded** — injected **first** into every thread context bundle (before idea/design/plan), filling the thread-scope slot ctx left empty. A locked req never blocks a thread reaching `DONE`.
+- **Lifecycle** — `loom_create_req` / `loom_refine_req` (reopen + version bump) / `loom_finalize_req` (explicit lock) + `loom_generate_req` (extension sampling; CLI extracts → `create_req` with content).
+- **Extension** — req tree node (🔒 badge) + Generate / Refine / Finalize buttons, MCP-only.
+
+Per-step notes are in `done/pl_01KTBAD2HBVYD46HNZ019G1Y89-done.md`. Phase 2 (plan-step `satisfies` citation, structural reducer, semantic backstop, `req_version` staleness) remains the follow-on per the design.
+
+Next: nothing pending — say the word to commit, or to start the Phase 2 plan.
+
+## Rafa:
+
+i reconnected mcp, generate updated vsix and loaded
+commit, push
+draft plan phase 2

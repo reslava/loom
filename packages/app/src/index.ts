@@ -10,6 +10,10 @@ export { weaveIdea, WeaveIdeaInput, WeaveIdeaDeps } from './weaveIdea';
 export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
 export { weavePlan, WeavePlanInput, WeavePlanDeps } from './weavePlan';
 export { refineDesign, RefineDesignInput, RefineDesignDeps } from './refineDesign';
+export {
+    createReq, refineReq, finalizeReq,
+    CreateReqInput, RefineReqInput, FinalizeReqInput, ReqDeps,
+} from './req';
 
 // ============================================================================
 // Use‑Cases — Loom Management

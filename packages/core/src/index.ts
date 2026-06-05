@@ -13,6 +13,7 @@ export { CtxDoc, CtxStatus } from './entities/ctx';
 export { ChatDoc, ChatStatus } from './entities/chat';
 export { DoneDoc, DoneStatus } from './entities/done';
 export { ReferenceDoc, ReferenceStatus, LoadAxis } from './entities/reference';
+export { ReqDoc, ReqStatus, ReqItem, ParsedReq, parseReq } from './entities/req';
 export { Weave, WeaveStatus, WeavePhase } from './entities/weave';
 export { Thread, ThreadStatus, Fiber } from './entities/thread';
 export { LoomState, LoomMode } from './entities/state';

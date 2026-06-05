@@ -226,6 +226,40 @@ async function run() {
     assert(rIds.includes('r-always'), 'refine on a design target should include the unconditional always ref');
     console.log('    ✅ refine mode filters by target type');
 
+    // ── req spec is injected first in a thread, before the idea ───────────────
+    console.log('  • req is injected before the idea (thread always-load slot)...');
+    {
+        const idea = doc({ id: 'i9', type: 'idea', content: 'IDEA-9' });
+        const req = doc({ id: 'rq_9', type: 'req', status: 'locked', content: 'REQ-SPEC' });
+        const chat = doc({ id: 'c9', type: 'chat', content: 'CHAT-9' });
+        const thread = {
+            id: 't9', weaveId: 'w9', idea, req, design: undefined,
+            plans: [], dones: [], chats: [chat], refDocs: [], allDocs: [idea, req, chat],
+        };
+        const weave = { id: 'w9', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [idea, req, chat] };
+        const index = createEmptyIndex();
+        for (const d of [idea, req, chat]) index.byId.set(d.id, `/fake/${d.id}.md`);
+        const reqState: any = {
+            loomRoot: '/fake', mode: 'mono', loomName: '(local)',
+            globalDocs: [], globalChats: [], weaves: [weave],
+            archivedWeaves: [], archivedLooseDocs: [], index,
+            generatedAt: '2026-06-05T00:00:00.000Z', summary: {},
+        };
+
+        const b = assembleContext('c9', 'chat', { include: [], exclude: [] }, reqState);
+        const order = b.docs.map((d: any) => d.id);
+        const reqIdx = order.indexOf('rq_9');
+        const ideaIdx = order.indexOf('i9');
+        assert(reqIdx !== -1, 'req must be present in the bundle');
+        assert(reqIdx < ideaIdx, `req must come before the idea, got: ${JSON.stringify(order)}`);
+        const reqDoc = b.docs.find((d: any) => d.id === 'rq_9');
+        assert(reqDoc.scope === 'thread' && reqDoc.reason === 'auto', 'req scope=thread reason=auto');
+        // When the req IS the target (e.g. curating it), it is not double-added.
+        const self = assembleContext('rq_9', 'chat', { include: [], exclude: [] }, reqState);
+        assert(self.docs.filter((d: any) => d.id === 'rq_9').length === 1, 'req target must appear exactly once');
+        console.log('    ✅ req injected before idea; not double-added when it is the target');
+    }
+
     console.log('\n✅ assembleContext + serializeBundle tests passed\n');
 }
 

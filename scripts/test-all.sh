@@ -23,8 +23,14 @@ run_test() {
 # Step 1: Entity tests (no IO)
 run_test tests/entity.test.ts
 
+# req doc-type: parseReq buckets by IN/EX/C prefix; locked req never blocks DONE
+run_test tests/req.test.ts
+
 # Step 2: weaveRepository (done/ subfolder)
 run_test tests/weave-repository.test.ts
+
+# threadRepository: idea/design/req/plan/done load + save round-trip
+run_test tests/thread-repository.test.ts
 
 # Step 3: planReducer
 run_test tests/plan-reducer.test.ts
@@ -40,6 +46,9 @@ run_test tests/do-step.test.ts
 
 # Context pipeline: pure assembler + serialiser (no IO)
 run_test tests/context-assembler.test.ts
+
+# req use-cases: create/refine/finalize lifecycle (real fs, injected loom root)
+run_test tests/req-usecases.test.ts
 
 # Context prefs: .loom/context-prefs.json repository (real fs) — Phase 3 sidebar overrides
 run_test tests/context-prefs.test.ts

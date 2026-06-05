@@ -221,8 +221,12 @@ export function assembleContext(
         for (const doc of thread.allDocs) addReference(doc, 'thread');
     }
 
-    // 4. Parent chain (idea → design → active plan) for a thread target.
+    // 4. Parent chain for a thread target. The req spec is injected FIRST — it is
+    // the authoritative include/exclude/constraints the rest of the chain must
+    // honour, so it frames everything after it. (This is the thread-scope
+    // always-load slot; ctx is global+weave only.)
     if (thread) {
+        if (thread.req && thread.req.id !== canonicalTargetId) add(thread.req, 'thread', 'auto');
         if (thread.idea && thread.idea.id !== canonicalTargetId) add(thread.idea, 'thread', 'auto');
         if (thread.design && thread.design.id !== canonicalTargetId) add(thread.design, 'thread', 'auto');
         const plan = activePlan(thread.plans);

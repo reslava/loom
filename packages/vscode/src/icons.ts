@@ -72,6 +72,7 @@ export function getDocumentIcon(type: string): ReturnType<typeof icon> {
         case 'ctx':    return icon(Icons.ctx);
         case 'chat':      return icon(Icons.chat);
         case 'reference': return icon(Icons.reference);
+        case 'req':       return new vscode.ThemeIcon('law');
         default:          return icon(Icons.design);
     }
 }

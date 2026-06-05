@@ -261,6 +261,39 @@ async function run(): Promise<void> {
         assert(names.includes('loom_generate_idea'), 'should include loom_generate_idea');
         assert(names.includes('loom_set_context_prefs'), 'should include loom_set_context_prefs');
         assert(names.includes('loom_get_context_prefs'), 'should include loom_get_context_prefs');
+        assert(names.includes('loom_create_req'), 'should include loom_create_req');
+        assert(names.includes('loom_refine_req'), 'should include loom_refine_req');
+        assert(names.includes('loom_finalize_req'), 'should include loom_finalize_req');
+        assert(names.includes('loom_generate_req'), 'should include loom_generate_req');
+    });
+
+    // (f) req lifecycle: create → finalize → surfaces in the context bundle before the idea
+    await test('loom_create_req + loom_finalize_req → req surfaces in loom://context before the idea', async () => {
+        const createRes = await client.callTool({
+            name: 'loom_create_req',
+            arguments: {
+                weaveId: 'tw',
+                threadId: 't1',
+                content: '### ✅ Included\n- `IN1` The thing.\n\n### ❌ Excluded\n- `EX1` Not the other thing.\n\n### ⛓ Constraints\n- `C1` TypeScript only.\n',
+            },
+        });
+        const created = JSON.parse((createRes.content[0] as { text: string }).text);
+        assert(typeof created.id === 'string' && created.id.startsWith('rq_'), 'create returns an rq_ id');
+
+        const finRes = await client.callTool({
+            name: 'loom_finalize_req',
+            arguments: { weaveId: 'tw', threadId: 't1' },
+        });
+        const fin = JSON.parse((finRes.content[0] as { text: string }).text);
+        assert(fin.status === 'locked', 'finalize returns status locked');
+
+        const ctx = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const text = ctx.contents[0].text as string;
+        assert(text.includes(created.id), 'req id should appear in the context bundle');
+        assert(text.includes('The thing.'), 'req body should appear in the context bundle');
+        const reqPos = text.indexOf(created.id);
+        const ideaPos = text.indexOf('id: t1-idea');
+        assert(reqPos !== -1 && ideaPos !== -1 && reqPos < ideaPos, 'req should be injected before the idea');
     });
 
     // list prompts smoke test

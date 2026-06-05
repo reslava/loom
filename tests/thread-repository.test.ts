@@ -128,6 +128,35 @@ async function testLoadThread() {
         console.log('    ✅ plan-only thread loaded');
     }
 
+    // ── test 3: req.md surfaces as thread.req and in allDocs ────────────────
+    console.log('  • loadThread: req.md → thread.req + allDocs...');
+    {
+        const weaveId = 'core-engine';
+        const threadId = 'rdd-thread';
+        const threadPath = path.join(loomRoot, 'loom', weaveId, threadId);
+
+        await writeThreadIdea(threadPath, threadId);
+        const reqFm = makeFrontmatter({
+            type: 'req',
+            id: 'rq_01ABCDEFGHIJKLMNOPQRSTUVWX',
+            title: `${threadId} Requirements`,
+            status: 'locked',
+            created: '2026-06-05',
+            version: 1,
+        });
+        await fs.outputFile(
+            path.join(threadPath, 'req.md'),
+            `${reqFm}\n### ✅ Included\n- \`IN1\` Thing one.\n\n### ❌ Excluded\n- \`EX1\` No thing two.\n`,
+        );
+
+        const thread = await loadThread(loomRoot, weaveId, threadId);
+        assert(thread.req !== undefined, 'thread.req must be loaded');
+        assert(thread.req!.type === 'req', 'req type must be "req"');
+        assert(thread.req!.status === 'locked', `req status must be "locked", got "${thread.req!.status}"`);
+        assert(thread.allDocs.some(d => d.type === 'req'), 'req must be present in allDocs');
+        console.log('    ✅ req.md surfaces as thread.req');
+    }
+
     console.log('\n✨ All loadThread tests passed!\n');
 }
 

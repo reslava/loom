@@ -6,6 +6,7 @@ import { DesignDoc } from '../../../core/dist/entities/design';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 import { DoneDoc } from '../../../core/dist/entities/done';
 import { ChatDoc } from '../../../core/dist/entities/chat';
+import { ReqDoc } from '../../../core/dist/entities/req';
 import { Document } from '../../../core/dist/entities/document';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import { loadDoc, FrontmatterParseError } from '../serializers/frontmatterLoader';
@@ -53,6 +54,14 @@ export async function loadThread(
         design = await loadDoc(designPath) as DesignDoc;
     }
 
+    // req.md — the thread's authoritative include/exclude/constraints spec.
+    // Flat filename (no `${threadId}-` prefix), like ctx.md.
+    let req: ReqDoc | undefined;
+    const reqPath = path.join(threadPath, 'req.md');
+    if (await fs.pathExists(reqPath)) {
+        req = await loadDoc(reqPath) as ReqDoc;
+    }
+
     const plans = await loadMdFiles<PlanDoc>(path.join(threadPath, 'plans'), 'plan');
     const dones = await loadMdFiles<DoneDoc>(path.join(threadPath, 'done'), 'done');
     const chats = await loadMdFiles<ChatDoc>(path.join(threadPath, 'chats'), 'chat');
@@ -70,6 +79,7 @@ export async function loadThread(
     const allDocs: Document[] = [
         ...(idea ? [idea] : []),
         ...(design ? [design] : []),
+        ...(req ? [req] : []),
         ...plans,
         ...dones,
         ...chats,
@@ -88,13 +98,14 @@ export async function loadThread(
         }
     }
 
-    return { id: threadId, weaveId, idea, design, plans, dones, chats, refDocs, allDocs };
+    return { id: threadId, weaveId, idea, design, req, plans, dones, chats, refDocs, allDocs };
 }
 
 export function docPathInThread(doc: Document, threadPath: string, threadId: string): string {
     switch (doc.type) {
         case 'idea':   return path.join(threadPath, `${threadId}-idea.md`);
         case 'design': return path.join(threadPath, `${threadId}-design.md`);
+        case 'req':    return path.join(threadPath, 'req.md');
         case 'plan':   return path.join(threadPath, 'plans', `${doc.id}.md`);
         case 'done':   return path.join(threadPath, 'done', `${doc.id}.md`);
         case 'chat':      return path.join(threadPath, 'chats', `${doc.id}.md`);

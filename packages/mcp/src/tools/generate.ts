@@ -5,6 +5,7 @@ import { Document } from '../../../core/dist';
 import { weaveIdea } from '../../../app/dist/weaveIdea';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
 import { weavePlan } from '../../../app/dist/weavePlan';
+import { createReq } from '../../../app/dist/req';
 import { handleContextResource } from '../resources/context';
 import { requestSampling, SamplingMessage } from '../sampling';
 import { handle as appendToChatHandle } from './appendToChat';
@@ -261,6 +262,65 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 await saveDoc({ ...doc, content: body, version: doc.version + 1 } as Document, fp);
 
                 return { id, filePath: fp };
+            }
+        ),
+
+        makeTool(
+            'loom_generate_req',
+            "Generate a thread's req (requirements) doc from its chat using AI sampling — faithfully extracts the user's explicitly-stated Included / Excluded / Constraints into a draft req.md. Requires sampling support: works in the VS Code extension; blocked in Claude Code CLI sessions (where the agent should extract and call loom_create_req with `content` instead).",
+            {
+                type: 'object' as const,
+                properties: {
+                    weaveId: { type: 'string', description: 'Target weave ID' },
+                    threadId: { type: 'string', description: 'Target thread ID' },
+                    title: { type: 'string', description: 'Optional title for the req doc' },
+                    context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject as context.' },
+                },
+                required: ['weaveId', 'threadId'],
+            },
+            async (root, args) => {
+                const weaveId = args['weaveId'] as string;
+                const threadId = args['threadId'] as string;
+                const title = args['title'] as string | undefined;
+                const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
+
+                const messages: SamplingMessage[] = [];
+                try {
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
+                    messages.push(msg('user', `Thread context (the chat especially):\n\n${ctx.contents[0].text}`));
+                } catch { /* best-effort */ }
+                if (contextIds.length > 0) {
+                    const extra = await loadExtraContext(root, contextIds);
+                    if (extra) messages.push(msg('user', `Additional context:\n\n${extra}`));
+                }
+                messages.push(msg('user', [
+                    'Extract the requirements the user has EXPLICITLY stated for this thread into a Loom req doc body.',
+                    'Output ONLY markdown (no frontmatter) with exactly these three sections, in this order:',
+                    '',
+                    '### ✅ Included',
+                    '### ❌ Excluded',
+                    '### ⛓ Constraints',
+                    '',
+                    'Under each, write bullet points. PREFIX every bullet with an inline-code stable id:',
+                    '- Included → `IN1`, `IN2`, …   Excluded → `EX1`, `EX2`, …   Constraints → `C1`, `C2`, …',
+                    'Example:  - `EX1` **Interaction testing** — no manual smoke-test steps.',
+                    '',
+                    'Extract ONLY what the user explicitly stated — do NOT invent scope, and do NOT treat open questions as requirements.',
+                    'If a section has no stated items, leave it empty (keep the heading).',
+                ].join('\n')));
+
+                const body = await requestSampling(
+                    server,
+                    messages,
+                    'You are a Loom requirements extractor. Faithfully pull the stated includes/excludes/constraints from the conversation; never invent scope.',
+                );
+
+                const { id, filePath } = await createReq(
+                    { weaveId, threadId, title, content: body },
+                    { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra },
+                );
+
+                return { id, filePath };
             }
         ),
 

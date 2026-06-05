@@ -1,4 +1,4 @@
-export type DocumentType = 'idea' | 'design' | 'plan' | 'ctx' | 'chat' | 'done' | 'reference';
+export type DocumentType = 'idea' | 'design' | 'plan' | 'ctx' | 'chat' | 'done' | 'reference' | 'req';
 
 export interface BaseDoc<TStatus extends string = string> {
     /** Discriminator for the document type */

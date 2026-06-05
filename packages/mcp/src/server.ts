@@ -20,6 +20,9 @@ import { handleRequiresLoadResource } from './resources/requiresLoad';
 import * as createIdea from './tools/createIdea';
 import * as createDesign from './tools/createDesign';
 import * as createPlan from './tools/createPlan';
+import * as createReq from './tools/createReq';
+import * as refineReq from './tools/refineReq';
+import * as finalizeReq from './tools/finalizeReq';
 import * as updateDoc from './tools/updateDoc';
 import * as appendToChat from './tools/appendToChat';
 import * as createChat from './tools/createChat';
@@ -56,6 +59,7 @@ import * as validateState from './prompts/validateState';
 
 const BASE_TOOLS = [
     createIdea, createDesign, createPlan, createReference, updateDoc, appendToChat, createChat,
+    createReq, refineReq, finalizeReq,
     startPlan, completeStep, closePlan, finalizeDoc, archive, rename,
     findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs,
     doStep, appendDone, listPlanSteps,

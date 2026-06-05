@@ -327,10 +327,10 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private groupByType(weaves: Weave[]): TreeNode[] {
-        const groups: Record<string, Document[]> = { idea: [], design: [], plan: [], ctx: [], reference: [] };
+        const groups: Record<string, Document[]> = { req: [], idea: [], design: [], plan: [], ctx: [], reference: [] };
         for (const weave of weaves) {
             const threadDocs = weave.threads.flatMap(t =>
-                [t.idea, t.design, ...t.plans, ...t.dones, ...(t.refDocs ?? [])].filter(Boolean) as Document[]
+                [t.req, t.idea, t.design, ...t.plans, ...t.dones, ...(t.refDocs ?? [])].filter(Boolean) as Document[]
             );
             for (const doc of [...threadDocs, ...weave.looseFibers, ...(weave.refDocs ?? [])]) {
                 if (groups[doc.type] !== undefined) groups[doc.type].push(doc);
@@ -466,6 +466,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         let contextValue = 'thread';
         if (thread.idea) contextValue += '-has-idea';
         if (thread.design) contextValue += '-has-design';
+        if (thread.req) contextValue += '-has-req';
         const hasCtx = thread.allDocs?.some(d => d.type === 'ctx');
         if (hasCtx) contextValue += '-has-ctx';
         node.contextValue = contextValue;
@@ -475,6 +476,14 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private getThreadChildren(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode[] {
         const children: TreeNode[] = [];
+
+        // req is the thread's authoritative spec — render it first (chain position),
+        // with a lock badge when locked.
+        if (thread.req) {
+            const reqNode = this.createDocumentNode(thread.req, 'req', weaveId, thread.id, staleIds);
+            if (thread.req.status === 'locked') reqNode.description = '🔒 locked';
+            children.push(reqNode);
+        }
 
         if (thread.idea) {
             children.push(this.createDocumentNode(thread.idea, 'idea', weaveId, thread.id, staleIds));
