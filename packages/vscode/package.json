@@ -148,7 +148,7 @@
       },
       {
         "command": "loom.verifyReq",
-        "title": "Verify Plan Against Requirements",
+        "title": "Verify Thread Against Requirements",
         "category": "Loom",
         "icon": "$(verified)"
       },

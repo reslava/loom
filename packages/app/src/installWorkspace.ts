@@ -92,9 +92,10 @@ interactively in the project root and approve the \`loom\` server, or use
 - **All writes to \`loom/**/*.md\` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use \`loom://context/{docId}\` (or \`loom://context/thread/{weaveId}/{threadId}\`) before starting any thread work. The Unified Context Pipeline bundles global/weave/thread ctx + parent chain + requires_load in a single read.
 - \`do-next-step\` prompt is the primary workflow driver: call it with the active planId to get context + step instruction.
-- **\`loom_generate_*\` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths:
-  - **VS Code extension**: sampling works — the extension advertises \`{ sampling: {} }\` and routes \`sampling/createMessage\` through its configured AI API key.
-  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference returns \`MethodNotFound\`. **Create docs in a single call by passing \`content\` to \`loom_create_*\`** (idea/design/plan all accept it — the doc is born at version 1 with real content). Use \`loom_update_doc\` only for *later* edits to an existing doc, never as a second step right after creation.
+- **Single-AI (by design):** Loom requires **exactly one** AI provider, never two — run it with whatever AI path you have; only one is required. *Primary:* the Loom VS Code extension's AI buttons launch a **Claude Code CLI agent** with a task prompt that writes via content tools (\`loom_update_doc\` / \`loom_create_*\`) — no API key, no sampling. *Fallback:* when no Claude CLI is present, the \`loom_generate_*\` / \`loom_refine_*\` sampling tools run via a configured \`reslava-loom.ai.apiKey\`. A user configures one path or the other, never both.
+- **\`loom_generate_*\` / \`loom_refine_*\` tools use MCP sampling (server→client)** — this is the **fallback** path. Two host behaviors:
+  - **VS Code extension (fallback)**: when Claude CLI is absent, the extension advertises \`{ sampling: {} }\` and routes \`sampling/createMessage\` through its configured AI API key.
+  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference returns \`MethodNotFound\`. **Create docs in a single call by passing \`content\` to \`loom_create_*\`** (idea/design/plan all accept it — the doc is born at version 1 with real content); for an existing doc, do the edit yourself and write it via \`loom_update_doc\`. Never call \`loom_refine_*\` / \`loom_generate_*\` here — they'll \`MethodNotFound\`.
 
 ---
 

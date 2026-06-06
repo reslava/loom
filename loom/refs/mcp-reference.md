@@ -96,9 +96,9 @@ Always use tools to change state. Never edit weave markdown files directly.
 | `loom_get_stale_plans` | — | — |
 | `loom_get_stale_docs` | — | — |
 
-### AI generation — via sampling (Claude Code only)
+### AI generation — via sampling (fallback path only)
 
-These tools call back to Claude Code via MCP sampling. They require Claude Code as the client; other clients fall back to placeholder content.
+These tools call back to the **host** via MCP sampling (`sampling/createMessage`). Sampling is the **fallback** AI path — it runs only when the user has no Claude CLI installed; the primary path is the extension launching a Claude CLI agent that writes via content tools (`loom_update_doc` / `loom_create_*`). Sampling availability is host-dependent: the Loom VS Code extension provides it (via `makeAIClient()` + `reslava-loom.ai.apiKey`); a **Claude Code CLI session blocks it** (`MethodNotFound`) — there the agent itself generates and passes `content` to `loom_create_*` / `loom_update_doc`.
 
 | Tool | Required | Optional |
 |------|---------|---------|
@@ -132,13 +132,17 @@ Prompts are pre-built conversation starters that combine context loading + instr
 
 ---
 
-## Sampling
+## Sampling (the fallback AI path)
 
-Sampling is MCP's mechanism for the server to request AI completions from the client (reverse call).
+Sampling is MCP's mechanism for the server to request AI completions from the client (reverse call). In Loom it is the **fallback** path — see the single-AI architecture: the **primary** path is the Loom VS Code extension launching a **Claude Code CLI agent** (`launchClaude`) that does the work and writes via content tools, needing no sampling and no API key.
 
-**Flow:** `loom_generate_*` tool is called → Loom server builds a prompt → calls `sampling/createMessage` on Claude Code → Claude Code runs inference → result returned to server → server writes generated content to the document.
+**Flow (fallback):** a `loom_generate_*` / `loom_refine_*` tool is called → Loom server builds a prompt → calls `sampling/createMessage` on the host → host runs inference → result returned to server → server writes content to the document.
 
-**Requirement:** Only Claude Code supports MCP sampling. Cursor and other clients will receive placeholder content from `loom_generate_*` tools.
+**Host support (note: opposite of what older docs claimed):**
+- **Loom VS Code extension** *supports* sampling — its `mcp-client.ts` advertises `{ sampling: {} }` and routes the call through `makeAIClient()` (`reslava-loom.ai.apiKey`, default `claude-haiku-4-5`).
+- **Claude Code CLI** *blocks* sampling — it is already the agent, so server→client inference returns `MethodNotFound`. The agent generates content itself and passes it to `loom_create_*` / `loom_update_doc`.
+
+**Single-AI rule:** Loom requires exactly one AI provider — either a Claude CLI (primary) or a configured API key (fallback) — never both.
 
 ---
 

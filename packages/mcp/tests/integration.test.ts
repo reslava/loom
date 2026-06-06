@@ -307,6 +307,19 @@ async function run(): Promise<void> {
         assert(entry.uncovered.includes('IN1'), `IN1 should be uncovered, got ${JSON.stringify(entry?.uncovered)}`);
     });
 
+    // (g2) loom://state carries the per-thread reqCoverage (badge data source)
+    await test('loom://state attaches per-thread reqCoverage with IN1 uncovered', async () => {
+        // Filtered read → always recomputes (bypasses the unfiltered cache), so the
+        // just-locked req on tw/t1 is reflected.
+        const res = await client.readResource({ uri: 'loom://state?weaveId=tw' });
+        const state = JSON.parse(res.contents[0].text as string);
+        const weave = state.weaves.find((w: any) => w.id === 'tw');
+        const thread = weave?.threads.find((t: any) => t.id === 't1');
+        assert(!!thread?.reqCoverage, 'thread t1 should carry a reqCoverage object');
+        const uncoveredIds = thread.reqCoverage.uncovered.map((u: any) => u.id);
+        assert(uncoveredIds.includes('IN1'), `per-thread coverage should list IN1 uncovered, got ${JSON.stringify(uncoveredIds)}`);
+    });
+
     // (h) loom_verify_req: structural findings always; semantic blocked without a sampling-capable client
     await test('loom_verify_req returns structural findings (semantic blocked without sampling)', async () => {
         const res = await client.callTool({ name: 'loom_verify_req', arguments: { weaveId: 'tw', threadId: 't1' } });
@@ -315,6 +328,35 @@ async function run(): Promise<void> {
         assert(data.structural.uncovered.some((i: any) => i.id === 'IN1'), `IN1 should be structurally uncovered, got ${JSON.stringify(data.structural?.uncovered)}`);
         // The test client does not advertise sampling capability, so the semantic pass is unavailable.
         assert(data.semantic === null && typeof data.semanticError === 'string', 'semantic pass blocked → semanticError set');
+    });
+
+    // (i) loom_list_plan_steps surfaces the satisfies citations (not just done/files/blockers)
+    await test('loom_list_plan_steps returns per-step satisfies citations', async () => {
+        const content = [
+            '## Goal',
+            'cite the req',
+            '',
+            '## Steps',
+            '| Done | # | Step | Files touched | Blocked by | Satisfies |',
+            '|------|---|------|---------------|------------|-----------|',
+            '| 🔳 | 1 | Build the thing | x.ts | — | IN1 |',
+            '',
+            '## Notes',
+            '- n',
+        ].join('\n');
+        const createRes = await client.callTool({
+            name: 'loom_create_plan',
+            arguments: { weaveId: 'tw', threadId: 't1', title: 'Citing plan', content },
+        });
+        const created = JSON.parse((createRes.content[0] as { text: string }).text);
+        const listRes = await client.callTool({
+            name: 'loom_list_plan_steps',
+            arguments: { planId: created.id },
+        });
+        const listed = JSON.parse((listRes.content[0] as { text: string }).text);
+        const step1 = listed.steps.find((s: any) => s.order === 1);
+        assert(!!step1 && Array.isArray(step1.satisfies), 'list_plan_steps step carries a satisfies array');
+        assert(step1.satisfies.includes('IN1'), `step 1 satisfies should include IN1, got ${JSON.stringify(step1?.satisfies)}`);
     });
 
     // list prompts smoke test

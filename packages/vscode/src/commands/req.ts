@@ -6,7 +6,7 @@ import { isClaudeInstalled, launchClaude } from './claudeTerminal';
 import { revealDocAfterCreate } from './revealDoc';
 
 const REQ_BODY_SHAPE =
-    'the req body as three sections (### ✅ Included / ### ❌ Excluded / ### ⛓ Constraints), each bullet prefixed with an inline-code stable id (`IN1`, `EX1`, `C1`). Extract ONLY requirements the user explicitly stated; never invent scope; do not treat open questions as requirements.';
+    'the req body as three sections (### ✅ Included / ### ❌ Excluded / ### ⛓ Constraints), each bullet prefixed with an inline-code stable id (`IN1`, `EX1`, `C1`). Extract ONLY requirements the user explicitly stated; never invent scope; do not treat open questions as requirements. Each ✅ Included item must be orthogonal and individually verifiable: do not restate one requirement from two angles, and do not add the overall outcome/thesis as an Included item (that is the goal, not a deliverable). Prefer fewer, sharper items over many overlapping ones.';
 
 /**
  * Generate a thread's req doc from its chat. Dual path (like generate design/plan):

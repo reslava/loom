@@ -17,7 +17,7 @@ export async function refineCommand(treeProvider: LoomTreeProvider, node?: TreeN
             ? `Read the design file at "${filePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${id}" to get the file path, then read it with the Read tool.`;
         await launchClaude(root, `Loom: Refine Design`,
-            `Loom refine design task. designId="${id}". ${readInstruction} Also read its parent idea. Rewrite the design body to reflect updates, then use MCP tool loom_update_doc with id="${id}" and updated body. Do not use loom_refine_design — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
+            `Loom refine design task. designId="${id}". ${readInstruction} Also read its parent idea, and the thread's req.md if present — treat its ❌ Excluded items and ⛓ Constraints as HARD BOUNDARIES: do not (re)introduce excluded scope and keep the design within the stated constraints. Rewrite the design body to reflect updates, then use MCP tool loom_update_doc with id="${id}" and updated body. Do not use loom_refine_design — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {

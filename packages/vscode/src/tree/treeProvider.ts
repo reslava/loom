@@ -485,7 +485,20 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         // with a lock badge when locked.
         if (thread.req) {
             const reqNode = this.createDocumentNode(thread.req, 'req', weaveId, thread.id, staleIds);
-            if (thread.req.status === 'locked') reqNode.description = '🔒 locked';
+            if (thread.req.status === 'locked') {
+                // Surface the structural coverage result right on the req node, so the
+                // cheapest always-on check has a visible home (not just the global
+                // summary row + the on-demand Verify command).
+                const cov = thread.reqCoverage;
+                let description = '🔒 locked';
+                if (cov) {
+                    const gaps = cov.uncovered.length + cov.excludedViolations.length + cov.unknownCitations.length;
+                    description += gaps > 0
+                        ? ` · ⚠️ ${gaps} ${gaps === 1 ? 'gap' : 'gaps'}`
+                        : ' · ✅ covered';
+                }
+                reqNode.description = description;
+            }
             children.push(reqNode);
         }
 

@@ -165,6 +165,33 @@ async function run() {
         console.log('    ✅ Satisfies round-trips; legacy tables default to []');
     }
 
+    // ── Data-loss guard: empty steps must NOT wipe a populated (even legacy-format) table ──
+    // Bug this guards: a doc migration ran parseStepsTable on a foreign column format
+    // (`| # | Step | Status | Notes |`), got [] (unparseable), then updateStepsTableInContent
+    // overwrote the real table with an empty one — silently emptying shipped plans.
+    console.log('  • empty steps do not wipe a populated table (legacy format included)...');
+    {
+        const legacyBody = [
+            '# Plan',
+            '',
+            '## Steps',
+            '',
+            '| # | Step | Status | Notes |',
+            '|---|------|--------|-------|',
+            '| 1 | Build the thing | ✅ | done |',
+            '| 2 | Test the thing | ✅ | done |',
+        ].join('\n');
+        const guarded = updateStepsTableInContent(legacyBody, []);
+        assert(guarded === legacyBody, 'a foreign/legacy populated table must be left untouched when steps is empty');
+        assert(guarded.includes('Build the thing'), 'legacy rows must survive');
+
+        // But a genuinely empty Steps section CAN still receive a table (no guard).
+        const emptyBody = '# Plan\n\n## Steps\n';
+        const filled = updateStepsTableInContent(emptyBody, STEPS);
+        assert(filled.includes('| ✅ | 1 | First step'), 'an empty Steps section still gets the new table');
+        console.log('    ✅ populated table preserved; empty section still fillable');
+    }
+
     console.log('\n✅ planTableUtils tests passed\n');
 }
 

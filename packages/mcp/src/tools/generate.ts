@@ -307,6 +307,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     'Example:  - `EX1` **Interaction testing** — no manual smoke-test steps.',
                     '',
                     'Extract ONLY what the user explicitly stated — do NOT invent scope, and do NOT treat open questions as requirements.',
+                    'Each ✅ Included item must be orthogonal and individually verifiable: do not restate one requirement from two angles, and do not add the overall outcome/thesis as an Included item (that is the goal, not a deliverable). Prefer fewer, sharper items over many overlapping ones.',
                     'If a section has no stated items, leave it empty (keep the heading).',
                 ].join('\n')));
 

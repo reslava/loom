@@ -118,6 +118,8 @@ Button clicked
 
 **API-key path (fallback):** Works when Claude Code CLI is not on PATH and `reslava-loom.ai.apiKey` (or `reslava-loom.ai.provider` + key) is configured in VS Code settings. The extension acts as MCP client and handles `sampling/createMessage` callbacks via `makeAIClient` (Anthropic, OpenAI, or DeepSeek).
 
+**Single-AI constraint (by design):** Loom requires **exactly one** AI provider, never two — *run Loom with whatever AI path you have; only one is required.* The CLI path (primary) needs no API key; the API-key path (fallback) needs no Claude CLI. A user configures one or the other. Both paths are intentional and kept. Because the CLI path is driven by a **launch prompt**, per-doc-type AI behaviour (e.g. req-aware `Satisfies` citation on plan refine) must be encoded in those launch prompts (`packages/vscode/src/commands/*.ts`), not in the `loom_refine_*` tools the launched agent is told not to call.
+
 ## 3. Document Types and Frontmatter Fields
 
 ### Document types

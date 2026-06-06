@@ -84,10 +84,37 @@ export function generateStepsTable(steps: PlanStep[]): string {
 }
 
 /**
+ * True when the content's `## Steps` section already holds at least one table row
+ * (header or data), ignoring markdown separator rules. Format-agnostic on purpose:
+ * it must detect a *foreign/legacy* table that `parseStepsTable` can't read.
+ */
+function stepsSectionHasRows(content: string): boolean {
+    const m = content.match(/(?:^|\n)#{1,2} Steps\s*\n([\s\S]*?)(?=\n---|\n#{1,6}\s|$)/i);
+    if (!m) return false;
+    return m[1].split('\n').some(line => {
+        const t = line.trim();
+        if (!t.includes('|')) return false;
+        // Skip separator rows like |---|---| or | :--- | ---: |.
+        if (/^\|?[\s:|-]+\|?$/.test(t)) return false;
+        return true;
+    });
+}
+
+/**
  * Replaces or appends the steps table in the given document content.
  */
 export function updateStepsTableInContent(originalContent: string, steps: PlanStep[]): string {
     const newTable = generateStepsTable(steps);
+
+    // Data-loss guard: never replace a populated steps table with an empty one.
+    // A parse miss — e.g. a legacy/foreign column format that parseStepsTable can't
+    // read — yields zero steps, so newTable is ''. Without this guard, saving would
+    // silently wipe a real table (this is exactly how a doc migration once emptied
+    // shipped plans). If we'd write nothing but the original already has rows, keep
+    // the original untouched.
+    if (!newTable && stepsSectionHasRows(originalContent)) {
+        return originalContent;
+    }
 
     // Boundary is any heading (#{1,6}) or a --- rule. Critically, this must stop at an
     // h3 such as "### Notes" sitting directly after the table with no preceding ---,

@@ -4,6 +4,7 @@ import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummari
 
 export interface RefineIdeaInput {
     filePath: string;
+    extraContext?: string;
 }
 
 export interface RefineIdeaDeps {
@@ -14,6 +15,7 @@ export interface RefineIdeaDeps {
 
 const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system.
 Your task: read this idea document and produce an improved version — sharpen the problem statement, clarify the concept, fill in weak sections.
+If the Additional Context contains a locked requirements (req) doc — sections ✅ Included / ❌ Excluded / ⛓ Constraints, each item prefixed with an inline-code \`IN\`/\`EX\`/\`C\` id — treat every ❌ Excluded item and ⛓ Constraint as a HARD BOUNDARY: do not (re)introduce excluded scope.
 Respond with exactly this format — nothing else before or after:
 
 TITLE: <improved or unchanged title>
@@ -39,10 +41,13 @@ export async function refineIdea(
 ): Promise<{ filePath: string; version: number }> {
     const doc = await deps.loadDoc(input.filePath) as IdeaDoc;
 
+    const content = input.extraContext
+        ? `## Additional Context\n\n${input.extraContext}\n\n---\n\n${doc.content}`
+        : doc.content;
     const messages = buildSummarizationMessages(
         SYSTEM_PROMPT,
         `idea document titled "${doc.title}"`,
-        doc.content,
+        content,
     );
 
     const reply = await deps.aiClient.complete(messages);

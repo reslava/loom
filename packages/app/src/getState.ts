@@ -184,6 +184,9 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             const parsed = parseReq((thread.req as { content?: string }).content ?? '');
             const steps = thread.plans.flatMap(p => p.steps ?? []);
             const cov = checkReqCoverage(parsed, steps);
+            // Attach the per-thread result so the tree can badge it without recomputing,
+            // and fold its problems into the aggregate summary count (single pass).
+            thread.reqCoverage = cov;
             reqCoverageGaps += cov.uncovered.length + cov.excludedViolations.length + cov.unknownCitations.length;
         }
     }

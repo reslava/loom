@@ -28,6 +28,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
         filesToTouch: s.files_touched,
         done: s.done,
         blockedBy: s.blockedBy ?? [],
+        // The req-citation contract: the IN/C ids this step advances. Surfaced so
+        // pickers can render coverage where steps are shown (not just in Verify).
+        satisfies: s.satisfies ?? [],
     }));
 
     const result = {

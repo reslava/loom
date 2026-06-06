@@ -17,7 +17,7 @@ export async function refinePlanCommand(treeProvider: LoomTreeProvider, node?: T
             ? `Read the plan file at "${filePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${id}" to get the file path, then read it with the Read tool.`;
         await launchClaude(root, `Loom: Refine Plan`,
-            `Loom refine plan task. planId="${id}". ${readInstruction} Also read its parent design. Update the plan steps table to reflect the current design, then use MCP tool loom_update_doc with id="${id}" and updated body. Do not use loom_refine_plan — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
+            `Loom refine plan task. planId="${id}". ${readInstruction} Also read its parent design, and the thread's req.md (it sits in the plan's thread folder, one level up from plans/) — its ✅ Included / ❌ Excluded / ⛓ Constraints carry IN/EX/C ids. Update the plan steps table to reflect the current design AND honour the req: keep the 6-column table (Done | # | Step | Files touched | Blocked by | Satisfies); treat every ❌ Excluded item and ⛓ Constraint as a HARD BOUNDARY (never add excluded work); ensure each ✅ Included item is advanced by at least one step; and fill each step's Satisfies cell with the IN/C ids it advances (— if none, never cite an EX id). Preserve the done (✅) status of completed steps. Then use MCP tool loom_update_doc with id="${id}" and updated body. Do not use loom_refine_plan — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {

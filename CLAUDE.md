@@ -189,6 +189,15 @@ Claude Code should honour this: read the listed docs before responding.
 > separate thing — it is itself an MCP *client* talking to the Loom MCP
 > server, and is unrelated to whether the *Claude* VS Code extension hosts MCP.
 
+### AI provider model — single-AI (by design)
+
+Loom requires **exactly one** AI provider, never two: *run Loom with whatever AI path you have; only one is required.* Two intentional paths, user picks one:
+
+- **Primary — launched Claude CLI agent.** The Loom VS Code extension's AI actions (refine / generate / promote) call `launchClaude()` (`packages/vscode/src/commands/*.ts`) to open a **Claude Code terminal with a task prompt**; that agent (the user's Claude subscription) reads the docs and writes via content tools (`loom_update_doc` / `loom_create_*`). No API key, no `sampling/createMessage`, and the user can watch + steer it. Because the **launch prompt text** governs behaviour, per-doc-type rules (e.g. req-aware citation of the `Satisfies` column) must live in those launch prompts — *not* in the `loom_refine_*` tools, which the launched agent is explicitly told NOT to call.
+- **Fallback — sampling + API key.** When Claude CLI is absent, the command falls back to the `loom_refine_*` / `loom_generate_*` sampling tools → `sampling/createMessage` → `makeAIClient()` (`reslava-loom.ai.apiKey`, default `claude-haiku-4-5`). This serves users who prefer the key path; it is **by design, not legacy**.
+
+The rule is "only one AI is *required*," not "Claude CLI only." A user configures one path or the other, never both.
+
 ### Claude Code config
 
 Create `.mcp.json` in the **project root** (NOT `.claude/settings.json` — that file
@@ -228,9 +237,9 @@ Verify with `claude mcp list`.
 - **All writes to `loom/**/*.md` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) before starting any thread work. The Unified Context Pipeline bundles everything the agent needs (global/weave/thread ctx, idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
-- **`loom_generate_*` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. Two paths, different behavior:
-  - **VS Code extension**: sampling works — the extension's `mcp-client.ts` advertises `{ sampling: {} }` and routes `sampling/createMessage` through its configured AI API key. Use `loom_generate_*` buttons freely.
-  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference is not supported and returns `MethodNotFound`. **Create docs in a single call by passing `content` to `loom_create_*`** (idea/design/plan all accept it — the doc is born at version 1 with real content). Use `loom_update_doc` only for *later* edits to an existing doc, never as a second step right after creation.
+- **`loom_generate_*` / `loom_refine_*` tools use MCP sampling (server→client)** — the Loom MCP server calls back to the host to run inference. This is the **fallback** AI path (see "AI provider model" above); the extension's *primary* path launches a Claude CLI agent that writes via content tools instead. Two host behaviors:
+  - **VS Code extension (sampling fallback)**: when Claude CLI is absent, the extension's `mcp-client.ts` advertises `{ sampling: {} }` and routes `sampling/createMessage` through `makeAIClient()` (`reslava-loom.ai.apiKey`). Only reachable on that fallback path.
+  - **Claude Code CLI sessions**: sampling is intentionally blocked — Claude Code is already the AI; recursive server→client inference is not supported and returns `MethodNotFound`. **Create docs in a single call by passing `content` to `loom_create_*`** (idea/design/plan all accept it — the doc is born at version 1 with real content); for an existing doc, do the edit yourself and write it via `loom_update_doc`. Never call `loom_refine_*` / `loom_generate_*` here — they'll `MethodNotFound`.
 
 ---
 

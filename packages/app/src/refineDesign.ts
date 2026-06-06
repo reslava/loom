@@ -15,6 +15,7 @@ export interface RefineDesignDeps {
 
 const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system.
 Your task: read this design document and produce an improved version — sharpen the goal, clarify architecture, fill weak sections, surface decisions and open questions.
+If the Additional Context contains a locked requirements (req) doc — sections ✅ Included / ❌ Excluded / ⛓ Constraints, each item prefixed with an inline-code \`IN\`/\`EX\`/\`C\` id — treat every ❌ Excluded item and ⛓ Constraint as a HARD BOUNDARY: do not (re)introduce excluded scope, and keep the design within the stated constraints.
 Respond with exactly this format — nothing else before or after:
 
 TITLE: <improved or unchanged title>

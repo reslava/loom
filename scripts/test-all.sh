@@ -59,6 +59,9 @@ run_test tests/context-prefs.test.ts
 # Plan table utils: steps-table rewrite must not truncate trailing sections
 run_test tests/plan-table-utils.test.ts
 
+# refinePlan req-aware: a refine never strips Satisfies citations or flips done; 6-col replies emit new ids
+run_test tests/refine-plan.test.ts
+
 # Event save scope: a single event persists only the doc it changed (no blast radius)
 run_test tests/event-save-scope.test.ts
 
