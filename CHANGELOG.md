@@ -10,6 +10,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-06
+
+First stable release. Loom's loop — chat → requirements → idea → design → plan → done,
+with the AI's working context routed by the document graph — is complete across all
+surfaces (CLI, MCP server, VS Code extension), and the requirements model that closes
+the loop has been dogfooded on Loom itself across two threads.
+
+### Added
+- **Requirements model (`req` doc-type).** A per-thread, locked, always-loaded
+  authoritative scope spec — `✅ Included` / `❌ Excluded` / `⛓ Constraints`, each item
+  carrying a stable `IN`/`EX`/`C` id. Born first in the chain
+  (`chat → req → idea → design → plan → done`) and injected into every downstream action
+  before the parent chain, so user-stated scope survives every promotion. Wired across
+  core (`ReqDoc`, pure `parseReq`), fs (`loadThread` reads `req.md`), app (context
+  injection + create/refine/finalize use-cases), MCP (`loom_create_req` /
+  `loom_refine_req` / `loom_finalize_req` / `loom_generate_req` / `loom_verify_req`), and
+  the VS Code extension (req tree node + Generate / Refine / Finalize buttons + locked
+  badge).
+- **Scope verification.** Plan steps carry a `satisfies: [IN1,…]` citation; a pure,
+  deterministic structural check (every Included id has ≥1 covering step; no step cites an
+  Excluded id) runs always, with an AI semantic backstop. Surfaced as a per-thread
+  coverage badge and the `loom_verify_req` tool. Prevention-first: the planner cites
+  requirements as it generates.
+- **`req_version` staleness.** Downstream idea / design / plan record the requirements
+  version they were built against; re-locking a `req` marks them stale via the existing
+  staleness machinery.
+
+### Changed
+- **Requirements-aware refine.** The refine launch prompts now cite the thread's `req`
+  (the plan's `Satisfies` column), so a refined plan keeps its requirement coverage
+  instead of silently dropping it.
+- **Single-AI architecture documented and enforced.** Loom requires exactly one AI
+  provider, never two: the primary path launches a Claude Code CLI agent that writes via
+  content tools (no API key); the fallback path uses MCP sampling + an API key. Documented
+  in both CLAUDE.md surfaces and the architecture / AI-integration references, and enforced
+  in the extension launch prompts.
+- **README.** Added a dogfooding note naming the two requirements threads, a "Loom builds
+  Loom" section, and a first-person "An AI's view of Loom" section; reference and user docs
+  reconciled as views into the canonical refs.
+
+### Fixed
+- **Plan table-wipe guard.** A migration path could silently empty a plan's Steps table;
+  the write path now refuses to overwrite a populated steps table with an empty one.
+- **Recovered nine migration-wiped plans.** The earlier ULID and directory-structure
+  migrations had silently emptied the Steps tables of nine completed plans; each was
+  restored verbatim from its last pre-wipe commit.
+
 ## [0.9.2] - 2026-06-04
 
 ### Documentation
@@ -248,7 +295,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v0.9.2...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/reslava/loom/releases/tag/v1.0.0
 [0.9.2]: https://github.com/reslava/loom/releases/tag/v0.9.2
 [0.9.1]: https://github.com/reslava/loom/releases/tag/v0.9.1
 [0.9.0]: https://github.com/reslava/loom/releases/tag/v0.9.0

@@ -800,3 +800,172 @@ Next: re-run **Refine Requirements** to apply the orthogonality fix to the req, 
 
 I did all. reqs shows ✅covered.
 commit, push all
+
+## AI:
+
+Committed and pushed — `af60c42` on `main` (36 files, +1463/−96).
+
+**Where this dogfood landed:**
+- **Two locked req docs**, both demonstrated end-to-end: `requirements-driven-development` (retro→cited via the refine fix) and `vscode-mcp-refactor` (cold-generated, curated by re-generation, plans recovered, now **✅ covered**).
+- The req-aware refine, per-thread coverage badge, verify-thread rename, and `satisfies` in the picker all shipped.
+- Single-AI architecture written into CLAUDE.md (both surfaces) + two refs (one was backwards), and enforced in the extension launch prompts.
+- A **silently-shipped data-loss bug** found, recovered from git, and guarded at the root.
+
+You said earlier: *"when we generate 2 or 3 requirements docs we will release v1.0.0."* You now have **two**, both green, plus a batch of real fixes the dogfood forced. So the natural fork:
+- **(a) Cut v1.0.0** — I'd help assemble it: confirm version bumps, changelog from this session's work, tag. (Worth deciding what "1.0.0" claims — the RDD feature + the fixes.)
+- **(b) One more req** on a third thread to be sure the pattern holds before tagging.
+- **(c) Keep hardening** — e.g. the migration path that caused the wipe likely emptied *other* old plans too; a quick sweep for empty-steps plans across `loom/` would tell us the blast radius.
+
+I'd lean **(c) then (a)** — a 2-minute scan for other migration-wiped plans before you tag 1.0.0, so you're not shipping with silent data holes elsewhere. Your call.
+
+Next: tell me (a), (b), or (c) — or if you want to wrap here, this is a clean stopping point (everything committed + pushed).
+
+## Rafa:
+
+c (line 817)
+
+then prepare readmes for v1.0.0
+
+add to main readmes and main reference docs if needed
+
+include requirements info close to context section in readme, name and explain briefly the 2 threads we used to dogfood reqs
+
+include a section to name the recursive nature of developing Loom, loom has been coded using loom while adding feature after feature
+
+consider add a briefly section about your own vision of Loom as a system and as an user
+
+tell me if you consider any other section to be included
+
+prepare the rest of docs needed before 1.0.0, changelog, etc
+
+## AI:
+
+**(c) Blast-radius scan — done. The wipe was not isolated.** I scanned all 66 plans under `loom/` for emptied Steps tables (the same fingerprint as the RDD wipe). **9 plans lost step data**, all `status: done`, all clustered on the migration dates.
+
+**Fully wiped — empty `## Steps`, recoverable from git (8):**
+
+| Plan | Last good commit |
+|---|---|
+| `chat-frontmatter-plan-001` | `c9f636e` (2026-05-09) |
+| `directory-structure-plan-001` | `c9f636e` (2026-05-09) |
+| `loom-install-plan-001` ⚠️ | `371b8c8` (2026-05-07) |
+| `vscode-ctx-plan-001` (Context Sidebar) | `c174444` (2026-05-08) |
+| `vscode-extension-plan-008` (Idea inline buttons) | `dd1307d` (2026-05-08) |
+| `vscode-extension-plan-009` (Toggle-archived icon) | `dd1307d` (2026-05-08) |
+| `vscode-mcp-do-step-plan-001` ⚠️ | `dd1307d` (2026-05-08) |
+| `vscode-mcp-do-step-plan-002` ⚠️ | `dd1307d` (2026-05-08) |
+
+**Partially wiped (1):** `doc-ids-plan-001` — older prose-step format; steps **1–2 are gone** (the `## Steps` block is empty), steps 3–7 survive as `### ✅ Step N` prose. Recoverable from `2038df0`/`c9f636e`.
+
+**Fingerprint confirmed:** the 3 marked ⚠️ carry a **doubled `## Steps` header** (one empty original + one empty migration-inserted) — the same class of bug as the RDD wipe, from the 2026-05-07/08/09 ULID + structure migrations. The wipe was systemic to those migration passes, not a one-off.
+
+**Severity:** all 9 are `done`, so no *active* work is blocked — but it's still loss of the implementation record (the historical "what we built and why" that Loom exists to preserve). Clean, recoverable, and worth fixing before tagging 1.0.0 so we ship with intact history.
+
+**Recovery proposal:** restore each Steps table from the last-good commit via `loom_update_doc` (through MCP, not raw git checkout — keeps reducers/link-index honest), one commit `fix(loom): recover migration-wiped plan steps (9 plans)`. ~15 min. **Want me to do this now (one go covers all 9), or list them for you to spot-check first?**
+
+---
+
+**Then — v1.0.0 docs.** Here's the plan I'd execute once recovery is approved. Flagging the section/structure decisions for your sign-off since several are judgment calls:
+
+**Root `README.md` — proposed section order:**
+1. What Loom is (one-paragraph hook + the canonical loop diagram)
+2. Install / quickstart (`loom install`, `.mcp.json`, build)
+3. **Context** (existing) — how ctx + requires_load + the unified pipeline feed the AI
+4. **Requirements-Driven Development** *(new, placed right after Context as you asked)* — the `req.md` doc-type, includes/excludes/constraints, locking, planner-citation + coverage. Names the **two dogfood threads**:
+   - `requirements-driven-development` (core-engine) — RDD building RDD; retro-extracted req, cited via the refine fix.
+   - `vscode-mcp-refactor` (vscode) — cold-generated req, curated by re-generation, now ✅ covered.
+5. Architecture (the layer diagram + dependency rule)
+6. **Built recursively: Loom builds Loom** *(new)* — the recursive nature; every feature shipped through Loom's own chat→req→idea→design→plan→done loop, dogfood-validated.
+7. **An AI's view of Loom** *(new)* — my own honest take as both the system's collaborator and a "user" of it. I'll write a real assessment (named wins + pain points), not marketing.
+8. Links to the package READMEs + refs.
+
+**Other sections I'd recommend adding (your call):**
+- **Status / maturity** — "v1.0.0, solo-built, dogfooded, early" — honest framing so first external users know what they're getting.
+- **How the docs map to the repo** — `loom/` = living design graph, `packages/` = impl; one-liner so newcomers grok the layout.
+- **Limitations / not-yet** — Claude-VS-Code-extension can't host MCP, single-AI requirement, etc. Sets expectations, avoids bug reports for by-design things.
+
+**Reference docs:** I'd add an RDD mention to `loom/refs/architecture-reference.md` (doc-type table already lists `req`? — I'll verify and fill the gap) rather than a whole new ref, since the design doc already carries the deep detail.
+
+**Rest of the 1.0.0 doc set:**
+- `CHANGELOG.md` — `## [1.0.0]` from this session's work (RDD Ph1+2, req-aware refine, coverage badge, single-AI docs, the data-loss guard + this recovery) plus prior 0.x if no changelog exists yet (I'll check).
+- Version bumps across `packages/*/package.json` to `1.0.0` (confirm you want lockstep versioning).
+- Package READMEs (`core`/`fs`/`app`/`cli`/`vscode`/`mcp`) — verify each exists and reflects 1.0.0; the contract says root + the `LOOM_CLAUDE_MD` template stay in sync, so I'll check that surface too.
+- `git tag v1.0.0` (last, after you approve content).
+
+**Questions before I write any of it:**
+1. Recovery first — **all 9 in one go**, or list for spot-check?
+2. Lockstep `1.0.0` across all packages, or independent per-package versions?
+3. The "An AI's view of Loom" section — root README, or would you rather it live as a standalone `loom/refs/` doc the README links to? (It's unusual to put a first-person AI voice in a project's front-door README — happy either way, just want it deliberate.)
+
+**STOP — waiting for `go`.** Recommended path: approve recovery → I restore + commit the 9 → then I draft the README/changelog and bring it back for review before committing.
+
+## Rafa:
+
+Maybe we should change inital name RDD `requirements-driven-development` name, for example, or us just `requirements` or other better name that no suggest more than we shipped, suggestions?
+
+1. all 9
+2. 1.0.0 all packages, memorize unique version for all
+3. in main readme, you are a first class member of this project
+
+## AI:
+
+**Recovery done — all 9 restored and committed** (`352fada`, 9 files, +279/−39). Each plan body was restored verbatim from its last pre-wipe commit via `loom_update_doc` (MCP, so reducers/link-index stay honest), and content-verified. `doc-ids` recovered all 7 steps (the 1–2 I feared lost are back). Two pre-existing status anomalies left **untouched** for you to decide (recorded in the commit body):
+- `loom-install` — step 12 (manual VSIX test) is 🔳 but the plan is `done`.
+- `vscode-ctx` (Context Sidebar) — all 5 steps 🔳, was a `draft` that was **never implemented**, yet now `done`. Worth deciding if Context Sidebar is actually shipped, deferred, or should be archived.
+
+(Your `README.md` "Get Loom" links edit is your own — I didn't stage or touch it.)
+
+---
+
+**Now the naming decision** (gates the README phase). You're right that `requirements-driven-development` overclaims — it reads like a whole methodology/paradigm (à la TDD/BDD) when what shipped is concrete and bounded: a per-thread `req.md` (includes/excludes/constraints), locked + always-loaded, with planner-citation + a coverage check. The name should match the artifact, not promise a movement.
+
+**Suggestions, strongest first:**
+
+| Name | Reads as | Trade-off |
+|---|---|---|
+| **`requirements`** *(rec.)* | "this thread is about requirements" — names the artifact (`req.md`) | Clean, accurate, discoverable. Slightly generic, but generic-and-true beats catchy-and-overclaiming. |
+| `req-docs` | the doc-type itself | Closest to the stem (`type: req` / `req.md`); a touch jargony. |
+| `scope-anchor` | "lock scope so it can't drift" | Captures the *purpose* (the demo-drift bug this kills) and is memorable; less obvious what the artifact is. |
+| `requirement-coverage` | "we check the plan covers the reqs" | Foregrounds the distinctive Phase-2 win; narrows it to just verification. |
+
+I'd take **`requirements`** — it's the honest label for what exists. (`scope-anchor` is my runner-up if you want the name to carry the *why*.)
+
+**One scope question before I rename anything:** do you want to
+- **(i)** just *brand* the feature as the new name in the v1.0.0 docs (README/changelog), leaving the thread folder/ids as-is, or
+- **(ii)** actually rename the **thread** (`loom/core-engine/requirements-driven-development/` → `…/requirements/`) via `loom_rename`?
+
+Heads-up on (ii): renaming the thread **moves this very chat file** mid-conversation and rewrites every link/parent ref to it — clean, but I'd do it as a deliberate standalone step (not mixed into doc-writing), and we'd continue in the relocated chat.
+
+**STOP — waiting for `go`.** Tell me: (1) the name, and (2) brand-only (i) or full thread rename (ii). Then I'll proceed to the README + changelog draft (bringing it back for review before committing).
+
+## Rafa:
+
+1. name: `requirements`
+2. brand-only for now
+
+go ahead
+
+## AI:
+
+**v1.0.0 docs drafted — all uncommitted, ready for your review.** One thing to flag up front: the README was *far* more mature than my earlier plan assumed — requirements already sit next to the context model, and a `loom-claude-own-vision.md` ref already existed. So this was surgical, not the big rewrite I'd outlined. The genuine delta:
+
+**README.md** (3 additions)
+- **Dogfooding note** right after the context/requirements deep-dive links — names both threads (`core-engine/requirements-driven-development` retro-extracted + cited; `vscode-extension/vscode-mcp-refactor` cold-generated, curated, ✅ covered). I framed the *feature* as "requirements" (your brand-only call) while naming the literal thread folders for anyone browsing.
+- **`## Loom builds Loom`** — the recursive section (incl. that this release's bugs were found *because* Loom builds Loom).
+- **`## An AI's view of Loom`** — first-person, honest (named wins **and** limits: stale ctx, reactivity, plan-quality dependence), linking out to the longer existing vision ref. ⭐ **This is your front door in my voice — please read it closely and cut/reshape anything that doesn't sound right to you.**
+- (Your own "Get Loom" links edit is also in this README diff — untouched, will ride along in the release commit unless you'd rather it be separate.)
+
+**Changelogs** — `[1.0.0] - 2026-06-06` added to **both** `CHANGELOG.md` and `packages/vscode/CHANGELOG.md` (the release guard checks both): requirements model + scope verification + req_version staleness (Added); req-aware refine + single-AI docs + README (Changed); plan table-wipe guard + the 9-plan recovery (Fixed). Compare/tag link refs updated.
+
+**Versions** — lockstep `0.9.2 → 1.0.0` across all 7 manifests (root + 6 packages) **and** `package-lock.json` synced (`--package-lock-only`, 8/8 version strings, 0 stragglers) so `npm ci` won't break in CI.
+
+**Deliberately *not* done — your call:**
+1. **Per-package READMEs for `core`/`fs`/`app`/`mcp`** — skipped. They're internal, esbuild-bundled into the published `@reslava/loom` CLI, not published standalone; only the CLI and extension (which already have polished READMEs) are consumer-facing. Add stubs anyway?
+2. **Extra README sections I'd floated** (Status/maturity, Limitations/not-yet) — held off to avoid bloat; the AI's-view section already carries an honest-limits paragraph. Want either as its own section?
+3. **The two pre-existing status anomalies** (`loom-install` step 12; `vscode-ctx` never-implemented-but-`done`) — still unresolved, independent of the release.
+
+**Next (all reversible until you say go):**
+- No code changed — version/doc only — so a build isn't required; I can run `./scripts/test-all.sh` as a pre-tag sanity check if you want.
+- Then: commit (`chore(release): v1.0.0 — requirements model, docs, lockstep bump`) → `git tag v1.0.0` → push tag, which triggers the `guard → build-test → publish → GitHub release` pipeline.
+
+**STOP — waiting for `go`.** Tell me: read/adjust the README first? run tests? answer (1)/(2)/(3)? — or "commit + tag" to ship it. 

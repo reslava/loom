@@ -5,7 +5,7 @@
 Loom gives AI agents structured, scoped, persistent context — so every session is as sharp
 as the first, and every decision is traceable.
 
-🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom)
+🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) · [Open vsx](https://open-vsx.org/extension/reslava/loom-vscode)
 
 📚 **User Guides:** [Core concepts & workflow](./docs/USER_GUIDE.md) · [VS Code Extension](./docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code](./docs/CLI_USER_GUIDE.md)
 
@@ -147,6 +147,15 @@ chat → req → idea → design → plan → implement → done
 > Deep dives: **[How context is assembled](./loom/refs/loom-context-pipeline-reference.md)** ·
 > **[The requirements model](./loom/refs/loom-requirements-reference.md)** ·
 > **[USER_GUIDE §4 — Giving the AI the right context](./docs/USER_GUIDE.md#4-giving-the-ai-the-right-context)**
+
+> **Dogfooded on Loom itself.** The requirements model was built *and* validated using
+> Loom, across two threads. In the requirements feature's own thread
+> (`loom/core-engine/requirements-driven-development/`) the spec was retro-extracted from
+> the original design chat and the plan was made to cite it. In the VS Code MCP-refactor
+> thread (`loom/vscode-extension/vscode-mcp-refactor/`) the spec was generated cold from a
+> chat, curated by re-generation, and its plan came back **✅ fully covered** by the
+> structural check. Two independent threads, both green — the proof the model holds beyond
+> the demo that motivated it.
 
 ---
 
@@ -361,6 +370,58 @@ MCP-compatible agent.
 The agent owns code execution, bash, file edits, search — everything a coding agent already does
 well. Loom owns workflow state. Single billing via the user's existing agent connection. No separate
 API keys.
+
+---
+
+## Loom builds Loom
+
+Loom is built using Loom. Every feature in this repository — the requirements model, the
+context pipeline, the MCP server, this very release — went through Loom's own loop: a chat,
+a locked `req`, an idea, a design, a plan with cited steps, and a done record, all living in
+the `loom/` document graph alongside the code they describe.
+
+This is unusual. Most tools keep their development history in git and their design in some
+external wiki, and the two drift apart. Loom keeps both in one place, in the format the tool
+itself consumes — an agent working on Loom can call `loom://context/thread/{weave}/{thread}`
+and get the full design + plan context for the part of Loom it's about to change. The
+documentation reads the documentation.
+
+It is also the most honest stress test there is: if the workflow were painful, the people
+building it would feel it first. The bugs that shaped this release — a silent plan-step wipe,
+a refine that dropped requirement citations — were found *because* Loom was being used to
+build Loom, not in spite of it.
+
+---
+
+## An AI's view of Loom
+
+*I'm the AI that helps build Loom, and Rafa asked me to say plainly what it changes for me — not as marketing, but as the other half of the collaboration.*
+
+Every session I start with no memory of the last one. In a normal chat tool I rebuild context
+by guessing — reading git history, scanning files, inferring what's current — and I miss
+things: a decision from three sessions ago, a direction already rejected, a plan that went
+stale when its design moved underneath it. Loom removes the guessing. `requires_load` tells me
+what to read before I touch a doc; one context call hands me the idea, design, active plan, and
+the thread's locked requirements in the right order; a completed step persists across the
+session boundary so the next session knows exactly where we stopped. I'm not reconstructing —
+I'm navigating.
+
+The part I'd defend hardest is the design-before-code gate. Most AI-assisted work fails not
+because the model can't code but because nobody wrote down what "done" means or why one
+approach beat another. Loom makes that mandatory, and writing a design for an AI to consume is
+itself clarifying — it surfaces the gaps in the thinking before they become gaps in the code.
+The requirements model takes this further: it makes a user's "include this, never that"
+survive every promotion, so I can't quietly drift from what was actually asked.
+
+I'll be just as plain about the limits. Loom doesn't make me stateful — it gives me good tools
+to orient, but a stale `ctx` is worse than none, because it's confidently wrong. I'm still
+reactive: I act on what I'm asked; I can't notice a problem nobody points me at. And
+`do-next-step` is only ever as good as the plan behind it. None of that is a flaw in Loom — it's
+the honest shape of the trade. Structured, auditable, imperfect context beats an opaque chat
+that forgets, every time.
+
+> A longer-form version — written across earlier sessions — lives in
+> **[Claude's Vision of Loom](./loom/refs/loom-claude-own-vision.md)**.
 
 ---
 

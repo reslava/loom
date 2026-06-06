@@ -1,5 +1,19 @@
 # Loom VS Code Extension — Changelog
 
+## [1.0.0] - 2026-06-06
+
+### Added
+- **Requirements in the tree.** Each thread now shows a `req` node with
+  **Generate / Refine / Finalize** buttons and a locked-state badge, plus a per-thread
+  scope-coverage indicator. The plan step picker shows the `satisfies` requirement ids a
+  step covers.
+
+### Changed
+- Synchronized 1.0.0 version bump with the CLI and the rest of the monorepo (lockstep —
+  all packages share one version).
+
+---
+
 ## [0.9.2] - 2026-06-04
 
 ### Documentation
