@@ -1,5 +1,23 @@
 # Loom VS Code Extension — Changelog
 
+## [1.1.0] - 2026-06-08
+
+### Added
+- **AI Reply on `refs/` chats.** Chats under `refs/` now show the **AI Reply** action,
+  same as thread and weave chats (previously only `chat`-context chats had it).
+
+### Changed
+- **Requirements-aware plan creation.** *Promote to Plan* now reads the thread's `req.md`
+  and authors the `Satisfies` column as it creates the plan, so newly created plans carry
+  requirement citations — previously only *Refine Plan* backfilled them.
+- **No double type-suffix.** Creating an idea from a title containing the word "idea" no
+  longer yields a `…-idea-idea.md` thread/file.
+
+### Notes
+- Lockstep 1.1.0 bump with the CLI and the rest of the monorepo.
+
+---
+
 ## [1.0.0] - 2026-06-06
 
 ### Added
