@@ -50,6 +50,7 @@ import * as listPlanSteps from './tools/listPlanSteps';
 import * as createReference from './tools/createReference';
 import * as setContextPrefs from './tools/setContextPrefs';
 import * as getContextPrefs from './tools/getContextPrefs';
+import { buildToolCatalog, registerToolCatalog, getToolCatalogBlock } from './catalog';
 import * as continueThread from './prompts/continueThread';
 import * as doNextStep from './prompts/doNextStep';
 import * as refineDesign from './prompts/refineDesign';
@@ -58,14 +59,19 @@ import * as weaveDesign from './prompts/weaveDesign';
 import * as weavePlan from './prompts/weavePlan';
 import * as validateState from './prompts/validateState';
 
-const BASE_TOOLS = [
-    createIdea, createDesign, createPlan, createReference, updateDoc, appendToChat, createChat,
-    createReq, refineReq, finalizeReq,
-    startPlan, completeStep, closePlan, finalizeDoc, archive, rename,
-    findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs,
-    doStep, appendDone, listPlanSteps,
-    setContextPrefs, getContextPrefs,
-];
+// A registered tool: its wire definition + handler, tagged with a discovery `group`.
+// `group` is a sibling of `toolDef` (never sent over the wire in ListTools) and is the
+// single source the loom://catalog resource groups by — assigned here at the registry,
+// the one place a tool is added, so it can't drift.
+interface ToolModule {
+    toolDef: { name: string; description: string; inputSchema: object };
+    handle: (root: string, args: Record<string, unknown>) => Promise<{ content: Array<{ type: 'text'; text: string }> }>;
+}
+type GroupedTool = ToolModule & { group: string };
+
+function reg(group: string, mods: ToolModule[]): GroupedTool[] {
+    return mods.map(m => ({ toolDef: m.toolDef, handle: m.handle, group }));
+}
 
 const PROMPTS = [
     continueThread, doNextStep, refineDesign, weaveIdea, weaveDesign, weavePlan, validateState,
@@ -77,6 +83,7 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph: id→path (byId, documents), parent/child relationships, backlinks, slugs', mimeType: 'application/json' },
     { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
     { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
+    { uri: 'loom://catalog', name: 'Tool Catalog', description: 'Grouped index of all loom_* MCP tools (name + one-line purpose). Read this BEFORE searching for a tool, then ToolSearch select:<exact name>.', mimeType: 'text/markdown' },
 ];
 
 const RESOURCE_TEMPLATES = [
@@ -92,16 +99,20 @@ export function createLoomMcpServer(root: string): Server {
         { capabilities: { resources: {}, tools: {}, prompts: {} } }
     );
 
-    const TOOLS = [
-        ...BASE_TOOLS,
-        createPromoteTool(server),
-        createRefineIdeaTool(server),
-        createRefinePlanTool(server),
-        createRefineDesignTool(server),
-        ...createGenerateTools(server),
-        createVerifyReqTool(server),
-        createRefreshCtxTool(),
+    const TOOLS: GroupedTool[] = [
+        ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat]),
+        ...reg('doc', [updateDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
+        ...reg('refine', [refineReq, createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
+        ...reg('generate', createGenerateTools(server)),
+        ...reg('plan', [startPlan, completeStep, closePlan, doStep, appendDone, listPlanSteps]),
+        ...reg('req', [finalizeReq, createVerifyReqTool(server)]),
+        ...reg('chat', [appendToChat]),
+        ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
+        ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs]),
     ];
+
+    // Build the discovery catalog once from the live registry (static for this server).
+    registerToolCatalog(buildToolCatalog(TOOLS));
 
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
         resources: CONCRETE_RESOURCES,
@@ -127,6 +138,9 @@ export function createLoomMcpServer(root: string): Server {
         }
         if (uri === 'loom://summary') {
             return handleSummaryResource(root);
+        }
+        if (uri === 'loom://catalog') {
+            return { contents: [{ uri, mimeType: 'text/markdown', text: getToolCatalogBlock() }] };
         }
         if (uri.startsWith('loom://docs/')) {
             return handleDocsResource(root, uri);

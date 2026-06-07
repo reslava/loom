@@ -144,3 +144,107 @@ So the catalog's real value is **fewer, sharper fetches and fewer wrong-tool pic
 **Recommendation:** worth it, but do it generated, not hand-written — and frame it honestly in the doc as "name targeting, not round-trip elimination." This is really the *same* underlying lever as item 6's consolidation (fewer/grouped tools), just the documentation half instead of the API half. I'd fold both into one small thread: "MCP tool surface — consolidate + auto-generated catalog." Want me to open it?
 
 Committing + pushing the current batch now.
+
+## Rafa:
+
+If you think is worth enough to add it
+Open consolidate + catalog thread, create idea, design. 
+1. consolidate
+2. generate the catalog from the tool registry  
+3. inject the catalog to AI globaly in loom
+
+## AI:
+
+Yes — worth it (with the honest caveat baked in). Opened the thread and created both docs:
+
+- **`loom/ai-integration/mcp-tool-surface/`** — placed alongside `ai-integration-token-optimization` and `mcp`, where the tool-surface work belongs.
+- **Idea** `id_01KTJ110FHDK116G0NJN77FQVS` — problem (discovery vs schema-fetch as two distinct costs), the three parts you named, and the worth-it caveat: catalog+injection is a *discovery* win only — it does **not** remove the per-first-use schema fetch (that's structural to the host's deferral). Don't let it over-promise.
+- **Design** `de_01KTJ128Q435GJRJQTDR20B8WJ` — phased:
+  - **Phase A (low-risk, ship first):** generate the catalog from the live `toolDef` registry (so it can't drift) + inject it into the always-loaded global context. Zero API change.
+  - **Phase B (heavier, gated):** measured consolidation of the create/refine/generate families into `loom_create(type)` / `loom_refine(type)` / `loom_generate(type)`. Real fetch-count win, but trades schema precision for fewer tools and is a wide rename — possibly not worth it once A lands.
+
+I deliberately left **three decisions open** rather than bake them in (they're genuine architecture forks):
+
+1. **Grouping metadata** — add an optional `group` field to each `toolDef` *(my recommendation — authoritative, one place)* vs. a producer-side name→group map.
+2. **Injection surface** — runtime into `assembleContext`'s global section *(recommended — never drifts, arrives with context the agent already loads)* vs. a new always-loaded `loom://catalog` resource.
+3. **Consolidation (Phase B)** — do it at all? If yes, create/refine/generate **families only** *(recommended)* vs. wider; alternative is **none** if Phase A shrinks the pain enough.
+
+STOP — these three are yours to call. Tell me your picks (or "go with your recommendations") and I'll turn the design into a plan.
+
+## Rafa:
+
+Create a plan for Phase A with your recomendations. 
+
+## AI:
+
+Phase A plan created with my recommendations: **`pl_01KTJ1EFY7SJAQ1XK4A956R5GS`** (`loom/ai-integration/mcp-tool-surface/plans/mcp-tool-surface-plan-001.md`), parented to the design.
+
+5 steps:
+1. **mcp** — add optional `group` to the tool-def shape; tag every `toolDef`'s group. Metadata only.
+2. **mcp** — pure `buildToolCatalog(defs)` in a new `catalog.ts` (grouped, one honest-header line per tool with exact names) + a build-once module cache.
+3. **app** — `serializeBundle(bundle, { prepend })` renders an optional leading block; default output unchanged.
+4. **mcp** — wire: build the catalog once at server construction, inject it via the context-resource handler so it appears in every `loom://context/...` read.
+5. **tests + build + smoke** — unit (grouping, Other-bucket, honest header) + integration (catalog appears once; absent from `?format=json`), full suite green.
+
+**One thing to confirm before I start (it's an API-shape call, so I'm flagging not deciding):** the design said inject at `assembleContext`, but that function is pure over `LoomState` and lives in `app` — it can't take an mcp-built string without an `app → mcp` import (breaks layering C1). So I moved the injection one seam over to **`serializeBundle`** (the markdown the agent actually reads), fed by mcp. Same surface, same no-drift property, no upward import. If you'd rather I find a way to keep it literally in `assembleContext`, say so — otherwise this is the clean path.
+
+STOP — waiting for `go` to implement (or your note on the seam). Step 1 will touch `packages/mcp/src/tools/*.ts` + `generate.ts`.
+
+## Rafa:
+
+So finally the catalog will be generated to a markdown file, Which file, or `loom://context/...`?
+When AI will be injected with the catalog? When will read it? We could tell AI read this catalog before searching any new mcp tool?
+
+Detail this briefly
+
+## AI:
+
+Good question — it lands exactly on the delivery surface. Brief:
+
+**1. No standalone file.** The catalog is generated **in-memory at server start** from the live `toolDef` registry — never written to disk. A committed `.md` would drift and need re-generating on every tool change; the whole point is that it's derived, not stored.
+
+**2. Two candidate surfaces (your question is really choosing between them):**
+
+| | **A — ride the `loom://context/…` bundle** (current plan) | **C — dedicated `loom://catalog` resource** |
+|---|---|---|
+| How AI gets it | prepended to the context markdown the agent already reads | a resource the agent reads on purpose |
+| When | passively, whenever context loads (do-next-step / chat-reply / do-step) | once, at session start, via a CLAUDE.md rule |
+| "read before searching" | implicit (it's just *there* in context) | **explicit** — that's the whole design of C |
+| Cost | re-sent on every context read (tokens) | one read, leaner |
+
+**3. When injected / read:** A = passive, every context pull. C = once at session start, deliberately.
+
+**4. "Tell AI to read it before searching any new tool" — yes, and that's precisely what C buys.** One CLAUDE.md session-start line: *"Before `ToolSearch`-ing for a `loom_*` tool, consult `loom://catalog` and go straight to `ToolSearch select:<exact name>`."* The catalog's own honest header repeats it.
+
+**My updated recommendation:** switch the primary surface to **C** — a `loom://catalog` resource + a one-line session-start rule. It directly realizes your "read it before searching" framing, it's token-leaner (read once, not re-sent), and it gives the agent a *named thing* to consult. The shared `buildToolCatalog` producer is unchanged, so A stays a trivial add later if we ever want it auto-in-context too.
+
+This shifts **plan step 4** from "inject into the context bundle (serializeBundle)" to "expose `loom://catalog` resource + add the CLAUDE.md session-start line (both surfaces)". Steps 1–2 (group field + producer) are identical either way; step 3 (serializeBundle prepend) drops.
+
+Want me to repoint the plan to surface **C**? (I think it's the better call given how you framed it.) STOP — waiting on that.
+
+## Rafa:
+
+Yes, now I like it. C is the key.
+If you agree, update the plan.
+
+## AI:
+
+Done — repointed to surface **C**, and recorded the now-settled decisions in the design so it doesn't keep listing them as open.
+
+**Plan `pl_01KTJ1EFY7SJAQ1XK4A956R5GS` (v2):**
+1. `group` field on every `toolDef`. *(unchanged)*
+2. pure `buildToolCatalog(defs)` + build-once cache in `catalog.ts`. *(unchanged)*
+3. **expose `loom://catalog` resource** — register in `CONCRETE_RESOURCES` + dispatch in the read handler. *(was: serializeBundle injection)*
+4. **add the session-start "read `loom://catalog` first" rule** to both CLAUDE.md surfaces + list the resource in the template. *(new)*
+5. tests + build + smoke (read `loom://catalog`, grouped names + honest header). *(unchanged shape)*
+
+Old step 3 (serializeBundle prepend) is gone — C is a standalone resource, so **no `app` context-pipeline change** is needed. Cleaner blast radius: `packages/mcp` + the two CLAUDE.md files.
+
+**Design `de_…B8WJ`** now marks §1 (grouping = `group` field), §2 (delivery = C) as Decided; only §3 (Phase B consolidation scope) stays open, and it doesn't block Phase A.
+
+STOP — say `go` and I'll start at step 1 (`group` on `packages/mcp/src/tools/*.ts` + `generate.ts`). I can run steps 1–5 straight through if you'd rather authorize the whole plan at once.
+
+## Rafa:
+
+Do whole plan
+commit all, push to main

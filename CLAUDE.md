@@ -227,6 +227,7 @@ Verify with `claude mcp list`.
 
 | Entry point | When to use |
 |-------------|-------------|
+| `loom://catalog` resource | Grouped index of every `loom_*` tool (name + one-line purpose). **Read it before searching for a tool**, then `ToolSearch select:<exact name>` — it removes the discovery search, not the one-time schema fetch |
 | `loom://context/{docId}` resource (or `loom://context/thread/{weaveId}/{threadId}`) | Load the assembled context bundle (global/weave/thread ctx + parent chain + requires_load) for a doc or thread before working on it |
 | `do-next-step` prompt | Get the next incomplete step with full context pre-loaded |
 | `continue-thread` prompt | Review thread state and get a next-action suggestion |
@@ -234,6 +235,7 @@ Verify with `claude mcp list`.
 
 ### Rules
 
+- **Before `ToolSearch`-ing for a `loom_*` tool, read the `loom://catalog` resource** — MCP tool schemas are deferred, so you only see tool *names* until you fetch them. The catalog is the grouped name index; consult it, find the exact tool, then `ToolSearch select:<exact name>` (one targeted fetch, no keyword flailing).
 - **All writes to `loom/**/*.md` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) before starting any thread work. The Unified Context Pipeline bundles everything the agent needs (global/weave/thread ctx, idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.

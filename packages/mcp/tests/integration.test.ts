@@ -10,6 +10,7 @@ import * as os from 'os';
 import * as fsExtra from 'fs-extra';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { buildToolCatalog } from '../dist/catalog';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -153,6 +154,32 @@ async function run(): Promise<void> {
         const uris = result.resources.map(r => r.uri);
         assert(uris.includes('loom://state'), 'should include loom://state');
         assert(uris.includes('loom://diagnostics'), 'should include loom://diagnostics');
+        assert(uris.includes('loom://catalog'), 'should include loom://catalog');
+    });
+
+    // (a2) buildToolCatalog unit: grouping + Other-bucket fallback + first-sentence
+    await test('buildToolCatalog groups tools and buckets ungrouped as Other', async () => {
+        const md = buildToolCatalog([
+            { group: 'create', toolDef: { name: 'loom_create_idea', description: 'Create an idea doc. Extra detail ignored.' } },
+            { toolDef: { name: 'loom_mystery', description: 'No group assigned.' } },
+        ]);
+        assert(md.includes('### Create'), 'Create group title rendered');
+        assert(md.includes('`loom_create_idea` — Create an idea doc.'), 'first sentence only, not the whole description');
+        assert(md.includes('### Other'), 'ungrouped tool → Other bucket');
+        assert(md.includes('`loom_mystery`'), 'ungrouped tool still listed');
+        assert(md.indexOf('### Create') < md.indexOf('### Other'), 'Other renders last');
+        assert(md.includes('ToolSearch select:'), 'honest schema-fetch header present');
+    });
+
+    // (a3) read loom://catalog — the live grouped tool index from the real registry
+    await test('read loom://catalog returns the grouped tool index', async () => {
+        const result = await client.readResource({ uri: 'loom://catalog' });
+        const text = result.contents[0].text as string;
+        assert(text.includes('## Loom MCP tools'), 'catalog heading present');
+        assert(text.includes('ToolSearch select:'), 'honest header names the one-time schema fetch');
+        assert(text.includes('### Create'), 'Create group rendered');
+        assert(text.includes('`loom_create_idea`'), 'a known tool is listed by exact name');
+        assert(text.includes('### Query / state'), 'Query group rendered');
     });
 
     // (b) read loom://state
