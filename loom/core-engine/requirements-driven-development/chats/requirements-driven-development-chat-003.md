@@ -308,3 +308,27 @@ If you say go, the bump I'll prepare:
    (tweak the wording however you like.)
 
 **STOP — confirm `v1.1.0` and I'll prepare the bump + docs in one commit.** (Also: want the design §3 "deferred" note + thread close folded into the same commit, or separate?)
+
+## AI:
+
+**v1.1.0 prepared, committed, pushed** (`8e0e99a` on `main`).
+
+- **Lockstep bump** — all 7 packages 1.0.0 → 1.1.0 (clean one-line diffs); fixed the stale `version: '0.5.0'` in the MCP `Server()` to 1.1.0.
+- **CHANGELOG** — `[1.1.0] - 2026-06-08`: Added (`loom://catalog`, install seeds `settings.local.json`), Changed (req-aware plan creation), Fixed (generate_plan dropped steps, refs-chat AI Reply, double type-suffix).
+- **Design §3** — marked **deferred** (your call in A); thread `ai-integration/mcp-tool-surface` is complete (idea/plan done, design records the decision).
+- **README origin note** — *not added, because it's already there:* the "Why Loom exists" section already opens with the [REslava.Result](https://github.com/reslava/nuget-package-reslava-result) origin story and link. Adding a second note would duplicate it. If you want a *short bullet* form in addition (e.g. near the top), say the word and I'll add it.
+
+Build green. (Heads-up: I botched the first release commit message — used a PowerShell here-string in the Bash tool, so stray `@` chars leaked in. Amended + force-pushed-with-lease to fix; clean now.)
+
+Next: waiting for direction. The RDD chat-003 punch-list (items 1–6) is fully resolved and released. Want to `close` this chat, or anything else?
+
+## Rafa:
+
+from this:
+1. Loom idea born with https://github.com/reslava/nuget-package-reslava-result
+2. Loom was build recursively with Loom
+3. https://github.com/reslava/chord-flow has been developed using Loom
+
+1 and 2 are already included, but 3 is new, include it
+
+commit, push, tag to launch CI

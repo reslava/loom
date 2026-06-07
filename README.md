@@ -391,6 +391,11 @@ building it would feel it first. The bugs that shaped this release — a silent 
 a refine that dropped requirement citations — were found *because* Loom was being used to
 build Loom, not in spite of it.
 
+And not only on itself. [chord-flow](https://github.com/reslava/chord-flow) — a separate,
+unrelated application — is being developed using Loom from outside this repository: the first
+real test that the workflow holds up on a project that *isn't* Loom. Several fixes in this
+release came straight from that dogfooding.
+
 ---
 
 ## An AI's view of Loom
