@@ -248,3 +248,63 @@ STOP — say `go` and I'll start at step 1 (`group` on `packages/mcp/src/tools/*
 
 Do whole plan
 commit all, push to main
+
+## AI:
+
+Phase A done — all 5 steps ✅, plan `pl_01KTJ1EFY7SJAQ1XK4A956R5GS` auto-completed to `done`. Build + full suite green (**16/16**, including the two new catalog tests). Committed + pushed to `main` (`3dc8a14`).
+
+**What shipped:**
+- **`loom://catalog` resource** — grouped index of every `loom_*` tool (name + one-line purpose), built from the live registry at server start, so it can't drift.
+- **`catalog.ts`** — pure `buildToolCatalog`, groups by a `group` tag (unset → "Other" bucket), honest header: *"name pointers only — you still `ToolSearch select:<name>` once to load the schema."*
+- **Grouping at the registry** (`server.ts`) — one place, no per-file churn, and `group` stays a sibling of `toolDef` so it's never sent over the wire. (This was my step-1 refinement over scattering the field across ~34 files; same authoritative property.)
+- **Both CLAUDE.md surfaces** — "read `loom://catalog` before `ToolSearch`-ing" rule + entry-points row (sync contract honoured).
+- Tests: live `loom://catalog` read + `buildToolCatalog` unit (grouping, Other-bucket, first-sentence, honest header).
+
+**Two notes:**
+- **MCP is stale** — the running `loom mcp` in this session won't serve `loom://catalog` until the session/MCP restarts (build-all relinks the CLI but doesn't restart the live server). Tests pass because they spawn a fresh server from `dist`.
+- **Phase B (consolidation) remains open** — gated on your call on the schema-precision trade-off (design §3). Not started.
+
+Next: waiting for direction — Phase B, or close this thread here?
+
+## Rafa:
+
+(A) In my opinion Phase B is not needed if Phase A improve mcp search enough, agree?
+
+(B) loom://catalog notes has been added to both CLAUDE.md
+but what happen for project that already has been initialized?
+should I rerun `loom install`? but this will overwrite any update to CLAUDE.md already done?
+suggestions?
+
+(C) prepare bump v1.0.1 or v1.1.0? what you think?
+update READMEs if needed, CHANGELOG 
+I would like to include in main readme something like:
+1. Loom idea born with https://github.com/reslava/nuget-package-reslava-result
+2. Loom was build recursively with Loom
+3. https://github.com/reslava/chord-flow has been developed using Loom
+
+## AI:
+
+### (A) Skip Phase B? — Agree.
+
+Yes. Phase A attacks **discovery** (the frequent pain: "which tool, and stop keyword-flailing"). Phase B (consolidation) only shrinks the **fetch count**, and pays for it with fuzzier union schemas + a wide rename across launch prompts/tests/extension. Doing it speculatively is exactly the "build in the dark" trap. **Recommendation: defer Phase B indefinitely — revisit only if, after living with the catalog, the per-tool schema fetch is still a measured cost.** I'll mark §3 in the design as "deferred — not needed unless Phase A proves insufficient" so the thread can close cleanly.
+
+### (B) Already-initialized projects — just rerun `loom install`. It's safe.
+
+The new rule lives in the **`.loom/CLAUDE.md` template**, and `loom install` **always rewrites that file** (it's the generated, project-agnostic contract — not meant to be hand-edited). Your **root `CLAUDE.md` is only *patched*** — install ensures the `@.loom/CLAUDE.md` import line exists and otherwise **never touches your content**. So:
+
+- **Rerun `loom install` (no `--force` needed).** It refreshes `.loom/CLAUDE.md` (picking up the catalog rule + the `settings.local.json` attribution/MCP seeding) and leaves your root `CLAUDE.md`, `.mcp.json`, and settings untouched.
+- The only things `--force` would overwrite are `.mcp.json` / `ctx.md` / `.loom/settings.json` / the `settings.local.json` keys — don't use `--force` unless you want those reset.
+- Caveat: this only helps projects that use the `@.loom/CLAUDE.md` import (the install default). If a project **inlined** rules into its own root `CLAUDE.md` instead, install won't update those — you'd copy the one rule line manually. (Worth a future `loom update` command that refreshes just the template — minor idea, not now.)
+
+### (C) Version — **v1.1.0** (minor), not a patch.
+
+Since v1.0.0 we added **new features**, not just fixes: the `loom://catalog` resource, install seeding of `.claude/settings.local.json` (attribution + MCP pre-approval), and req-aware plan creation. New backward-compatible capability ⇒ **minor bump → 1.1.0** (1.0.1 is for fixes only). Lockstep: all 7 packages 1.0.0 → 1.1.0 together.
+
+If you say go, the bump I'll prepare:
+1. **Version** → `1.1.0` across root + all `packages/*` package.json (lockstep), **and** fix the stale `new Server({ version: '0.5.0' })` in `mcp/src/server.ts` to `1.1.0`.
+2. **CHANGELOG** → a `1.1.0` entry: `loom://catalog` resource + read-first rule; req-aware plan creation (Satisfies backfill) + generate_plan fix; refs-chat AI Reply; install seeds `settings.local.json`; double-suffix guard.
+3. **READMEs** → add the catalog + settings-seeding notes where features are listed; add your **Origin** note to the main README:
+   > **Origin.** The Loom idea was born while building [reslava/nuget-package-reslava-result](https://github.com/reslava/nuget-package-reslava-result) — the friction of keeping AI-assisted work faithful to intent across steps is what Loom set out to solve.
+   (tweak the wording however you like.)
+
+**STOP — confirm `v1.1.0` and I'll prepare the bump + docs in one commit.** (Also: want the design §3 "deferred" note + thread close folded into the same commit, or separate?)

@@ -10,6 +10,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-08
+
+Discovery and onboarding polish from dogfooding Loom on a second project: the MCP
+tool surface is now self-describing, plan creation carries requirement citations
+end-to-end, and `loom install` seeds the Claude Code config it expects.
+
+### Added
+- **`loom://catalog` resource.** A grouped, one-line-per-tool index of the whole
+  `loom_*` MCP surface, generated from the live tool registry so it can never drift.
+  MCP tool schemas are deferred by the host (the agent sees only names until it
+  fetches each), so both CLAUDE.md surfaces now tell the agent to read `loom://catalog`
+  first and go straight to `ToolSearch select:<exact name>` — removing the discovery
+  search (not the one-time schema fetch, which the catalog header states plainly).
+- **`loom install` seeds `.claude/settings.local.json`.** An empty `attribution`
+  block (no commit/PR co-author trailers) and `enabledMcpjsonServers: ["loom"]`
+  (pre-approves the project-scoped MCP server, no first-open prompt), merged into any
+  existing file so user permissions survive.
+
+### Changed
+- **Requirements-aware plan creation.** The *promote-to-plan* launch prompt now reads
+  the thread's `req.md` and authors a full `Satisfies` column as it creates the plan —
+  previously only *refine* backfilled it, so freshly created plans came back with an
+  empty column.
+
+### Fixed
+- **`loom_generate_plan` dropped its generated steps**, producing empty plans on the
+  sampling-fallback path; the generated steps (with their `satisfies` citations) are
+  now written into the plan body.
+- **AI Reply on `refs/` chats.** The `loom.chatReply` command was gated to `chat`
+  context only, so chats under `refs/` (`chat-refs`) never showed the action; now both do.
+- **Double type-suffix in filenames.** A title containing the type word produced
+  `…-reference-reference.md` (and similar for ideas); a new `stripTrailingTypeWord`
+  guard strips the trailing type word before the suffix is appended.
+
 ## [1.0.0] - 2026-06-06
 
 First stable release. Loom's loop — chat → requirements → idea → design → plan → done,

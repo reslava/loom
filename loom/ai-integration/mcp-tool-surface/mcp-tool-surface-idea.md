@@ -2,9 +2,10 @@
 type: idea
 id: id_01KTJ110FHDK116G0NJN77FQVS
 title: MCP Tool Surface — Consolidation, Auto-Generated Catalog, Global Injection
-status: draft
-created: 2026-06-07
-version: 1
+status: done
+created: "2026-06-07T00:00:00.000Z"
+updated: 2026-06-07
+version: 2
 tags: []
 parent_id: null
 requires_load: []
