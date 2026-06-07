@@ -1,10 +1,10 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
-import { generateDocId } from '../../../core/dist';
+import { generateDocId, stripTrailingTypeWord } from '../../../core/dist';
 
 export const toolDef = {
     name: 'loom_create_reference',
-    description: 'Create a new reference document in loom/refs/. Named {slug}-reference.md. Pass `content` to write the body in the same call; omit it for a placeholder. Reference docs are born at status "active" (no draft gate). Returns the doc id, file path, and slug.',
+    description: 'Create a new reference document in loom/refs/. Named {slug}-reference.md. Do NOT include the word "reference" in the title — the `-reference` suffix is added automatically (a trailing type word is stripped to avoid "x-reference-reference.md"). Pass `content` to write the body in the same call; omit it for a placeholder. Reference docs are born at status "active" (no draft gate). Returns the doc id, file path, and slug.',
     inputSchema: {
         type: 'object' as const,
         properties: {
@@ -22,7 +22,10 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const providedContent = args['content'] as string | undefined;
 
     const id = generateDocId('reference');
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const rawSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    // Strip a trailing "reference" word so a title like "API Reference" yields
+    // api-reference.md, not api-reference-reference.md (the suffix is added below).
+    const slug = stripTrailingTypeWord(rawSlug, 'reference');
     const refsDir = path.join(root, 'loom', 'refs');
     await fsExtra.ensureDir(refsDir);
 

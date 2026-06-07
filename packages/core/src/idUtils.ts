@@ -70,6 +70,21 @@ export function toKebabCaseId(title: string): string {
 }
 
 /**
+ * Strips a trailing type word from a title-derived slug so appending the canonical
+ * `-{type}` suffix can't double it (e.g. slug "api-reference" + type "reference"
+ * would otherwise become "api-reference-reference.md"). Only strips the type word
+ * when it stands as its own trailing segment (start-of-slug or after a `-`), so
+ * "preference" + "reference" is left untouched. Returns the slug unchanged when
+ * stripping would empty it (a title that is *only* the type word).
+ * Example: stripTrailingTypeWord("payment-design", "design") -> "payment".
+ */
+export function stripTrailingTypeWord(slug: string, type: string): string {
+    const re = new RegExp(`(?:^|-)${type.toLowerCase()}$`, 'i');
+    const stripped = slug.replace(re, '').replace(/-+$/, '');
+    return stripped.length ? stripped : slug;
+}
+
+/**
  * Ensures the generated ID is unique within the existing set.
  * If the base ID already exists, appends a numeric suffix.
  */

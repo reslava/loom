@@ -245,6 +245,8 @@ Verify with `claude mcp list`.
 
 ## AI session rules
 
+> **#1 rule — reply INSIDE the active chat doc.** This is the single most-violated rule. If a chat doc is the active context and you answer only in the terminal, that is a **bug**, not a stylistic choice — the reply is lost the moment the terminal scrolls. Once a chat doc is active, every reply (including short follow-ups) goes inside it via `loom_append_to_chat` until Rafa says `close` or opens a different chat. See the full rule below.
+
 - **Chat Mode (default):** Respond naturally. Never modify frontmatter or files without explicit approval.
 - **Action Mode:** Only when Rafa explicitly asks. Respond with a JSON proposal per the handshake protocol.
 - **Never propose state changes** (version bumps, status transitions) without being asked.

@@ -21,6 +21,7 @@ export interface InstallWorkspaceResult {
     mcpJsonWritten: boolean;
     ctxWritten: boolean;
     settingsJsonWritten: boolean;
+    settingsLocalJsonWritten: boolean;
 }
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
@@ -100,6 +101,8 @@ interactively in the project root and approve the \`loom\` server, or use
 ---
 
 ## AI session rules
+
+> **#1 rule — reply INSIDE the active chat doc.** This is the single most-violated rule. If a chat doc is the active context and you answer only in the terminal, that is a **bug**, not a stylistic choice — the reply is lost the moment the terminal scrolls. Once a chat doc is active, every reply (including short follow-ups) goes inside it via \`loom_append_to_chat\` until the user says \`close\` or opens a different chat. See the full rule below.
 
 - **Chat Mode (default):** Respond naturally. Never modify frontmatter or files without explicit approval.
 - **Action Mode:** Only when the user explicitly asks. Respond with a JSON proposal per the handshake protocol.
@@ -306,5 +309,36 @@ export async function installWorkspace(
         settingsJsonWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten };
+    // Step 7: seed .claude/settings.local.json with an empty attribution block so
+    // Claude Code commits/PRs in this project carry no co-author trailers. Merge into
+    // any existing file (preserving permissions/env the user already set) and only add
+    // the key when it's absent, unless --force.
+    const claudeDir = path.join(root, '.claude');
+    const settingsLocalPath = path.join(claudeDir, 'settings.local.json');
+    deps.fs.ensureDirSync(claudeDir);
+    let settingsLocal: Record<string, unknown> = {};
+    if (deps.fs.existsSync(settingsLocalPath)) {
+        try { settingsLocal = JSON.parse(deps.fs.readFileSync(settingsLocalPath, 'utf8')); } catch { settingsLocal = {}; }
+    }
+    let settingsLocalChanged = false;
+    if (input.force || !('attribution' in settingsLocal)) {
+        settingsLocal.attribution = { commit: '', pr: '' };
+        settingsLocalChanged = true;
+    }
+    // Pre-approve the project-scoped loom MCP server so Claude Code doesn't prompt for
+    // one-time approval on first open. Narrow on purpose (loom only) — we deliberately
+    // do NOT set enableAllProjectMcpServers, which would auto-trust every project server.
+    const enabledServers = Array.isArray(settingsLocal['enabledMcpjsonServers'])
+        ? (settingsLocal['enabledMcpjsonServers'] as string[]) : [];
+    if (input.force || !enabledServers.includes('loom')) {
+        settingsLocal['enabledMcpjsonServers'] = Array.from(new Set([...enabledServers, 'loom']));
+        settingsLocalChanged = true;
+    }
+    let settingsLocalJsonWritten = false;
+    if (settingsLocalChanged) {
+        deps.fs.writeFileSync(settingsLocalPath, JSON.stringify(settingsLocal, null, 2) + '\n', 'utf8');
+        settingsLocalJsonWritten = true;
+    }
+
+    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten };
 }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
-import { toKebabCaseId } from '@reslava-loom/core/dist';
+import { toKebabCaseId, stripTrailingTypeWord } from '@reslava-loom/core/dist';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { revealDocAfterCreate } from './revealDoc';
 
@@ -17,7 +17,9 @@ export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, treeView:
         if (!weaveId) return;
     }
 
-    const threadId: string = node?.threadId ?? (titleInput ? toKebabCaseId(titleInput) : 'new-idea');
+    // Strip a trailing "idea" word so a title like "Dark Mode Idea" yields the thread
+    // dark-mode (→ dark-mode-idea.md), not dark-mode-idea (→ dark-mode-idea-idea.md).
+    const threadId: string = node?.threadId ?? (titleInput ? stripTrailingTypeWord(toKebabCaseId(titleInput), 'idea') : 'new-idea');
     const title = titleInput || `${threadId} idea`;
 
     try {

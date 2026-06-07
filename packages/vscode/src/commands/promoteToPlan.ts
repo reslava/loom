@@ -30,16 +30,21 @@ export async function promoteToPlanCommand(treeProvider: LoomTreeProvider, node?
             ? `Read the source file at "${sourceFilePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${sourceId}" to get the file path, then read it with the Read tool.`;
         const threadArg = targetThreadId ? `, threadId="${targetThreadId}"` : '';
+        const reqInstruction = targetThreadId
+            ? `Also read the thread's req.md (at loom/${targetWeaveId}/${targetThreadId}/req.md) — its ✅ Included / ❌ Excluded / ⛓ Constraints carry stable IN/EX/C ids. Treat every ❌ Excluded item and ⛓ Constraint as a HARD BOUNDARY (never add excluded work), and ensure every ✅ Included item is advanced by at least one step. `
+            : '';
+        const satisfiesInstruction = targetThreadId
+            ? `Fill each step's Satisfies cell with the IN/C ids that step advances (use — when none; NEVER cite an EX id). `
+            : `Leave each step's Satisfies cell as — (no req in this scope). `;
         await launchClaude(root, `Loom: Promote to Plan`,
             [
                 `Loom promote to plan task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${targetThreadId ? `, targetThreadId="${targetThreadId}"` : ''}.`,
                 readInstruction,
-                `Then call MCP tool loom_create_plan ONCE with these arguments:`,
-                `  - weaveId="${targetWeaveId}"${threadArg}`,
-                `  - title: one concise line describing the plan`,
-                `  - goal: 1-2 sentences on what this plan implements`,
-                `  - steps: an array of concrete implementation step descriptions (strings, in order). Each becomes a row in the Steps table.`,
-                `Do NOT call loom_update_doc afterwards to add steps — pass them in the steps array of loom_create_plan. Do NOT write a separate "## Implementation" section with "### Step N" headings; the plan's Steps table is the only step surface.`,
+                reqInstruction,
+                `Then call MCP tool loom_create_plan ONCE with weaveId="${targetWeaveId}"${threadArg}, a concise title, and a full markdown \`content\` body (no frontmatter) containing a "## Goal" section and a "## Steps" section.`,
+                `The Steps section MUST be a 6-column table with this exact header: | Done | # | Step | Files touched | Blocked by | Satisfies |. One row per concrete deliverable, in order; Done starts as 🔳; use — for empty Files touched / Blocked by cells.`,
+                satisfiesInstruction,
+                `Pass this whole body as the \`content\` argument — loom_create_plan parses the Satisfies column into the plan's steps. Do NOT pass the \`steps\` array (strings can't carry Satisfies) and do NOT call loom_update_doc afterwards.`,
                 `Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`,
             ].join(' ')
         );

@@ -656,7 +656,7 @@
         },
         {
           "command": "loom.chatReply",
-          "when": "view == loom.threads && viewItem == chat",
+          "when": "view == loom.threads && viewItem =~ /^chat(-refs)?$/",
           "group": "inline@1"
         },
         {

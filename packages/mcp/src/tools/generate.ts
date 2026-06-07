@@ -1,7 +1,7 @@
 import * as fsExtra from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { getActiveLoomRoot, saveDoc, loadDoc, findDocumentById, resolveDocIdOrThrow, loadWeave } from '../../../fs/dist';
-import { Document } from '../../../core/dist';
+import { Document, PlanStep, generateStepsTable } from '../../../core/dist';
 import { weaveIdea } from '../../../app/dist/weaveIdea';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
 import { weavePlan } from '../../../app/dist/weavePlan';
@@ -190,7 +190,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     8192
                 );
 
-                let steps: Array<{ order: number; description: string }> = [];
+                let steps: Array<{ order: number; description: string; satisfies?: string[] }> = [];
                 try {
                     const jsonMatch = generated.match(/\[[\s\S]*\]/);
                     if (jsonMatch) steps = JSON.parse(jsonMatch[0]);
@@ -198,8 +198,22 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     steps = [{ order: 1, description: `Generated plan:\n\n${generated}` }];
                 }
 
+                // Materialise the generated steps (with their satisfies citations) into the
+                // plan body — passing `content` so weavePlan parses the Steps table back into
+                // the frontmatter steps. Previously the generated steps were dropped entirely,
+                // producing an empty plan.
+                const planSteps: PlanStep[] = steps.map((s, i) => ({
+                    order: s.order ?? i + 1,
+                    description: s.description ?? '',
+                    done: false,
+                    files_touched: [],
+                    blockedBy: [],
+                    satisfies: Array.isArray(s.satisfies) ? s.satisfies : [],
+                }));
+                const content = `## Goal\n\n${title}\n\n## Steps\n\n${generateStepsTable(planSteps)}\n`;
+
                 const { id, filePath } = await weavePlan(
-                    { weaveId, title, threadId },
+                    { weaveId, title, threadId, content },
                     { loadWeave, saveDoc, loadDoc, fs: fsExtra, loomRoot: root }
                 );
 
