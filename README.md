@@ -210,6 +210,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `loom://state?weaveId=&threadId=` | Full project state JSON, filterable |
 | `loom://plan/{id}` | Plan doc with parsed steps array |
 | `loom://requires-load/{id}` | Recursively resolved context chain |
+| `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) — read it before searching for a tool, then `ToolSearch select:<name>` |
 | `loom://diagnostics` | Broken links, dangling references |
 
 ### Key tools (state mutations)

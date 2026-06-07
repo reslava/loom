@@ -332,3 +332,22 @@ from this:
 1 and 2 are already included, but 3 is new, include it
 
 commit, push, tag to launch CI
+
+
+## AI:
+
+**v1.1.0 released — CI green, all six jobs passed** (guard · build-test · publish-npm · publish-ovsx · publish-vsce · release). Published to npm, Open VSX, and the VS Code Marketplace, with a GitHub release created from the CHANGELOG.
+
+**README point 3** added: chord-flow is now an external "built with Loom" proof point in the *Loom builds Loom* section (points 1 & 2 were already there).
+
+**One stumble, fixed cleanly:** the first tag failed the release **guard** in 8s — it asserts a dated `## [VERSION]` section in **both** changelogs, and I'd only updated the root `CHANGELOG.md`, not `packages/vscode/CHANGELOG.md`. The guard is fail-fast *by design* (npm versions are immutable, so it blocks before anything publishes) — so **nothing was burned**. I added the vscode `[1.1.0]` section, deleted + re-pushed the tag, and the re-run went green. Lesson logged: a release needs both changelogs updated.
+
+**Non-blocking heads-up:** CI emitted Node.js-20-deprecation warnings (`actions/upload-artifact@v4` etc.) — GitHub forces Node 24 from June 16, 2026, so the release workflow's action versions will want bumping before then. Minor maintenance, separate from this.
+
+The RDD chat-003 punch-list is fully resolved, released as v1.1.0, and live. Next: waiting for direction — `close` this chat?
+
+## Rafa:
+
+main README section `Key resources (read-only)`
+should include `loom://catalog`?
+if so, include it, commit, push
