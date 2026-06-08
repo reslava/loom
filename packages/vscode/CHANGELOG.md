@@ -1,5 +1,12 @@
 # Loom VS Code Extension — Changelog
 
+## [1.2.0] - 2026-06-08
+
+### Notes
+- No functional extension changes this release. Lockstep 1.2.0 bump with the CLI and
+  the rest of the monorepo — the 1.2.0 work is CLI-only (terminal-reachable MCP surface
+  commands).
+
 ## [1.1.0] - 2026-06-08
 
 ### Added

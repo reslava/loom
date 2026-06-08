@@ -37,6 +37,8 @@ CLI (packages/cli)          VSCode (packages/vscode)
          Use-cases: weaveIdea, weaveDesign, weavePlan,
          finalize, rename, startPlan, completeStep,
          closePlan, chatNew, promoteToDesign, etc.
+         Query use-cases: searchDocs, getStaleDocs,
+         getBlockedSteps (shared by MCP tools + CLI)
                                 │
                  ┌──────────────┴──────────────┐
                  ▼                             ▼
@@ -46,7 +48,13 @@ CLI (packages/cli)          VSCode (packages/vscode)
 ```
 
 **Dependency rules (Stage 2):**
-- `cli` may call app directly (inspection) or MCP (mutations)
+- `cli` may call app directly (inspection/queries) or reach the MCP surface
+  **in-process** — `packages/cli/src/mcpClient.ts` builds the server with
+  `createLoomMcpServer` over the SDK's in-memory transport and runs the handshake
+  internally, so commands like `loom catalog` / `loom resources` / `loom context` /
+  `loom next` read MCP resources & prompts with no subprocess or hand-typed JSON-RPC.
+  Query commands (`loom search` / `stale` / `blocked`) call the shared app query
+  use-cases directly — the same ones their MCP tools delegate to (one source of truth).
 - `vscode` **must** call MCP only — no direct app imports
 - `mcp` server may **only** import from `app` — it is the gate
 - `app` may **only** import from `core` and `fs`
@@ -90,7 +98,10 @@ Session start: call `do-next-step` prompt (loads context + step instructions).
 - `loom_promote` — idea → design → plan, chat → idea
 - `loom_refresh_ctx` — regenerate ctx summary (sampling path; use loom_update_doc in Claude Code CLI)
 - `loom_get_context_prefs` / `loom_set_context_prefs` — read/write per-target context overrides in `.loom/context-prefs.json` (mode-agnostic `{ [targetId]: { include, exclude } }`); the sidebar CONTEXT panel and both `loom://context` + `loom_do_step` / refine read this file as `overrides`
-- `loom_rename` / `loom_archive` / `loom_get_stale_docs`
+- `loom_rename` / `loom_archive`
+- `loom_search_docs` / `loom_get_stale_docs` / `loom_get_blocked_steps` — query tools that
+  delegate to the shared `app` use-cases (`searchDocs` / `getStaleDocs` / `getBlockedSteps`);
+  the `loom search` / `stale` / `blocked` CLI commands call the same use-cases
 
 **Key prompts:**
 - `do-next-step` — loads full plan step context; primary "do work" entry point for agents

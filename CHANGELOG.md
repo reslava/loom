@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-06-08
+
+### Added
+- **The MCP surface is reachable from a plain terminal.** New thin CLI commands run
+  the MCP handshake in-process and print the result — no MCP host, no hand-typed
+  JSON-RPC:
+  - `loom catalog` — the grouped index of every `loom_*` tool (`loom://catalog`).
+  - `loom resources` / `loom resources read <uri>` — list MCP resources, or read any
+    one by uri (e.g. `loom://summary`, `loom://context/<id>`).
+  - `loom context <docId> [--mode <m>]` — the assembled context bundle for a doc, or a
+    thread via the `thread/<weave>/<thread>` form.
+  - `loom next [plan-id]` — the next incomplete step + context for a plan (defaults to
+    the active plan).
+  - `loom search <query> [--type] [--weave]`, `loom stale`, `loom blocked` — query docs,
+    list stale docs, and list blocked plan steps from the terminal.
+- **In-process MCP client (`packages/cli/src/mcpClient.ts`).** The CLI instantiates the
+  Loom MCP server over the SDK's in-memory transport and runs the
+  `initialize → initialized` handshake internally — one process, no stdio framing, no
+  `LOOM_ROOT` juggling.
+
+### Changed
+- **One source of truth for search / stale / blocked.** The `loom_search_docs`,
+  `loom_get_stale_docs`, and `loom_get_blocked_steps` MCP tools now delegate to new
+  shared `app` use-cases (`searchDocs`, `getStaleDocs`, `getBlockedSteps`) that the new
+  CLI commands also call — the logic moved out of the MCP tools into `app`, so the two
+  delivery surfaces can't drift.
+
 ## [1.1.0] - 2026-06-08
 
 Discovery and onboarding polish from dogfooding Loom on a second project: the MCP
@@ -329,7 +356,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/reslava/loom/releases/tag/v1.2.0
 [1.0.0]: https://github.com/reslava/loom/releases/tag/v1.0.0
 [0.9.2]: https://github.com/reslava/loom/releases/tag/v0.9.2
 [0.9.1]: https://github.com/reslava/loom/releases/tag/v0.9.1

@@ -103,6 +103,24 @@ designing, writing code for a step) is done through your MCP agent.
 | `loom status [weave-id] [--verbose] [--json] [--filter <c>] [--sort <o>]` | Show derived state of weaves/threads. |
 | `loom validate [weave-id] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
 
+### MCP surface & queries
+
+These commands make the Loom MCP surface reachable from a plain terminal — no MCP host
+required. The read commands (`catalog`, `resources`, `context`, `next`) run the MCP
+handshake **in-process** (no subprocess, no JSON-RPC by hand); the query commands
+(`search`, `stale`, `blocked`) call the shared `app` use-cases the MCP tools also use.
+
+| Command | Description |
+|---------|-------------|
+| `loom catalog` | Print the grouped index of every `loom_*` MCP tool (`loom://catalog`). |
+| `loom resources` | List the MCP resources this Loom advertises (uri + title). |
+| `loom resources read <uri>` | Read any MCP resource by uri (e.g. `loom://summary`, `loom://context/<id>`). |
+| `loom context <docId> [--mode <m>]` | Print the assembled context bundle for a doc, or a thread via `thread/<weave>/<thread>`. |
+| `loom next [plan-id]` | Print the next incomplete step + context for a plan (defaults to the active plan). |
+| `loom search <query> [--type <t>] [--weave <id>]` | Search docs by id/title/content; prints id + title + snippet. |
+| `loom stale` | List docs that may be stale (plans behind design, children behind parents) + reason. |
+| `loom blocked` | List blocked steps across implementing plans + their blockers. |
+
 ### Documents (manual CRUD)
 
 | Command | Description |

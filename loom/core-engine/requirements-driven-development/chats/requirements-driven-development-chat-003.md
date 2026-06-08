@@ -351,3 +351,105 @@ The RDD chat-003 punch-list is fully resolved, released as v1.1.0, and live. Nex
 main README section `Key resources (read-only)`
 should include `loom://catalog`?
 if so, include it, commit, push
+
+## Rafa:
+
+I reconnected mcp, developer reload
+but I can not find `loom://catalog`
+check it 
+
+## AI:
+
+Checked the **live** (reconnected) server directly — `loom://catalog` is being served correctly. I listed the loom server's resources and it's there (`Tool Catalog`, `text/markdown`), and reading it returns the full grouped index: **9 groups, ~38 tools** (Create 6 · Refine 4 · Generate 6 · Plan/steps 6 · Requirements 2 · Chat 1 · Doc 5 · Context 3 · Query 5), led by the honest header. So the build + reconnect worked.
+
+**Why you couldn't find it — it's a where-to-look thing:**
+- It's an MCP **resource** on the `loom` server, *not* a tool and *not* a tree node. The `/mcp` dialog mainly surfaces servers/tools/prompts — **resources aren't browsed there**.
+- In Claude Code, reach MCP resources via the **`@` mention picker**: type `@`, pick the `loom` server, and `loom://catalog` (along with `state`, `diagnostics`, etc.) appears. That's the manual way to view it.
+- It is **not** in the **Loom VS Code extension** tree — that tree renders your `loom/` *documents*, not the loom MCP server's resources. Different surface entirely.
+
+**The important part:** the *agent* doesn't need you to find it — it reads `loom://catalog` itself (as I just did via the resource API), which is exactly what the CLAUDE.md rule instructs before a tool search. So it's doing its job; the manual `@`-mention is just for when *you* want to eyeball it.
+
+If you specifically want it visible somewhere in the **extension UI** (e.g. a "Tool Catalog" item), that's a small separate extension feature — say the word and I'll scope it. Otherwise it's working as designed.
+
+## AI:
+
+Three ways, tested just now against the live server:
+
+**1. Server health/config (not resources).** `claude mcp` only manages *servers*, not resource browsing:
+```
+claude mcp list          # → loom: loom mcp - ✓ Connected
+claude mcp get loom      # server details
+```
+There is **no** `claude mcp` subcommand that lists resources — so this won't show `loom://catalog`.
+
+**2. Drive the stdio server directly with JSON-RPC** (this is the real "from terminal" answer — verified working):
+```bash
+# list all resources
+printf '%s\n' \
+'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"cli","version":"1.0.0"}}}' \
+'{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+'{"jsonrpc":"2.0","id":2,"method":"resources/list"}' \
+| LOOM_ROOT="$(pwd)" loom mcp 2>/dev/null
+```
+Swap the last line for a **read**:
+```bash
+'{"jsonrpc":"2.0","id":2,"method":"resources/read","params":{"uri":"loom://catalog"}}'
+```
+Both return JSON; `loom://catalog` shows up in the list and the read dumps the grouped markdown. (The 3-message handshake — initialize → initialized → your call — is required; a bare `resources/list` won't work.)
+
+**3. Interactively inside `claude`:** type `@`, pick the `loom` server, and the resources (incl. `loom://catalog`) appear in the picker.
+
+---
+
+**Worth noting — this is clunky.** That JSON-RPC incantation is not something you'd want to type. A tiny CLI helper would fix it, e.g. `loom catalog` (prints the tool catalog) and/or `loom resources` (lists/read resources by running the handshake internally). That's a small, genuinely useful CLI thread — it makes the new resource human-reachable without the raw protocol. **Want me to open it?** (Idea + design + plan, like the catalog thread.)
+
+## Rafa:
+
+Yes, open `loom CLI pending` thread: catalog, resources and look for another CLI commands missing that would be helpful to have. Maybe under `cli` weave?
+Create Idea + design + plan
+
+## AI:
+
+Yes — happy to open it. But there's one structural decision baked into your "Maybe under `cli` weave?" that I want to settle before I generate idea + design + plan, because it shapes where a lot of future work lands.
+
+**Vision check:** this serves the "MCP-only surfaces should be human-reachable" gap — it removes the manual step of typing the 3-message JSON-RPC handshake just to read `loom://catalog` or list resources. A CLI command replaces a raw-protocol incantation.
+
+**The weave decision — and my recommendation: yes, create a new `cli` weave.**
+
+Right now CLI is a first-class delivery layer (`packages/cli/`) with *no home weave*. The evidence: every CLI-flavored idea we've ever had is orphaned in `.archive` with no thread to belong to — `json-output`, `loom-doctor`, `cli-error-standardization`, `mono-multi-command-clarity`, `deferred-work-command`. They got archived partly because there was nowhere coherent to put them. The other layers each have a weave (`core-engine`, `ai-integration`, `vscode-extension`, `app`, `release-automation`); CLI is the one delivery layer without one. So a `cli` weave isn't scope creep — it's filling a real gap, and it gives the "pending CLI commands" backlog a permanent address instead of a one-off thread.
+
+**Proposed thread:** `loom/cli/cli-commands/` (idea + design + plan). The idea frames it as "make MCP-only capability reachable from the terminal + close obvious CLI gaps."
+
+**Command scope I'd put in the design (the survey you asked for):**
+
+*Tier 1 — the two you named (the reason to open this):*
+- `loom catalog` — runs the handshake internally, prints the `loom://catalog` grouped tool index.
+- `loom resources` — lists MCP resources, and `loom resources read <uri>` reads one (e.g. `loom://context/...`).
+
+*Tier 2 — high-value gaps where an MCP tool exists but no CLI does:*
+- `loom context <docId>` — print the assembled context bundle (today only reachable via `loom://context/...`).
+- `loom next [plan-id]` — surface the `do-next-step` prompt output from the terminal.
+- `loom search <query>` — `loom_search_docs` / `loom_find_doc`.
+- `loom stale` / `loom blocked` — `loom_get_stale_docs`, `loom_get_blocked_steps` (surfaced today only in the extension diagnostics).
+
+*Tier 3 — fold-in candidates from the archived CLI ideas, if you want them in scope:*
+- `--json` on read commands (`json-output`), `loom doctor` (`loom-doctor` health check).
+
+**Question before I generate:** confirm (a) **new `cli` weave**, thread `cli-commands`, and (b) which tiers go in the plan — **just Tier 1**, **Tier 1+2 (my recommendation)**, or **all three**. The idea + design can describe the full vision regardless; the plan's step list is what changes.
+
+STOP — waiting for go on weave + tier scope.
+
+## Rafa:
+
+`cli` weave already exists
+go
+
+## AI:
+
+Done — opened the `cli-commands` thread under the existing `cli` weave, Tier 1+2 scope (Tier 3 named-but-deferred in the design).
+
+- **Idea** — `cli/cli-commands/cli-commands-idea.md` — the MCP surface has outgrown the CLI; make `loom://catalog`, resources, context, and tool-only capability reachable from a plain terminal.
+- **Design** — `cli/cli-commands/cli-commands-design.md` — key call: reach MCP **in-process over an in-memory transport**, not by spawning `loom mcp` and piping JSON. A small `mcpClient.ts` helper hides the handshake; each command is a thin wrapper. Commands that map to existing app use-cases (`search`, `stale`, `blocked`) call those directly.
+- **Plan** — `cli/cli-commands/plans/cli-commands-plan-001.md` — 7 steps: (1) `mcpClient.ts` + unit test, (2) `loom catalog`, (3) `loom resources` (+`read`), (4) `loom context` + `loom next`, (5) `loom search`, (6) `loom stale` + `loom blocked`, (7) tests + build-all + test-all.
+
+All three are at `draft` (not finalized) so you can review/refine first. Want me to finalize them, or refine anything?

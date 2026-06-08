@@ -41,6 +41,9 @@ run_test tests/plan-reducer.test.ts
 # Step 4: CLI commands + completeStep use-case
 run_test tests/commands.test.ts
 
+# CLI in-process MCP client helper: round-trips loom://catalog over in-memory transport
+run_test tests/cli-mcp-client.test.ts
+
 # Step 5: closePlan use-case (mock AI)
 run_test tests/close-plan.test.ts
 

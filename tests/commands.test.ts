@@ -156,9 +156,86 @@ async function testCompleteStepUseCase() {
     console.log('\n✨ All completeStep use-case tests passed!\n');
 }
 
+// Tier 1+2 CLI commands (cli-commands thread): catalog, resources, context, next,
+// search, stale, blocked. Each is exercised against a hermetic fixture loom via the
+// globally-linked `loom` binary (build-all relinks it before test-all runs).
+async function testNewCliCommands() {
+    console.log('\n🧵 Running Tier 1+2 CLI command tests...\n');
+
+    const loomRoot = await setupHermeticLoom('loom-tier12-tests');
+    const weaveId = 'feature';
+    const threadId = 'feature';
+    const weavePath = path.join(loomRoot, 'loom', weaveId);
+    const planId = `${threadId}-plan-001`;
+
+    // Seed a thread with a design + an implementing plan whose step 2 is blocked by step 1.
+    await seedThreadDesign(weavePath, threadId, 'active');
+    await seedThreadPlan(weavePath, threadId, planId, 'implementing');
+
+    // loom catalog — grouped tool index from the in-process MCP server.
+    console.log('  • Testing `loom catalog`...');
+    let result = runLoom('catalog', loomRoot);
+    assert(result.exitCode === 0, `catalog failed: ${result.stderr}`);
+    assert(result.stdout.includes('loom_do_step'), 'catalog should list a known tool');
+    console.log('    ✅ loom catalog lists tools');
+
+    // loom resources — list concrete resources.
+    console.log('  • Testing `loom resources`...');
+    result = runLoom('resources', loomRoot);
+    assert(result.exitCode === 0, `resources failed: ${result.stderr}`);
+    assert(result.stdout.includes('loom://catalog'), 'resources should list loom://catalog');
+    console.log('    ✅ loom resources lists resources');
+
+    // loom resources read <uri> — read an arbitrary resource.
+    console.log('  • Testing `loom resources read loom://summary`...');
+    result = runLoom('resources read loom://summary', loomRoot);
+    assert(result.exitCode === 0, `resources read failed: ${result.stderr}`);
+    assert(result.stdout.includes('totalWeaves'), 'summary resource should include totalWeaves');
+    console.log('    ✅ loom resources read works');
+
+    // loom context <docId> — assembled context bundle for a doc.
+    console.log('  • Testing `loom context`...');
+    result = runLoom(`context ${threadId}-design`, loomRoot);
+    assert(result.exitCode === 0, `context failed: ${result.stderr}`);
+    assert(result.stdout.includes('loom:context-bundle'), 'context should print a context bundle');
+    console.log('    ✅ loom context prints a bundle');
+
+    // loom next [plan-id] — next incomplete step for a plan.
+    console.log('  • Testing `loom next`...');
+    result = runLoom(`next ${planId}`, loomRoot);
+    assert(result.exitCode === 0, `next failed: ${result.stderr}`);
+    assert(result.stdout.includes('Implement step 1'), 'next should instruct implementing step 1');
+    console.log('    ✅ loom next prints the next step');
+
+    // loom search <query> — id/title/content match.
+    console.log('  • Testing `loom search`...');
+    result = runLoom('search "Second step"', loomRoot);
+    assert(result.exitCode === 0, `search failed: ${result.stderr}`);
+    assert(result.stdout.includes(planId), 'search should find the plan by content');
+    console.log('    ✅ loom search finds docs');
+
+    // loom stale — empty or non-empty, both mention "stale".
+    console.log('  • Testing `loom stale`...');
+    result = runLoom('stale', loomRoot);
+    assert(result.exitCode === 0, `stale failed: ${result.stderr}`);
+    assert(result.stdout.toLowerCase().includes('stale'), 'stale output should mention stale');
+    console.log('    ✅ loom stale runs');
+
+    // loom blocked — step 2 is blocked by step 1.
+    console.log('  • Testing `loom blocked`...');
+    result = runLoom('blocked', loomRoot);
+    assert(result.exitCode === 0, `blocked failed: ${result.stderr}`);
+    assert(result.stdout.includes(planId), 'blocked should list the plan with the blocked step');
+    console.log('    ✅ loom blocked lists blocked steps');
+
+    await fs.remove(loomRoot);
+    console.log('\n✨ All Tier 1+2 CLI command tests passed!\n');
+}
+
 async function runAll() {
     await testCommands();
     await testCompleteStepUseCase();
+    await testNewCliCommands();
 }
 
 runAll().catch(err => {

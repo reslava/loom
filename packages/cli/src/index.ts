@@ -17,6 +17,13 @@ import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
 import { finalizeCommand } from './commands/finalize';
 import { renameCommand } from './commands/rename';
+import { catalogCommand } from './commands/catalog';
+import { resourcesListCommand, resourcesReadCommand } from './commands/resources';
+import { contextCommand } from './commands/context';
+import { nextCommand } from './commands/next';
+import { searchCommand } from './commands/search';
+import { staleCommand } from './commands/stale';
+import { blockedCommand } from './commands/blocked';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -140,6 +147,49 @@ program
     .command('rename <old-id> <new-title>')
     .description('Rename a finalized document and update all references')
     .action(renameCommand);
+
+program
+    .command('catalog')
+    .description('Print the grouped index of every loom_* MCP tool (loom://catalog)')
+    .action(catalogCommand);
+
+const resourcesCmd = program
+    .command('resources')
+    .description('List the MCP resources this Loom advertises (uri + title)')
+    .action(resourcesListCommand);
+
+resourcesCmd
+    .command('read <uri>')
+    .description('Read an MCP resource by uri and print its contents (e.g. loom://context/<id>)')
+    .action(resourcesReadCommand);
+
+program
+    .command('context <docId>')
+    .description('Print the assembled context bundle for a doc (or thread/<weave>/<thread>)')
+    .option('--mode <mode>', 'Context mode (chat|idea|design|plan|implementing|refine|promote|ctx)')
+    .action(contextCommand);
+
+program
+    .command('next [plan-id]')
+    .description('Print the next incomplete step + context for a plan (defaults to the active plan)')
+    .action(nextCommand);
+
+program
+    .command('search <query>')
+    .description('Search docs by id/title/content; prints id + title + snippet')
+    .option('--type <type>', 'Filter by doc type (idea|design|plan|ctx|chat|done)')
+    .option('--weave <id>', 'Scope the search to a weave id')
+    .action(searchCommand);
+
+program
+    .command('stale')
+    .description('List docs that may be stale (plans behind design, children behind parents) + reason')
+    .action(staleCommand);
+
+program
+    .command('blocked')
+    .description('List blocked steps across implementing plans + their blockers')
+    .action(blockedCommand);
 
 program
     .command('mcp')
