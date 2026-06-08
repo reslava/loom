@@ -2,9 +2,10 @@
 type: idea
 id: id_01KTJS3W536XCQB7ZSANF161DT
 title: CLI Commands — Make MCP-only Capability Terminal-Reachable
-status: draft
-created: 2026-06-08
-version: 1
+status: done
+created: "2026-06-08T00:00:00.000Z"
+updated: 2026-06-08
+version: 2
 tags: []
 parent_id: null
 requires_load: []
