@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-06-08
+
+### Fixed
+- **New chats now honour `.loom/settings.json`.** The shared author-name resolver
+  (`getUserName` / `getAiName`) read `settings.json` from the workspace root instead of
+  `.loom/settings.json`, so the configured `user.name` / `ai.model` were never found —
+  every chat fell back to `User:` / `AI:`. Fixed the path; this corrects new chats, AI
+  replies, do-step transcripts, and weave-design seeds across the CLI, the extension, and
+  the MCP server.
+
+### Changed
+- **`loom://catalog` is now a mandatory session-start load.** The installed `.loom/CLAUDE.md`
+  contract makes reading `loom://catalog` an unconditional session-start step, so the
+  `loom_*` tool index is in context *before* any tool is needed — replacing the reactive
+  "before ToolSearch" rule that agents skipped at the one moment it mattered.
+
 ## [1.2.0] - 2026-06-08
 
 ### Added
@@ -356,7 +372,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/reslava/loom/releases/tag/v1.2.1
 [1.2.0]: https://github.com/reslava/loom/releases/tag/v1.2.0
 [1.0.0]: https://github.com/reslava/loom/releases/tag/v1.0.0
 [0.9.2]: https://github.com/reslava/loom/releases/tag/v0.9.2

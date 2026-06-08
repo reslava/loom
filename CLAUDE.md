@@ -235,7 +235,7 @@ Verify with `claude mcp list`.
 
 ### Rules
 
-- **Before `ToolSearch`-ing for a `loom_*` tool, read the `loom://catalog` resource** — MCP tool schemas are deferred, so you only see tool *names* until you fetch them. The catalog is the grouped name index; consult it, find the exact tool, then `ToolSearch select:<exact name>` (one targeted fetch, no keyword flailing).
+- **`loom://catalog` is loaded at session start (step 3) — consult it, never keyword-flail.** MCP tool schemas are deferred, so you only see tool *names* until you fetch them. The catalog (loaded up front) is the grouped name index; find the exact tool in it, then `ToolSearch select:<exact name>` (one targeted fetch). If for any reason the catalog is not yet in context when you need a `loom_*` tool, read `loom://catalog` **before** the first `ToolSearch` — a blind `ToolSearch` for a `loom_*` tool (keyword guessing without the catalog) is a rule violation.
 - **All writes to `loom/**/*.md` go through MCP tools** — frontmatter, body, state mutations, and prose edits alike (see the "AI session rules" hard rule below for the full breakdown and the gate hook that enforces it).
 - Use `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) before starting any thread work. The Unified Context Pipeline bundles everything the agent needs (global/weave/thread ctx, idea, design, active plan, requires_load refs) in a single read.
 - `do-next-step` prompt is the primary workflow driver: call it with the active planId to get context + step instruction in one shot.
@@ -315,8 +315,9 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 
 1. **Load global ctx** — read [loom/ctx.md](loom/ctx.md). Emit `📘 loom-ctx loaded — global context ready` (or the failure variant if the read fails).
 2. **Load vision and workflow** — read [loom/refs/vision-reference.md](loom/refs/vision-reference.md) (north star — what Loom is for, what manual steps it replaces; ground for the vision-check rule under Collaboration style) and [loom/refs/workflow-reference.md](loom/refs/workflow-reference.md) (canonical loop, phase definitions, and transitions). Emit `🌟 vision + workflow loaded` on success.
-3. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
-4. **Call `do-next-step` prompt with the active planId.** This bundles:
+3. **Load the tool catalog** — read the `loom://catalog` resource so the grouped `loom_*` tool index is in context *before* any tool is needed. Emit `📡 MCP: loom://catalog` then `🗂️ loom-catalog loaded — tool index ready`. This is mandatory and unconditional: it removes the "first `ToolSearch` runs blind" moment that causes the index to be skipped. Once loaded here, never `ToolSearch` for a `loom_*` tool without first consulting this index — go straight from catalog → `ToolSearch select:<exact name>`.
+4. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
+5. **Call `do-next-step` prompt with the active planId.** This bundles:
    - Thread context (idea, design, current plan, requires_load docs)
    - Next incomplete step with instructions
    - Pre-filled `loom_complete_step` call ready to execute

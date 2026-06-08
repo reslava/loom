@@ -12,7 +12,7 @@ function loadSettings(loomRoot: string): ChatNameSettings {
     const cached = cache.get(loomRoot);
     if (cached) return cached;
 
-    const settingsPath = path.join(loomRoot, 'settings.json');
+    const settingsPath = path.join(loomRoot, '.loom', 'settings.json');
     try {
         const raw = fs.readFileSync(settingsPath, 'utf8');
         const parsed = JSON.parse(raw) as ChatNameSettings;

@@ -1,5 +1,15 @@
 # Loom VS Code Extension — Changelog
 
+## [1.2.1] - 2026-06-08
+
+### Fixed
+- **New chat now uses the names from `.loom/settings.json`.** Creating a chat applies the
+  configured `user.name` / `ai.model` headers — it previously always fell back to `User:` /
+  `AI:` because of a settings-path bug in the shared resolver.
+
+### Notes
+- Lockstep 1.2.1 bump with the CLI and the rest of the monorepo.
+
 ## [1.2.0] - 2026-06-08
 
 ### Notes

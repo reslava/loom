@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",
