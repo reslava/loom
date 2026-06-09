@@ -9,6 +9,42 @@ tags: [state, core, app, cli, refactor]
 parent_id: id_01KQYDFDDCDX24651YYE1JCQRY
 requires_load: [id_01KQYDFDDCDX24651YYE1JCQRY]
 target_version: 0.6.0
+steps:
+  - id: create-entities-state
+    order: 1
+    status: done
+    description: Create `entities/state.ts` with `LoomState` interface
+    files_touched: ["`packages/core/src/entities/state.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-app-src-getstate
+    order: 2
+    status: done
+    description: Create `app/src/getState.ts` use‑case
+    files_touched: ["`packages/app/src/getState.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: refactor-cli-command-to-use
+    order: 3
+    status: done
+    description: Refactor CLI `status` command to use `getState`
+    files_touched: ["`packages/cli/src/commands/status.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: update-app-src-index
+    order: 4
+    status: done
+    description: Update `app/src/index.ts` barrel export
+    files_touched: ["`packages/app/src/index.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 5
+    status: done
+    description: Run full test suite
+    files_touched: [All packages, "`tests/*`"]
+    blocked_by: [Step 3]
+    satisfies: []
 ---
 
 # Implement LoomState Entity and getState Use‑Case
@@ -30,13 +66,13 @@ Introduce a centralized `LoomState` entity that represents the complete derived 
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `entities/state.ts` with `LoomState` interface | `packages/core/src/entities/state.ts` | — |
-| ✅ | 2 | Create `app/src/getState.ts` use‑case | `packages/app/src/getState.ts` | Step 1 |
-| ✅ | 3 | Refactor CLI `status` command to use `getState` | `packages/cli/src/commands/status.ts` | Step 2 |
-| ✅ | 4 | Update `app/src/index.ts` barrel export | `packages/app/src/index.ts` | Step 2 |
-| ✅ | 5 | Run full test suite | All packages, `tests/*` | Step 3 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `entities/state.ts` with `LoomState` interface | `packages/core/src/entities/state.ts` | — | — |
+| ✅ | 2 | Create `app/src/getState.ts` use‑case | `packages/app/src/getState.ts` | Step 1 | — |
+| ✅ | 3 | Refactor CLI `status` command to use `getState` | `packages/cli/src/commands/status.ts` | Step 2 | — |
+| ✅ | 4 | Update `app/src/index.ts` barrel export | `packages/app/src/index.ts` | Step 2 | — |
+| ✅ | 5 | Run full test suite | All packages, `tests/*` | Step 3 | — |
 ---
 
 ## Step 1 — Create `entities/state.ts`

@@ -39,7 +39,10 @@ export function validateStepBlockers(plan: PlanDoc, index: LinkIndex): Validatio
         if (!step.blockedBy || step.blockedBy.length === 0) continue;
 
         for (const blocker of step.blockedBy) {
-            // Canonical: bare step number "3"
+            // Canonical: stable step id referencing another step in this plan.
+            if (plan.steps.some(s => s.id === blocker)) continue;
+
+            // Legacy: bare step number "3"
             if (/^\d+$/.test(blocker)) {
                 const stepNum = parseInt(blocker, 10);
                 if (stepNum < 1 || stepNum > plan.steps.length) {

@@ -3,7 +3,7 @@ import { PlanDoc } from '../../../core/dist/entities/plan';
 
 export const toolDef = {
     name: 'loom_list_plan_steps',
-    description: 'List the steps of a plan with their done status, files, description, and in-plan blockers. Pure read. Used by clients to compute which steps are doable, which are blocked, and to render multi-step pickers.',
+    description: 'List the steps of a plan with their stable id, status, files, description, in-plan blockers, and req citations. Pure read. Used by clients to compute which steps are doable, which are blocked, and to render multi-step pickers. `blockedBy` entries reference step `id`s (or plan ids).',
     inputSchema: {
         type: 'object' as const,
         properties: {
@@ -23,10 +23,12 @@ export async function handle(root: string, args: Record<string, unknown>) {
     if (planDoc.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);
 
     const steps = (planDoc.steps ?? []).map(s => ({
+        id: s.id,
         order: s.order,
         description: s.description,
         filesToTouch: s.files_touched,
-        done: s.done,
+        done: s.status === 'done',
+        status: s.status,
         blockedBy: s.blockedBy ?? [],
         // The req-citation contract: the IN/C ids this step advances. Surfaced so
         // pickers can render coverage where steps are shown (not just in Verify).

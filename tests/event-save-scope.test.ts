@@ -47,15 +47,15 @@ async function run() {
             type: 'plan', id: 'es-planA', title: 'A', status: 'implementing',
             created: '2026-05-27', version: 1, tags: [], parent_id: null, child_ids: [], requires_load: [],
             content: '## Steps\n', steps: [
-                { order: 1, description: 'a1', done: false, files_touched: [], blockedBy: [] },
-                { order: 2, description: 'a2', done: false, files_touched: [], blockedBy: [] },
+                { order: 1, description: 'a1', status: 'pending', files_touched: [], blockedBy: [] },
+                { order: 2, description: 'a2', status: 'pending', files_touched: [], blockedBy: [] },
             ],
         };
         const planB: any = {
             type: 'plan', id: 'es-planB', title: 'B', status: 'implementing',
             created: '2026-05-27', version: 1, tags: [], parent_id: null, child_ids: [], requires_load: [],
             content: '## Steps\n\n### Notes\nkeep', steps: [
-                { order: 1, description: 'b1', done: false, files_touched: [], blockedBy: [] },
+                { order: 1, description: 'b1', status: 'pending', files_touched: [], blockedBy: [] },
             ],
         };
         const thread: any = {
@@ -69,7 +69,7 @@ async function run() {
         assert(result.changed.length === 1, `expected 1 changed doc, got ${result.changed.length}`);
         assert(result.changed[0] === 'es-planA', 'only planA reported as changed');
         const outA = result.weave.allDocs.find((d: any) => d.id === 'es-planA') as any;
-        assert(outA.steps[0].done === true, 'planA step 1 marked done in the returned weave');
+        assert(outA.steps[0].status === 'done', 'planA step 1 marked done in the returned weave');
         console.log('    ✅ changed = [es-planA]; sibling excluded');
     }
 
@@ -82,8 +82,8 @@ async function run() {
         const planAPath = await createPlanDoc(weavePath, 'alpha-plan-001', {
             status: 'implementing',
             steps: [
-                { order: 1, description: 'First step', done: false },
-                { order: 2, description: 'Second step', done: false },
+                { order: 1, description: 'First step', status: 'pending' },
+                { order: 2, description: 'Second step', status: 'pending' },
             ],
         });
 

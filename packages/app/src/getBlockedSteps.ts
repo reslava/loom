@@ -7,6 +7,7 @@ export interface BlockedStep {
     planId: string;
     weaveId: string;
     threadId: string;
+    stepId: string;
     stepNumber: number;
     stepDescription: string;
     blockedBy: string[];
@@ -31,12 +32,13 @@ export async function getBlockedSteps(deps: GetBlockedStepsDeps): Promise<Blocke
             for (const plan of thread.plans as PlanDoc[]) {
                 if (plan.status !== 'implementing') continue;
                 for (const step of plan.steps ?? []) {
-                    if (step.done) continue;
+                    if (step.status === 'done' || step.status === 'cancelled') continue;
                     if (isStepBlocked(step, plan, index)) {
                         blocked.push({
                             planId: plan.id,
                             weaveId: weave.id,
                             threadId: thread.id,
+                            stepId: step.id,
                             stepNumber: step.order,
                             stepDescription: step.description,
                             blockedBy: step.blockedBy ?? [],

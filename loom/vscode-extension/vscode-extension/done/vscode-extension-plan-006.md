@@ -11,6 +11,84 @@ tags: [vscode, toolbar, ui, viewstate, app-layer]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDE0PPQX6WSKFF5XBQB, pl_01KQYDFDDE44MBZ865D6F222X8, pl_01KQYDFDDE87402EH7APJ6PS73]
 target_version: 0.6.0
+steps:
+  - id: define-commands-in-package
+    order: 1
+    status: done
+    description: Define commands in `package.json`
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: contribute-view-toolbar-ui-in-package
+    order: 2
+    status: done
+    description: Contribute view toolbar UI in `package.json`
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: contribute-view-toolbar-ui-in-package-2
+    order: 2
+    status: done
+    description: Contribute view toolbar UI in `package.json`
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: implement
+    order: 3
+    status: done
+    description: Implement `ViewStateManager`
+    files_touched: ["`packages/vscode/src/view/viewStateManager.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: register-commands-in-extension
+    order: 4
+    status: done
+    description: Register commands in `extension.ts`
+    files_touched: ["`packages/vscode/src/extension.ts`"]
+    blocked_by: [Steps 1, 3]
+    satisfies: []
+  - id: bind-commands-to-updates
+    order: 5
+    status: done
+    description: Bind commands to `ViewState` updates
+    files_touched: ["`packages/vscode/src/commands/view.ts`"]
+    blocked_by: [Step 4]
+    satisfies: []
+  - id: implement-grouping-selector-quickpick
+    order: 6
+    status: done
+    description: Implement grouping selector (QuickPick)
+    files_touched: ["`packages/vscode/src/commands/grouping.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: implement-filter-controls-text-archived
+    order: 7
+    status: done
+    description: Implement filter controls (text, archived)
+    files_touched: ["`packages/vscode/src/commands/filter.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: implement-action-commands-weave-refine-start
+    order: 8
+    status: done
+    description: Implement action commands (weave, refine, start‑plan, etc.)
+    files_touched: ["`packages/vscode/src/commands/actions.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: add-context-based-enable-disable-using
+    order: 9
+    status: done
+    description: Add context‑based enable/disable using `when` clauses
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: connect-refresh-cycle
+    order: 10
+    status: done
+    description: Connect refresh cycle
+    files_touched: ["`packages/vscode/src/extension.ts`"]
+    blocked_by: [All]
+    satisfies: []
 ---
 
 # Implement VSCode Toolbar (View Controls & Actions)
@@ -38,22 +116,21 @@ All commands **must** delegate to the `app` layer and **not** contain orchestrat
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Define commands in `package.json` | `packages/vscode/package.json` | — |
-| ✅ | 2 | Contribute view toolbar UI in `package.json` | `packages/vscode/package.json` | Step 1 |
-| ✅ | 2 | Contribute view toolbar UI in `package.json` | `packages/vscode/package.json` | Step 1 |
-| ✅ | 3 | Implement `ViewStateManager` | `packages/vscode/src/view/viewStateManager.ts` | — |
-| ✅ | 4 | Register commands in `extension.ts` | `packages/vscode/src/extension.ts` | Steps 1, 3 |
-| ✅ | 5 | Bind commands to `ViewState` updates | `packages/vscode/src/commands/view.ts` | Step 4 |
-| ✅ | 6 | Implement grouping selector (QuickPick) | `packages/vscode/src/commands/grouping.ts` | Step 5 |
-| ✅ | 7 | Implement filter controls (text, archived) | `packages/vscode/src/commands/filter.ts` | Step 5 |
-| ✅ | 8 | Implement action commands (weave, refine, start‑plan, etc.) | `packages/vscode/src/commands/actions.ts` | Step 5 |
-| ✅ | 9 | Add context‑based enable/disable using `when` clauses | `packages/vscode/package.json` | Step 2 |
-| ✅ | 10 | Connect refresh cycle | `packages/vscode/src/extension.ts` | All |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Define commands in `package.json` | `packages/vscode/package.json` | — | — |
+| ✅ | 2 | Contribute view toolbar UI in `package.json` | `packages/vscode/package.json` | Step 1 | — |
+| ✅ | 2 | Contribute view toolbar UI in `package.json` | `packages/vscode/package.json` | Step 1 | — |
+| ✅ | 3 | Implement `ViewStateManager` | `packages/vscode/src/view/viewStateManager.ts` | — | — |
+| ✅ | 4 | Register commands in `extension.ts` | `packages/vscode/src/extension.ts` | Steps 1, 3 | — |
+| ✅ | 5 | Bind commands to `ViewState` updates | `packages/vscode/src/commands/view.ts` | Step 4 | — |
+| ✅ | 6 | Implement grouping selector (QuickPick) | `packages/vscode/src/commands/grouping.ts` | Step 5 | — |
+| ✅ | 7 | Implement filter controls (text, archived) | `packages/vscode/src/commands/filter.ts` | Step 5 | — |
+| ✅ | 8 | Implement action commands (weave, refine, start‑plan, etc.) | `packages/vscode/src/commands/actions.ts` | Step 5 | — |
+| ✅ | 9 | Add context‑based enable/disable using `when` clauses | `packages/vscode/package.json` | Step 2 | — |
+| ✅ | 10 | Connect refresh cycle | `packages/vscode/src/extension.ts` | All | — |
 ---
 
 ## Step 1 — Define Commands in `package.json`

@@ -9,6 +9,42 @@ design_version: 3
 tags: [refactor, core, threads, weaves, migration, phase-4]
 parent_id: de_01KQYDFDDCMH30S303HF03ET00
 requires_load: [de_01KQYDFDDCMH30S303HF03ET00, de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDEQ81VMM0SPD1P1DBM]
+steps:
+  - id: add-thread-tree-node-with-contextvalue
+    order: 18
+    status: done
+    description: Add Thread tree node with contextValue `thread`. Weave children = thread nodes + loose fibers section + weave-level chats.
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: [Step 10]
+    satisfies: []
+  - id: thread-node-children-idea-design-plans
+    order: 19
+    status: done
+    description: Thread node children = idea + design + Plans section + Chats section (thread-level). Remove "primary design" logic (each thread has exactly one design).
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: [Step 18]
+    satisfies: []
+  - id: update-inline-button-clauses-in-package
+    order: 20
+    status: done
+    description: "Update inline button `when` clauses in `package.json`: thread-level commands on `viewItem == thread`, weave-level on `viewItem == weave`, loose-fiber specific entries."
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: [Step 19]
+    satisfies: []
+  - id: update-commands-to-pass-thread-context
+    order: 21
+    status: done
+    description: "Update commands to pass thread context: `weaveIdea`, `weaveDesign`, `weavePlan`. Commands read threadId from node or auto-derive from title."
+    files_touched: ["`packages/vscode/src/commands/*.ts`"]
+    blocked_by: [Step 19]
+    satisfies: []
+  - id: extension-host-test-rewrite-new-builds
+    order: 22
+    status: done
+    description: "Extension Host test rewrite: new `seedWeave` builds thread-based layout; tree tests verify Weave → Thread → Docs rendering; commands tests verify thread context."
+    files_touched: ["`tests/vscode/helpers.ts`", "`tests/vscode/tree.test.ts`", "`tests/vscode/commands.test.ts`"]
+    blocked_by: [Steps 18–21]
+    satisfies: []
 ---
 
 # Weave & Thread — Phase 4 Implementation
@@ -62,17 +98,13 @@ Every layer is affected: core entities, fs loaders, app use-cases, CLI, VS Code 
 
 ## Steps
 
-
-### Phase 5 — VS Code Tree & Commands
-
-| Done | # | Step | Files touched | Blocked by |
-|------|---|------|---------------|------------|
-| ✅ | 18 | Add Thread tree node with contextValue `thread`. Weave children = thread nodes + loose fibers section + weave-level chats. | `packages/vscode/src/tree/treeProvider.ts` | Step 10 |
-| ✅ | 19 | Thread node children = idea + design + Plans section + Chats section (thread-level). Remove "primary design" logic (each thread has exactly one design). | `packages/vscode/src/tree/treeProvider.ts` | Step 18 |
-| ✅ | 20 | Update inline button `when` clauses in `package.json`: thread-level commands on `viewItem == thread`, weave-level on `viewItem == weave`, loose-fiber specific entries. | `packages/vscode/package.json` | Step 19 |
-| ✅ | 21 | Update commands to pass thread context: `weaveIdea`, `weaveDesign`, `weavePlan`. Commands read threadId from node or auto-derive from title. | `packages/vscode/src/commands/*.ts` | Step 19 |
-| ✅ | 22 | Extension Host test rewrite: new `seedWeave` builds thread-based layout; tree tests verify Weave → Thread → Docs rendering; commands tests verify thread context. | `tests/vscode/helpers.ts`, `tests/vscode/tree.test.ts`, `tests/vscode/commands.test.ts` | Steps 18–21 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 18 | Add Thread tree node with contextValue `thread`. Weave children = thread nodes + loose fibers section + weave-level chats. | `packages/vscode/src/tree/treeProvider.ts` | Step 10 | — |
+| ✅ | 19 | Thread node children = idea + design + Plans section + Chats section (thread-level). Remove "primary design" logic (each thread has exactly one design). | `packages/vscode/src/tree/treeProvider.ts` | Step 18 | — |
+| ✅ | 20 | Update inline button `when` clauses in `package.json`: thread-level commands on `viewItem == thread`, weave-level on `viewItem == weave`, loose-fiber specific entries. | `packages/vscode/package.json` | Step 19 | — |
+| ✅ | 21 | Update commands to pass thread context: `weaveIdea`, `weaveDesign`, `weavePlan`. Commands read threadId from node or auto-derive from title. | `packages/vscode/src/commands/*.ts` | Step 19 | — |
+| ✅ | 22 | Extension Host test rewrite: new `seedWeave` builds thread-based layout; tree tests verify Weave → Thread → Docs rendering; commands tests verify thread context. | `tests/vscode/helpers.ts`, `tests/vscode/tree.test.ts`, `tests/vscode/commands.test.ts` | Steps 18–21 | — |
 ### Phase 6 — Integration Tests
 
 | Done | # | Step | Files touched | Blocked by |

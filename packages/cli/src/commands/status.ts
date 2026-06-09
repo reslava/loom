@@ -112,7 +112,7 @@ export async function statusCommand(
             if (activePlan && options?.verbose) {
                 const index = state.index;
                 const steps = activePlan.steps || [];
-                const doneCount = steps.filter(s => s.done).length;
+                const doneCount = steps.filter(s => s.status === 'done').length;
 
                 console.log(`\n📋 Active Plan: ${activePlan.id}`);
                 console.log(`   Status: ${activePlan.status}`);
@@ -121,8 +121,12 @@ export async function statusCommand(
 
                 for (const step of steps) {
                     let symbol: string;
-                    if (step.done) {
+                    if (step.status === 'done') {
                         symbol = '✅';
+                    } else if (step.status === 'cancelled') {
+                        symbol = '❌';
+                    } else if (step.status === 'in_progress') {
+                        symbol = '🔄';
                     } else if (isStepBlocked(step, activePlan as PlanDoc, index)) {
                         symbol = '🔒';
                     } else {
@@ -130,8 +134,8 @@ export async function statusCommand(
                     }
 
                     console.log(`   ${symbol} ${step.order}. ${step.description}`);
-                    
-                    if (!step.done && isStepBlocked(step, activePlan as PlanDoc, index)) {
+
+                    if (step.status !== 'done' && step.status !== 'cancelled' && isStepBlocked(step, activePlan as PlanDoc, index)) {
                         const blockers = step.blockedBy.join(', ');
                         console.log(`      ⚠️ Blocked by: ${blockers}`);
                     }
@@ -141,10 +145,10 @@ export async function statusCommand(
                 if (nextStep) {
                     console.log(chalk.gray(`\n   💡 Next step: Step ${nextStep.order} — ${nextStep.description}`));
                 } else {
-                    const blockedSteps = steps.filter(s => !s.done && isStepBlocked(s, activePlan as PlanDoc, index));
+                    const blockedSteps = steps.filter(s => s.status !== 'done' && s.status !== 'cancelled' && isStepBlocked(s, activePlan as PlanDoc, index));
                     if (blockedSteps.length > 0) {
                         console.log(chalk.yellow(`\n   ⚠️ All remaining steps are blocked.`));
-                    } else if (steps.every(s => s.done)) {
+                    } else if (steps.every(s => s.status === 'done' || s.status === 'cancelled')) {
                         console.log(chalk.green(`\n   🎉 All steps complete!`));
                     }
                 }

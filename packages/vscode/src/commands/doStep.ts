@@ -2,16 +2,9 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import { promisify } from 'util';
 import { TreeNode } from '../tree/treeProvider';
-import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
+import { PlanDoc, PlanStep } from '@reslava-loom/core/dist/entities/plan';
 
 const exec = promisify(cp.exec);
-
-interface PlanStep {
-    order: number;
-    description: string;
-    done: boolean;
-    blockedBy: string[];
-}
 
 async function isClaudeInstalled(): Promise<boolean> {
     try {
@@ -24,13 +17,13 @@ async function isClaudeInstalled(): Promise<boolean> {
 }
 
 function isDoable(step: PlanStep, allSteps: PlanStep[], pickedNumbers: Set<number>): boolean {
-    if (step.done) return false;
+    if (step.status === 'done' || step.status === 'cancelled') return false;
     for (const blocker of step.blockedBy) {
         const n = parseInt(blocker, 10);
         if (Number.isNaN(n)) continue;
         const blockerStep = allSteps.find(s => s.order === n);
         if (!blockerStep) continue;
-        if (blockerStep.done) continue;
+        if (blockerStep.status === 'done' || blockerStep.status === 'cancelled') continue;
         if (pickedNumbers.has(n)) continue;
         return false;
     }
@@ -65,14 +58,9 @@ function topoSort(stepNumbers: number[], allSteps: PlanStep[]): number[] {
 }
 
 async function pickStepNumbers(plan: PlanDoc): Promise<number[] | undefined> {
-    const allSteps: PlanStep[] = (plan.steps ?? []).map(s => ({
-        order: s.order,
-        description: s.description,
-        done: s.done,
-        blockedBy: s.blockedBy ?? [],
-    }));
+    const allSteps: PlanStep[] = plan.steps ?? [];
 
-    const notDone = allSteps.filter(s => !s.done);
+    const notDone = allSteps.filter(s => s.status !== 'done' && s.status !== 'cancelled');
     if (notDone.length === 0) {
         vscode.window.showInformationMessage('All steps are already done.');
         return undefined;
@@ -154,7 +142,7 @@ async function pickStepNumbers(plan: PlanDoc): Promise<number[] | undefined> {
                 .filter(b => !Number.isNaN(b))
                 .filter(b => {
                     const blocker = allSteps.find(s => s.order === b);
-                    return blocker && !blocker.done && !pickedNumbers.has(b);
+                    return blocker && blocker.status !== 'done' && blocker.status !== 'cancelled' && !pickedNumbers.has(b);
                 });
             vscode.window.showErrorMessage(
                 `Step ${p.order} is blocked by step${missing.length === 1 ? '' : 's'} ${missing.join(', ')}. Include ${missing.length === 1 ? 'it' : 'them'} in your pick or run ${missing.length === 1 ? 'it' : 'them'} first.`

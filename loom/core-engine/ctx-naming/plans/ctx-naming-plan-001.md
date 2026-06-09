@@ -10,6 +10,14 @@ design_version: 1
 tags: [ctx, naming, layout, refactor, mvp]
 parent_id: de_01KQYDFDDBPFWTRWDMCAH1V45S
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+steps:
+  - id: grep-the-entire-repo-for-hard
+    order: 1
+    status: pending
+    description: "Grep the entire repo for hard-coded `'loom-ctx.md'` / `\"loom-ctx.md\"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4."
+    files_touched: ["grep across `packages/`", "`loom/`", root files]
+    blocked_by: []
+    satisfies: []
 ---
 
 # Unify ctx Filenames to ctx.md
@@ -21,9 +29,9 @@ Rename `loom/loom-ctx.md` → `loom/ctx.md` and update all path references acros
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Grep the entire repo for hard-coded `'loom-ctx.md'` / `"loom-ctx.md"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4. | grep across `packages/`, `loom/`, root files | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Grep the entire repo for hard-coded `'loom-ctx.md'` / `"loom-ctx.md"` literals (TS, JS, MD). Report each occurrence and classify: (a) path reference in CLAUDE.md/refs/templates that should be updated, (b) code logic that joins the filename onto the loom root and needs a refactor, (c) historical mention in archive/done that can stay. Produce a list to drive steps 2–4. | grep across `packages/`, `loom/`, root files | — | — |
 ---
 
 ### Phase 2 — Rename and update path references

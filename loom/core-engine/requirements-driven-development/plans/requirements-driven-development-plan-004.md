@@ -4,7 +4,7 @@ id: pl_01KTE0YGZ53NB9YBCYMJ6MPE3Z
 title: RDD Phase 2 follow-up 2 — req-node coverage badge + verify-thread rename
 status: done
 created: "2026-06-06T00:00:00.000Z"
-updated: 2026-06-06
+updated: "2026-06-06T00:00:00.000Z"
 version: 1
 design_version: 1
 req_version: 1
@@ -12,6 +12,28 @@ tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: app-surface-per-thread-req-coverage
+    order: 1
+    status: done
+    description: "app — surface per-thread req coverage in state. In `getState`'s existing coverage loop, attach a per-thread coverage result (gap count + the uncovered / excluded-violation / unknown-citation ids) to each thread that has a locked req, alongside the existing aggregate `reqCoverageGaps` sum (compute once, no double pass). Carry it on the serialized thread the `loom://state` resource already returns so the tree can read it without recomputing."
+    files_touched: [packages/app/src/getState.ts, packages/core (Thread/state type for the per-thread coverage field), packages/mcp/src/resources/state.ts (if it projects thread fields), tests]
+    blocked_by: []
+    satisfies: [IN6, IN9]
+  - id: vscode-req-node-coverage-badge-command
+    order: 2
+    status: done
+    description: vscode — req-node coverage badge + command rename. In `treeProvider.getThreadChildren`, extend the locked-req node description from `🔒 locked` to include coverage (e.g. `🔒 locked · ⚠️ N gaps`, or `🔒 locked · ✅ covered` when clean) sourced from the step-1 per-thread field. Rename the `loom.verifyReq` command title "Verify Plan Against Requirements" → "Verify Thread Against Requirements".
+    files_touched: [packages/vscode/src/tree/treeProvider.ts, packages/vscode/package.json]
+    blocked_by: []
+    satisfies: [IN9]
+  - id: build-full-test-green-smoke
+    order: 3
+    status: done
+    description: "build + full test green + smoke. Run build-all and test-all. Smoke: a thread with a locked req and uncovered Included ids shows `⚠️ N gaps` on its req node; a fully-cited thread shows `✅ covered`; the command palette shows \"Verify Thread Against Requirements\"."
+    files_touched: []
+    blocked_by: []
+    satisfies: [IN6, IN9]
 ---
 # RDD Phase 2 follow-up 2 — req-node coverage badge + verify-thread rename
 

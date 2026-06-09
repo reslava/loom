@@ -1,9 +1,9 @@
 import { assert } from './test-utils.ts';
-import { updateStepsTableInContent, parseStepsTable, generateStepsTable } from '../packages/core/dist/index.js';
+import { updateStepsTableInContent, parseStepsTable, generateStepsTable, serializePlanBody } from '../packages/core/dist/index.js';
 
 const STEPS = [
-    { order: 1, description: 'First step', done: true, files_touched: [], blockedBy: [] },
-    { order: 2, description: 'Second step', done: false, files_touched: [], blockedBy: [] },
+    { order: 1, description: 'First step', status: 'done', files_touched: [], blockedBy: [] },
+    { order: 2, description: 'Second step', status: 'pending', files_touched: [], blockedBy: [] },
 ];
 
 async function run() {
@@ -79,7 +79,7 @@ async function run() {
         ].join('\n');
         const parsed = parseStepsTable(body);
         assert(parsed.length === 2, `expected 2 steps, got ${parsed.length}`);
-        assert(parsed[0].done === true && parsed[1].done === false, 'done flags parsed correctly');
+        assert(parsed[0].status === 'done' && parsed[1].status === 'pending', 'done flags parsed correctly');
         console.log('    ✅ parsed exactly the 2 table rows');
     }
 
@@ -89,8 +89,8 @@ async function run() {
     console.log('  • a step description containing a literal | round-trips losslessly...');
     {
         const steps = [
-            { order: 1, description: "Add `load: 'always' | 'by-request'` field", done: false, files_touched: [], blockedBy: [] },
-            { order: 2, description: 'Plain step', done: true, files_touched: [], blockedBy: [] },
+            { order: 1, description: "Add `load: 'always' | 'by-request'` field", status: 'pending', files_touched: [], blockedBy: [] },
+            { order: 2, description: 'Plain step', status: 'done', files_touched: [], blockedBy: [] },
         ];
         const table = generateStepsTable(steps);
         assert(table.includes('\\|'), 'the literal pipe is escaped in the generated table');
@@ -102,7 +102,7 @@ async function run() {
             parsed[0].description === "Add `load: 'always' | 'by-request'` field",
             `description must round-trip with its pipe intact, got: ${parsed[0].description}`,
         );
-        assert(parsed[0].done === false && parsed[1].done === true, 'done flags survive the pipe-escaped row');
+        assert(parsed[0].status === 'pending' && parsed[1].status === 'done', 'done flags survive the pipe-escaped row');
         console.log('    ✅ pipe-bearing description round-trips intact');
     }
 
@@ -136,8 +136,8 @@ async function run() {
     console.log('  • Satisfies column round-trips; legacy 5-col table → satisfies []...');
     {
         const steps = [
-            { order: 1, description: 'Cite step', done: false, files_touched: ['a.ts'], blockedBy: [], satisfies: ['IN1', 'C2'] },
-            { order: 2, description: 'No cite', done: true, files_touched: [], blockedBy: [], satisfies: [] },
+            { order: 1, description: 'Cite step', status: 'pending', files_touched: ['a.ts'], blockedBy: [], satisfies: ['IN1', 'C2'] },
+            { order: 2, description: 'No cite', status: 'done', files_touched: [], blockedBy: [], satisfies: [] },
         ];
         const table = generateStepsTable(steps);
         assert(table.includes('| Done | # | Step | Files touched | Blocked by | Satisfies |'), '6-column header expected');
@@ -161,7 +161,7 @@ async function run() {
         const legacyParsed = parseStepsTable(legacy);
         assert(legacyParsed.length === 1, 'legacy table parses to 1 step');
         assert(legacyParsed[0].satisfies.length === 0, 'legacy step → satisfies []');
-        assert(legacyParsed[0].blockedBy.length === 0 && legacyParsed[0].done === true, 'legacy columns still parse');
+        assert(legacyParsed[0].blockedBy.length === 0 && legacyParsed[0].status === 'done', 'legacy columns still parse');
         console.log('    ✅ Satisfies round-trips; legacy tables default to []');
     }
 
@@ -190,6 +190,35 @@ async function run() {
         const filled = updateStepsTableInContent(emptyBody, STEPS);
         assert(filled.includes('| ✅ | 1 | First step'), 'an empty Steps section still gets the new table');
         console.log('    ✅ populated table preserved; empty section still fillable');
+    }
+
+    // ── Invariant: serializePlanBody → parseStepsTable round-trips the table fields ──
+    // The single serializer and the parser must agree. id/title/detail are NOT table
+    // columns (they live in frontmatter post-flip), so the round-trip is over the
+    // table-carried fields: order, status, description, files_touched, blockedBy, satisfies.
+    console.log('  • serializePlanBody → parseStepsTable round-trips table-carried fields...');
+    {
+        const steps = [
+            { id: 'a', order: 1, status: 'done', title: 'T1', description: 'First | piped step', files_touched: ['a.ts', 'b.ts'], blockedBy: [], satisfies: ['IN1'], detail: 'Do step A.' },
+            { id: 'b', order: 2, status: 'in_progress', title: 'T2', description: 'Second', files_touched: [], blockedBy: ['a'], satisfies: [], detail: 'Do step B.' },
+            { id: 'c', order: 3, status: 'pending', title: 'T3', description: 'Third', files_touched: [], blockedBy: [], satisfies: [] },
+        ];
+        const body = serializePlanBody(steps, { goal: 'Test goal paragraph.' });
+        const parsed = parseStepsTable(body);
+        assert(parsed.length === 3, `expected 3 steps, got ${parsed.length}`);
+        for (let i = 0; i < steps.length; i++) {
+            assert(parsed[i].order === steps[i].order, `order[${i}] mismatch`);
+            assert(parsed[i].status === steps[i].status, `status[${i}] mismatch: got ${parsed[i].status}`);
+            assert(parsed[i].description === steps[i].description, `description[${i}] mismatch: got ${parsed[i].description}`);
+            assert(JSON.stringify(parsed[i].files_touched) === JSON.stringify(steps[i].files_touched), `files_touched[${i}] mismatch`);
+            assert(JSON.stringify(parsed[i].blockedBy) === JSON.stringify(steps[i].blockedBy), `blockedBy[${i}] mismatch`);
+            assert(JSON.stringify(parsed[i].satisfies) === JSON.stringify(steps[i].satisfies), `satisfies[${i}] mismatch`);
+        }
+        // The serializer emits Goal + Legend + per-step detail sections.
+        assert(body.includes('## Goal') && body.includes('Test goal paragraph.'), 'goal section present');
+        assert(body.includes('### Legend'), 'legend present');
+        assert(body.includes('### Step 1 — T1') && body.includes('Do step A.'), 'detail section rendered');
+        console.log('    ✅ round-trip holds; goal/legend/detail sections render');
     }
 
     console.log('\n✅ planTableUtils tests passed\n');

@@ -9,6 +9,42 @@ design_version: 1
 tags: [docs, tutorial, readme, gif, onboarding]
 parent_id: null
 requires_load: []
+steps:
+  - id: script-the-happy-path-write-the
+    order: 1
+    status: pending
+    description: "Script the happy path — write the exact commands and UI interactions for the tutorial flow: `ext install` + `loom init`, `loom weave-idea`, `loom weave-design`, `loom weave-plan` (2 steps), `loom do-step 1`, `loom complete-step 1`, `loom do-step 2`, `loom complete-step 2`, `loom close-plan`. Ensure this flow works end-to-end on a clean workspace"
+    files_touched: ["`weaves/docs-infra/plans/tutorial-plan-001.md` (notes)"]
+    blocked_by: [Extension commands stable]
+    satisfies: []
+  - id: validate-the-full-flow-on-clean
+    order: 2
+    status: pending
+    description: "Validate the full flow on `j:/temp/loom-tutorial` — clean workspace, run every command, verify tree view updates at each stage, no errors"
+    files_touched: [manual test]
+    blocked_by: [1]
+    satisfies: []
+  - id: record-gif-screen-capture-the-vs
+    order: 3
+    status: pending
+    description: "Record GIF — screen capture the VS Code window during the validated flow. Target: under 45 seconds, 1280×720, shows tree view + terminal side by side"
+    files_touched: ["GIF file (to be stored in `docs/` or linked from CDN)"]
+    blocked_by: [2]
+    satisfies: []
+  - id: write-readme
+    order: 4
+    status: pending
+    description: Write `README.md` tutorial section — install command, embed GIF, five-stage walkthrough (one sentence per stage), under 200 words total
+    files_touched: ["`README.md`"]
+    blocked_by: [1, 2, 3]
+    satisfies: []
+  - id: review-confirm-the-tutorial-matches-the
+    order: 5
+    status: pending
+    description: "Review: confirm the tutorial matches the actual UX after plan-008 and vscode-tests-plan-001 polish is applied"
+    files_touched: ["`README.md`"]
+    blocked_by: [4, vscode-extension-plan-008, vscode-tests-plan-001]
+    satisfies: []
 ---
 
 # Loom Tutorial — Install to Done (README + GIF)
@@ -29,13 +65,13 @@ The GIF captures the VS Code tree view updating live through each stage.
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Script the happy path — write the exact commands and UI interactions for the tutorial flow: `ext install` + `loom init`, `loom weave-idea`, `loom weave-design`, `loom weave-plan` (2 steps), `loom do-step 1`, `loom complete-step 1`, `loom do-step 2`, `loom complete-step 2`, `loom close-plan`. Ensure this flow works end-to-end on a clean workspace | `weaves/docs-infra/plans/tutorial-plan-001.md` (notes) | Extension commands stable |
-| 🔳 | 2 | Validate the full flow on `j:/temp/loom-tutorial` — clean workspace, run every command, verify tree view updates at each stage, no errors | manual test | 1 |
-| 🔳 | 3 | Record GIF — screen capture the VS Code window during the validated flow. Target: under 45 seconds, 1280×720, shows tree view + terminal side by side | GIF file (to be stored in `docs/` or linked from CDN) | 2 |
-| 🔳 | 4 | Write `README.md` tutorial section — install command, embed GIF, five-stage walkthrough (one sentence per stage), under 200 words total | `README.md` | 1, 2, 3 |
-| 🔳 | 5 | Review: confirm the tutorial matches the actual UX after plan-008 and vscode-tests-plan-001 polish is applied | `README.md` | 4, vscode-extension-plan-008, vscode-tests-plan-001 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Script the happy path — write the exact commands and UI interactions for the tutorial flow: `ext install` + `loom init`, `loom weave-idea`, `loom weave-design`, `loom weave-plan` (2 steps), `loom do-step 1`, `loom complete-step 1`, `loom do-step 2`, `loom complete-step 2`, `loom close-plan`. Ensure this flow works end-to-end on a clean workspace | `weaves/docs-infra/plans/tutorial-plan-001.md` (notes) | Extension commands stable | — |
+| 🔳 | 2 | Validate the full flow on `j:/temp/loom-tutorial` — clean workspace, run every command, verify tree view updates at each stage, no errors | manual test | 1 | — |
+| 🔳 | 3 | Record GIF — screen capture the VS Code window during the validated flow. Target: under 45 seconds, 1280×720, shows tree view + terminal side by side | GIF file (to be stored in `docs/` or linked from CDN) | 2 | — |
+| 🔳 | 4 | Write `README.md` tutorial section — install command, embed GIF, five-stage walkthrough (one sentence per stage), under 200 words total | `README.md` | 1, 2, 3 | — |
+| 🔳 | 5 | Review: confirm the tutorial matches the actual UX after plan-008 and vscode-tests-plan-001 polish is applied | `README.md` | 4, vscode-extension-plan-008, vscode-tests-plan-001 | — |
 ### Notes
 
 - Tutorial must be finalized **after** the extension UX is locked. Do not write it before

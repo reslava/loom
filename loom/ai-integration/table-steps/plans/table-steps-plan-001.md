@@ -11,6 +11,42 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: fix-to-scan-frontmatter
+    order: 0
+    status: done
+    description: Fix `findDocumentById` + `gatherAllDocumentIds` to scan frontmatter `id`
+    files_touched: ["`packages/fs/src/utils/pathUtils.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-to-accept-and-render
+    order: 1
+    status: done
+    description: "Update `generatePlanBody` to accept and render `steps?: string[]`"
+    files_touched: ["`packages/core/src/bodyGenerators/planBody.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: add-to-and-pass-through-to
+    order: 2
+    status: done
+    description: Add `steps` to `WeavePlanInput` and pass through to body generator
+    files_touched: ["`packages/app/src/weavePlan.ts`"]
+    blocked_by: [1]
+    satisfies: []
+  - id: add-to-tool-schema-and-pass
+    order: 3
+    status: done
+    description: Add `steps` to `loom_create_plan` tool schema and pass to `weavePlan`
+    files_touched: ["`packages/mcp/src/tools/createPlan.ts`"]
+    blocked_by: [2]
+    satisfies: []
+  - id: build-all-packages-and-verify
+    order: 4
+    status: done
+    description: Build all packages and verify
+    files_touched: ["`packages/core`", "`packages/app`", "`packages/mcp`", "`packages/vscode`"]
+    blocked_by: [3]
+    satisfies: []
 ---
 # Wire steps array through loom_create_plan
 
@@ -32,13 +68,13 @@ Also fixed `findDocumentById` and `gatherAllDocumentIds` in `packages/fs/src/uti
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 0 | Fix `findDocumentById` + `gatherAllDocumentIds` to scan frontmatter `id` | `packages/fs/src/utils/pathUtils.ts` | — |
-| ✅ | 1 | Update `generatePlanBody` to accept and render `steps?: string[]` | `packages/core/src/bodyGenerators/planBody.ts` | — |
-| ✅ | 2 | Add `steps` to `WeavePlanInput` and pass through to body generator | `packages/app/src/weavePlan.ts` | 1 |
-| ✅ | 3 | Add `steps` to `loom_create_plan` tool schema and pass to `weavePlan` | `packages/mcp/src/tools/createPlan.ts` | 2 |
-| ✅ | 4 | Build all packages and verify | `packages/core`, `packages/app`, `packages/mcp`, `packages/vscode` | 3 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 0 | Fix `findDocumentById` + `gatherAllDocumentIds` to scan frontmatter `id` | `packages/fs/src/utils/pathUtils.ts` | — | — |
+| ✅ | 1 | Update `generatePlanBody` to accept and render `steps?: string[]` | `packages/core/src/bodyGenerators/planBody.ts` | — | — |
+| ✅ | 2 | Add `steps` to `WeavePlanInput` and pass through to body generator | `packages/app/src/weavePlan.ts` | 1 | — |
+| ✅ | 3 | Add `steps` to `loom_create_plan` tool schema and pass to `weavePlan` | `packages/mcp/src/tools/createPlan.ts` | 2 | — |
+| ✅ | 4 | Build all packages and verify | `packages/core`, `packages/app`, `packages/mcp`, `packages/vscode` | 3 | — |
 ---
 
 ### Legend

@@ -4,13 +4,49 @@ id: pl_01KT3KTH7F383XWGT0128QCD1G
 title: "resolution-dx-rollout: route remaining findDocumentById callers"
 status: done
 created: "2026-06-02T00:00:00.000Z"
-updated: 2026-06-02
+updated: "2026-06-02T00:00:00.000Z"
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT3FG3M865N54WBT3Z95T20Y
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: route-read-resource-entry-points-primary
+    order: 1
+    status: done
+    description: Route read-resource entry points (primary id only)
+    files_touched: [packages/mcp/src/resources/docs.ts, packages/mcp/src/resources/plan.ts, packages/mcp/src/resources/requiresLoad.ts]
+    blocked_by: []
+    satisfies: []
+  - id: route-prompt-entry-points
+    order: 2
+    status: done
+    description: Route prompt entry points
+    files_touched: [packages/mcp/src/prompts/refineDesign.ts, packages/mcp/src/prompts/doNextStep.ts]
+    blocked_by: []
+    satisfies: []
+  - id: route-tool-entry-points-primary-id
+    order: 3
+    status: done
+    description: Route tool entry points (primary id only)
+    files_touched: [packages/mcp/src/tools/appendDone.ts, packages/mcp/src/tools/archive.ts, packages/mcp/src/tools/appendToChat.ts, packages/mcp/src/tools/doStep.ts, packages/mcp/src/tools/listPlanSteps.ts, packages/mcp/src/tools/refineDesign.ts, packages/mcp/src/tools/refineIdea.ts, packages/mcp/src/tools/refinePlan.ts]
+    blocked_by: []
+    satisfies: []
+  - id: assess-generate
+    order: 4
+    status: done
+    description: Assess generate.ts lookups + injected-dep case
+    files_touched: [packages/mcp/src/tools/generate.ts, packages/mcp/src/tools/finalizeDoc.ts, packages/mcp/src/tools/rename.ts]
+    blocked_by: []
+    satisfies: []
+  - id: tests-build
+    order: 5
+    status: done
+    description: Tests + build
+    files_touched: [tests/resolution-dx.test.ts, scripts/test-all.sh]
+    blocked_by: []
+    satisfies: []
 ---
 # resolution-dx-rollout: route remaining findDocumentById callers
 
@@ -32,13 +68,13 @@ rollout and each step calls out which lookups are primary vs internal.
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Route read-resource entry points (primary id only) | packages/mcp/src/resources/docs.ts, packages/mcp/src/resources/plan.ts, packages/mcp/src/resources/requiresLoad.ts | — |
-| ✅ | 2 | Route prompt entry points | packages/mcp/src/prompts/refineDesign.ts, packages/mcp/src/prompts/doNextStep.ts | — |
-| ✅ | 3 | Route tool entry points (primary id only) | packages/mcp/src/tools/appendDone.ts, packages/mcp/src/tools/archive.ts, packages/mcp/src/tools/appendToChat.ts, packages/mcp/src/tools/doStep.ts, packages/mcp/src/tools/listPlanSteps.ts, packages/mcp/src/tools/refineDesign.ts, packages/mcp/src/tools/refineIdea.ts, packages/mcp/src/tools/refinePlan.ts | — |
-| ✅ | 4 | Assess generate.ts lookups + injected-dep case | packages/mcp/src/tools/generate.ts, packages/mcp/src/tools/finalizeDoc.ts, packages/mcp/src/tools/rename.ts | — |
-| ✅ | 5 | Tests + build | tests/resolution-dx.test.ts, scripts/test-all.sh | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Route read-resource entry points (primary id only) | packages/mcp/src/resources/docs.ts, packages/mcp/src/resources/plan.ts, packages/mcp/src/resources/requiresLoad.ts | — | — |
+| ✅ | 2 | Route prompt entry points | packages/mcp/src/prompts/refineDesign.ts, packages/mcp/src/prompts/doNextStep.ts | — | — |
+| ✅ | 3 | Route tool entry points (primary id only) | packages/mcp/src/tools/appendDone.ts, packages/mcp/src/tools/archive.ts, packages/mcp/src/tools/appendToChat.ts, packages/mcp/src/tools/doStep.ts, packages/mcp/src/tools/listPlanSteps.ts, packages/mcp/src/tools/refineDesign.ts, packages/mcp/src/tools/refineIdea.ts, packages/mcp/src/tools/refinePlan.ts | — | — |
+| ✅ | 4 | Assess generate.ts lookups + injected-dep case | packages/mcp/src/tools/generate.ts, packages/mcp/src/tools/finalizeDoc.ts, packages/mcp/src/tools/rename.ts | — | — |
+| ✅ | 5 | Tests + build | tests/resolution-dx.test.ts, scripts/test-all.sh | — | — |
 ## Per-step detail
 
 ### Step 1 — read resources

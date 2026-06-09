@@ -87,7 +87,7 @@ function buildWeaveSource(weaveId: string, state: LoomState): string {
     const primaryDesign = weave.threads.find(t => t.design)?.design;
 
     const planLines = weave.threads.flatMap(t => t.plans).map(p => {
-        const done = p.steps?.filter(s => s.done).length ?? 0;
+        const done = p.steps?.filter(s => s.status === 'done').length ?? 0;
         const total = p.steps?.length ?? 0;
         return `- ${p.id} (${p.status}, ${done}/${total} steps)`;
     }).join('\n') || '(none)';

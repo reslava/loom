@@ -17,12 +17,19 @@ export function isStepBlocked(
     if (!step.blockedBy || step.blockedBy.length === 0) return false;
 
     for (const blocker of step.blockedBy) {
-        // Internal step dependency: "Step N"
+        // Internal step dependency by stable id (canonical).
+        const byId = plan.steps?.find(s => s.id === blocker);
+        if (byId) {
+            if (byId.status !== 'done' && byId.status !== 'cancelled') return true;
+            continue;
+        }
+
+        // Internal step dependency by ordinal "Step N" / "N" (legacy, pre-stable-id).
         const stepMatch = blocker.match(/^(?:Step\s+)?(\d+)$/i);
         if (stepMatch) {
             const stepNum = parseInt(stepMatch[1], 10);
             const targetStep = plan.steps?.find(s => s.order === stepNum);
-            if (targetStep && !targetStep.done) return true;
+            if (targetStep && targetStep.status !== 'done' && targetStep.status !== 'cancelled') return true;
             continue;
         }
 
@@ -55,7 +62,7 @@ export function findNextStep(
     if (!plan.steps) return null;
 
     for (const step of plan.steps) {
-        if (step.done) continue;
+        if (step.status === 'done' || step.status === 'cancelled') continue;
         if (!isStepBlocked(step, plan, index)) {
             return { order: step.order, description: step.description };
         }

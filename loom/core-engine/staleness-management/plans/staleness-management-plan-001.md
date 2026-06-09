@@ -10,6 +10,21 @@ design_version: 2
 tags: [staleness, vscode, mcp, mvp]
 parent_id: de_01KQYDFDDC911HGHRQGZV1ZSCA
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+steps:
+  - id: add-count-to-the-mcp-resource
+    order: 1
+    status: pending
+    description: "Add `staleDocs` count to the `loom://summary` MCP resource response. Use the existing `loom_get_stale_docs` query. Include both stale-docs and stale-plans counts as separate fields."
+    files_touched: ["`packages/mcp/src/resources/summary.ts`", "`packages/mcp/tests/integration.test.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: add-stale-doc-entries-to-one
+    order: 2
+    status: pending
+    description: "Add stale-doc entries to `loom://diagnostics` — one entry per stale doc with id, parent id, parent version, doc's known parent_version, and human-readable reason."
+    files_touched: ["`packages/mcp/src/resources/diagnostics.ts`", "`packages/mcp/tests/integration.test.ts`"]
+    blocked_by: [1]
+    satisfies: []
 ---
 
 # Staleness Management — MVP Surfacing
@@ -21,10 +36,10 @@ Surface the existing passive staleness-detection infrastructure (`loom_get_stale
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Add `staleDocs` count to the `loom://summary` MCP resource response. Use the existing `loom_get_stale_docs` query. Include both stale-docs and stale-plans counts as separate fields. | `packages/mcp/src/resources/summary.ts`, `packages/mcp/tests/integration.test.ts` | — |
-| 🔳 | 2 | Add stale-doc entries to `loom://diagnostics` — one entry per stale doc with id, parent id, parent version, doc's known parent_version, and human-readable reason. | `packages/mcp/src/resources/diagnostics.ts`, `packages/mcp/tests/integration.test.ts` | 1 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Add `staleDocs` count to the `loom://summary` MCP resource response. Use the existing `loom_get_stale_docs` query. Include both stale-docs and stale-plans counts as separate fields. | `packages/mcp/src/resources/summary.ts`, `packages/mcp/tests/integration.test.ts` | — | — |
+| 🔳 | 2 | Add stale-doc entries to `loom://diagnostics` — one entry per stale doc with id, parent id, parent version, doc's known parent_version, and human-readable reason. | `packages/mcp/src/resources/diagnostics.ts`, `packages/mcp/tests/integration.test.ts` | 1 | — |
 ---
 
 ### Phase 2 — VS Code tree-view stale icon

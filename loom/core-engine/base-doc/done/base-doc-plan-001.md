@@ -9,6 +9,56 @@ tags: [core, entities, refactor, typescript]
 parent_id: de_01KQYDFDDATTCNZQCNB0JR0Z0F
 requires_load: [de_01KQYDFDDATTCNZQCNB0JR0Z0F]
 target_version: 0.5.0
+steps:
+  - id: create-entities-base
+    order: 1
+    status: done
+    description: Create `entities/base.ts` with `BaseDoc`, `DocumentType`
+    files_touched: ["`packages/core/src/entities/base.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-entities-idea
+    order: 2
+    status: done
+    description: Update `entities/idea.ts` to extend `BaseDoc<IdeaStatus>`
+    files_touched: ["`packages/core/src/entities/idea.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-entities-design
+    order: 3
+    status: done
+    description: Update `entities/design.ts` to extend `BaseDoc<DesignStatus>`
+    files_touched: ["`packages/core/src/entities/design.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-entities-plan
+    order: 4
+    status: done
+    description: Update `entities/plan.ts` to extend `BaseDoc<PlanStatus>`
+    files_touched: ["`packages/core/src/entities/plan.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-entities-ctx
+    order: 5
+    status: done
+    description: Update `entities/ctx.ts` to extend `BaseDoc<CtxStatus>`
+    files_touched: ["`packages/core/src/entities/ctx.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-index
+    order: 6
+    status: done
+    description: Update `index.ts` to re‑export `BaseDoc` and `DocumentType`
+    files_touched: ["`packages/core/src/index.ts`"]
+    blocked_by: [Steps 1‑5]
+    satisfies: []
+  - id: run-full-build-and-test-suite
+    order: 7
+    status: done
+    description: Run full build and test suite
+    files_touched: [All packages, "`tests/*`"]
+    blocked_by: [Step 6]
+    satisfies: []
 ---
 
 # Extract BaseDoc Interface with Generic Status
@@ -28,18 +78,17 @@ Extract a generic `BaseDoc<TStatus>` interface and update all existing document 
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `entities/base.ts` with `BaseDoc`, `DocumentType` | `packages/core/src/entities/base.ts` | — |
-| ✅ | 2 | Update `entities/idea.ts` to extend `BaseDoc<IdeaStatus>` | `packages/core/src/entities/idea.ts` | Step 1 |
-| ✅ | 3 | Update `entities/design.ts` to extend `BaseDoc<DesignStatus>` | `packages/core/src/entities/design.ts` | Step 1 |
-| ✅ | 4 | Update `entities/plan.ts` to extend `BaseDoc<PlanStatus>` | `packages/core/src/entities/plan.ts` | Step 1 |
-| ✅ | 5 | Update `entities/ctx.ts` to extend `BaseDoc<CtxStatus>` | `packages/core/src/entities/ctx.ts` | Step 1 |
-| ✅ | 6 | Update `index.ts` to re‑export `BaseDoc` and `DocumentType` | `packages/core/src/index.ts` | Steps 1‑5 |
-| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `entities/base.ts` with `BaseDoc`, `DocumentType` | `packages/core/src/entities/base.ts` | — | — |
+| ✅ | 2 | Update `entities/idea.ts` to extend `BaseDoc<IdeaStatus>` | `packages/core/src/entities/idea.ts` | Step 1 | — |
+| ✅ | 3 | Update `entities/design.ts` to extend `BaseDoc<DesignStatus>` | `packages/core/src/entities/design.ts` | Step 1 | — |
+| ✅ | 4 | Update `entities/plan.ts` to extend `BaseDoc<PlanStatus>` | `packages/core/src/entities/plan.ts` | Step 1 | — |
+| ✅ | 5 | Update `entities/ctx.ts` to extend `BaseDoc<CtxStatus>` | `packages/core/src/entities/ctx.ts` | Step 1 | — |
+| ✅ | 6 | Update `index.ts` to re‑export `BaseDoc` and `DocumentType` | `packages/core/src/index.ts` | Steps 1‑5 | — |
+| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 | — |
 ---
 
 ## Step 1 — Create `entities/base.ts`

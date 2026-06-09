@@ -44,10 +44,10 @@ export async function handle(root: string, args: Record<string, unknown>) {
     if (stepNumber !== undefined) {
         const target = allSteps.find(s => s.order === stepNumber);
         if (!target) throw new Error(`Step ${stepNumber} not found in plan ${planId}.`);
-        if (target.done) throw new Error(`Step ${stepNumber} of plan ${planId} is already done.`);
+        if (target.status === 'done') throw new Error(`Step ${stepNumber} of plan ${planId} is already done.`);
         nextStep = target;
     } else {
-        const pendingSteps = allSteps.filter(s => !s.done);
+        const pendingSteps = allSteps.filter(s => s.status !== 'done' && s.status !== 'cancelled');
         if (pendingSteps.length === 0) throw new Error('All steps are already done.');
         nextStep = pendingSteps[0];
     }
@@ -84,7 +84,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
     }
 
     const planSummary = (planDoc.steps ?? [])
-        .map(s => `${s.done ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
+        .map(s => `${s.status === 'done' ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
         .join('\n');
 
     const brief = {

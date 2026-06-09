@@ -35,9 +35,9 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
                 throw new Error(`Invalid step index: ${stepIndex}. Plan has ${doc.steps.length} steps.`);
             }
             const steps = doc.steps.map((step, idx) =>
-                idx === stepIndex ? { ...step, done: true } : step
+                idx === stepIndex ? { ...step, status: 'done' as const } : step
             );
-            const allDone = steps.every(s => s.done);
+            const allDone = steps.every(s => s.status === 'done' || s.status === 'cancelled');
             return {
                 ...doc,
                 steps,

@@ -10,6 +10,42 @@ tags: [refactor, utilities, markdown, table, plan]
 parent_id: de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W
 requires_load: [de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W]
 target_version: 0.4.0
+steps:
+  - id: create-plantableutils
+    order: 1
+    status: done
+    description: Create `planTableUtils.ts` with `parseStepsTable` and `generateStepsTable`
+    files_touched: ["`packages/core/src/planTableUtils.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: refactor-load
+    order: 2
+    status: done
+    description: Refactor `load.ts` to use `parseStepsTable`
+    files_touched: ["`packages/fs/src/load.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: refactor-save
+    order: 3
+    status: done
+    description: Refactor `save.ts` to use `generateStepsTable`
+    files_touched: ["`packages/fs/src/save.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: remove-duplicated-table-logic-from-load
+    order: 4
+    status: done
+    description: Remove duplicated table logic from `load.ts` and `save.ts`
+    files_touched: [Both files]
+    blocked_by: [Steps 2-3]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 5
+    status: done
+    description: Run full test suite
+    files_touched: ["`tests/*`"]
+    blocked_by: [Step 4]
+    satisfies: []
 ---
 
 # Extract Plan Table Utilities
@@ -29,16 +65,15 @@ Centralize all Markdown table parsing and generation for plan steps into a singl
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `planTableUtils.ts` with `parseStepsTable` and `generateStepsTable` | `packages/core/src/planTableUtils.ts` | — |
-| ✅  | 2 | Refactor `load.ts` to use `parseStepsTable` | `packages/fs/src/load.ts` | Step 1 |
-| ✅ | 3 | Refactor `save.ts` to use `generateStepsTable` | `packages/fs/src/save.ts` | Step 1 |
-| ✅ | 4 | Remove duplicated table logic from `load.ts` and `save.ts` | Both files | Steps 2-3 |
-| ✅ | 5 | Run full test suite | `tests/*` | Step 4 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `planTableUtils.ts` with `parseStepsTable` and `generateStepsTable` | `packages/core/src/planTableUtils.ts` | — | — |
+| ✅ | 2 | Refactor `load.ts` to use `parseStepsTable` | `packages/fs/src/load.ts` | Step 1 | — |
+| ✅ | 3 | Refactor `save.ts` to use `generateStepsTable` | `packages/fs/src/save.ts` | Step 1 | — |
+| ✅ | 4 | Remove duplicated table logic from `load.ts` and `save.ts` | Both files | Steps 2-3 | — |
+| ✅ | 5 | Run full test suite | `tests/*` | Step 4 | — |
 ---
 
 ## Step 1 — Create `planTableUtils.ts`

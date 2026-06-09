@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KTKDS0D2E4RRT3W0A8VN24S3
 title: cli-commands Chat
-status: active
-created: 2026-06-08
-version: 1
+status: done
+created: "2026-06-08T00:00:00.000Z"
+updated: 2026-06-09
+version: 2
 tags: []
 parent_id: null
 requires_load: []

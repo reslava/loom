@@ -8,6 +8,35 @@ version: 2
 tags: [migration, docs-infra, threads, frontmatter]
 parent_id: null
 requires_load: [migration-reference]
+steps:
+  - id: delete-exact-duplicates-core-engine-plan
+    order: 1
+    status: done
+    description: "Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md`"
+    files_touched: [2 files]
+    blocked_by: [Exact copies exist in correct locations]
+    satisfies: []
+  - id: archive-to-anchor-free-threads-design
+    order: 2
+    status: done
+    description: "Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md`"
+    files_touched: ["3 files in `core-engine/`"]
+    blocked_by: [Superseded by thread model]
+    satisfies: []
+  - id: archive-to-in-workflow-weave-workflow
+    order: 3
+    status: done
+    description: "Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1"
+    files_touched: ["`workflow/workflow-feature-model-design.md`", "`multi-workspace/multi-workspace-design.md`"]
+    blocked_by: [Superseded by newer versions]
+    satisfies: []
+  - id: rename
+    order: 4
+    status: done
+    description: Rename `weaves/ai-chats/` → `weaves/chats/`
+    files_touched: [directory rename]
+    blocked_by: [Shorter, no redundancy]
+    satisfies: []
 ---
 
 # Organize Loom Docs — Frontmatter Repair & Thread Assignment
@@ -19,12 +48,12 @@ All decisions resolved in `migration-reference.md`. Execute in order: delete/arc
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md` | 2 files | Exact copies exist in correct locations |
-| ✅ | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model |
-| ✅ | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions |
-| ✅ | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Delete exact duplicates: `core-engine/plan-refactor-design.md`, `core-engine/core-engine-run-command-design.md` | 2 files | Exact copies exist in correct locations | — |
+| ✅ | 2 | Archive to `_archive/superseded/`: `anchor-free-threads-design.md`, `anchor-free-threads-plan-001.md`, `enforce-single-primary-design-plan-001.md` | 3 files in `core-engine/` | Superseded by thread model | — |
+| ✅ | 3 | Archive to `_archive/superseded/` in workflow weave: `workflow-feature-model-design.md` v1 (v2 from core-engine replaces it), `multi-workspace-design.md` v1 | `workflow/workflow-feature-model-design.md`, `multi-workspace/multi-workspace-design.md` | Superseded by newer versions | — |
+| ✅ | 4 | Rename `weaves/ai-chats/` → `weaves/chats/` | directory rename | Shorter, no redundancy | — |
 #### Pass 2 — Move Misplaced Files
 
 | Done | # | Step | Files touched | Notes |

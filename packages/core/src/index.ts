@@ -8,7 +8,7 @@ export { BaseDoc, DocumentType } from './entities/base';
 // ============================================================================
 export { IdeaDoc, IdeaStatus } from './entities/idea';
 export { DesignDoc, DesignStatus } from './entities/design';
-export { PlanDoc, PlanStatus, PlanStep } from './entities/plan';
+export { PlanDoc, PlanStatus, PlanStep, StepStatus } from './entities/plan';
 export { CtxDoc, CtxStatus } from './entities/ctx';
 export { ChatDoc, ChatStatus } from './entities/chat';
 export { DoneDoc, DoneStatus } from './entities/done';
@@ -51,11 +51,11 @@ export { planReducer } from './reducers/planReducer';
 // ============================================================================
 export { applyEvent, ApplyResult } from './applyEvent';
 export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, getReqStaleDocs } from './derived';
-export { createBaseFrontmatter, serializeFrontmatter } from './frontmatterUtils';
+export { createBaseFrontmatter, serializeFrontmatter, serializeStepsBlock, parseFrontmatterSteps } from './frontmatterUtils';
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, stripTrailingTypeWord, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
 export { ConfigRegistry } from './registry';
 export { AIClient, Message } from './ai';
-export { parseStepsTable, generateStepsTable, updateStepsTableInContent } from './planTableUtils';
+export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep } from './planUtils';
 export { createEmptyIndex, resolveId, LinkIndex, DocumentEntry, StepBlocker } from './linkIndex';

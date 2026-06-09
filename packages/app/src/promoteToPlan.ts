@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId, parseStepsTable } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId, parseStepsTable, slugifyStepId } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToPlanInput {
@@ -102,6 +102,9 @@ export async function promoteToPlan(
         steps: parsedSteps,
         content: input.body !== undefined ? body : `# ${title}\n\n${body}`,
     } as unknown as PlanDoc;
+    // Promoted plans are born frontmatter-native: steps live in YAML, the body table is
+    // a generated view (the saver canonicalizes whatever table/list the promote source had).
+    (planDoc as any)._stepsFromFrontmatter = true;
 
     const filePath = path.join(plansDir, `${planFilename}.md`);
     await deps.saveDoc(planDoc, filePath);
@@ -113,10 +116,12 @@ function parseNumberedSteps(body: string): PlanStep[] {
     const match = body.match(/#{1,2} Steps\s*\n([\s\S]*?)(?=\n#{1,2}\s|$)/i);
     if (!match) return [];
     const steps: PlanStep[] = [];
+    const taken = new Set<string>();
     for (const line of match[1].split('\n')) {
         const m = line.match(/^\s*\d+\.\s+(.+)/);
         if (m) {
-            steps.push({ order: steps.length + 1, description: m[1].trim(), done: false, files_touched: [], blockedBy: [], satisfies: [] });
+            const description = m[1].trim();
+            steps.push({ id: slugifyStepId(description, taken), order: steps.length + 1, status: 'pending', title: description, description, files_touched: [], blockedBy: [], satisfies: [] });
         }
     }
     return steps;

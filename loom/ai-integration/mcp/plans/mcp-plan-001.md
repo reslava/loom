@@ -9,6 +9,42 @@ design_version: 1
 tags: [ai, mcp, integration, agent, loom]
 parent_id: de_01KQYDFDD9PRVJT4JBAQ0JHRG6
 requires_load: [de_01KQYDFDD9PRVJT4JBAQ0JHRG6]
+steps:
+  - id: create-with-package
+    order: 1
+    status: done
+    description: "Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`)"
+    files_touched: ["`packages/mcp/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-packages-mcp-tsconfig
+    order: 2
+    status: done
+    description: "Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references`"
+    files_touched: ["`packages/mcp/tsconfig.json`"]
+    blocked_by: [1]
+    satisfies: []
+  - id: create-packages-mcp-src-server
+    order: 3
+    status: done
+    description: "Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now)"
+    files_touched: ["`packages/mcp/src/server.ts`"]
+    blocked_by: [2]
+    satisfies: []
+  - id: create-packages-mcp-src-index
+    order: 4
+    status: done
+    description: Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server
+    files_touched: ["`packages/mcp/src/index.ts`"]
+    blocked_by: [3]
+    satisfies: []
+  - id: wire-subcommand-in-packages-cli-src
+    order: 5
+    status: done
+    description: Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references
+    files_touched: ["`packages/cli/src/index.ts`", "`scripts/build-all.sh`"]
+    blocked_by: [4]
+    satisfies: []
 ---
 
 # Loom MCP Server — Implementation Plan
@@ -20,13 +56,13 @@ Implement `packages/mcp/` — a TypeScript MCP server that exposes Loom's docume
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`) | `packages/mcp/package.json` | — |
-| ✅ | 2 | Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references` | `packages/mcp/tsconfig.json` | 1 |
-| ✅ | 3 | Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now) | `packages/mcp/src/server.ts` | 2 |
-| ✅ | 4 | Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server | `packages/mcp/src/index.ts` | 3 |
-| ✅ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `packages/mcp/` with `package.json` (deps: `@reslava-loom/app`, `@reslava-loom/fs`, `@reslava-loom/core`, `@modelcontextprotocol/sdk`, `fs-extra`; devDeps: `typescript`, `@types/node`) | `packages/mcp/package.json` | — | — |
+| ✅ | 2 | Create `packages/mcp/tsconfig.json` — extends root, `outDir: dist`, targets `packages/app` and `packages/fs` via `references` | `packages/mcp/tsconfig.json` | 1 | — |
+| ✅ | 3 | Create `packages/mcp/src/server.ts` — exports `createLoomMcpServer(root: string): Server` factory; registers all resource / tool / prompt / sampling handlers (stubs for now) | `packages/mcp/src/server.ts` | 2 | — |
+| ✅ | 4 | Create `packages/mcp/src/index.ts` — entry point; reads `LOOM_ROOT` env var (falls back to `process.cwd()`), calls `createLoomMcpServer`, connects stdio transport, starts server | `packages/mcp/src/index.ts` | 3 | — |
+| ✅ | 5 | Wire `loom mcp` subcommand in `packages/cli/src/index.ts`; add `packages/mcp` to `scripts/build-all.sh` and `tsconfig.json` project references | `packages/cli/src/index.ts`, `scripts/build-all.sh` | 4 | — |
 ---
 
 ### Phase 2 — State & diagnostics resources

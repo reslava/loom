@@ -247,13 +247,18 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         for (const plan of t.plans) {
             if (plan.status !== 'implementing') continue;
             for (const step of plan.steps ?? []) {
-                if (step.done || !step.blockedBy?.length) continue;
+                if (step.status === 'done' || step.status === 'cancelled' || !step.blockedBy?.length) continue;
                 for (const blocker of step.blockedBy) {
+                    const depById = plan.steps?.find(s => s.id === blocker);
+                    if (depById) {
+                        if (depById.status !== 'done' && depById.status !== 'cancelled') return true;
+                        continue;
+                    }
                     const stepMatch = blocker.match(/^Step\s+(\d+)$/i);
                     if (stepMatch) {
                         const stepNum = parseInt(stepMatch[1], 10);
                         const dep = plan.steps?.find(s => s.order === stepNum);
-                        if (dep && !dep.done) return true;
+                        if (dep && dep.status !== 'done' && dep.status !== 'cancelled') return true;
                     } else {
                         // Cross-plan blocker: treat as blocked (best-effort, no link index)
                         return true;
@@ -630,14 +635,14 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private createPlanNode(plan: PlanDoc, weaveId?: string, doneDoc?: DoneDoc, threadId?: string, design?: DesignDoc): TreeNode {
         const hasDone = !!doneDoc;
         const node = new vscode.TreeItem(plan.title || plan.id, hasDone ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
-        const doneSteps = plan.steps?.filter(s => s.done).length ?? 0;
+        const doneSteps = plan.steps?.filter(s => s.status === 'done').length ?? 0;
         const totalSteps = plan.steps?.length ?? 0;
-        const nextStep = plan.steps?.find(s => !s.done);
+        const nextStep = plan.steps?.find(s => s.status !== 'done' && s.status !== 'cancelled');
         const progress = `${doneSteps}/${totalSteps}`;
         const isStale = (design && plan.status !== 'done' && plan.status !== 'cancelled')
             ? plan.design_version < design.version
             : false;
-        const pendingSteps = (plan.steps ?? []).filter(s => !s.done);
+        const pendingSteps = (plan.steps ?? []).filter(s => s.status !== 'done' && s.status !== 'cancelled');
         const hasPending = pendingSteps.length > 0;
         const blockedCount = this.state
             ? pendingSteps.filter(s => isStepBlocked(s, plan, this.state!.index)).length

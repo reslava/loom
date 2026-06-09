@@ -20,9 +20,9 @@ export async function handle(root: string, args: Record<string, string | undefin
     if (plan.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);
 
     // Find first incomplete step
-    const steps: Array<{ order?: number; description?: string; done?: boolean }> =
+    const steps: Array<{ id?: string; order?: number; description?: string; status?: string }> =
         (plan as any).steps ?? [];
-    const nextStep = steps.find(s => !s.done);
+    const nextStep = steps.find(s => s.status !== 'done' && s.status !== 'cancelled');
 
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
@@ -36,7 +36,7 @@ export async function handle(root: string, args: Record<string, string | undefin
 
     const instruction = nextStep
         ? [
-            `Implement step ${nextStep.order ?? '?'}: ${nextStep.description}`,
+            `Implement step ${nextStep.order ?? '?'}${nextStep.id ? ` (id: ${nextStep.id})` : ''}: ${nextStep.description}`,
             '',
             `After completing this step, call loom_complete_step with planId="${planId}" and stepNumber=${nextStep.order}.`,
         ].join('\n')

@@ -10,6 +10,14 @@ design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
 parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+steps:
+  - id: audit-the-chat-reply-context-injection
+    order: 1
+    status: pending
+    description: Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files.
+    files_touched: ["`CLAUDE.md`", "`packages/app/src/installWorkspace.ts`"]
+    blocked_by: []
+    satisfies: []
 ---
 
 # Context Injection — MVP Rule and Tool Metadata
@@ -30,9 +38,9 @@ Lock in the MVP-scope context-injection rule ("first chat-reply in a thread load
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files. | `CLAUDE.md`, `packages/app/src/installWorkspace.ts` | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Audit the chat-reply context-injection rule in both `CLAUDE.md` and `LOOM_CLAUDE_MD` template. Confirm the three cases are documented (first reply → load + emit; subsequent same thread → tool-call line only; after refine/generate → re-load). Confirm the rule explicitly states the "is context already in transcript?" decision is AI-side, not server-side. Reconcile any drift between the two files. | `CLAUDE.md`, `packages/app/src/installWorkspace.ts` | — | — |
 ---
 
 ### Phase 2 — MCP tool metadata check

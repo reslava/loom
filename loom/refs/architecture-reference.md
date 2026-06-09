@@ -139,7 +139,7 @@ Button clicked
 |------|--------------|---------|
 | `idea` | `{thread}/{thread}-idea.md` | Raw concept, pre-design |
 | `design` | `{thread}/{thread}-design.md` | Design conversation + decision log |
-| `plan` | `{thread}/plans/{plan-id}.md` | Implementation steps table |
+| `plan` | `{thread}/plans/{plan-id}.md` | Implementation plan — structured `steps` in frontmatter (source of truth); the body `## Steps` table is a generated view |
 | `done` | `{thread}/done/{done-id}.md` | Post-implementation summary |
 | `chat` | `{thread}/chats/{chat-id}.md`, `{weave}/chats/{chat-id}.md`, or `loom/refs/chats/{id}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
 | `ctx` | `loom/ctx.md` (global) or `{weave}/ctx.md` (weave) | AI-optimised context summary (source of truth for agents). Scope is global + weave only — there is no thread-level ctx; the parent chain loads idea/design/plan in full. |
@@ -164,6 +164,9 @@ role: primary | supporting
 target_release: "0.x.0"
 actual_release: null
 design_version: 1                 # plan field: must match parent design version or plan is stale
+# plan-specific:
+target_version: "0.x.0"
+steps: []                         # structured steps — the SOURCE OF TRUTH (v1.3.0+). Each: { id, order, status, description, files_touched, blocked_by, satisfies }. The body `## Steps` table is regenerated from this. See plan-steps-table-and-blockedby-format-reference.
 # reference-specific:
 load: always | by-request         # always = auto-include; by-request = requires_load only
 load_when: [idea, design, plan, implementing]   # operation modes when this reference is relevant
@@ -185,7 +188,7 @@ load_when: [idea, design, plan, implementing]   # operation modes when this refe
 | 4 | Refine design | `version++`, child plans marked stale | design updated |
 | 5 | Weave plan | `status: draft` | `plans/{plan-id}.md` |
 | 6 | Start plan | `draft → active → implementing` | frontmatter updated |
-| 7 | Complete steps | steps table updated | plan updated |
+| 7 | Complete steps | step `status` updated in frontmatter; body table regenerated | plan updated |
 | 8 | Close plan | `implementing → done`; done doc emitted | done doc created |
 | 9 | Update ctx | ctx summary regenerated | ctx doc updated |
 

@@ -141,6 +141,12 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 
 These event/CRUD commands change document **state** only.
 
+### Maintenance
+
+| Command | Description |
+|---------|-------------|
+| `loom migrate-plan-steps [plan-id] [--dry-run]` | Migrate legacy plans (steps in the body table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched). |
+
 ---
 
 ## MCP server

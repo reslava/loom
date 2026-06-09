@@ -4,8 +4,8 @@ import { filterPlansByStaleness, filterPlansByTargetVersion, filterPlansWithBloc
 describe('planFilters', () => {
     const mockPlans: PlanDoc[] = [
         { id: 'plan-1', staled: true, target_version: '1.0', steps: [] } as PlanDoc,
-        { id: 'plan-2', staled: false, target_version: '2.0', steps: [{ order: 1, done: false, blockedBy: ['step-1'] }] } as PlanDoc,
-        { id: 'plan-3', staled: false, target_version: '1.0', steps: [{ order: 1, done: true }] } as PlanDoc,
+        { id: 'plan-2', staled: false, target_version: '2.0', steps: [{ order: 1, status: 'pending', blockedBy: ['step-1'] }] } as PlanDoc,
+        { id: 'plan-3', staled: false, target_version: '1.0', steps: [{ order: 1, status: 'done' }] } as PlanDoc,
     ];
 
     describe('filterPlansByStaleness', () => {

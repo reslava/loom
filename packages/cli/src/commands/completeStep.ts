@@ -33,7 +33,7 @@ export async function completeStepCommand(planId: string, options: { step?: stri
         if (result.autoCompleted) {
             console.log(chalk.green(`🎉 All steps completed! Plan '${planId}' is now done.`));
         } else {
-            const nextStep = result.plan.steps.find(s => !s.done);
+            const nextStep = result.plan.steps.find(s => s.status !== 'done' && s.status !== 'cancelled');
             if (nextStep) {
                 console.log(chalk.gray(`   Next step: Step ${nextStep.order} — ${nextStep.description}`));
             }

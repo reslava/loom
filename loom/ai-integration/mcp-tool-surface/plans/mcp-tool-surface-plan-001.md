@@ -4,13 +4,49 @@ id: pl_01KTJ1EFY7SJAQ1XK4A956R5GS
 title: "Phase A — auto-generated tool catalog + loom://catalog resource"
 status: done
 created: "2026-06-07T00:00:00.000Z"
-updated: 2026-06-07
+updated: "2026-06-07T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KTJ128Q435GJRJQTDR20B8WJ
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: mcp-add-optional-to-the-tool
+    order: 1
+    status: done
+    description: "mcp — add optional `group?: string` to the tool-def shape and tag every tool's `toolDef` with a group (create / refine / generate / plan-steps / req / chat / query / doc-edit). Update the `makeTool` helper in generate.ts to carry `group`. Metadata only — no behavior change."
+    files_touched: ["packages/mcp/src/tools/*.ts", packages/mcp/src/tools/generate.ts]
+    blocked_by: []
+    satisfies: []
+  - id: mcp-new-pure-in-packages-mcp
+    order: 2
+    status: done
+    description: "mcp — new pure `buildToolCatalog(defs): string` in packages/mcp/src/catalog.ts. Groups defs by `group` (unset → \"Other\" bucket, degrades gracefully); emits a grouped markdown block, one line per tool: `loom_x — <first sentence of description>`, exact names so the agent can `ToolSearch select:`. Leads with an honest header: \"name pointers — you still `ToolSearch select:<name>` once per tool to load its schema.\" Plus a `registerToolCatalog`/`getToolCatalogBlock` module cache (built once per server)."
+    files_touched: [packages/mcp/src/catalog.ts]
+    blocked_by: [1]
+    satisfies: []
+  - id: mcp-expose-as-a-concrete-resource
+    order: 3
+    status: done
+    description: "mcp — expose `loom://catalog` as a concrete resource. Add it to `CONCRETE_RESOURCES`; in `createLoomMcpServer`, after building `TOOLS`, `registerToolCatalog(buildToolCatalog(TOOLS.map(t => t.toolDef)))`; dispatch `loom://catalog` in the `ReadResourceRequest` handler to return `getToolCatalogBlock()` (text/markdown)."
+    files_touched: [packages/mcp/src/server.ts]
+    blocked_by: [2]
+    satisfies: []
+  - id: docs-add-the-session-start-read
+    order: 4
+    status: done
+    description: "docs — add the session-start \"read the catalog first\" rule to BOTH CLAUDE.md surfaces (sync contract): the installed `.loom/CLAUDE.md` template (`LOOM_CLAUDE_MD` in installWorkspace.ts) and repo-root `CLAUDE.md`. Rule: \"Before `ToolSearch`-ing for a `loom_*` tool, read `loom://catalog` and go straight to `ToolSearch select:<exact name>`.\" Also list `loom://catalog` in the template's resource/entry-points table."
+    files_touched: [packages/app/src/installWorkspace.ts, CLAUDE.md]
+    blocked_by: [3]
+    satisfies: []
+  - id: tests-build-smoke
+    order: 5
+    status: done
+    description: "tests + build + smoke. Unit: `buildToolCatalog` groups by `group`, unset→Other, one line/tool, honest header present, exact tool names. Integration: reading `loom://catalog` returns the grouped block; `loom://catalog` appears in the resources list. Run build-all + test-all green. Smoke: read `loom://catalog`, confirm grouped tool names + honest header render once."
+    files_touched: [packages/mcp/tests/integration.test.ts]
+    blocked_by: [4]
+    satisfies: []
 ---
 # Phase A — auto-generated tool catalog + loom://catalog resource
 

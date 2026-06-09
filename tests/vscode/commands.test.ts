@@ -39,7 +39,7 @@ suite('completeStep Command (Extension Host)', () => {
             { loadWeave: makeLoadWeave(loomRoot), runEvent: makeRunEvent(loomRoot), loomRoot }
         );
 
-        assert.strictEqual(result.plan.steps[0].done, true, 'Step 1 must be marked done');
+        assert.strictEqual(result.plan.steps[0].status, 'done', 'Step 1 must be marked done');
         assert.strictEqual(result.autoCompleted, false, 'Plan must not auto-complete after step 1 of 2');
 
         // Plan stays in thread layout: {weavePath}/{threadId}/plans/{planId}.md

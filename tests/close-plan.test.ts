@@ -80,7 +80,7 @@ async function testClosePlan() {
 
         await createPlanDoc(weavePath, planId, {
             status: 'done',
-            steps: [{ order: 1, description: 'Done step', done: true }],
+            steps: [{ order: 1, description: 'Done step', status: 'done' }],
         });
 
         await closePlan({ planId }, makeDeps(loomRoot));

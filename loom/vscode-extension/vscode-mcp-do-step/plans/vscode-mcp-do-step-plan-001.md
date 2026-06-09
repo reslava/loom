@@ -4,7 +4,7 @@ id: pl_01KQYDFDDER47Y0H7W7K4ZX80M
 title: DoStep via Claude Code Terminal — Plan 001
 status: done
 created: "2026-04-30T00:00:00.000Z"
-updated: 2026-06-06
+updated: "2026-06-06T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: [vscode, mcp, do-step, claude-code]
@@ -12,6 +12,35 @@ parent_id: de_01KQYDFDDE8Z0AV1R2Q8NNNKGK
 requires_load: [de_01KQYDFDDE8Z0AV1R2Q8NNNKGK]
 target_release: 0.5.0
 actual_release: null
+steps:
+  - id: redesign-mcp-tool-to-be-a
+    order: 1
+    status: done
+    description: Redesign `loom_do_step` MCP tool to be a briefing tool — return JSON `{ planId, stepNumber, stepDescription, filesToTouch, threadContext, planSummary, instructions }`. Remove `requestSampling`, remove side effects (no chat doc, no `completeStep` call).
+    files_touched: ["`packages/mcp/src/tools/doStep.ts`", "`packages/mcp/src/server.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: rewrite-extension-dostep
+    order: 3
+    status: done
+    description: Rewrite extension `doStep.ts` to launch Claude Code terminal — `vscode.window.createTerminal({ cwd })`, build prompt that names `planId` and instructs Claude to call `loom_do_step → implement → loom_append_done → loom_complete_step`, send via `terminal.sendText`.
+    files_touched: ["`packages/vscode/src/commands/doStep.ts`", "`packages/vscode/src/extension.ts`"]
+    blocked_by: [1, 2]
+    satisfies: []
+  - id: detect-binary-on-disk-before-launching
+    order: 4
+    status: done
+    description: Detect `claude` binary on disk before launching — `which claude` / `where claude`. If missing, show an error notification with install pointer and skip terminal creation.
+    files_touched: ["`packages/vscode/src/commands/doStep.ts`"]
+    blocked_by: [3]
+    satisfies: []
+  - id: manual-test-in-extension-development-host
+    order: 5
+    status: done
+    description: Manual test in Extension Development Host — create a small implementing plan, click DoStep, verify Claude Code terminal opens, plan executes end-to-end (file edits real, `done.md` appended, step ✅ in plan).
+    files_touched: []
+    blocked_by: [4]
+    satisfies: []
 ---
 # DoStep via Claude Code Terminal — Plan 001
 

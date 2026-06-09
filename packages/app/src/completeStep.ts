@@ -36,7 +36,7 @@ export async function completeStep(
         throw new Error(`Step ${input.step} does not exist. Plan has ${plan.steps.length} steps.`);
     }
 
-    if (plan.steps[stepIndex].done) {
+    if (plan.steps[stepIndex].status === 'done') {
         throw new Error(`Step ${input.step} is already completed.`);
     }
 

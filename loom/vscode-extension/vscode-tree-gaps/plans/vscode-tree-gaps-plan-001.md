@@ -11,6 +11,49 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: add-blocked-and-cancelled-cases-to
+    order: 1
+    status: done
+    description: "Add BLOCKED and CANCELLED cases to getThreadIcon and getWeaveIcon in icons.ts: BLOCKED → ThemeIcon('warning'), CANCELLED → ThemeIcon('error'). Matches the existing plan-level blocked/cancelled icon pattern."
+    files_touched: [icons.ts]
+    blocked_by: []
+    satisfies: []
+  - id: surface-orphaned-done-docs-in-getthreadchildren
+    order: 2
+    status: done
+    description: "Surface orphaned done docs in getThreadChildren: after building the plans section, collect thread.dones whose parent_id does not match any plan.id. If any exist, add them under a 'Done (orphaned)' section node so they are visible and can be inspected/deleted."
+    files_touched: [treeProvider.ts]
+    blocked_by: []
+    satisfies: []
+  - id: add-summary-warning-row-in-getrootchildren
+    order: 3
+    status: pending
+    description: "Add summary warning row in getRootChildren: if state.summary.stalePlans > 0 or state.summary.blockedSteps > 0, prepend a non-clickable TreeItem showing counts (e.g. '⚠️ 3 stale · 2 blocked', contextValue: 'summary-warning', icon: ThemeIcon('warning')). Skip if vscode-staled plan already implements this step."
+    files_touched: [treeProvider.ts]
+    blocked_by: []
+    satisfies: []
+  - id: increase-file-watcher-debounce-from-300ms
+    order: 4
+    status: done
+    description: "Increase file watcher debounce from 300ms to 800ms in extension.ts to reduce mid-creation snapshot races that cause threads to appear non-expandable and the MCP server to be overwhelmed by concurrent loom://state requests."
+    files_touched: [extension.ts]
+    blocked_by: []
+    satisfies: []
+  - id: preserve-last-good-state-on-suspect
+    order: 5
+    status: done
+    description: "Preserve last-good state on suspect reads: in getRootChildren, after a successful loom://state read, cache the state as lastGoodState. If a subsequent read returns a state where total docs dropped significantly vs lastGoodState (heuristic: >30% drop), keep the previous state and schedule a retry (exponential backoff, up to 3 retries) before rendering. Only replace the tree once the new state passes the heuristic or retries are exhausted."
+    files_touched: [treeProvider.ts]
+    blocked_by: []
+    satisfies: []
+  - id: build-and-smoke-test-verify-blocked
+    order: 6
+    status: done
+    description: "Build and smoke-test: verify BLOCKED/CANCELLED threads show the correct icon, orphaned done docs appear under their thread, summary row shows when counts are non-zero, bulk doc creation no longer freezes the tree, and MCP timeout during creation recovers without manual reconnect."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
 ---
 # Fix orphaned dones, missing status icons, summary node
 
@@ -31,14 +74,14 @@ Patch tree presentation gaps in treeProvider.ts: missing status icons, orphaned 
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Add BLOCKED and CANCELLED cases to getThreadIcon and getWeaveIcon in icons.ts: BLOCKED → ThemeIcon('warning'), CANCELLED → ThemeIcon('error'). Matches the existing plan-level blocked/cancelled icon pattern. | icons.ts | — |
-| ✅ | 2 | Surface orphaned done docs in getThreadChildren: after building the plans section, collect thread.dones whose parent_id does not match any plan.id. If any exist, add them under a 'Done (orphaned)' section node so they are visible and can be inspected/deleted. | treeProvider.ts | — |
-| 🔳 | 3 | Add summary warning row in getRootChildren: if state.summary.stalePlans > 0 or state.summary.blockedSteps > 0, prepend a non-clickable TreeItem showing counts (e.g. '⚠️ 3 stale · 2 blocked', contextValue: 'summary-warning', icon: ThemeIcon('warning')). Skip if vscode-staled plan already implements this step. | treeProvider.ts | — |
-| ✅ | 4 | Increase file watcher debounce from 300ms to 800ms in extension.ts to reduce mid-creation snapshot races that cause threads to appear non-expandable and the MCP server to be overwhelmed by concurrent loom://state requests. | extension.ts | — |
-| ✅ | 5 | Preserve last-good state on suspect reads: in getRootChildren, after a successful loom://state read, cache the state as lastGoodState. If a subsequent read returns a state where total docs dropped significantly vs lastGoodState (heuristic: >30% drop), keep the previous state and schedule a retry (exponential backoff, up to 3 retries) before rendering. Only replace the tree once the new state passes the heuristic or retries are exhausted. | treeProvider.ts | — |
-| ✅ | 6 | Build and smoke-test: verify BLOCKED/CANCELLED threads show the correct icon, orphaned done docs appear under their thread, summary row shows when counts are non-zero, bulk doc creation no longer freezes the tree, and MCP timeout during creation recovers without manual reconnect. | — | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Add BLOCKED and CANCELLED cases to getThreadIcon and getWeaveIcon in icons.ts: BLOCKED → ThemeIcon('warning'), CANCELLED → ThemeIcon('error'). Matches the existing plan-level blocked/cancelled icon pattern. | icons.ts | — | — |
+| ✅ | 2 | Surface orphaned done docs in getThreadChildren: after building the plans section, collect thread.dones whose parent_id does not match any plan.id. If any exist, add them under a 'Done (orphaned)' section node so they are visible and can be inspected/deleted. | treeProvider.ts | — | — |
+| 🔳 | 3 | Add summary warning row in getRootChildren: if state.summary.stalePlans > 0 or state.summary.blockedSteps > 0, prepend a non-clickable TreeItem showing counts (e.g. '⚠️ 3 stale · 2 blocked', contextValue: 'summary-warning', icon: ThemeIcon('warning')). Skip if vscode-staled plan already implements this step. | treeProvider.ts | — | — |
+| ✅ | 4 | Increase file watcher debounce from 300ms to 800ms in extension.ts to reduce mid-creation snapshot races that cause threads to appear non-expandable and the MCP server to be overwhelmed by concurrent loom://state requests. | extension.ts | — | — |
+| ✅ | 5 | Preserve last-good state on suspect reads: in getRootChildren, after a successful loom://state read, cache the state as lastGoodState. If a subsequent read returns a state where total docs dropped significantly vs lastGoodState (heuristic: >30% drop), keep the previous state and schedule a retry (exponential backoff, up to 3 retries) before rendering. Only replace the tree once the new state passes the heuristic or retries are exhausted. | treeProvider.ts | — | — |
+| ✅ | 6 | Build and smoke-test: verify BLOCKED/CANCELLED threads show the correct icon, orphaned done docs appear under their thread, summary row shows when counts are non-zero, bulk doc creation no longer freezes the tree, and MCP timeout during creation recovers without manual reconnect. | — | — | — |
 ---
 
 ### Step 1 — Add BLOCKED and CANCELLED cases to getThreadIcon and getWeaveIcon

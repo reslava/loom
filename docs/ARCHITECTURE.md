@@ -63,7 +63,7 @@ Every doc shares a common frontmatter (`BaseDoc`): `id`, `type`, `title`, `statu
 | `req` | The thread's locked scope spec (include / exclude / constraints). | `draft`, `locked` |
 | `idea` | Raw concept, pre-design. | `draft`, `active`, `done`, `cancelled` |
 | `design` | Design conversation + decision log. | `draft`, `active`, `closed`, `done`, `cancelled` |
-| `plan` | Implementation steps table. | `draft`, `active`, `implementing`, `done`, `blocked`, `cancelled` |
+| `plan` | Implementation plan — structured `steps` in frontmatter (source of truth); the body table is a generated view. | `draft`, `active`, `implementing`, `done`, `blocked`, `cancelled` |
 | `done` | Post-implementation record. | — |
 | `ctx` | AI context summary — **global + weave scope only** (no thread ctx). | `draft`, `active`, `done`, `cancelled` |
 | `reference` | Static architectural facts that docs cite. | `active` |

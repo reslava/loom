@@ -9,6 +9,56 @@ tags: [app, cli, refactor, management]
 parent_id: de_01KQYDFDDA1XV31SK6N64VS0ST
 requires_load: [de_01KQYDFDDA1XV31SK6N64VS0ST]
 target_version: 0.5.0
+steps:
+  - id: extract-use-case-from-cli
+    order: 1
+    status: done
+    description: Extract `init` use‑case from CLI
+    files_touched: ["`app/src/init.ts`", "`cli/src/commands/init.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: extract-use-case-from-cli-2
+    order: 2
+    status: done
+    description: Extract `setup` use‑case from CLI
+    files_touched: ["`app/src/setup.ts`", "`cli/src/commands/setup.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: extract-use-case-from-cli-3
+    order: 3
+    status: done
+    description: Extract `switch` use‑case from CLI
+    files_touched: ["`app/src/switch.ts`", "`cli/src/commands/switch.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: extract-use-case-from-cli-4
+    order: 4
+    status: done
+    description: Extract `list` use‑case from CLI
+    files_touched: ["`app/src/list.ts`", "`cli/src/commands/list.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: extract-use-case-from-cli-5
+    order: 5
+    status: done
+    description: Extract `current` use‑case from CLI
+    files_touched: ["`app/src/current.ts`", "`cli/src/commands/current.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-app-src-index
+    order: 6
+    status: done
+    description: Update `app/src/index.ts` barrel exports
+    files_touched: ["`app/src/index.ts`"]
+    blocked_by: [Steps 1‑5]
+    satisfies: []
+  - id: run-full-build-and-test-suite
+    order: 7
+    status: done
+    description: Run full build and test suite
+    files_touched: [All packages, "`tests/*`"]
+    blocked_by: [Step 6]
+    satisfies: []
 ---
 
 # Extract Loom Management Commands to Application Layer
@@ -28,18 +78,17 @@ Move all orchestration logic for loom workspace management commands (`init`, `se
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Extract `init` use‑case from CLI | `app/src/init.ts`, `cli/src/commands/init.ts` | — |
-| ✅ | 2 | Extract `setup` use‑case from CLI | `app/src/setup.ts`, `cli/src/commands/setup.ts` | — |
-| ✅ | 3 | Extract `switch` use‑case from CLI | `app/src/switch.ts`, `cli/src/commands/switch.ts` | — |
-| ✅ | 4 | Extract `list` use‑case from CLI | `app/src/list.ts`, `cli/src/commands/list.ts` | — |
-| ✅ | 5 | Extract `current` use‑case from CLI | `app/src/current.ts`, `cli/src/commands/current.ts` | — |
-| ✅ | 6 | Update `app/src/index.ts` barrel exports | `app/src/index.ts` | Steps 1‑5 |
-| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Extract `init` use‑case from CLI | `app/src/init.ts`, `cli/src/commands/init.ts` | — | — |
+| ✅ | 2 | Extract `setup` use‑case from CLI | `app/src/setup.ts`, `cli/src/commands/setup.ts` | — | — |
+| ✅ | 3 | Extract `switch` use‑case from CLI | `app/src/switch.ts`, `cli/src/commands/switch.ts` | — | — |
+| ✅ | 4 | Extract `list` use‑case from CLI | `app/src/list.ts`, `cli/src/commands/list.ts` | — | — |
+| ✅ | 5 | Extract `current` use‑case from CLI | `app/src/current.ts`, `cli/src/commands/current.ts` | — | — |
+| ✅ | 6 | Update `app/src/index.ts` barrel exports | `app/src/index.ts` | Steps 1‑5 | — |
+| ✅ | 7 | Run full build and test suite | All packages, `tests/*` | Step 6 | — |
 ---
 
 ## Step 1 — Extract `init` Use‑Case

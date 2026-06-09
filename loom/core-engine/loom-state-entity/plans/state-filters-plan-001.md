@@ -9,6 +9,63 @@ tags: [state, filters, sorting, cli, vscode]
 parent_id: id_01KQYDFDDCDX24651YYE1JCQRY
 requires_load: [pl_01KQYDFDDCPDV5E3WFGAVN51QJ]
 target_version: 0.6.0
+steps:
+  - id: create-filters-threadfilters
+    order: 1
+    status: done
+    description: Create `filters/threadFilters.ts` with thread‑level filters
+    files_touched: ["`packages/core/src/filters/threadFilters.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-filters-documentfilters
+    order: 2
+    status: done
+    description: Create `filters/documentFilters.ts` with document‑level filters
+    files_touched: ["`packages/core/src/filters/documentFilters.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-filters-planfilters
+    order: 3
+    status: done
+    description: Create `filters/planFilters.ts` with plan‑level filters
+    files_touched: ["`packages/core/src/filters/planFilters.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-sorting-utilities
+    order: 4
+    status: done
+    description: Create sorting utilities
+    files_touched: ["`packages/core/src/filters/sorting.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-to-accept-optional-filter-sort
+    order: 5
+    status: done
+    description: Update `app/getState` to accept optional filter/sort parameters
+    files_touched: ["`packages/app/src/getState.ts`"]
+    blocked_by: [Steps 1‑4]
+    satisfies: []
+  - id: enhance-cli-commands-to-use-filters
+    order: 6
+    status: done
+    description: Enhance CLI commands (`status`, `list`) to use filters
+    files_touched: ["`packages/cli/src/commands/status.ts`", "`list.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: add-unit-tests-for-filters-and
+    order: 7
+    status: pending
+    description: Add unit tests for filters and sorting
+    files_touched: ["`packages/core/test/filters/`"]
+    blocked_by: [Steps 1‑4]
+    satisfies: []
+  - id: run-full-integration-test-suite
+    order: 8
+    status: done
+    description: Run full integration test suite
+    files_touched: ["`tests/*`"]
+    blocked_by: [All]
+    satisfies: []
 ---
 
 # Implement Common State Filters and Sorting Utilities
@@ -30,16 +87,16 @@ Build a suite of pure, reusable filter and sorting functions that operate on the
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `filters/threadFilters.ts` with thread‑level filters | `packages/core/src/filters/threadFilters.ts` | — |
-| ✅ | 2 | Create `filters/documentFilters.ts` with document‑level filters | `packages/core/src/filters/documentFilters.ts` | — |
-| ✅ | 3 | Create `filters/planFilters.ts` with plan‑level filters | `packages/core/src/filters/planFilters.ts` | — |
-| ✅ | 4 | Create sorting utilities | `packages/core/src/filters/sorting.ts` | — |
-| ✅ | 5 | Update `app/getState` to accept optional filter/sort parameters | `packages/app/src/getState.ts` | Steps 1‑4 |
-| ✅ | 6 | Enhance CLI commands (`status`, `list`) to use filters | `packages/cli/src/commands/status.ts`, `list.ts` | Step 5 |
-| 🔳 | 7 | Add unit tests for filters and sorting | `packages/core/test/filters/` | Steps 1‑4 |
-| ✅ | 8 | Run full integration test suite | `tests/*` | All |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `filters/threadFilters.ts` with thread‑level filters | `packages/core/src/filters/threadFilters.ts` | — | — |
+| ✅ | 2 | Create `filters/documentFilters.ts` with document‑level filters | `packages/core/src/filters/documentFilters.ts` | — | — |
+| ✅ | 3 | Create `filters/planFilters.ts` with plan‑level filters | `packages/core/src/filters/planFilters.ts` | — | — |
+| ✅ | 4 | Create sorting utilities | `packages/core/src/filters/sorting.ts` | — | — |
+| ✅ | 5 | Update `app/getState` to accept optional filter/sort parameters | `packages/app/src/getState.ts` | Steps 1‑4 | — |
+| ✅ | 6 | Enhance CLI commands (`status`, `list`) to use filters | `packages/cli/src/commands/status.ts`, `list.ts` | Step 5 | — |
+| 🔳 | 7 | Add unit tests for filters and sorting | `packages/core/test/filters/` | Steps 1‑4 | — |
+| ✅ | 8 | Run full integration test suite | `tests/*` | All | — |
 ---
 
 ## Step 1 — Create `threadFilters.ts`

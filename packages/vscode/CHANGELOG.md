@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.3.0] - 2026-06-09
+
+### Changed
+- The tree and step-picker views now read the new **frontmatter-native plan steps** and
+  per-step `status` (🔳/🔄/✅/❌). No user-facing workflow change.
+
+### Notes
+- Lockstep 1.3.0 bump with the CLI and the rest of the monorepo. The 1.3.0 work
+  (plan steps as the frontmatter source of truth + `loom migrate-plan-steps`) is in
+  core/app/mcp/cli; the extension consumes it.
+
 ## [1.2.1] - 2026-06-08
 
 ### Fixed

@@ -4,12 +4,139 @@ id: pl_01KQYDFDDEHQ0G978XT8RRT1S6
 title: VS Code Polish — Idea Inline Buttons & Minor UX Fixes
 status: done
 created: "2026-04-23T00:00:00.000Z"
-updated: 2026-06-06
+updated: "2026-06-06T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: [vscode, polish, ux, inline-buttons]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM, pl_01KQYDFDDEC0K7FANZWDV9AMVH]
+steps:
+  - id: fix-idea-node-inline-buttons-remove
+    order: 1
+    status: done
+    description: Fix idea node inline buttons — remove `Weave Design`, keep only `Promote To Design`. Set `contextValue = 'idea'` on idea tree nodes; update `package.json` `when` clause for `loom.weaveDesign` to exclude `viewItem == idea`
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: add-reslava-loom
+    order: 2
+    status: done
+    description: Add `reslava-loom.user.name` setting in `package.json` configuration
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: rename-in-all-read-write-paths
+    order: 3
+    status: done
+    description: Rename `ai-chats/` → `chats/` in all read/write paths; update `chatNew.ts` to save into `chats/` subdir
+    files_touched: ["`packages/fs/src/utils/pathUtils.ts`", "`packages/fs/src/repositories/weaveRepository.ts`", "`packages/fs/src/repositories/threadRepository.ts`", "`packages/app/src/chatNew.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: support-empty-weave-thread-dirs-remove
+    order: 4
+    status: done
+    description: "Support empty weave/thread dirs: remove `allDocs.length === 0` guard in `loadWeave`; update `listThreadDirs` to include any non-reserved subdir; collapse state for empty nodes"
+    files_touched: ["`packages/fs/src/repositories/weaveRepository.ts`", "`packages/fs/src/utils/pathUtils.ts`", "`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom
+    order: 5
+    status: done
+    description: "`loom.weaveCreate` command — prompt for weave ID, create dir, refresh"
+    files_touched: ["`packages/vscode/src/commands/weaveCreate.ts` (new)", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom-2
+    order: 6
+    status: done
+    description: "`loom.threadCreate` command — context-aware via `loom.selectedWeaveId` context key set on tree selection; hide button when no weave/child selected"
+    files_touched: ["`packages/vscode/src/commands/threadCreate.ts` (new)", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom-3
+    order: 7
+    status: done
+    description: "`loom.chatNew` context-aware — route to `{weave}/chats/` or `{weave}/{thread}/chats/` based on selection; hide toolbar button when nothing selected"
+    files_touched: ["`packages/vscode/src/commands/chatNew.ts`", "`packages/app/src/chatNew.ts`", "`packages/vscode/package.json`"]
+    blocked_by: [3]
+    satisfies: []
+  - id: inline-rename-delete-archive-on-all
+    order: 8
+    status: done
+    description: Inline rename/delete/archive on all node types
+    files_touched: ["`packages/vscode/src/commands/deleteItem.ts` (new)", "`packages/vscode/src/commands/archiveItem.ts` (new)", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: doc-type-in-icons-add-key
+    order: 9
+    status: done
+    description: "`reference` doc type in icons — add `reference` key to `Icons` + `CodiconMap` (codicon `references`); add `refs` folder icon entry (codicon `library`); update `getDocumentIcon` to return `reference` icon for `type === 'reference'`"
+    files_touched: ["`packages/vscode/src/icons.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: folder-in-tree-already-in
+    order: 10
+    status: done
+    description: "`refs/` folder in tree — `refs` already in `RESERVED_SUBDIR_NAMES`; load `{weave}/refs/` and `{weave}/{thread}/refs/` docs into `refDocs` on Weave/Thread; add `refDocs` field to core entities; render as \"References\" section via `createRefsSection` in treeProvider"
+    files_touched: ["`packages/core/src/entities/weave.ts`", "`packages/core/src/entities/thread.ts`", "`packages/core/src/applyEvent.ts`", "`packages/fs/src/repositories/weaveRepository.ts`", "`packages/fs/src/repositories/threadRepository.ts`", "`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: [9]
+    satisfies: []
+  - id: groupby-type-add-group-to
+    order: 11
+    status: done
+    description: GroupBy type — add `reference` group to `groupByType`
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: [9]
+    satisfies: []
+  - id: default-grouping-already-set-in
+    order: 12
+    status: done
+    description: Default grouping = `thread` — already set in `defaultViewState`; no change needed
+    files_touched: ["`packages/vscode/src/view/viewState.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: toolbar-status-filter-presets-new-command
+    order: 13
+    status: done
+    description: "Toolbar status filter presets — new command `loom.setStatusFilter` with quick-pick: \"All\"/\"Active\"/\"Implementing\"; added to toolbar `navigation@8`; archive/refresh shifted to @9/@10"
+    files_touched: ["`packages/vscode/src/commands/filter.ts`", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: global-context-files-add-field-to
+    order: 14
+    status: done
+    description: "Global context files — add `globalDocs: LoomDoc[]` field to `LoomState` in `packages/core/src/entities/state.ts`; update `getState.ts` to scan `{loomRoot}/*.md` (outside any weave dir) and populate `globalDocs`; render as top-level \"Global Context\" section in treeProvider; add toolbar button `loom.generateGlobalCtx` (icon `book`) to generate/refine global ctx via MCP"
+    files_touched: ["`packages/core/src/entities/state.ts`", "`packages/app/src/getState.ts`", "`packages/vscode/src/tree/treeProvider.ts`", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: filter-by-status-at-thread-level
+    order: 15
+    status: done
+    description: Filter by status at thread level — change filter logic so weaves always show but only threads matching `statusFilter` are included; use custom SVG icon `packages/vscode/media/icons/filter.svg` for `loom.setStatusFilter` command; move its toolbar position one slot left (navigation@7, push archive/refresh to @8/@9)
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: filter-by-text-icon-change-loom
+    order: 16
+    status: done
+    description: Filter by text icon — change `loom.setTextFilter` command icon to codicon `search` (magnifying glass) in `package.json`
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: thread-constraint-inline-buttons-set-on
+    order: 17
+    status: done
+    description: "Thread constraint inline buttons — set `contextValue` on thread nodes to encode which doc types already exist (e.g. `thread-has-idea`, `thread-has-idea-design`); in `package.json` `when` clauses: hide `loom.generateIdea` when thread already has an idea; hide `loom.generateDesign` when thread already has a design; swap `loom.generateCtx` → `loom.refineCtx` when thread already has a ctx"
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: mcp-timeout-recovery-catch-in-treeprovider
+    order: 18
+    status: done
+    description: MCP timeout recovery — catch `MCP error -32001` in `treeProvider.getChildren`; on timeout show an error node with "⚠ MCP timed out — click to retry" that triggers `treeProvider.refresh()`; also register a `loom.retryMcp` command wired to a tree-title button so the user can recover without restarting VS Code
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`", "`packages/vscode/src/extension.ts`", "`packages/vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
 ---
 # VS Code Polish — Idea Inline Buttons & Minor UX Fixes
 

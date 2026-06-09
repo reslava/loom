@@ -3,8 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { refinePlan } from '../packages/app/dist/refinePlan.js';
-import { weavePlan } from '../packages/app/dist/index.js';
-import { saveDoc, loadDoc, loadWeave } from '../packages/fs/dist/index.js';
+import { saveDoc, loadDoc } from '../packages/fs/dist/index.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-refine-plan-tests');
 
@@ -12,28 +11,24 @@ function stubClient(reply: string): any {
     return { complete: async () => reply };
 }
 
+// Build a frontmatter-native plan fixture: step 1 done (IN1), step 2 pending (IN2).
 async function makePlan(loomRoot: string, threadId: string): Promise<string> {
-    const content = [
-        '# P',
-        '',
-        '## Goal',
-        'g',
-        '',
-        '## Steps',
-        '| Done | # | Step | Files touched | Blocked by | Satisfies |',
-        '|------|---|------|---------------|------------|-----------|',
-        '| ✅ | 1 | Step one | a.ts | — | IN1 |',
-        '| 🔳 | 2 | Step two | b.ts | — | IN2 |',
-        '',
-        '## Notes',
-        '- x',
-    ].join('\n');
-    const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
-    const { filePath } = await weavePlan(
-        { weaveId: 'core-engine', threadId, title: 'P', content },
-        planDeps,
-    );
-    return filePath;
+    const plansDir = path.join(loomRoot, 'loom', 'core-engine', threadId, 'plans');
+    await fs.ensureDir(plansDir);
+    const fp = path.join(plansDir, `${threadId}-plan-001.md`);
+    const doc: any = {
+        type: 'plan', id: `${threadId}-plan-001`, title: 'P', status: 'implementing',
+        created: '2026-06-09T00:00:00.000Z', version: 1, design_version: 1, tags: [],
+        parent_id: null, requires_load: [], target_version: '0.1.0',
+        _stepsFromFrontmatter: true,
+        steps: [
+            { id: 'step-one', order: 1, status: 'done', title: 'Step one', description: 'Step one', files_touched: ['a.ts'], blockedBy: [], satisfies: ['IN1'] },
+            { id: 'step-two', order: 2, status: 'pending', title: 'Step two', description: 'Step two', files_touched: ['b.ts'], blockedBy: [], satisfies: ['IN2'] },
+        ],
+        content: '# P\n\n## Goal\n\ng\n\n---\n\n## Steps\n\n(generated)\n\n## Notes\n- x',
+    };
+    await saveDoc(doc, fp);
+    return fp;
 }
 
 async function run() {
@@ -65,7 +60,7 @@ async function run() {
         const plan: any = await loadDoc(fp);
         const s1 = plan.steps.find((s: any) => s.order === 1);
         const s2 = plan.steps.find((s: any) => s.order === 2);
-        assert(s1.done === true, `step 1 done preserved, got ${s1.done}`);
+        assert(s1.status === 'done', `step 1 done preserved, got ${s1.status}`);
         assert(JSON.stringify(s1.satisfies) === '["IN1"]', `step 1 keeps IN1, got ${JSON.stringify(s1.satisfies)}`);
         assert(JSON.stringify(s2.satisfies) === '["IN2"]', `step 2 keeps IN2, got ${JSON.stringify(s2.satisfies)}`);
         assert(s1.description === 'Step one refined', 'step 1 description was refined');

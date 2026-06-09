@@ -11,6 +11,49 @@ tags: [loom, core, engine, types, reducers]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.1.0
+steps:
+  - id: define-typescript-core-types
+    order: 1
+    status: done
+    description: Define TypeScript core types
+    files_touched: ["`packages/core/src/types.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-design-reducer
+    order: 2
+    status: done
+    description: Implement design reducer
+    files_touched: ["`packages/core/src/designReducer.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-plan-reducer
+    order: 3
+    status: done
+    description: Implement plan reducer
+    files_touched: ["`packages/core/src/planReducer.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-applyevent-orchestrator
+    order: 4
+    status: done
+    description: Implement applyEvent orchestrator
+    files_touched: ["`packages/core/src/applyEvent.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-derived-state-functions
+    order: 5
+    status: done
+    description: Implement derived state functions
+    files_touched: ["`packages/core/src/derived.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: basic-tests-usage-example
+    order: 6
+    status: done
+    description: Basic tests / usage example
+    files_touched: ["`packages/core/test/`"]
+    blocked_by: []
+    satisfies: []
 ---
 
 # Core Engine Implementation — Types and Reducers
@@ -39,14 +82,14 @@ This establishes the foundation for filesystem integration and future CLI/VSIX c
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Define TypeScript core types | `packages/core/src/types.ts` | — |
-| ✅ | 2 | Implement design reducer | `packages/core/src/designReducer.ts` | — |
-| ✅ | 3 | Implement plan reducer | `packages/core/src/planReducer.ts` | — |
-| ✅ | 4 | Implement applyEvent orchestrator | `packages/core/src/applyEvent.ts` | — |
-| ✅ | 5 | Implement derived state functions | `packages/core/src/derived.ts` | — |
-| ✅ | 6 | Basic tests / usage example | `packages/core/test/` | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Define TypeScript core types | `packages/core/src/types.ts` | — | — |
+| ✅ | 2 | Implement design reducer | `packages/core/src/designReducer.ts` | — | — |
+| ✅ | 3 | Implement plan reducer | `packages/core/src/planReducer.ts` | — | — |
+| ✅ | 4 | Implement applyEvent orchestrator | `packages/core/src/applyEvent.ts` | — | — |
+| ✅ | 5 | Implement derived state functions | `packages/core/src/derived.ts` | — | — |
+| ✅ | 6 | Basic tests / usage example | `packages/core/test/` | — | — |
 ---
 
 ### Step 1 — Define TypeScript Core Types

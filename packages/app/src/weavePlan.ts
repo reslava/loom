@@ -4,23 +4,28 @@ import { loadWeave } from '../../fs/dist';
 import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
-import { generatePlanBody } from '../../core/dist/bodyGenerators/planBody';
-import { PlanDoc, DesignDoc, PlanStep, parseStepsTable } from '../../core/dist';
+import { PlanDoc, DesignDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
 import { lockedReqVersion } from './req';
+
+/** One structured step as supplied to create a plan. `title`/`detail` seed the body
+ *  view (`### Step N` sections) but are not persisted to frontmatter (body owns prose). */
+export interface PlanStepInput {
+    description: string;
+    title?: string;
+    files?: string[];
+    blockedBy?: string[];
+    satisfies?: string[];
+    detail?: string;
+}
 
 export interface WeavePlanInput {
     weaveId: string;
     title?: string;
     goal?: string;
-    steps?: string[];
+    /** Structured ordered steps. The plan is born frontmatter-native (Loom owns the table). */
+    steps?: PlanStepInput[];
     parentId?: string;
     threadId?: string;
-    /**
-     * Optional full plan body. When provided it replaces the generated body and the
-     * frontmatter steps are parsed from it (so the table and steps stay in sync);
-     * takes precedence over `goal`/`steps`.
-     */
-    content?: string;
 }
 
 export interface WeavePlanDeps {
@@ -29,6 +34,26 @@ export interface WeavePlanDeps {
     loadDoc: typeof loadDoc;
     fs: typeof fs;
     loomRoot: string;
+}
+
+/** Build canonical PlanSteps from structured create input (born frontmatter-native). */
+function buildStructuredSteps(stepsInput: PlanStepInput[]): PlanStep[] {
+    const taken = new Set<string>();
+    return stepsInput.map((s, i) => {
+        const description = s.description ?? '';
+        const title = (s.title && s.title.trim()) ? s.title.trim() : description;
+        return {
+            id: slugifyStepId(title || description, taken),
+            order: i + 1,
+            status: 'pending' as const,
+            title,
+            description,
+            files_touched: s.files ?? [],
+            blockedBy: s.blockedBy ?? [],
+            satisfies: s.satisfies ?? [],
+            ...(s.detail && s.detail.trim() ? { detail: s.detail } : {}),
+        };
+    });
 }
 
 export async function weavePlan(
@@ -62,12 +87,8 @@ export async function weavePlan(
             }
         }
 
-        const body = input.content ?? generatePlanBody(planTitle, input.goal, input.steps);
-        const planSteps: PlanStep[] = input.content
-            ? parseStepsTable(input.content)
-            : (input.steps ?? []).map((s, i) => ({
-                order: i + 1, description: s, done: false, files_touched: [], blockedBy: [], satisfies: [],
-            }));
+        const planSteps: PlanStep[] = buildStructuredSteps(input.steps ?? []);
+        const body = serializePlanBody(planSteps, { goal: input.goal });
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
         // Stamp the locked req version this plan was built against (req-staleness baseline).
         const reqV = await lockedReqVersion(deps.loomRoot, input.weaveId, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
@@ -81,6 +102,8 @@ export async function weavePlan(
             content: body,
             ...(reqV !== undefined ? { req_version: reqV } : {}),
         } as PlanDoc;
+        // Plans are born frontmatter-native so the saver persists the steps block.
+        (doc as any)._stepsFromFrontmatter = true;
 
         const filePath = path.join(plansDir, `${planFilename}.md`);
         await deps.saveDoc(doc, filePath);
@@ -98,12 +121,8 @@ export async function weavePlan(
     const planFilename = generatePlanId(input.weaveId, existingPlanIds);
     const planId = generateDocId('plan');
 
-    const body = input.content ?? generatePlanBody(planTitle, input.goal, input.steps);
-    const planSteps: PlanStep[] = input.content
-        ? parseStepsTable(input.content)
-        : (input.steps ?? []).map((s, i) => ({
-            order: i + 1, description: s, done: false, files_touched: [], blockedBy: [], satisfies: [],
-        }));
+    const planSteps: PlanStep[] = buildStructuredSteps(input.steps ?? []);
+    const body = serializePlanBody(planSteps, { goal: input.goal });
     const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, input.parentId ?? null);
     const doc: PlanDoc = {
         ...baseFrontmatter,
@@ -114,6 +133,7 @@ export async function weavePlan(
         steps: planSteps,
         content: body,
     } as PlanDoc;
+    (doc as any)._stepsFromFrontmatter = true;
 
     const plansDir = path.join(weavePath, 'plans');
     await deps.fs.ensureDir(plansDir);

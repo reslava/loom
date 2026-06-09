@@ -10,6 +10,70 @@ tags: [refactor, generators, templates, body]
 parent_id: de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W
 requires_load: [de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W]
 target_version: 0.4.0
+steps:
+  - id: create-ideabody
+    order: 1
+    status: done
+    description: Create `ideaBody.ts` generator
+    files_touched: ["`packages/core/src/bodyGenerators/ideaBody.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-designbody
+    order: 2
+    status: done
+    description: Create `designBody.ts` generator
+    files_touched: ["`packages/core/src/bodyGenerators/designBody.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-planbody
+    order: 3
+    status: done
+    description: Create `planBody.ts` generator
+    files_touched: ["`packages/core/src/bodyGenerators/planBody.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: create-ctxbody
+    order: 4
+    status: done
+    description: Create `ctxBody.ts` generator
+    files_touched: ["`packages/core/src/bodyGenerators/ctxBody.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-weave
+    order: 5
+    status: done
+    description: Update `weave.ts` to use generators
+    files_touched: ["`packages/cli/src/commands/weave.ts`"]
+    blocked_by: [Steps 1-4]
+    satisfies: []
+  - id: update-summarise
+    order: 6
+    status: done
+    description: Update `summarise.ts` to use `ctxBody`
+    files_touched: ["`packages/cli/src/commands/summarise.ts`"]
+    blocked_by: [Step 4]
+    satisfies: []
+  - id: update-test-utilities-to-use-generators
+    order: 7
+    status: done
+    description: Update test utilities to use generators
+    files_touched: ["`tests/test-utils.ts`"]
+    blocked_by: [Steps 1-4]
+    satisfies: []
+  - id: remove
+    order: 8
+    status: done
+    description: Remove `.loom/templates/` directory
+    files_touched: ["`.loom/templates/`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 9
+    status: done
+    description: Run full test suite
+    files_touched: ["`tests/*`"]
+    blocked_by: [All]
+    satisfies: []
 ---
 
 # Implement Document Body Generators
@@ -29,20 +93,19 @@ Replace hardcoded document templates and the `.loom/templates/` directory with p
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `ideaBody.ts` generator | `packages/core/src/bodyGenerators/ideaBody.ts` | — |
-| ✅ | 2 | Create `designBody.ts` generator | `packages/core/src/bodyGenerators/designBody.ts` | — |
-| ✅ | 3 | Create `planBody.ts` generator | `packages/core/src/bodyGenerators/planBody.ts` | — |
-| ✅ | 4 | Create `ctxBody.ts` generator | `packages/core/src/bodyGenerators/ctxBody.ts` | — |
-| ✅ | 5 | Update `weave.ts` to use generators | `packages/cli/src/commands/weave.ts` | Steps 1-4 |
-| ✅ | 6 | Update `summarise.ts` to use `ctxBody` | `packages/cli/src/commands/summarise.ts` | Step 4 |
-| ✅ | 7 | Update test utilities to use generators | `tests/test-utils.ts` | Steps 1-4 |
-| ✅ | 8 | Remove `.loom/templates/` directory | `.loom/templates/` | Step 5 |
-| ✅ | 9 | Run full test suite | `tests/*` | All |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `ideaBody.ts` generator | `packages/core/src/bodyGenerators/ideaBody.ts` | — | — |
+| ✅ | 2 | Create `designBody.ts` generator | `packages/core/src/bodyGenerators/designBody.ts` | — | — |
+| ✅ | 3 | Create `planBody.ts` generator | `packages/core/src/bodyGenerators/planBody.ts` | — | — |
+| ✅ | 4 | Create `ctxBody.ts` generator | `packages/core/src/bodyGenerators/ctxBody.ts` | — | — |
+| ✅ | 5 | Update `weave.ts` to use generators | `packages/cli/src/commands/weave.ts` | Steps 1-4 | — |
+| ✅ | 6 | Update `summarise.ts` to use `ctxBody` | `packages/cli/src/commands/summarise.ts` | Step 4 | — |
+| ✅ | 7 | Update test utilities to use generators | `tests/test-utils.ts` | Steps 1-4 | — |
+| ✅ | 8 | Remove `.loom/templates/` directory | `.loom/templates/` | Step 5 | — |
+| ✅ | 9 | Run full test suite | `tests/*` | All | — |
 ---
 
 ## Step 1 — Create `ideaBody.ts`

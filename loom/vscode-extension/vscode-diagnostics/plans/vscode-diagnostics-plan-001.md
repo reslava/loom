@@ -11,6 +11,28 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: in-extension
+    order: 1
+    status: done
+    description: In extension.ts, replace the file watcher's debouncedRefresh handler (which calls treeProvider.refresh()) with debouncedSyncAndRefresh (which calls syncAndRefresh()). syncAndRefresh already calls both treeProvider.refresh() and updateDiagnostics, so no extra debounce is needed — just point the watcher at the right function.
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: verify-the-debounce-interval-is-appropriate
+    order: 2
+    status: done
+    description: "Verify the debounce interval is appropriate for diagnostics: syncAndRefresh runs validate(all:true) which scans all weave files. If the workspace is large, consider a longer debounce (e.g. 800ms) for the diagnostics path specifically to avoid hammering on rapid saves."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: build-and-smoke-test-save-a
+    order: 3
+    status: done
+    description: "Build and smoke-test: save a doc with a broken parent_id, confirm the VS Code Problems panel updates without a manual refresh. Confirm the tree also refreshes correctly."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
 ---
 # Wire diagnostics to file changes
 
@@ -30,11 +52,11 @@ Make updateDiagnostics run on every file change so structural validation issues 
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | In extension.ts, replace the file watcher's debouncedRefresh handler (which calls treeProvider.refresh()) with debouncedSyncAndRefresh (which calls syncAndRefresh()). syncAndRefresh already calls both treeProvider.refresh() and updateDiagnostics, so no extra debounce is needed — just point the watcher at the right function. | — | — |
-| ✅ | 2 | Verify the debounce interval is appropriate for diagnostics: syncAndRefresh runs validate(all:true) which scans all weave files. If the workspace is large, consider a longer debounce (e.g. 800ms) for the diagnostics path specifically to avoid hammering on rapid saves. | — | — |
-| ✅ | 3 | Build and smoke-test: save a doc with a broken parent_id, confirm the VS Code Problems panel updates without a manual refresh. Confirm the tree also refreshes correctly. | — | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | In extension.ts, replace the file watcher's debouncedRefresh handler (which calls treeProvider.refresh()) with debouncedSyncAndRefresh (which calls syncAndRefresh()). syncAndRefresh already calls both treeProvider.refresh() and updateDiagnostics, so no extra debounce is needed — just point the watcher at the right function. | — | — | — |
+| ✅ | 2 | Verify the debounce interval is appropriate for diagnostics: syncAndRefresh runs validate(all:true) which scans all weave files. If the workspace is large, consider a longer debounce (e.g. 800ms) for the diagnostics path specifically to avoid hammering on rapid saves. | — | — | — |
+| ✅ | 3 | Build and smoke-test: save a doc with a broken parent_id, confirm the VS Code Problems panel updates without a manual refresh. Confirm the tree also refreshes correctly. | — | — | — |
 ---
 
 ### Step 1 — In extension.ts, replace the file watcher's debouncedRefresh handler (which calls treeProvider.refresh()) with debouncedSyncAndRefresh (which calls syncAndRefresh()). syncAndRefresh already calls both treeProvider.refresh() and updateDiagnostics, so no extra debounce is needed — just point the watcher at the right function.

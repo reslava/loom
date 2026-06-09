@@ -4,7 +4,7 @@ id: pl_01KQYDFDDFQ9DNQR4GBWDMN7WA
 title: DoStep Button via MCP Sampling — Plan 002
 status: done
 created: "2026-04-29T00:00:00.000Z"
-updated: 2026-06-06
+updated: "2026-06-06T00:00:00.000Z"
 version: 3
 design_version: 1
 tags: [vscode, mcp, sampling, do-step]
@@ -12,6 +12,49 @@ parent_id: de_01KQYDFDDFZT3CVEBS43EJHVWT
 requires_load: [de_01KQYDFDDFZT3CVEBS43EJHVWT, pl_01KQYDFDDF0GDECC668E23SX01]
 target_release: 0.5.0
 actual_release: null
+steps:
+  - id: add-a-handler-to-mcp-client
+    order: 1
+    status: done
+    description: Add a `sampling/createMessage` handler to `mcp-client.ts` — reads prompt + system msg from the request, calls `makeAIClient().complete(...)`, returns the result in MCP sampling format.
+    files_touched: [packages/vscode/src/mcp-client.ts]
+    blocked_by: []
+    satisfies: [IN1]
+  - id: revert-chatreply
+    order: 2
+    status: done
+    description: Revert `chatReply.ts` to use `loom_generate_chat_reply` — remove the `makeAIClient()` bypass added in plan-001 step 3.
+    files_touched: [packages/vscode/src/commands/chatReply.ts]
+    blocked_by: []
+    satisfies: [IN3]
+  - id: verify-the-tool-exists-on-the
+    order: 3
+    status: done
+    description: Verify the `loom_do_step` tool exists on the MCP server (add if missing) — reads the next non-blocked step + thread context, builds a prompt, applies file edits, marks the step done, writes the matching `-done.md`.
+    files_touched: [packages/mcp/src/tools/doStep.ts]
+    blocked_by: []
+    satisfies: [IN3]
+  - id: add-the-loom
+    order: 4
+    status: done
+    description: Add the `loom.doStep` extension command — receives the selected plan node, calls `mcp.callTool('loom_do_step', planId)`, refreshes the tree.
+    files_touched: [packages/vscode/src/commands/doStep.ts]
+    blocked_by: []
+    satisfies: [IN3, C2]
+  - id: add-the-toolbar-button-on-plan
+    order: 5
+    status: done
+    description: Add the toolbar button on plan nodes — `package.json` command icon + `view/item/context` entry, inline-only.
+    files_touched: [packages/vscode/package.json]
+    blocked_by: []
+    satisfies: [IN3]
+  - id: manual-test-in-the-extension-development
+    order: 6
+    status: done
+    description: Manual test in the Extension Development Host — build, reload, click DoStep on an active plan; verify edits applied, step marked, `-done.md` updated, tree refreshed.
+    files_touched: []
+    blocked_by: []
+    satisfies: []
 ---
 # DoStep Button via MCP Sampling — Plan 002
 

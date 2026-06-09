@@ -8,6 +8,63 @@ version: 1
 tags: [linking, index, validation, performance]
 parent_id: de_01KQYDFDDCQ0DBXVNCSCK57P7M
 requires_load: [de_01KQYDFDDCQ0DBXVNCSCK57P7M]
+steps:
+  - id: define-linkindex-types-and-interfaces
+    order: 1
+    status: done
+    description: Define LinkIndex types and interfaces
+    files_touched: ["`packages/core/src/linkIndex.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-index-builder-full-scan
+    order: 2
+    status: done
+    description: Implement index builder (full scan)
+    files_touched: ["`packages/fs/src/buildLinkIndex.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: implement-incremental-update-functions
+    order: 3
+    status: pending
+    description: Implement incremental update functions
+    files_touched: ["`packages/fs/src/updateLinkIndex.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: integrate-index-with-vs-code-extension
+    order: 4
+    status: pending
+    description: Integrate index with VS Code extension
+    files_touched: ["`packages/vscode/src/extension.ts`", "`watcher.ts`"]
+    blocked_by: [Step 3]
+    satisfies: []
+  - id: use-index-in-command
+    order: 5
+    status: done
+    description: Use index in `loom validate` command
+    files_touched: ["`packages/cli/src/commands/validate.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: use-index-in-for-blocker-resolution
+    order: 6
+    status: done
+    description: Use index in `loom status` for blocker resolution
+    files_touched: ["`packages/cli/src/commands/status.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: add-diagnostics-for-broken-links-in
+    order: 7
+    status: pending
+    description: Add diagnostics for broken links in VS Code
+    files_touched: ["`packages/vscode/src/diagnostics.ts`"]
+    blocked_by: [Step 4]
+    satisfies: []
+  - id: test-with-sample-workspace
+    order: 8
+    status: done
+    description: Test with sample workspace
+    files_touched: ["`looms/test/`"]
+    blocked_by: [All]
+    satisfies: []
 ---
 
 # Implement Structured Link Index
@@ -27,19 +84,18 @@ Implement a fast, in‑memory index of all document relationships (`parent_id`, 
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Define LinkIndex types and interfaces | `packages/core/src/linkIndex.ts` | — |
-| ✅ | 2 | Implement index builder (full scan) | `packages/fs/src/buildLinkIndex.ts` | Step 1 |
-| ⏳ | 3 | Implement incremental update functions | `packages/fs/src/updateLinkIndex.ts` | Step 2 |
-| ⏳ | 4 | Integrate index with VS Code extension | `packages/vscode/src/extension.ts`, `watcher.ts` | Step 3 |
-| ✅ | 5 | Use index in `loom validate` command | `packages/cli/src/commands/validate.ts` | Step 2 |
-| ✅ | 6 | Use index in `loom status` for blocker resolution | `packages/cli/src/commands/status.ts` | Step 2 |
-| ⏳ | 7 | Add diagnostics for broken links in VS Code | `packages/vscode/src/diagnostics.ts` | Step 4 |
-| ✅ | 8 | Test with sample workspace | `looms/test/` | All |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Define LinkIndex types and interfaces | `packages/core/src/linkIndex.ts` | — | — |
+| ✅ | 2 | Implement index builder (full scan) | `packages/fs/src/buildLinkIndex.ts` | Step 1 | — |
+| 🔳 | 3 | Implement incremental update functions | `packages/fs/src/updateLinkIndex.ts` | Step 2 | — |
+| 🔳 | 4 | Integrate index with VS Code extension | `packages/vscode/src/extension.ts`, `watcher.ts` | Step 3 | — |
+| ✅ | 5 | Use index in `loom validate` command | `packages/cli/src/commands/validate.ts` | Step 2 | — |
+| ✅ | 6 | Use index in `loom status` for blocker resolution | `packages/cli/src/commands/status.ts` | Step 2 | — |
+| 🔳 | 7 | Add diagnostics for broken links in VS Code | `packages/vscode/src/diagnostics.ts` | Step 4 | — |
+| ✅ | 8 | Test with sample workspace | `looms/test/` | All | — |
 ---
 
 ## Step 1 — Define LinkIndex Types and Interfaces

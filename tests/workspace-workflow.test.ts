@@ -60,7 +60,7 @@ async function testWorkspaceWorkflow() {
 
         const r1 = await completeStep({ planId, step: 1 }, deps);
         assert(r1.autoCompleted === false, 'step 1 must not auto-complete plan');
-        assert(r1.plan.steps[0].done === true, 'step 1 must be marked done');
+        assert(r1.plan.steps[0].status === 'done', 'step 1 must be marked done');
 
         const r2 = await completeStep({ planId, step: 2 }, deps);
         assert(r2.autoCompleted === true, 'all steps done must auto-complete plan');

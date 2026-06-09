@@ -34,6 +34,6 @@ export function filterPlansByTargetVersion(plans: PlanDoc[], version: string): P
 export function filterPlansWithBlockedSteps(plans: PlanDoc[], index: LinkIndex): PlanDoc[] {
     return plans.filter(p => {
         if (!p.steps) return false;
-        return p.steps.some(s => !s.done && isStepBlocked(s, p, index));
+        return p.steps.some(s => s.status !== 'done' && s.status !== 'cancelled' && isStepBlocked(s, p, index));
     });
 }

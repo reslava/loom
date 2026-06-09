@@ -81,7 +81,7 @@ Every Loom document must include YAML frontmatter with at minimum:
 |------|-------------------|
 | `idea` | Problem, Idea, Why now, Open questions, Next step |
 | `design` | Goal, Context, `# CHAT` (followed by `## User:` / `## AI:` blocks) |
-| `plan` | Goal, Steps table, Step details, Legend |
+| `plan` | Goal, Steps table (generated from the frontmatter `steps`), Step details, Legend |
 | `ctx` | Active state, Key decisions, Open questions, Step continuation note |
 
 Templates for each type are available in `.loom/templates/`.
@@ -90,27 +90,34 @@ Templates for each type are available in `.loom/templates/`.
 
 ## Dependency Tracking in Plans
 
-Plans often have steps that depend on the completion of other steps, either within the same plan or in other plans. To make these dependencies explicit, the steps table includes a **"Blocked by"** column.
+> **As of v1.3.0, plan steps are structured data in YAML frontmatter — you do not
+> hand-author the table.** Create a plan with `loom_create_plan` (`goal` + a `steps`
+> array of objects); Loom renders the canonical `## Steps` table and the per-step
+> sections. See the
+> [Plan Steps reference](../loom/refs/plan-steps-table-and-blockedby-format-reference.md)
+> for the full schema.
 
-### Steps Table Format
+Steps can depend on other steps (same plan or another plan) via each step's
+`blocked_by` field, surfaced as the **"Blocked by"** column in the generated table.
+
+### Generated table (a view of the frontmatter steps)
 
 ```markdown
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Define TypeScript core types | `packages/core/src/types.ts` | — |
-| 🔳 | 2 | Implement design reducer | `packages/core/src/designReducer.ts` | Step 1 |
-| 🔳 | 3 | Implement plan reducer | `packages/core/src/planReducer.ts` | Step 1 |
-| 🔳 | 4 | Implement applyEvent orchestrator | `packages/core/src/applyEvent.ts` | Steps 2, 3 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Define core types | packages/core/src/types.ts | — | — |
+| 🔳 | 2 | Implement design reducer | packages/core/src/designReducer.ts | define-core-types | — |
 ```
 
-### Dependency Values
+### Dependency values (`blocked_by`)
 
 | Value | Meaning |
 |-------|---------|
 | `—` | No dependencies; can start immediately. |
-| `Step N` | Blocked until Step N is marked ✅. |
-| `Steps N, M` | Blocked until all listed steps are ✅. |
-| `<plan-id>` | Blocked until the referenced plan has `status: done`. (Used in the first step of a dependent plan.) |
+| `{step-id}` | Blocked until that step of **this** plan is `done` (stable id — survives reordering). |
+| `{plan-id}` | Blocked until the referenced plan is `status: done`. |
+| `{plan-id} N` | Blocked until step N of another plan is done. |
+| `N` (integer) | Legacy — a bare step number; still resolved by `order`, but prefer stable ids. |
 
 ### Human Workflow
 

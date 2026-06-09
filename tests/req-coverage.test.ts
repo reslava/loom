@@ -2,7 +2,7 @@ import { assert } from './test-utils.ts';
 import { parseReq, checkReqCoverage, isReqSatisfied } from '../packages/core/dist/index.js';
 
 function step(order: number, satisfies: string[]): any {
-    return { order, description: `step ${order}`, done: false, files_touched: [], blockedBy: [], satisfies };
+    return { order, description: `step ${order}`, status: 'pending', files_touched: [], blockedBy: [], satisfies };
 }
 
 const REQ = parseReq([

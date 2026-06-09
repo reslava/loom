@@ -10,6 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-06-09
+
+### Changed
+- **Plan steps now live in YAML frontmatter — the single source of truth.** Previously a
+  plan's steps existed only as a Markdown table in the body, which the engine re-parsed on
+  every read. A non-canonical or malformed table silently produced a *zero-step* plan
+  (breaking `do-next-step` / `complete_step` with no error). Now the structured `steps`
+  live in frontmatter and the `## Steps` table is a **generated view** — so steps can't be
+  lost to a parsing quirk, and the table is always canonical.
+- **`loom_create_plan` is structured-only.** Pass `goal` (prose) + a `steps` array of
+  objects (`{ description, title?, files?, blockedBy?, satisfies?, detail? }`) — **never** a
+  hand-formatted table. Loom owns the table and synthesizes each step's stable id. Plans no
+  longer accept a `content` body (idea/design/reference still do). This makes a
+  malformed/stepless plan **structurally impossible to create**.
+- **Per-step `status` and stable step ids.** Each step carries a `status` enum
+  (`pending` / `in_progress` / `done` / `cancelled`, rendered as 🔳/🔄/✅/❌) instead of a
+  bare done flag, and a stable `id` that `blocked_by` references — dependencies now survive
+  reordering. (Legacy `Step N` / integer blockers are still resolved.)
+- **One canonical plan-body serializer** replaces the three former generators (fixing a
+  latent 5-column vs 6-column table drift), and the frontmatter YAML serializer now
+  correctly quotes step fields containing special characters (commas, colons, brackets,
+  backticks).
+
+### Added
+- **`loom migrate-plan-steps [plan-id] [--dry-run]`** — upgrade existing (pre-1.3.0) plans
+  from body-table steps to frontmatter-native steps. Idempotent, and **never destructive**:
+  a plan whose table can't be parsed is reported `unparseable` and left untouched.
+
 ## [1.2.1] - 2026-06-08
 
 ### Fixed
@@ -372,7 +400,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/reslava/loom/releases/tag/v1.3.0
 [1.2.1]: https://github.com/reslava/loom/releases/tag/v1.2.1
 [1.2.0]: https://github.com/reslava/loom/releases/tag/v1.2.0
 [1.0.0]: https://github.com/reslava/loom/releases/tag/v1.0.0

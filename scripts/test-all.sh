@@ -62,6 +62,13 @@ run_test tests/context-prefs.test.ts
 # Plan table utils: steps-table rewrite must not truncate trailing sections
 run_test tests/plan-table-utils.test.ts
 
+# Plan frontmatter steps: structured steps persist to/from frontmatter (source of truth);
+# body table is a generated view; legacy plans fall back to body-parse and are not auto-migrated
+run_test tests/plan-frontmatter-steps.test.ts
+
+# Migrate plan steps: legacy body-table plans → frontmatter-native; idempotent; never empties unparseable
+run_test tests/migrate-plan-steps.test.ts
+
 # refinePlan req-aware: a refine never strips Satisfies citations or flips done; 6-col replies emit new ids
 run_test tests/refine-plan.test.ts
 

@@ -86,7 +86,7 @@ loom/
       {thread}-idea.md         ← raw concept
       {thread}-design.md       ← design decisions and conversation log
       plans/
-        {plan-id}.md           ← implementation steps table
+        {plan-id}.md           ← implementation plan (structured steps in frontmatter)
       done/
         {done-id}.md           ← post-implementation summary
       chats/                   ← AI conversation logs

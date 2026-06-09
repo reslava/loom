@@ -1,33 +1,23 @@
-export function generatePlanBody(title: string, goal?: string, steps?: string[]): string {
-    const goalSection = goal ? `\n${goal}\n` : '\n<!-- One paragraph: what this plan implements and why. -->\n';
+import { PlanStep } from '../entities/plan';
+import { serializePlanBody, slugifyStepId } from '../planTableUtils';
 
-    const hasSteps = steps && steps.length > 0;
-    const tableRows = hasSteps
-        ? steps!.map((s, i) => `| \u{1F533} | ${i + 1} | ${s} | — | — |`).join('\n')
-        : '| \u{1F533} | 1 | {Step description} | — | — |';
-
-    // No header mini-table: created / status / design / target_version all live in
-    // frontmatter (the single source of truth). Duplicating them in the body only
-    // drifts (e.g. a static "Status: DRAFT" left behind on a done plan).
-    return `
-## Goal
-${goalSection}---
-
-## Steps
-
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-${tableRows}
-
----
-
-### Legend
-
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Done |
-| \u{1F504} | In Progress |
-| \u{1F533} | Pending |
-| ❌ | Cancelled |
-`;
+/**
+ * Back-compat shim over the canonical serializer: builds structured steps from a
+ * plain description list and delegates to `serializePlanBody`, so create paths that
+ * only have step descriptions still emit the one canonical 6-column body. New code
+ * should build `PlanStep[]` and call `serializePlanBody` directly.
+ */
+export function generatePlanBody(_title: string, goal?: string, steps?: string[]): string {
+    const taken = new Set<string>();
+    const planSteps: PlanStep[] = (steps ?? []).map((s, i) => ({
+        id: slugifyStepId(s, taken),
+        order: i + 1,
+        status: 'pending',
+        title: s,
+        description: s,
+        files_touched: [],
+        blockedBy: [],
+        satisfies: [],
+    }));
+    return serializePlanBody(planSteps, { goal });
 }

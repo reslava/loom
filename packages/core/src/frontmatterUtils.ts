@@ -1,5 +1,6 @@
 import { DocumentType } from './entities/base';
 import { DocumentStatus } from './entities/document';
+import { PlanStep, StepStatus } from './entities/plan';
 import { isUlidId, parseDocId } from './idUtils';
 
 /**
@@ -47,17 +48,45 @@ export function createBaseFrontmatter(
  * - Arrays become inline: [a, b, c]
  * - Strings are quoted only if they contain special characters
  */
+function quoteYaml(value: string): string {
+    return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+// A YAML plain scalar may not BEGIN with an indicator character (backtick and @ are
+// reserved indicators — a value like "`app/foo` use-case" must be quoted).
+const YAML_INDICATOR_START = /^[-?:,[\]{}#&*!|>'"%@`]/;
+
+/**
+ * Block-scalar context (`key: value`): quote on structural chars, surrounding
+ * whitespace, or a leading indicator. Commas/brackets mid-value are safe here.
+ */
+function needsBlockQuote(v: string): boolean {
+    return v === '' || /[:#\n]/.test(v) || v.trim() !== v || YAML_INDICATOR_START.test(v);
+}
+
+/**
+ * Flow context (inside an inline `[a, b]` sequence): also avoid flow-collection
+ * punctuation and indicator chars ANYWHERE in the item. Without this, an array entry
+ * containing ", ", ": ", brackets, or a backtick (e.g. a `files_touched` cell carrying
+ * prose) produces invalid YAML — exactly how a legacy plan migration broke on save.
+ */
+function needsFlowQuote(v: string): boolean {
+    return needsBlockQuote(v) || /[,[\]{}&*!?|>'"%@`]/.test(v);
+}
+
+function serializeFlowItem(v: any): string {
+    if (typeof v === 'string') return needsFlowQuote(v) ? quoteYaml(v) : v;
+    return serializeValue(v);
+}
+
 function serializeValue(value: any): string {
     if (Array.isArray(value)) {
         if (value.length === 0) return '[]';
-        return `[${value.map(v => serializeValue(v)).join(', ')}]`;
+        return `[${value.map(serializeFlowItem).join(', ')}]`;
     }
 
     if (typeof value === 'string') {
-        if (/[:#\n]/.test(value) || value.trim() !== value) {
-            return `"${value.replace(/"/g, '\\"')}"`;
-        }
-        return value;
+        return needsBlockQuote(value) ? quoteYaml(value) : value;
     }
 
     if (typeof value === 'number' || typeof value === 'boolean') {
@@ -101,9 +130,62 @@ const ORDERED_KEYS = [
     'source_version',
     'staled',
     'refined',
+    'steps',
     // ctx-specific
     'source_hash',
 ];
+
+// The structured step fields persisted to frontmatter (snake_case, the canonical
+// store). title/detail are intentionally NOT persisted — they live as authored
+// prose in the body (Goal / `### Step N` sections / Notes), never duplicated here.
+const VALID_STEP_STATUSES: StepStatus[] = ['pending', 'in_progress', 'done', 'cancelled'];
+
+/**
+ * Serializes a plan's `steps` as a readable block-style YAML sequence. This is the
+ * canonical persisted form (source of truth); the body table is a generated view.
+ * In-memory `blockedBy` maps to the snake_case `blocked_by` key here — the one field
+ * that differs; everything else is 1:1. `parseFrontmatterSteps` is its inverse and
+ * the round-trip is asserted in tests.
+ */
+export function serializeStepsBlock(steps: PlanStep[]): string {
+    if (!steps || steps.length === 0) return 'steps: []';
+    const lines: string[] = ['steps:'];
+    for (const s of steps) {
+        lines.push(`  - id: ${serializeValue(s.id)}`);
+        lines.push(`    order: ${serializeValue(s.order)}`);
+        lines.push(`    status: ${serializeValue(s.status)}`);
+        lines.push(`    description: ${serializeValue(s.description)}`);
+        lines.push(`    files_touched: ${serializeValue(s.files_touched ?? [])}`);
+        lines.push(`    blocked_by: ${serializeValue(s.blockedBy ?? [])}`);
+        lines.push(`    satisfies: ${serializeValue(s.satisfies ?? [])}`);
+    }
+    return lines.join('\n');
+}
+
+/**
+ * Normalizes raw `steps` parsed from frontmatter YAML (gray-matter gives plain
+ * objects with snake_case keys) into in-memory `PlanStep`s. Maps `blocked_by` →
+ * `blockedBy`, defaults missing fields, and synthesizes `title` from `description`
+ * (title/detail are body-only, so they are not read back from frontmatter).
+ */
+export function parseFrontmatterSteps(raw: any): PlanStep[] {
+    if (!Array.isArray(raw)) return [];
+    return raw.map((s: any, i: number): PlanStep => {
+        const description = String(s?.description ?? '');
+        const status: StepStatus = VALID_STEP_STATUSES.includes(s?.status) ? s.status : 'pending';
+        const blockedByRaw = s?.blocked_by ?? s?.blockedBy ?? [];
+        return {
+            id: String(s?.id ?? `step-${i + 1}`),
+            order: typeof s?.order === 'number' ? s.order : i + 1,
+            status,
+            title: description,
+            description,
+            files_touched: Array.isArray(s?.files_touched) ? s.files_touched.map(String) : [],
+            blockedBy: Array.isArray(blockedByRaw) ? blockedByRaw.map(String) : [],
+            satisfies: Array.isArray(s?.satisfies) ? s.satisfies.map(String) : [],
+        };
+    });
+}
 
 /**
  * Serializes a Loom frontmatter object into a deterministic YAML string.
@@ -143,6 +225,10 @@ export function serializeFrontmatter(obj: Record<string, any>): string {
     const keys = [...orderedPresent, ...remaining];
 
     const lines = keys.map(key => {
+        // Plan steps serialize as a block-style YAML sequence, not an inline value.
+        if (key === 'steps' && Array.isArray(rest[key])) {
+            return serializeStepsBlock(rest[key]);
+        }
         const value = serializeValue(rest[key]);
         return `${key}: ${value}`;
     });

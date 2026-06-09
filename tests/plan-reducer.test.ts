@@ -1,7 +1,7 @@
 import { assert } from './test-utils.ts';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 
-function makePlan(status: string, steps?: Array<{ order: number; description: string; done: boolean }>) {
+function makePlan(status: string, steps?: Array<{ order: number; description: string; status: string }>) {
     return {
         type: 'plan' as const,
         id: 'test-plan-001',
@@ -15,8 +15,8 @@ function makePlan(status: string, steps?: Array<{ order: number; description: st
         requires_load: [],
         content: '',
         steps: steps ?? [
-            { order: 1, description: 'Step one', done: false, files_touched: [], blocked_by: [] },
-            { order: 2, description: 'Step two', done: false, files_touched: [], blocked_by: [] },
+            { order: 1, description: 'Step one', status: 'pending', files_touched: [], blockedBy: [] },
+            { order: 2, description: 'Step two', status: 'pending', files_touched: [], blockedBy: [] },
         ],
     } as any;
 }
@@ -47,10 +47,10 @@ async function testPlanReducer() {
     console.log('  • COMPLETE_STEP: last step auto-transitions to done...');
     {
         const plan = makePlan('implementing', [
-            { order: 1, description: 'Only step', done: false, files_touched: [], blocked_by: [] },
+            { order: 1, description: 'Only step', status: 'pending', files_touched: [], blockedBy: [] },
         ]);
         const result = planReducer(plan, { type: 'COMPLETE_STEP', planId: 'test-plan-001', stepIndex: 0 } as any);
-        assert(result.steps[0].done === true, 'step 0 must be marked done');
+        assert(result.steps[0].status === 'done', 'step 0 must be marked done');
         assert(result.status === 'done', `Expected auto-done status "done", got "${result.status}"`);
         console.log('    ✅ COMPLETE_STEP auto-transitions to done when all steps complete');
     }
@@ -59,8 +59,8 @@ async function testPlanReducer() {
     {
         const plan = makePlan('implementing');
         const result = planReducer(plan, { type: 'COMPLETE_STEP', planId: 'test-plan-001', stepIndex: 0 } as any);
-        assert(result.steps[0].done === true, 'step 0 must be done');
-        assert(result.steps[1].done === false, 'step 1 must still be pending');
+        assert(result.steps[0].status === 'done', 'step 0 must be done');
+        assert(result.steps[1].status !== 'done', 'step 1 must still be pending');
         assert(result.status === 'implementing', `Expected "implementing", got "${result.status}"`);
         console.log('    ✅ COMPLETE_STEP partial leaves status as implementing');
     }

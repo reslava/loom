@@ -56,7 +56,7 @@ export async function closePlan(
     const thread = weave.threads.find((t: any) => t.plans.some((p: any) => p.id === input.planId)) as any;
 
     const stepLines = (plan.steps ?? [])
-        .map(s => `${s.done ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
+        .map(s => `${s.status === 'done' ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
         .join('\n');
 
     const userMessage = [

@@ -53,13 +53,27 @@ async function run() {
     assert(design.version === 1 && design.status === 'draft', 'design born at v1, draft');
     console.log('  ✓ create design with body → v1, draft, body present');
 
-    // 3. create plan with body containing a steps table → steps parsed from the body.
-    const planRes = await weavePlan({ weaveId: 'demo', threadId: 'demo', content: STEPS_TABLE }, planDeps as any);
-    const plan: any = await loadDoc(planRes.filePath);
-    assert(plan.content.includes('First thing'), 'plan has the provided body');
-    assert(plan.steps.length === 2, `plan steps parsed from body (got ${plan.steps.length})`);
-    assert(plan.version === 1, 'plan born at v1');
-    console.log('  ✓ create plan with body → steps parsed from the table, v1');
+    // 3. create plan with STRUCTURED steps → born frontmatter-native (steps in YAML, generated body).
+    // (Plans are structured-only — the legacy content→table-parse create path was removed in favor
+    // of Loom owning the steps table; idea/design/reference still take a free-form `content` body.)
+    const nativeRes = await weavePlan({
+        weaveId: 'demo', threadId: 'demo', goal: 'Build the widget.',
+        steps: [
+            { description: 'First step', files: ['a.ts'], satisfies: ['IN1'], detail: '- do the first thing' },
+            { description: 'Second step', title: 'Second', blockedBy: ['first-step'] },
+        ],
+    } as any, planDeps as any);
+    const nativeRaw = await fs.readFile(nativeRes.filePath, 'utf8');
+    assert(nativeRaw.includes('\nsteps:\n'), 'native plan persists a frontmatter steps block');
+    assert(nativeRaw.includes('## Goal') && nativeRaw.includes('Build the widget.'), 'goal rendered in body');
+    assert(nativeRaw.includes('### Step 1 — First step') && nativeRaw.includes('do the first thing'), 'detail section rendered in body');
+    const nativePlan: any = await loadDoc(nativeRes.filePath);
+    assert(nativePlan._stepsFromFrontmatter === true, 'structured-steps plan loads frontmatter-native');
+    assert(nativePlan.steps.length === 2 && nativePlan.steps[0].id === 'first-step', `steps born with slug ids (got ${JSON.stringify(nativePlan.steps.map((s: any) => s.id))})`);
+    assert(nativePlan.steps[0].status === 'pending', 'steps born pending');
+    assert(JSON.stringify(nativePlan.steps[0].satisfies) === JSON.stringify(['IN1']), 'satisfies persisted to frontmatter');
+    assert(JSON.stringify(nativePlan.steps[1].blockedBy) === JSON.stringify(['first-step']), 'blockedBy persisted as snake_case and round-trips');
+    console.log('  ✓ create plan with structured steps → frontmatter-native, generated body');
 
     // 4. create reference with body → born active, body present.
     const refOut = await createReferenceHandle(root, { title: 'Body Ref', content: '# Body Ref\n\nReference body.' });

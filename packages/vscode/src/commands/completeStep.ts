@@ -12,7 +12,7 @@ export async function completeStepCommand(treeProvider: LoomTreeProvider, node?:
     if (!plan || plan.type !== 'plan') { vscode.window.showErrorMessage('Select a plan node to complete steps.'); return; }
     if (plan.status !== 'implementing') { vscode.window.showErrorMessage(`Plan must be "implementing" to complete steps. Current status: ${plan.status}`); return; }
 
-    const pendingSteps = plan.steps?.filter(s => !s.done) ?? [];
+    const pendingSteps = plan.steps?.filter(s => s.status !== 'done' && s.status !== 'cancelled') ?? [];
     if (pendingSteps.length === 0) { vscode.window.showInformationMessage('All steps are already done.'); return; }
 
     const items = pendingSteps.map(s => ({

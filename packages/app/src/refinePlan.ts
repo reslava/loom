@@ -66,7 +66,7 @@ export async function refinePlan(
             const prev = oldByOrder.get(s.order);
             return {
                 ...s,
-                done: prev ? prev.done : s.done,
+                status: prev ? prev.status : s.status,
                 satisfies: s.satisfies.length ? s.satisfies : (prev?.satisfies ?? []),
             };
         })

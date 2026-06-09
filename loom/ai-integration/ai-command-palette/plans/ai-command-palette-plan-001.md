@@ -10,6 +10,84 @@ tags: [ai, commands, promote, refine, summarize, vscode]
 parent_id: de_01KQYDFDD7Z9B0CK146K75XTRZ
 requires_load: [de_01KQYDFDD7Z9B0CK146K75XTRZ, de_01KQYDFDD88BTYTQ61S0Q9W02V]
 target_version: 0.3.0
+steps:
+  - id: rename-file-export-command-id-package
+    order: 1
+    status: done
+    description: Rename `promoteIdea` → `promoteToIdea` — file, export, command ID, package.json
+    files_touched: ["`app/src/promoteIdea.ts`", "`vscode/src/commands/promoteIdea.ts`", "`vscode/src/extension.ts`", "`vscode/package.json`"]
+    blocked_by: []
+    satisfies: []
+  - id: use-case-ai-drafts-design-doc
+    order: 2
+    status: done
+    description: "`app/promoteToDesign` use-case — AI drafts design doc from chat or idea"
+    files_touched: ["`app/src/promoteToDesign.ts`"]
+    blocked_by: [1]
+    satisfies: []
+  - id: loom
+    order: 3
+    status: done
+    description: "`loom.promoteToDesign` command + menu entry"
+    files_touched: ["`vscode/src/commands/promoteToDesign.ts`", "`vscode/src/extension.ts`", "`vscode/package.json`"]
+    blocked_by: [2]
+    satisfies: []
+  - id: use-case-ai-drafts-plan-steps
+    order: 4
+    status: done
+    description: "`app/promoteToPlan` use-case — AI drafts plan steps from chat, idea, or design"
+    files_touched: ["`app/src/promoteToPlan.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom-2
+    order: 5
+    status: done
+    description: "`loom.promoteToPlan` command + menu entry"
+    files_touched: ["`vscode/src/commands/promoteToPlan.ts`", "`vscode/src/extension.ts`", "`vscode/package.json`"]
+    blocked_by: [4]
+    satisfies: []
+  - id: reducer-use-case-ai-rewrites-idea
+    order: 6
+    status: done
+    description: "`refineIdea` reducer + use-case — AI rewrites idea body, version++"
+    files_touched: ["`core/src/reducers/ideaReducer.ts`", "`app/src/refineIdea.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom-3
+    order: 7
+    status: done
+    description: "`loom.refineIdea` command + menu entry"
+    files_touched: ["`vscode/src/commands/refineIdea.ts`", "`vscode/src/extension.ts`", "`vscode/package.json`"]
+    blocked_by: [6]
+    satisfies: []
+  - id: use-case-ai-updates-plan-steps
+    order: 8
+    status: done
+    description: "`refinePlan` use-case — AI updates plan steps, version++"
+    files_touched: ["`app/src/refinePlan.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: loom-4
+    order: 9
+    status: done
+    description: "`loom.refinePlan` command + menu entry"
+    files_touched: ["`vscode/src/commands/refinePlan.ts`", "`vscode/src/extension.ts`", "`vscode/package.json`"]
+    blocked_by: [8]
+    satisfies: []
+  - id: wire-to-replace-template-stub-with
+    order: 10
+    status: done
+    description: Wire `summarise` to `aiClient` — replace template stub with AI-generated ctx
+    files_touched: ["`app/src/summarise.ts`", "`vscode/src/commands/summarise.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: build-smoke-test-full-command-palette
+    order: 11
+    status: done
+    description: Build + smoke test full command palette
+    files_touched: ["`scripts/build-all.sh`"]
+    blocked_by: [1–10]
+    satisfies: []
 ---
 
 # AI Command Palette — Implementation
@@ -23,19 +101,19 @@ rename `promoteIdea` → `promoteToIdea`, add `promoteToDesign`, `promoteToPlan`
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Rename `promoteIdea` → `promoteToIdea` — file, export, command ID, package.json | `app/src/promoteIdea.ts`, `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | — |
-| ✅ | 2 | `app/promoteToDesign` use-case — AI drafts design doc from chat or idea | `app/src/promoteToDesign.ts` | 1 |
-| ✅ | 3 | `loom.promoteToDesign` command + menu entry | `vscode/src/commands/promoteToDesign.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 2 |
-| ✅ | 4 | `app/promoteToPlan` use-case — AI drafts plan steps from chat, idea, or design | `app/src/promoteToPlan.ts` | — |
-| ✅ | 5 | `loom.promoteToPlan` command + menu entry | `vscode/src/commands/promoteToPlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 4 |
-| ✅ | 6 | `refineIdea` reducer + use-case — AI rewrites idea body, version++ | `core/src/reducers/ideaReducer.ts`, `app/src/refineIdea.ts` | — |
-| ✅ | 7 | `loom.refineIdea` command + menu entry | `vscode/src/commands/refineIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 6 |
-| ✅ | 8 | `refinePlan` use-case — AI updates plan steps, version++ | `app/src/refinePlan.ts` | — |
-| ✅ | 9 | `loom.refinePlan` command + menu entry | `vscode/src/commands/refinePlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 8 |
-| ✅ | 10 | Wire `summarise` to `aiClient` — replace template stub with AI-generated ctx | `app/src/summarise.ts`, `vscode/src/commands/summarise.ts` | — |
-| ✅ | 11 | Build + smoke test full command palette | `scripts/build-all.sh` | 1–10 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Rename `promoteIdea` → `promoteToIdea` — file, export, command ID, package.json | `app/src/promoteIdea.ts`, `vscode/src/commands/promoteIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | — | — |
+| ✅ | 2 | `app/promoteToDesign` use-case — AI drafts design doc from chat or idea | `app/src/promoteToDesign.ts` | 1 | — |
+| ✅ | 3 | `loom.promoteToDesign` command + menu entry | `vscode/src/commands/promoteToDesign.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 2 | — |
+| ✅ | 4 | `app/promoteToPlan` use-case — AI drafts plan steps from chat, idea, or design | `app/src/promoteToPlan.ts` | — | — |
+| ✅ | 5 | `loom.promoteToPlan` command + menu entry | `vscode/src/commands/promoteToPlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 4 | — |
+| ✅ | 6 | `refineIdea` reducer + use-case — AI rewrites idea body, version++ | `core/src/reducers/ideaReducer.ts`, `app/src/refineIdea.ts` | — | — |
+| ✅ | 7 | `loom.refineIdea` command + menu entry | `vscode/src/commands/refineIdea.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 6 | — |
+| ✅ | 8 | `refinePlan` use-case — AI updates plan steps, version++ | `app/src/refinePlan.ts` | — | — |
+| ✅ | 9 | `loom.refinePlan` command + menu entry | `vscode/src/commands/refinePlan.ts`, `vscode/src/extension.ts`, `vscode/package.json` | 8 | — |
+| ✅ | 10 | Wire `summarise` to `aiClient` — replace template stub with AI-generated ctx | `app/src/summarise.ts`, `vscode/src/commands/summarise.ts` | — | — |
+| ✅ | 11 | Build + smoke test full command palette | `scripts/build-all.sh` | 1–10 | — |
 ### Notes
 
 - Step 1: rename is purely mechanical — no logic changes, just identifiers and filenames.

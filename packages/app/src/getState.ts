@@ -166,7 +166,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             for (const plan of thread.plans) {
                 if (!plan.steps) continue;
                 for (const step of plan.steps) {
-                    if (plan.status === 'implementing' && !step.done && isStepBlocked(step, plan, index)) {
+                    if (plan.status === 'implementing' && step.status !== 'done' && step.status !== 'cancelled' && isStepBlocked(step, plan, index)) {
                         blockedSteps++;
                     }
                 }

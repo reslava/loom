@@ -10,6 +10,56 @@ tags: [refactor, imports, cleanup]
 parent_id: de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W
 requires_load: []
 target_version: 0.5.0
+steps:
+  - id: audit-all-imports-of-domain-types
+    order: 1
+    status: done
+    description: Audit all imports of domain types
+    files_touched: ["All `packages/*/src/**/*.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-package-imports
+    order: 2
+    status: done
+    description: Update `fs` package imports
+    files_touched: ["`packages/fs/src/*.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-package-imports-2
+    order: 3
+    status: done
+    description: Update `cli` package imports
+    files_touched: ["`packages/cli/src/**/*.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-internal-imports
+    order: 4
+    status: done
+    description: Update `core` internal imports
+    files_touched: ["`packages/core/src/*.ts` (excluding entities/events/reducers)"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: remove-re-exports-from-types
+    order: 5
+    status: done
+    description: Remove re‑exports from `types.ts`
+    files_touched: ["`packages/core/src/types.ts`"]
+    blocked_by: [Steps 2–4]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 6
+    status: done
+    description: Run full test suite
+    files_touched: ["`tests/*`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: delete-obsolete-types
+    order: 7
+    status: done
+    description: Delete obsolete `types.ts` if empty
+    files_touched: ["`packages/core/src/types.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
 ---
 
 # Update Client Imports to Use Domain Modules Directly
@@ -29,18 +79,17 @@ Replace all imports that currently pull domain types (`IdeaDoc`, `DesignDoc`, `P
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Audit all imports of domain types | All `packages/*/src/**/*.ts` | — |
-| ✅ | 2 | Update `fs` package imports | `packages/fs/src/*.ts` | Step 1 |
-| ✅ | 3 | Update `cli` package imports | `packages/cli/src/**/*.ts` | Step 1 |
-| ✅ | 4 | Update `core` internal imports | `packages/core/src/*.ts` (excluding entities/events/reducers) | Step 1 |
-| ✅ | 5 | Remove re‑exports from `types.ts` | `packages/core/src/types.ts` | Steps 2–4 |
-| ✅ | 6 | Run full test suite | `tests/*` | Step 5 |
-| ✅ | 7 | Delete obsolete `types.ts` if empty | `packages/core/src/types.ts` | Step 5 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Audit all imports of domain types | All `packages/*/src/**/*.ts` | — | — |
+| ✅ | 2 | Update `fs` package imports | `packages/fs/src/*.ts` | Step 1 | — |
+| ✅ | 3 | Update `cli` package imports | `packages/cli/src/**/*.ts` | Step 1 | — |
+| ✅ | 4 | Update `core` internal imports | `packages/core/src/*.ts` (excluding entities/events/reducers) | Step 1 | — |
+| ✅ | 5 | Remove re‑exports from `types.ts` | `packages/core/src/types.ts` | Steps 2–4 | — |
+| ✅ | 6 | Run full test suite | `tests/*` | Step 5 | — |
+| ✅ | 7 | Delete obsolete `types.ts` if empty | `packages/core/src/types.ts` | Step 5 | — |
 ---
 
 ## Step 1 — Audit all imports of domain types

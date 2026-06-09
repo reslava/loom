@@ -1,7 +1,7 @@
 import * as fsExtra from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { getActiveLoomRoot, saveDoc, loadDoc, findDocumentById, resolveDocIdOrThrow, loadWeave } from '../../../fs/dist';
-import { Document, PlanStep, generateStepsTable } from '../../../core/dist';
+import { Document } from '../../../core/dist';
 import { weaveIdea } from '../../../app/dist/weaveIdea';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
 import { weavePlan } from '../../../app/dist/weavePlan';
@@ -198,22 +198,15 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     steps = [{ order: 1, description: `Generated plan:\n\n${generated}` }];
                 }
 
-                // Materialise the generated steps (with their satisfies citations) into the
-                // plan body — passing `content` so weavePlan parses the Steps table back into
-                // the frontmatter steps. Previously the generated steps were dropped entirely,
-                // producing an empty plan.
-                const planSteps: PlanStep[] = steps.map((s, i) => ({
-                    order: s.order ?? i + 1,
+                // Hand the generated steps to weavePlan as structured data (not a markdown
+                // table), so the plan is born frontmatter-native and Loom owns the table.
+                const stepsInput = steps.map((s) => ({
                     description: s.description ?? '',
-                    done: false,
-                    files_touched: [],
-                    blockedBy: [],
                     satisfies: Array.isArray(s.satisfies) ? s.satisfies : [],
                 }));
-                const content = `## Goal\n\n${title}\n\n## Steps\n\n${generateStepsTable(planSteps)}\n`;
 
                 const { id, filePath } = await weavePlan(
-                    { weaveId, title, threadId, content },
+                    { weaveId, title, threadId, goal: title, steps: stepsInput },
                     { loadWeave, saveDoc, loadDoc, fs: fsExtra, loomRoot: root }
                 );
 

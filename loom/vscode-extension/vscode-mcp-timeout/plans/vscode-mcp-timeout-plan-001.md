@@ -11,6 +11,35 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: extract-ismcptimeout-e-unknown-boolean-helper
+    order: 1
+    status: done
+    description: "Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: extract-handlemcperror-e-unknown-treeprovider-loomtreeprovider
+    order: 2
+    status: done
+    description: "Extract handleMcpError(e: unknown, treeProvider: LoomTreeProvider): never helper — if isMcpTimeout(e): call disposeMCP(), call treeProvider.refresh() (which shows the reconnect node), then show a vscode.window.showErrorMessage with 'MCP timed out — reconnecting…'. Always re-throw so the calling command's catch can exit cleanly."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: wire-handlemcperror-into-the-catch-blocks
+    order: 3
+    status: done
+    description: "Wire handleMcpError into the catch blocks of: doStep, refine (design + idea + plan), chatReply, generate (design, plan, global ctx), closePlan, startPlan, completeStep. These are the commands that make AI-bound MCP tool calls and are most likely to time out."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: build-and-smoke-test-simulate-a
+    order: 4
+    status: done
+    description: "Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
 ---
 # Unify MCP timeout handling
 
@@ -30,12 +59,12 @@ Extract a shared MCP error handler so all command paths offer reconnect on timeo
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren. | — | — |
-| ✅ | 2 | Extract handleMcpError(e: unknown, treeProvider: LoomTreeProvider): never helper — if isMcpTimeout(e): call disposeMCP(), call treeProvider.refresh() (which shows the reconnect node), then show a vscode.window.showErrorMessage with 'MCP timed out — reconnecting…'. Always re-throw so the calling command's catch can exit cleanly. | — | — |
-| ✅ | 3 | Wire handleMcpError into the catch blocks of: doStep, refine (design + idea + plan), chatReply, generate (design, plan, global ctx), closePlan, startPlan, completeStep. These are the commands that make AI-bound MCP tool calls and are most likely to time out. | — | — |
-| ✅ | 4 | Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears. | — | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren. | — | — | — |
+| ✅ | 2 | Extract handleMcpError(e: unknown, treeProvider: LoomTreeProvider): never helper — if isMcpTimeout(e): call disposeMCP(), call treeProvider.refresh() (which shows the reconnect node), then show a vscode.window.showErrorMessage with 'MCP timed out — reconnecting…'. Always re-throw so the calling command's catch can exit cleanly. | — | — | — |
+| ✅ | 3 | Wire handleMcpError into the catch blocks of: doStep, refine (design + idea + plan), chatReply, generate (design, plan, global ctx), closePlan, startPlan, completeStep. These are the commands that make AI-bound MCP tool calls and are most likely to time out. | — | — | — |
+| ✅ | 4 | Build and smoke-test: simulate a timeout (temporarily lower AI_TOOL_TIMEOUT_MS to 1ms, trigger doStep), confirm the tree shows the reconnect node and the error message appears. | — | — | — |
 ---
 
 ### Step 1 — Extract isMcpTimeout(e: unknown): boolean helper — checks e.message for '32001' or 'timed out', matching the logic already in treeProvider.ts getRootChildren.

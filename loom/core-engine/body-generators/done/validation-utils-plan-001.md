@@ -10,6 +10,49 @@ tags: [refactor, validation, utilities]
 parent_id: de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W
 requires_load: [de_01KQYDFDDAGJ0Q2B1E1R2ZQ67W]
 target_version: 0.4.0
+steps:
+  - id: create-validation
+    order: 1
+    status: done
+    description: Create `validation.ts` with core validation functions
+    files_touched: ["`packages/core/src/validation.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: refactor-validate
+    order: 2
+    status: done
+    description: Refactor `validate.ts` CLI command to use utilities
+    files_touched: ["`packages/cli/src/commands/validate.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-to-use-validation-utilities-for
+    order: 3
+    status: done
+    description: Update `loadThread` to use validation utilities for warnings
+    files_touched: ["`packages/fs/src/loadThread.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: integrate-validation-into-link-index-builder
+    order: 4
+    status: done
+    description: Integrate validation into link index builder
+    files_touched: ["`packages/fs/src/buildLinkIndex.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: remove-duplicated-validation-logic
+    order: 5
+    status: done
+    description: Remove duplicated validation logic
+    files_touched: [All above]
+    blocked_by: [Steps 2-4]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 6
+    status: done
+    description: Run full test suite
+    files_touched: ["`tests/*`"]
+    blocked_by: [Step 5]
+    satisfies: []
 ---
 
 # Extract Validation Utilities
@@ -29,17 +72,16 @@ Centralize all document relationship validation logic into pure functions within
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `validation.ts` with core validation functions | `packages/core/src/validation.ts` | — |
-| ✅ | 2 | Refactor `validate.ts` CLI command to use utilities | `packages/cli/src/commands/validate.ts` | Step 1 |
-| ✅ | 3 | Update `loadThread` to use validation utilities for warnings | `packages/fs/src/loadThread.ts` | Step 1 |
-| ✅ | 4 | Integrate validation into link index builder | `packages/fs/src/buildLinkIndex.ts` | Step 1 |
-| ✅ | 5 | Remove duplicated validation logic | All above | Steps 2-4 |
-| ✅ | 6 | Run full test suite | `tests/*` | Step 5 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `validation.ts` with core validation functions | `packages/core/src/validation.ts` | — | — |
+| ✅ | 2 | Refactor `validate.ts` CLI command to use utilities | `packages/cli/src/commands/validate.ts` | Step 1 | — |
+| ✅ | 3 | Update `loadThread` to use validation utilities for warnings | `packages/fs/src/loadThread.ts` | Step 1 | — |
+| ✅ | 4 | Integrate validation into link index builder | `packages/fs/src/buildLinkIndex.ts` | Step 1 | — |
+| ✅ | 5 | Remove duplicated validation logic | All above | Steps 2-4 | — |
+| ✅ | 6 | Run full test suite | `tests/*` | Step 5 | — |
 ---
 
 ## Step 1 — Create `validation.ts`

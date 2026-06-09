@@ -136,12 +136,12 @@ export async function createPlanDoc(
     const planPath = path.join(plansDir, `${planId}.md`);
 
     const steps = options?.steps ?? [
-        { order: 1, description: 'First step', done: false, files_touched: [], blocked_by: [] },
-        { order: 2, description: 'Second step', done: false, files_touched: [], blocked_by: [] },
+        { order: 1, description: 'First step', status: 'pending', files_touched: [], blockedBy: [] },
+        { order: 2, description: 'Second step', status: 'pending', files_touched: [], blockedBy: [] },
     ];
 
     const stepsTable = steps.map(s =>
-        `| ${s.done ? '✅' : '🔳'} | ${s.order} | ${s.description} | src/ | — |`
+        `| ${s.status === 'done' ? '✅' : '🔳'} | ${s.order} | ${s.description} | src/ | — |`
     ).join('\n');
 
     const content = `---

@@ -11,6 +11,70 @@ tags: [loom, workspace, cli]
 parent_id: de_01KQYDFDDDP2DYGM8GJMCWYWEP
 requires_load: [de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.2.0
+steps:
+  - id: create-class
+    order: 1
+    status: done
+    description: Create `ConfigRegistry` class
+    files_touched: ["`packages/core/src/registry.ts`"]
+    blocked_by: ["`core-engine-plan-002`"]
+    satisfies: []
+  - id: implement-in-filesystem-layer
+    order: 2
+    status: done
+    description: Implement `getActiveLoomRoot()` in filesystem layer
+    files_touched: ["`packages/fs/src/utils.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command
+    order: 3
+    status: done
+    description: Implement `loom init` command
+    files_touched: ["`packages/cli/src/commands/init.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-2
+    order: 4
+    status: done
+    description: Implement `loom setup` command
+    files_touched: ["`packages/cli/src/commands/setup.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-3
+    order: 5
+    status: done
+    description: Implement `loom switch` command
+    files_touched: ["`packages/cli/src/commands/switch.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-4
+    order: 6
+    status: done
+    description: Implement `loom list` command
+    files_touched: ["`packages/cli/src/commands/list.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-5
+    order: 7
+    status: done
+    description: Implement `loom current` command
+    files_touched: ["`packages/cli/src/commands/current.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-all-filesystem-operations-to-use
+    order: 8
+    status: done
+    description: Update all filesystem operations to use `getActiveLoomRoot()`
+    files_touched: ["`packages/fs/src/*.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: test-with-mono-loom-and-multi
+    order: 9
+    status: done
+    description: Test with mono‑loom and multi‑loom scenarios
+    files_touched: ["`looms/test/`"]
+    blocked_by: []
+    satisfies: []
 ---
 
 # Implement Minimal Multi-Loom Workspace Support
@@ -31,20 +95,19 @@ Implement a minimal global registry for Loom workspaces, enabling the `loom init
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `ConfigRegistry` class | `packages/core/src/registry.ts` | `core-engine-plan-002` |
-| ✅ | 2 | Implement `getActiveLoomRoot()` in filesystem layer | `packages/fs/src/utils.ts` |
-| ✅ | 3 | Implement `loom init` command | `packages/cli/src/commands/init.ts` |
-| ✅ | 4 | Implement `loom setup` command | `packages/cli/src/commands/setup.ts` |
-| ✅ | 5 | Implement `loom switch` command | `packages/cli/src/commands/switch.ts` |
-| ✅ | 6 | Implement `loom list` command | `packages/cli/src/commands/list.ts` |
-| ✅ | 7 | Implement `loom current` command | `packages/cli/src/commands/current.ts` |
-| ✅ | 8 | Update all filesystem operations to use `getActiveLoomRoot()` | `packages/fs/src/*.ts` |
-| ✅ | 9 | Test with mono‑loom and multi‑loom scenarios | `looms/test/` |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `ConfigRegistry` class | `packages/core/src/registry.ts` | `core-engine-plan-002` | — |
+| ✅ | 2 | Implement `getActiveLoomRoot()` in filesystem layer | `packages/fs/src/utils.ts` | — | — |
+| ✅ | 3 | Implement `loom init` command | `packages/cli/src/commands/init.ts` | — | — |
+| ✅ | 4 | Implement `loom setup` command | `packages/cli/src/commands/setup.ts` | — | — |
+| ✅ | 5 | Implement `loom switch` command | `packages/cli/src/commands/switch.ts` | — | — |
+| ✅ | 6 | Implement `loom list` command | `packages/cli/src/commands/list.ts` | — | — |
+| ✅ | 7 | Implement `loom current` command | `packages/cli/src/commands/current.ts` | — | — |
+| ✅ | 8 | Update all filesystem operations to use `getActiveLoomRoot()` | `packages/fs/src/*.ts` | — | — |
+| ✅ | 9 | Test with mono‑loom and multi‑loom scenarios | `looms/test/` | — | — |
 ---
 
 ## Step 1 — Create `ConfigRegistry` Class

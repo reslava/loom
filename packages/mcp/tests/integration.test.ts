@@ -258,7 +258,7 @@ async function run(): Promise<void> {
         const data = JSON.parse(content.text);
         // completeStep returns { plan, autoCompleted }
         assert(data.plan?.id === 'tw-plan-001', 'result.plan.id should match');
-        assert(data.plan?.steps?.[0]?.done === true, 'step 1 should be marked done');
+        assert(data.plan?.steps?.[0]?.status === 'done', 'step 1 should be marked done');
     });
 
     // (e) error path: loom_find_doc with unknown ID
@@ -359,21 +359,13 @@ async function run(): Promise<void> {
 
     // (i) loom_list_plan_steps surfaces the satisfies citations (not just done/files/blockers)
     await test('loom_list_plan_steps returns per-step satisfies citations', async () => {
-        const content = [
-            '## Goal',
-            'cite the req',
-            '',
-            '## Steps',
-            '| Done | # | Step | Files touched | Blocked by | Satisfies |',
-            '|------|---|------|---------------|------------|-----------|',
-            '| 🔳 | 1 | Build the thing | x.ts | — | IN1 |',
-            '',
-            '## Notes',
-            '- n',
-        ].join('\n');
         const createRes = await client.callTool({
             name: 'loom_create_plan',
-            arguments: { weaveId: 'tw', threadId: 't1', title: 'Citing plan', content },
+            arguments: {
+                weaveId: 'tw', threadId: 't1', title: 'Citing plan',
+                goal: 'cite the req',
+                steps: [{ description: 'Build the thing', files: ['x.ts'], satisfies: ['IN1'] }],
+            },
         });
         const created = JSON.parse((createRes.content[0] as { text: string }).text);
         const listRes = await client.callTool({
@@ -384,6 +376,7 @@ async function run(): Promise<void> {
         const step1 = listed.steps.find((s: any) => s.order === 1);
         assert(!!step1 && Array.isArray(step1.satisfies), 'list_plan_steps step carries a satisfies array');
         assert(step1.satisfies.includes('IN1'), `step 1 satisfies should include IN1, got ${JSON.stringify(step1?.satisfies)}`);
+        assert(typeof step1.id === 'string' && step1.id.length > 0, `list_plan_steps step carries a stable id, got ${JSON.stringify(step1?.id)}`);
     });
 
     // list prompts smoke test

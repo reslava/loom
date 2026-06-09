@@ -11,6 +11,28 @@ tags: []
 parent_id: de_01KR1QJGJV3V1J44JQX1FEVNSA
 requires_load: []
 target_version: 0.1.0
+steps:
+  - id: gate-stale-badge-on-active-docs
+    order: 1
+    status: done
+    description: "Gate stale badge on active docs only: in createPlanNode guard isStale with plan.status !== 'done' && plan.status !== 'cancelled'; in getWeaveChildren guard stale idea with idea.status !== 'done' and stale design with design.status !== 'done' && design.status !== 'closed'. Build and verify done plans no longer show ⚠️ stale."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: add-stale-pseudo-status-to-the
+    order: 2
+    status: done
+    description: "Add 'stale' pseudo-status to the status filter: extend StatusFilter type and filterWeaves to treat 'stale' as matching any thread that contains at least one stale plan (design_version < design.version on a non-done plan) or a stale idea/design. Wire the new option into the filter bar UI so the user can select 'stale' and collapse the tree to only affected threads."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
+  - id: add-blocked-pseudo-status-to-the
+    order: 3
+    status: done
+    description: "Add 'blocked' pseudo-status to the status filter: extend filterWeaves to treat 'blocked' as matching any thread whose implementing plans contain at least one step with a non-empty blockedBy array pointing to an unfinished predecessor. Wire into the filter bar UI alongside 'stale'."
+    files_touched: []
+    blocked_by: []
+    satisfies: []
 ---
 # Stale/blocked tree tweaks
 
@@ -30,11 +52,11 @@ Three follow-up fixes to the stale detection feature: skip stale badge on alread
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Gate stale badge on active docs only: in createPlanNode guard isStale with plan.status !== 'done' && plan.status !== 'cancelled'; in getWeaveChildren guard stale idea with idea.status !== 'done' and stale design with design.status !== 'done' && design.status !== 'closed'. Build and verify done plans no longer show ⚠️ stale. | — | — |
-| ✅ | 2 | Add 'stale' pseudo-status to the status filter: extend StatusFilter type and filterWeaves to treat 'stale' as matching any thread that contains at least one stale plan (design_version < design.version on a non-done plan) or a stale idea/design. Wire the new option into the filter bar UI so the user can select 'stale' and collapse the tree to only affected threads. | — | — |
-| ✅ | 3 | Add 'blocked' pseudo-status to the status filter: extend filterWeaves to treat 'blocked' as matching any thread whose implementing plans contain at least one step with a non-empty blockedBy array pointing to an unfinished predecessor. Wire into the filter bar UI alongside 'stale'. | — | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Gate stale badge on active docs only: in createPlanNode guard isStale with plan.status !== 'done' && plan.status !== 'cancelled'; in getWeaveChildren guard stale idea with idea.status !== 'done' and stale design with design.status !== 'done' && design.status !== 'closed'. Build and verify done plans no longer show ⚠️ stale. | — | — | — |
+| ✅ | 2 | Add 'stale' pseudo-status to the status filter: extend StatusFilter type and filterWeaves to treat 'stale' as matching any thread that contains at least one stale plan (design_version < design.version on a non-done plan) or a stale idea/design. Wire the new option into the filter bar UI so the user can select 'stale' and collapse the tree to only affected threads. | — | — | — |
+| ✅ | 3 | Add 'blocked' pseudo-status to the status filter: extend filterWeaves to treat 'blocked' as matching any thread whose implementing plans contain at least one step with a non-empty blockedBy array pointing to an unfinished predecessor. Wire into the filter bar UI alongside 'stale'. | — | — | — |
 ---
 
 ### Step 1 — Gate stale badge on active docs only: in createPlanNode guard isStale with plan.status !== 'done' && plan.status !== 'cancelled'; in getWeaveChildren guard stale idea with idea.status !== 'done' and stale design with design.status !== 'done' && design.status !== 'closed'. Build and verify done plans no longer show ⚠️ stale.

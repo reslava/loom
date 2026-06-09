@@ -9,6 +9,35 @@ tags: [core, entities, refactor]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.5.0
+steps:
+  - id: create-entities-thread
+    order: 1
+    status: done
+    description: Create `entities/thread.ts` with `Thread`, `ThreadStatus`, `ThreadPhase`
+    files_touched: ["`packages/core/src/entities/thread.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-types
+    order: 2
+    status: done
+    description: Update `types.ts` to re‑export from `entities/thread`
+    files_touched: ["`packages/core/src/types.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-all-imports-to-use-directly
+    order: 3
+    status: done
+    description: Update all imports to use `entities/thread` directly (optional)
+    files_touched: ["`packages/*/src/**/*.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: run-full-build-and-test-suite
+    order: 4
+    status: done
+    description: Run full build and test suite
+    files_touched: [All packages]
+    blocked_by: [Step 3]
+    satisfies: []
 ---
 
 # Move Thread and Derived Types to entities/thread.ts
@@ -30,12 +59,12 @@ Complete domain restructuring by moving `Thread`, `ThreadStatus`, and `ThreadPha
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Create `entities/thread.ts` with `Thread`, `ThreadStatus`, `ThreadPhase` | `packages/core/src/entities/thread.ts` | — |
-| ✅ | 2 | Update `types.ts` to re‑export from `entities/thread` | `packages/core/src/types.ts` | Step 1 |
-| ✅ | 3 | Update all imports to use `entities/thread` directly (optional) | `packages/*/src/**/*.ts` | Step 1 |
-| ✅ | 4 | Run full build and test suite | All packages | Step 3 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Create `entities/thread.ts` with `Thread`, `ThreadStatus`, `ThreadPhase` | `packages/core/src/entities/thread.ts` | — | — |
+| ✅ | 2 | Update `types.ts` to re‑export from `entities/thread` | `packages/core/src/types.ts` | Step 1 | — |
+| ✅ | 3 | Update all imports to use `entities/thread` directly (optional) | `packages/*/src/**/*.ts` | Step 1 | — |
+| ✅ | 4 | Run full build and test suite | All packages | Step 3 | — |
 ---
 
 ## Step 1 — Create `entities/thread.ts`

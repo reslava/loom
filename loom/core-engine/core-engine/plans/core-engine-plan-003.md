@@ -11,6 +11,70 @@ tags: [loom, cli, ux, commands]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.3.0
+steps:
+  - id: setup-cli-project-structure-with
+    order: 1
+    status: done
+    description: Setup CLI project structure with `commander`
+    files_touched: ["`packages/cli/`"]
+    blocked_by: ["`multi-workspace-plan-001`"]
+    satisfies: []
+  - id: implement-command
+    order: 2
+    status: done
+    description: Implement `loom status` command
+    files_touched: ["`packages/cli/src/commands/status.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-2
+    order: 3
+    status: done
+    description: Implement `loom validate` command
+    files_touched: ["`packages/cli/src/commands/validate.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-3
+    order: 4
+    status: done
+    description: Implement `loom refine-design` command
+    files_touched: ["`packages/cli/src/commands/refine.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-4
+    order: 5
+    status: done
+    description: Implement `loom start-plan` command
+    files_touched: ["`packages/cli/src/commands/startPlan.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-5
+    order: 6
+    status: done
+    description: Implement `loom complete-step` command
+    files_touched: ["`packages/cli/src/commands/completeStep.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-command-6
+    order: 7
+    status: done
+    description: Implement `loom summarise-context` command
+    files_touched: ["`packages/cli/src/commands/summarise.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: wire-all-commands-into-the-main
+    order: 8
+    status: done
+    description: Wire all commands into the main CLI entry point
+    files_touched: ["`packages/cli/src/index.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: test-cli-with-real-looms
+    order: 9
+    status: done
+    description: Test CLI with real looms
+    files_touched: ["`looms/test/`"]
+    blocked_by: []
+    satisfies: []
 ---
 
 # CLI Interface — The `loom` Command
@@ -35,17 +99,17 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` |
-| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` | — |
-| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` | — |
-| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` | — |
-| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` | — |
-| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` | — |
-| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` | — |
-| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` | — |
-| ✅ | 9 | Test CLI with real looms | `looms/test/` | — |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Setup CLI project structure with `commander` | `packages/cli/` | `multi-workspace-plan-001` | — |
+| ✅ | 2 | Implement `loom status` command | `packages/cli/src/commands/status.ts` | — | — |
+| ✅ | 3 | Implement `loom validate` command | `packages/cli/src/commands/validate.ts` | — | — |
+| ✅ | 4 | Implement `loom refine-design` command | `packages/cli/src/commands/refine.ts` | — | — |
+| ✅ | 5 | Implement `loom start-plan` command | `packages/cli/src/commands/startPlan.ts` | — | — |
+| ✅ | 6 | Implement `loom complete-step` command | `packages/cli/src/commands/completeStep.ts` | — | — |
+| ✅ | 7 | Implement `loom summarise-context` command | `packages/cli/src/commands/summarise.ts` | — | — |
+| ✅ | 8 | Wire all commands into the main CLI entry point | `packages/cli/src/index.ts` | — | — |
+| ✅ | 9 | Test CLI with real looms | `looms/test/` | — | — |
 ---
 
 ### Step 1 — Setup CLI Project Structure with `commander`

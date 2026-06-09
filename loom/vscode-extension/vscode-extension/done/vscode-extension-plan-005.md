@@ -11,6 +11,56 @@ tags: [vscode, tree, viewmodel, grouping, thread]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM]
 target_version: 0.5.0
+steps:
+  - id: create-thread-builder-utility-using-and
+    order: 1
+    status: pending
+    description: Create Thread builder utility using `app/status` and `LinkIndex`
+    files_touched: ["`packages/vscode/src/domain/threadBuilder.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: implement-relationship-resolution-via
+    order: 2
+    status: pending
+    description: Implement relationship resolution via `LinkIndex`
+    files_touched: ["`packages/vscode/src/domain/threadBuilder.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: build-thread-collection-from-documents
+    order: 3
+    status: pending
+    description: Build Thread collection from documents
+    files_touched: ["`packages/vscode/src/domain/threadBuilder.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: integrate-thread-builder-into-viewmodel
+    order: 4
+    status: pending
+    description: Integrate Thread builder into ViewModel
+    files_touched: ["`packages/vscode/src/view/viewModel.ts`"]
+    blocked_by: [Step 3]
+    satisfies: []
+  - id: implement-tree-projection
+    order: 5
+    status: pending
+    description: Implement `groupByThread` tree projection
+    files_touched: ["`packages/vscode/src/view/viewModel.ts`"]
+    blocked_by: [Step 4]
+    satisfies: []
+  - id: handle-orphan-documents
+    order: 6
+    status: pending
+    description: Handle orphan documents
+    files_touched: ["`packages/vscode/src/view/viewModel.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: add-basic-sorting
+    order: 7
+    status: pending
+    description: Add basic sorting
+    files_touched: ["`packages/vscode/src/view/viewModel.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
 ---
 
 # Implement groupByThread — Thread‑Based Tree View
@@ -31,18 +81,17 @@ Implement `groupByThread` in the ViewModel to enable grouping documents by Threa
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Create Thread builder utility using `app/status` and `LinkIndex` | `packages/vscode/src/domain/threadBuilder.ts` | — |
-| 🔳 | 2 | Implement relationship resolution via `LinkIndex` | `packages/vscode/src/domain/threadBuilder.ts` | Step 1 |
-| 🔳 | 3 | Build Thread collection from documents | `packages/vscode/src/domain/threadBuilder.ts` | Step 2 |
-| 🔳 | 4 | Integrate Thread builder into ViewModel | `packages/vscode/src/view/viewModel.ts` | Step 3 |
-| 🔳 | 5 | Implement `groupByThread` tree projection | `packages/vscode/src/view/viewModel.ts` | Step 4 |
-| 🔳 | 6 | Handle orphan documents | `packages/vscode/src/view/viewModel.ts` | Step 5 |
-| 🔳 | 7 | Add basic sorting | `packages/vscode/src/view/viewModel.ts` | Step 5 |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Create Thread builder utility using `app/status` and `LinkIndex` | `packages/vscode/src/domain/threadBuilder.ts` | — | — |
+| 🔳 | 2 | Implement relationship resolution via `LinkIndex` | `packages/vscode/src/domain/threadBuilder.ts` | Step 1 | — |
+| 🔳 | 3 | Build Thread collection from documents | `packages/vscode/src/domain/threadBuilder.ts` | Step 2 | — |
+| 🔳 | 4 | Integrate Thread builder into ViewModel | `packages/vscode/src/view/viewModel.ts` | Step 3 | — |
+| 🔳 | 5 | Implement `groupByThread` tree projection | `packages/vscode/src/view/viewModel.ts` | Step 4 | — |
+| 🔳 | 6 | Handle orphan documents | `packages/vscode/src/view/viewModel.ts` | Step 5 | — |
+| 🔳 | 7 | Add basic sorting | `packages/vscode/src/view/viewModel.ts` | Step 5 | — |
 ---
 
 ## Step 1 — Create Thread Builder Utility

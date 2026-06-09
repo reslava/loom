@@ -30,6 +30,10 @@ export async function handle(root: string, args: Record<string, unknown>) {
 
     const doc = await loadDoc(filePath) as Document;
     const content = newContent ?? (doc as any).content ?? '';
+    // For a frontmatter-native plan, steps live in frontmatter and the body table is a
+    // generated view — a body edit must NOT silently re-derive steps. Only a legacy
+    // (body-backed) plan still parses its steps from the body table.
+    const isLegacyPlan = doc.type === 'plan' && (doc as any)._stepsFromFrontmatter !== true;
     const updated: Document = {
         ...doc,
         ...(newStatus ? { status: newStatus as any } : {}),
@@ -37,7 +41,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         version: doc.version + 1,
         updated: new Date().toISOString().split('T')[0],
         content,
-        ...(doc.type === 'plan' ? { steps: parseStepsTable(content) } : {}),
+        ...(isLegacyPlan ? { steps: parseStepsTable(content) } : {}),
     } as Document;
 
     await saveDoc(updated, filePath);

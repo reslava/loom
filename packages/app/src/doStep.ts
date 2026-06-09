@@ -49,7 +49,7 @@ export async function doStep(
         .join('\n');
 
     const planSummary = plan.steps
-        .map(s => `${s.done ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
+        .map(s => `${s.status === 'done' ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
         .join('\n');
 
     const userMessage = [

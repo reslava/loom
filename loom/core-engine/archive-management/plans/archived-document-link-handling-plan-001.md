@@ -10,6 +10,56 @@ tags: [validation, link-index, archive, ux]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDCQ0DBXVNCSCK57P7M]
 target_version: 0.5.0
+steps:
+  - id: extend-with-flag
+    order: 1
+    status: pending
+    description: Extend `DocumentEntry` with `archived` flag
+    files_touched: ["`packages/core/src/linkIndex.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-to-set-based-on-path
+    order: 2
+    status: pending
+    description: Update `buildLinkIndex` to set `archived` based on path
+    files_touched: ["`packages/fs/src/repositories/linkRepository.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: modify-to-treat-archived-parents-as
+    order: 3
+    status: pending
+    description: Modify `validateParentExists` to treat archived parents as valid
+    files_touched: ["`packages/core/src/validation.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: modify-to-ignore-archived-children
+    order: 4
+    status: pending
+    description: Modify `getDanglingChildIds` to ignore archived children
+    files_touched: ["`packages/core/src/validation.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: update-to-show-archive-indicator-for
+    order: 5
+    status: pending
+    description: Update `loom status` to show archive indicator for archived references
+    files_touched: ["`packages/app/src/status.ts`", "`packages/cli/src/commands/status.ts`"]
+    blocked_by: [Steps 3, 4]
+    satisfies: []
+  - id: update-to-skip-archived-reference-errors
+    order: 6
+    status: pending
+    description: Update `loom validate` to skip archived reference errors
+    files_touched: ["`packages/cli/src/commands/validate.ts`"]
+    blocked_by: [Steps 3, 4]
+    satisfies: []
+  - id: run-full-test-suite
+    order: 7
+    status: pending
+    description: Run full test suite
+    files_touched: [All packages, "`tests/*`"]
+    blocked_by: [Step 6]
+    satisfies: []
 ---
 
 # Handle Links to Archived Documents Gracefully
@@ -31,15 +81,15 @@ Modify link validation and status display to treat references to **archived** do
 
 ## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| 🔳 | 1 | Extend `DocumentEntry` with `archived` flag | `packages/core/src/linkIndex.ts` | — |
-| 🔳 | 2 | Update `buildLinkIndex` to set `archived` based on path | `packages/fs/src/repositories/linkRepository.ts` | Step 1 |
-| 🔳 | 3 | Modify `validateParentExists` to treat archived parents as valid | `packages/core/src/validation.ts` | Step 1 |
-| 🔳 | 4 | Modify `getDanglingChildIds` to ignore archived children | `packages/core/src/validation.ts` | Step 1 |
-| 🔳 | 5 | Update `loom status` to show archive indicator for archived references | `packages/app/src/status.ts`, `packages/cli/src/commands/status.ts` | Steps 3, 4 |
-| 🔳 | 6 | Update `loom validate` to skip archived reference errors | `packages/cli/src/commands/validate.ts` | Steps 3, 4 |
-| 🔳 | 7 | Run full test suite | All packages, `tests/*` | Step 6 |
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| 🔳 | 1 | Extend `DocumentEntry` with `archived` flag | `packages/core/src/linkIndex.ts` | — | — |
+| 🔳 | 2 | Update `buildLinkIndex` to set `archived` based on path | `packages/fs/src/repositories/linkRepository.ts` | Step 1 | — |
+| 🔳 | 3 | Modify `validateParentExists` to treat archived parents as valid | `packages/core/src/validation.ts` | Step 1 | — |
+| 🔳 | 4 | Modify `getDanglingChildIds` to ignore archived children | `packages/core/src/validation.ts` | Step 1 | — |
+| 🔳 | 5 | Update `loom status` to show archive indicator for archived references | `packages/app/src/status.ts`, `packages/cli/src/commands/status.ts` | Steps 3, 4 | — |
+| 🔳 | 6 | Update `loom validate` to skip archived reference errors | `packages/cli/src/commands/validate.ts` | Steps 3, 4 | — |
+| 🔳 | 7 | Run full test suite | All packages, `tests/*` | Step 6 | — |
 ---
 
 ## Step 1 — Extend `DocumentEntry` with `archived` Flag

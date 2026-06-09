@@ -11,6 +11,63 @@ tags: [vscode, extension, ui, tree, app-layer]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM, de_01KQYDFDDE0PPQX6WSKFF5XBQB, de_01KQYDFDDEDXJJHYNNZWXQZNMM]
 target_version: 0.5.0
+steps:
+  - id: setup-vsix-project-structure
+    order: 1
+    status: done
+    description: Setup VSIX project structure
+    files_touched: ["`packages/vscode/`"]
+    blocked_by: []
+    satisfies: []
+  - id: register-extension-activation-and-deactivation
+    order: 2
+    status: done
+    description: Register extension activation and deactivation
+    files_touched: ["`packages/vscode/src/extension.ts`"]
+    blocked_by: [Step 1]
+    satisfies: []
+  - id: implement-using
+    order: 3
+    status: done
+    description: Implement `LoomTreeProvider` using `app/status`
+    files_touched: ["`packages/vscode/src/tree/treeProvider.ts`"]
+    blocked_by: [Step 2]
+    satisfies: []
+  - id: register-tree-view-in-package
+    order: 4
+    status: done
+    description: Register Tree View in `package.json`
+    files_touched: ["`packages/vscode/package.json`"]
+    blocked_by: [Step 3]
+    satisfies: []
+  - id: implement-extension-commands-delegating-to-use
+    order: 5
+    status: done
+    description: Implement extension commands (delegating to `app` use‑cases)
+    files_touched: ["`packages/vscode/src/commands/`"]
+    blocked_by: [Step 3]
+    satisfies: []
+  - id: add-file-watcher-with-link-index
+    order: 6
+    status: pending
+    description: Add file watcher with link index incremental updates
+    files_touched: ["`packages/vscode/src/watcher.ts`"]
+    blocked_by: [Step 5]
+    satisfies: []
+  - id: add-diagnostics-for-broken-links
+    order: 7
+    status: done
+    description: Add diagnostics for broken links
+    files_touched: ["`packages/vscode/src/diagnostics.ts`"]
+    blocked_by: [Step 6]
+    satisfies: []
+  - id: test-in-vs-code-extension-host
+    order: 8
+    status: done
+    description: Test in VS Code Extension Host
+    files_touched: []
+    blocked_by: [All]
+    satisfies: []
 ---
 
 # VS Code Extension — Loom Visual Layer
@@ -31,19 +88,18 @@ Build a VS Code extension that provides a visual interface for Loom. The extensi
 
 ---
 
-# Steps
+## Steps
 
-| Done | # | Step | Files touched | Blocked by |
-|---|---|---|---|---|
-| ✅ | 1 | Setup VSIX project structure | `packages/vscode/` | — |
-| ✅ | 2 | Register extension activation and deactivation | `packages/vscode/src/extension.ts` | Step 1 |
-| ✅ | 3 | Implement `LoomTreeProvider` using `app/status` | `packages/vscode/src/tree/treeProvider.ts` | Step 2 |
-| ✅ | 4 | Register Tree View in `package.json` | `packages/vscode/package.json` | Step 3 |
-| ✅ | 5 | Implement extension commands (delegating to `app` use‑cases) | `packages/vscode/src/commands/` | Step 3 |
-| 👉Defered | 6 | Add file watcher with link index incremental updates | `packages/vscode/src/watcher.ts` | Step 5 |
-| ✅ | 7 | Add diagnostics for broken links | `packages/vscode/src/diagnostics.ts` | Step 6 |
-| ✅ | 8 | Test in VS Code Extension Host | — | All |
-
+| Done | # | Step | Files touched | Blocked by | Satisfies |
+|---|---|---|---|---|---|
+| ✅ | 1 | Setup VSIX project structure | `packages/vscode/` | — | — |
+| ✅ | 2 | Register extension activation and deactivation | `packages/vscode/src/extension.ts` | Step 1 | — |
+| ✅ | 3 | Implement `LoomTreeProvider` using `app/status` | `packages/vscode/src/tree/treeProvider.ts` | Step 2 | — |
+| ✅ | 4 | Register Tree View in `package.json` | `packages/vscode/package.json` | Step 3 | — |
+| ✅ | 5 | Implement extension commands (delegating to `app` use‑cases) | `packages/vscode/src/commands/` | Step 3 | — |
+| 🔳 | 6 | Add file watcher with link index incremental updates | `packages/vscode/src/watcher.ts` | Step 5 | — |
+| ✅ | 7 | Add diagnostics for broken links | `packages/vscode/src/diagnostics.ts` | Step 6 | — |
+| ✅ | 8 | Test in VS Code Extension Host | — | All | — |
 ---
 
 ## Step 1 — Setup VSIX Project Structure

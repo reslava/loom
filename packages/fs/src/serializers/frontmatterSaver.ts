@@ -17,18 +17,28 @@ export class FilePermissionError extends Error {
 }
 
 export async function saveDoc(doc: Document, filePath: string): Promise<void> {
-  // Separate internal properties from frontmatter
-  const { content, _path, steps, ...frontmatter } = doc as any;
+  // Separate internal/transient properties from frontmatter. `_stepsFromFrontmatter`
+  // is a load-time provenance marker (see frontmatterLoader) — never serialized.
+  const { content, _path, _stepsFromFrontmatter, steps, ...rest } = doc as any;
 
+  // A plan is "frontmatter-native" when its steps came from (or were authored as) a
+  // structured frontmatter block. Only those re-persist the steps block — a legacy
+  // plan keeps its body table as the store until the explicit migration command
+  // converts it, so saving (e.g. complete_step) never implicitly migrates.
+  const frontmatterNative = doc.type === 'plan' && _stepsFromFrontmatter === true && Array.isArray(steps);
+
+  // Body: the steps table is a generated view. Regenerate it from steps in place,
+  // preserving the authored Goal / `### Step N` detail / Notes prose around it.
   let bodyContent = content;
   if (doc.type === 'plan' && steps) {
     bodyContent = updateStepsTableInContent(content, steps);
   }
-  if (frontmatter.title) {
-    bodyContent = syncBodyH1(bodyContent ?? '', frontmatter.title);
+  if (rest.title) {
+    bodyContent = syncBodyH1(bodyContent ?? '', rest.title);
   }
 
-  // Serialize frontmatter using the canonical serializer
+  // Serialize frontmatter; include the structured steps block only for native plans.
+  const frontmatter = frontmatterNative ? { ...rest, steps } : rest;
   const frontmatterStr = serializeFrontmatter(frontmatter);
   const output = `${frontmatterStr}\n${bodyContent}`;
 

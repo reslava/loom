@@ -4,7 +4,7 @@ id: pl_01KQYDFDDE984XT56WQKQD9TPE
 title: DoStep(s) — Multi-Step Picker UX — Plan 002
 status: done
 created: "2026-05-01T00:00:00.000Z"
-updated: 2026-06-06
+updated: "2026-06-06T00:00:00.000Z"
 version: 2
 design_version: 1
 tags: [vscode, mcp, do-step, ux, quickpick]
@@ -12,6 +12,49 @@ parent_id: de_01KQYDFDDE8Z0AV1R2Q8NNNKGK
 requires_load: [de_01KQYDFDDE8Z0AV1R2Q8NNNKGK, pl_01KQYDFDDER47Y0H7W7K4ZX80M]
 target_release: 0.5.0
 actual_release: null
+steps:
+  - id: extend-to-accept-optional
+    order: 1
+    status: done
+    description: Extend `loom_do_step` to accept optional `stepNumber`. When provided, return the brief for that exact step (validate not done; do not require it to be the next pending). When omitted, keep current "first not-done step" behavior. Update tool description and inputSchema accordingly.
+    files_touched: ["`packages/mcp/src/tools/doStep.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: add-mcp-tool-input-output-order
+    order: 2
+    status: done
+    description: Add MCP tool `loom_list_plan_steps` — input `{ planId }`, output `[{ order, description, filesToTouch, done, blockedBy }]`. Pure read; reuses plan loading logic. Used by the extension to compute visibility and build the multi-select QuickPick.
+    files_touched: ["`packages/mcp/src/tools/listPlanSteps.ts`", "`packages/mcp/src/server.ts`"]
+    blocked_by: []
+    satisfies: []
+  - id: update-plan-tree-node-visibility-sparkle
+    order: 3
+    status: done
+    description: "Update plan tree node visibility — sparkle inline button shows iff plan `status: implementing` AND `loom_list_plan_steps` returns at least one step with `done: false`. Tree refreshes when plan files change (existing watcher handles this)."
+    files_touched: ["`packages/vscode/src/tree/*.ts` (locate the plan node renderer)"]
+    blocked_by: [2]
+    satisfies: []
+  - id: replace-with-the-quickpick-flow
+    order: 4
+    status: done
+    description: "Replace `doStepCommand` with the QuickPick flow. On click: call `loom_list_plan_steps`, derive `nextDoable` (first not-done step whose `blockedBy` are all done) and `allDoable` (all not-done steps in dep order). Show QuickPick with three items: \"Next doable step\", \"All doable steps\", \"Pick steps…\". \"Pick steps…\" opens a multi-select QuickPick listing every not-done step (each item shows step #, description, and a \"blocked by N, M\" suffix when applicable). User confirms → resolves the launch list."
+    files_touched: ["`packages/vscode/src/commands/doStep.ts`"]
+    blocked_by: [1, 2]
+    satisfies: []
+  - id: update-the-claude-prompt-template-for
+    order: 5
+    status: done
+    description: "Update the Claude prompt template for multi-step single-session execution. Prompt names `planId` and a JSON array `stepNumbers: [N, M, …]` in dependency order. Instructions tell Claude: for each step number in order, call `loom_do_step(planId, stepNumber)`, implement, call `loom_append_done`, call `loom_complete_step`, then continue to the next; if any step fails, stop and report. Keep `claude` binary detection from plan-001 unchanged."
+    files_touched: ["`packages/vscode/src/commands/doStep.ts`"]
+    blocked_by: [4]
+    satisfies: []
+  - id: manual-test-in-extension-development-host
+    order: 6
+    status: done
+    description: "Manual test in Extension Development Host. Create a 3-step implementing plan (step 2 blockedBy 1; step 3 blockedBy 2). Verify: (a) \"Next doable\" runs only step 1; (b) \"All doable\" runs 1→2→3 in one terminal; (c) \"Pick steps…\" allows selecting {2,3} only when 1 is also picked or already done; (d) sparkle hides after the last step is ✅."
+    files_touched: []
+    blocked_by: [5]
+    satisfies: []
 ---
 # DoStep(s) — Multi-Step Picker UX — Plan 002
 
