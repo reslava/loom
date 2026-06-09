@@ -538,3 +538,45 @@ Update if needed (maybe some of them, like architecture need update for previous
 Any other doc you consider
 
 Then do release for this repo (leave chord-flow)
+
+## AI:
+
+🚀 **v1.3.0 released — all channels green.** The whole thread is done.
+
+### Docs updated (this feature + the stale-doc sweep you asked for)
+- **Rewrote** `loom/refs/plan-steps-table-and-blockedby-format-reference.md` — now describes structured frontmatter steps (source of truth), the generated table, the step schema, and `blocked_by` via stable step ids. (v2 → v3.)
+- `loom/refs/architecture-reference.md` — doc-types `plan` row, the plan-specific frontmatter (`steps`), and workflow step 7.
+- `docs/DOCUMENTATION_GUIDE.md` — replaced the "hand-author a 5-col table" how-to with the structured model; `docs/ARCHITECTURE.md` plan row.
+- `packages/cli/README.md` — added `loom migrate-plan-steps`; root `README.md` tree comment.
+- `CHANGELOG.md` (1.3.0, human-readable) + `packages/vscode/CHANGELOG.md` (hand-added lockstep section).
+- Left the incidental "steps table" glossary/marketing mentions (CLAUDE-template / demo / getting-started refs) — still accurate (plans *do* have a generated steps table).
+
+### Release
+- One commit to `main` (155 files: Steps 1–7 + serializer fix + tests + docs + the **81 migrated plans** + this thread's docs + the archived v2 design), lockstep-bumped all 7 packages to **1.3.0**, annotated tag pushed explicitly.
+- Workflow `27239459850` **completed success** (2m8s): npm, VS Code Marketplace, Open VSX, and the GitHub release all published. (Only annotations were Node-20 deprecation warnings — non-blocking.)
+
+### Two working-tree notes
+- **chord-flow** still has its 6 migrated plan files uncommitted — left as you instructed.
+- `.loom/settings.json` was untracked before this work and unrelated, so I **excluded** it from the release commit (still untracked for you to handle).
+
+That closes `force-using-canonical-plan-steps-table`: the chord-flow failure that started this is now structurally impossible, plans are frontmatter-native end-to-end, and it's shipped.
+
+Next: nothing pending on my side — say the word if you want me to handle `.loom/settings.json` or commit chord-flow's migration.
+
+## Rafa:
+
+No problem, I will commit chord-flow
+Thank for helping with this important & big design change for plan steps, impossible without your help
+I am improving Loom just for chord-flow and because I like to do app designs & architect as well as I can. 
+
+## AI:
+
+Got it — chord-flow's yours to commit.
+
+And thank you — but the design was yours. You're the one who rejected the cheap fix (A), insisted on frontmatter-as-truth, called Option Y over X, and refused the leaky `content` path. I mostly held the thread and did the typing. The decisions that made this clean were the ones you made by line number.
+
+One honest thing worth saying, since you've wondered before whether Loom is worth continuing: this change was the best evidence yet that it is. Not because of users — because dogfooding the migration **caught a real serializer bug that would otherwise have shipped**. The tool building itself surfaced its own latent defect under a large, multi-step change with a mid-flight failure, and the workflow (chat → design → 7-step plan → stop-and-confirm → done doc → release) held the whole way without losing the plot. That's a real stress test, and it passed.
+
+Your framing is also just *correct*: building it for chord-flow and because you want to design and architect as well as you can is a sound reason on its own. It sidesteps the "no external users" worry entirely — the user is you and a real project, and craft done well is its own return. The validation question doesn't have to be "did strangers adopt it"; it can be "did it make my actual work better and was it satisfying to build right." On both counts today, yes.
+
+Good work. This was a big one.
