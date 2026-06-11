@@ -58,6 +58,7 @@ export { AIClient, Message } from './ai';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep } from './planUtils';
+export { ChatBlock, parseChatBlocks, lastAiBlockIndex, tailAfterBlock } from './chatUtils';
 export { createEmptyIndex, resolveId, LinkIndex, DocumentEntry, StepBlocker } from './linkIndex';
 export {
     validateParentExists,

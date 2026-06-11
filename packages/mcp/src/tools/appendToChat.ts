@@ -1,5 +1,5 @@
-import * as fs from 'fs-extra';
-import { resolveDocIdOrThrow } from '../../../fs/dist';
+import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
+import { ChatDoc, lastAiBlockIndex } from '../../../core/dist';
 import { getUserName, getAiName } from '../../../app/dist/utils/chatNames';
 
 export const toolDef = {
@@ -22,12 +22,24 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const body = args['body'] as string;
 
     // Primary (agent-supplied) id → suggest-on-miss.
-    const { filePath } = await resolveDocIdOrThrow(root, id);
+    const { id: resolvedId, filePath } = await resolveDocIdOrThrow(root, id);
 
     const displayName = role === 'ai' ? getAiName(root) : getUserName(root);
-    const existing = await fs.readFile(filePath, 'utf8');
-    const appended = `${existing}\n\n## ${displayName}\n\n${body}`;
-    await fs.writeFile(filePath, appended, 'utf8');
+    const doc = await loadDoc(filePath) as ChatDoc;
+    const existingBody = (doc as any).content ?? '';
+    const appendedBody = `${existingBody}\n\n## ${displayName}\n\n${body}`;
 
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ id, filePath }) }] };
+    // When the AI replies, advance the read-cursor to the new last AI block so a later
+    // loom_read_chat_tail returns only the human turns that follow it. A user turn never
+    // moves the cursor. Header detection keys on the configured ai.model string.
+    const updated: ChatDoc = {
+        ...doc,
+        content: appendedBody,
+        ...(role === 'ai' ? { last_ai_block: lastAiBlockIndex(appendedBody, getAiName(root)) } : {}),
+    } as ChatDoc;
+    delete (updated as any)._path;
+
+    await saveDoc(updated, filePath);
+
+    return { content: [{ type: 'text' as const, text: JSON.stringify({ id: resolvedId, filePath }) }] };
 }

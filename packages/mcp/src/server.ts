@@ -24,10 +24,14 @@ import * as createReq from './tools/createReq';
 import * as refineReq from './tools/refineReq';
 import * as finalizeReq from './tools/finalizeReq';
 import * as updateDoc from './tools/updateDoc';
+import * as patchDoc from './tools/patchDoc';
 import * as appendToChat from './tools/appendToChat';
+import * as readChatTail from './tools/readChatTail';
 import * as createChat from './tools/createChat';
 import * as startPlan from './tools/startPlan';
 import * as completeStep from './tools/completeStep';
+import * as updateStep from './tools/updateStep';
+import * as reorderSteps from './tools/reorderSteps';
 import * as closePlan from './tools/closePlan';
 import { createPromoteTool } from './tools/promote';
 import { createRefineIdeaTool } from './tools/refineIdea';
@@ -101,12 +105,12 @@ export function createLoomMcpServer(root: string): Server {
 
     const TOOLS: GroupedTool[] = [
         ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat]),
-        ...reg('doc', [updateDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
+        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
         ...reg('refine', [refineReq, createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
-        ...reg('plan', [startPlan, completeStep, closePlan, doStep, appendDone, listPlanSteps]),
+        ...reg('plan', [startPlan, completeStep, updateStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
         ...reg('req', [finalizeReq, createVerifyReqTool(server)]),
-        ...reg('chat', [appendToChat]),
+        ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
         ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs]),
     ];

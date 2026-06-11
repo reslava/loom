@@ -26,6 +26,7 @@ export interface InstallWorkspaceResult {
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
 
+<!-- rule:what-loom-is -->
 ## What Loom is
 
 **Loom** is a document-driven, event-sourced workflow system for AI-assisted development.
@@ -33,6 +34,7 @@ Markdown files are the database. State is derived. AI collaborates step-by-step 
 
 ---
 
+<!-- rule:key-terminology -->
 ## Key terminology
 
 | Term | Meaning |
@@ -46,6 +48,7 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 
 ---
 
+<!-- rule:mcp-tools -->
 ## MCP tools
 
 > **MCP host availability:** the Loom MCP server only runs inside hosts that
@@ -55,6 +58,7 @@ Thread layout: \`loom/{weave-id}/{thread-id}/{thread-id}-idea.md\`, \`{thread-id
 > or \`loom_*\` tools and must fall back to direct file edits (with the
 > \`⚠️ MCP unavailable — editing file directly\` visibility prefix).
 
+<!-- rule:claude-code-config -->
 ### Claude Code config
 
 Create this as \`.mcp.json\` in the **project root** (NOT \`.claude/settings.json\` —
@@ -79,6 +83,7 @@ Project-scoped MCP servers need a one-time approval per project — run \`claude
 interactively in the project root and approve the \`loom\` server, or use
 \`claude /mcp\` to manage. Verify with \`claude mcp list\`.
 
+<!-- rule:primary-entry-points -->
 ### Primary entry points
 
 | Entry point | When to use |
@@ -89,6 +94,7 @@ interactively in the project root and approve the \`loom\` server, or use
 | \`continue-thread\` prompt | Review thread state and get a next-action suggestion |
 | \`validate-state\` prompt | Review diagnostics and identify issues to fix |
 
+<!-- rule:mcp-rules -->
 ### Rules
 
 - **\`loom://catalog\` is loaded at session start (step 2) — consult it, never keyword-flail.** MCP tool schemas are deferred, so you only see tool *names* until you fetch them. The catalog (loaded up front) is the grouped name index; find the exact tool in it, then \`ToolSearch select:<exact name>\` (one targeted fetch). If the catalog is not yet in context when you need a \`loom_*\` tool, read \`loom://catalog\` **before** the first \`ToolSearch\` — a blind \`ToolSearch\` for a \`loom_*\` tool (keyword guessing without the catalog) is a rule violation.
@@ -96,6 +102,7 @@ interactively in the project root and approve the \`loom\` server, or use
 - Use \`loom://context/{docId}\` (or \`loom://context/thread/{weaveId}/{threadId}\`) before starting any thread work. The Unified Context Pipeline bundles global/weave/thread ctx + parent chain + requires_load in a single read.
 - \`do-next-step\` prompt is the primary workflow driver: call it with the active planId to get context + step instruction.
 - **Plans are structured, never hand-authored tables.** Create a plan with \`loom_create_plan\` by passing \`goal\` (prose) + a \`steps\` array of objects (\`{ description, title?, files?, blockedBy?, satisfies?, detail? }\`) — **never** a Markdown steps table. Loom owns the canonical \`## Steps\` table; steps live in YAML frontmatter (the source of truth) and the body table is a generated view. \`blockedBy\` references step \`id\`s (or plan ids). \`loom_create_plan\` does **not** accept a \`content\` body (idea/design/reference still do).
+<!-- rule:single-ai -->
 - **Single-AI (by design):** Loom requires **exactly one** AI provider, never two — run it with whatever AI path you have; only one is required. *Primary:* the Loom VS Code extension's AI buttons launch a **Claude Code CLI agent** with a task prompt that writes via content tools (\`loom_update_doc\` / \`loom_create_*\`) — no API key, no sampling. *Fallback:* when no Claude CLI is present, the \`loom_generate_*\` / \`loom_refine_*\` sampling tools run via a configured \`reslava-loom.ai.apiKey\`. A user configures one path or the other, never both.
 - **\`loom_generate_*\` / \`loom_refine_*\` tools use MCP sampling (server→client)** — this is the **fallback** path. Two host behaviors:
   - **VS Code extension (fallback)**: when Claude CLI is absent, the extension advertises \`{ sampling: {} }\` and routes \`sampling/createMessage\` through its configured AI API key.
@@ -103,6 +110,7 @@ interactively in the project root and approve the \`loom\` server, or use
 
 ---
 
+<!-- rule:ai-session-rules -->
 ## AI session rules
 
 > **#1 rule — reply INSIDE the active chat doc.** This is the single most-violated rule. If a chat doc is the active context and you answer only in the terminal, that is a **bug**, not a stylistic choice — the reply is lost the moment the terminal scrolls. Once a chat doc is active, every reply (including short follow-ups) goes inside it via \`loom_append_to_chat\` until the user says \`close\` or opens a different chat. See the full rule below.
@@ -117,11 +125,14 @@ interactively in the project root and approve the \`loom\` server, or use
   - New idea/design/plan/done → \`loom_create_*\` (or \`loom_generate_*\` if sampling is available)
   - Step progress → \`loom_complete_step\` / \`loom_append_done\`
   - Existing doc body or frontmatter → \`loom_update_doc\`
+  - Surgical body-prose edits → \`loom_patch_doc\` (one-line/section find-and-replace — preferred over re-supplying the whole body via \`loom_update_doc\`; refuses the generated plan \`## Steps\` table)
+  - Plan step edits → \`loom_update_step\` (amend a pending step's description/files/blockedBy/satisfies) / \`loom_reorder_steps\` (reorder pending steps); done steps are immutable history
   - Renames/archives → \`loom_rename\` / \`loom_archive\`
   - Excluded from the gate: \`loom/refs/*.md\`, \`loom/.archive/**/*.md\`, repo-root \`CLAUDE.md\`, anything outside \`loom/\`. Edits to those use normal \`Edit\`/\`Write\`.
   - If MCP is genuinely down, output \`⚠️ MCP unavailable — editing file directly\`, ask the user to disable the gate hook via \`/hooks\`, and proceed only with explicit go.
 - **Treat MCP tool failures as findings, not friction.** If a \`loom_*\` tool returns the wrong shape, a malformed doc (missing Steps table, double type-suffix, broken frontmatter), or times out — stop, report what happened in the active chat, and let the user decide how to proceed. Routing around a buggy MCP tool by editing the file directly hides the bug.
 
+<!-- rule:mcp-visibility -->
 ### MCP visibility (required)
 
 Before any MCP call, output one line:
@@ -135,6 +146,7 @@ If MCP is unavailable, output:
 ⚠️ MCP unavailable — editing file directly
 \`\`\`
 
+<!-- rule:context-injection -->
 ### Chat-reply context injection (required)
 
 When replying inside a chat doc that lives in a thread (\`loom/{weave}/{thread}/chats/...\`):
@@ -153,12 +165,15 @@ When replying inside a chat doc that lives in a thread (\`loom/{weave}/{thread}/
   \`\`\`
 - **Same thread, but a \`refine\` or \`generate\` ran since last reply** — re-read the context (it may have changed) and re-emit the doc-loaded visibility lines.
 
+To load the chat's own new turns cheaply on first touch, call \`loom_read_chat_tail\` — it returns only the turns since the last \`## AI:\` reply (via the chat's \`last_ai_block\` cursor) instead of re-reading the whole chat.
+
 For a chat at weave root (loose fiber, no thread), load the parent doc(s) the chat refers to and emit \`📄 {doc}.md — loaded for context\` for each.
 
 The "is this thread already in transcript?" decision lives **in the AI**, not in the MCP server — the server is stateless across calls and cannot see the LLM transcript.
 
 ---
 
+<!-- rule:session-start -->
 ## Session start protocol
 
 **Order of operations at session start (mandatory, including after conversation compaction):**
@@ -185,6 +200,7 @@ STOP — waiting for go
 
 ---
 
+<!-- rule:stop-rules -->
 ## Non-negotiable stop rules
 
 1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for \`go\`. **Exception — explicit multi-step authorization:** when the user explicitly asks for a range or all steps in advance (e.g. "do steps 2–4", "do all remaining steps", "do the whole plan"), continue through the authorized range without stopping between steps. Still mark ✅ as each completes. Rules 2 and 3 continue to interrupt the range — they always stop.
@@ -194,6 +210,7 @@ STOP — waiting for go
 
 ---
 
+<!-- rule:collaboration-style -->
 ## Collaboration style
 
 - Discuss design before implementing — think out loud and reach better solutions through dialogue.

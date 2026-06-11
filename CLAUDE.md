@@ -24,12 +24,18 @@ This repository owns **two** CLAUDE.md surfaces and they MUST stay in sync:
 1. **This file (`CLAUDE.md` at the repo root)** — the *recursive* contract: rules for using Loom to build Loom itself. Project-specific (mentions `packages/`, `loom/refs/vision-reference.md`, current threads, etc.).
 2. **The `LOOM_CLAUDE_MD` template in [`packages/app/src/installWorkspace.ts`](packages/app/src/installWorkspace.ts)** — the *project-agnostic* contract installed as `.loom/CLAUDE.md` in any project that runs `loom install`. No project-specifics.
 
-**When you change session rules, MCP visibility rules, chat-reply rules, stop rules, or session-start protocol, update both.** The recursive file may carry extra project-specific guidance, but every rule shared by both surfaces (anything a generic Loom user also needs) must mirror. If a change is purely Loom-repo-specific (e.g., the active-work pointer, package paths), it stays in this file only — and you must say so explicitly when proposing the change.
+**Shared rules are mechanically enforced, not just remembered.** Every rule that exists in *both* surfaces is tagged with a stable `<!-- rule:{id} -->` marker, placed immediately before the rule/section in both files. `tests/claude-md-sync.test.ts` (run by `./scripts/test-all.sh`) asserts two things:
 
-Drift between these two files = inconsistent behavior between Rafa's recursive sessions and every downstream Loom user. Treat them as one logical contract with two physical files.
+1. **Rule-set parity** — the set of `<!-- rule:{id} -->` ids is identical across both surfaces. Add (or remove) a shared rule in one file without mirroring its marker in the other, and `test-all` fails, naming exactly which id is missing on which side. This is the drift guard — discovery moves out of live recursive sessions.
+2. **Verbatim invariants** — a small set of tokens that must never diverge regardless of voice: the `🔧 MCP:` / `📡 MCP:` / `⚠️ MCP unavailable — editing file directly` prefixes, the core `loom_*` write-path tool names, and the four stop-rule hallmark phrases. The test asserts each appears in both surfaces.
+
+**Wording is allowed to differ by purpose — and should.** The recursive file addresses Rafa and assumes this repo's install state; the template addresses a generic user ("the user", "if a gate hook is installed") and is terser. The test locks the rule *set* and the *invariant tokens*, **never** the prose, so each surface keeps its tailored voice.
+
+**To change a shared rule:** edit it in **both** `CLAUDE.md` and the `LOOM_CLAUDE_MD` template, keeping its `<!-- rule:{id} -->` marker. To add or retire a shared rule, add/remove its marker in both. Purely Loom-repo-specific content (the Architecture section, active-work pointer, package paths, Applied learning) stays in this file only and carries no marker. Drift between the two files = inconsistent behavior between Rafa's recursive sessions and every downstream Loom user — which is why `test-all` now enforces it.
 
 ---
 
+<!-- rule:what-loom-is -->
 ## What this project is
 
 **REslava Loom** is a document-driven, event-sourced workflow system for AI-assisted development.
@@ -80,6 +86,7 @@ loom/refs/    Static architectural facts, patterns, API notes.
 
 ---
 
+<!-- rule:key-terminology -->
 ## Key terminology
 
 | Term | Meaning |
@@ -177,6 +184,7 @@ Claude Code should honour this: read the listed docs before responding.
 
 ---
 
+<!-- rule:mcp-tools -->
 ## MCP tools
 
 > **MCP host availability:** the Loom MCP server only runs inside hosts that
@@ -189,6 +197,7 @@ Claude Code should honour this: read the listed docs before responding.
 > separate thing — it is itself an MCP *client* talking to the Loom MCP
 > server, and is unrelated to whether the *Claude* VS Code extension hosts MCP.
 
+<!-- rule:single-ai -->
 ### AI provider model — single-AI (by design)
 
 Loom requires **exactly one** AI provider, never two: *run Loom with whatever AI path you have; only one is required.* Two intentional paths, user picks one:
@@ -198,6 +207,7 @@ Loom requires **exactly one** AI provider, never two: *run Loom with whatever AI
 
 The rule is "only one AI is *required*," not "Claude CLI only." A user configures one path or the other, never both.
 
+<!-- rule:claude-code-config -->
 ### Claude Code config
 
 Create `.mcp.json` in the **project root** (NOT `.claude/settings.json` — that file
@@ -223,6 +233,7 @@ Project-scoped MCP servers require one-time approval per project — run `claude
 interactively in the project root and approve `loom`, or use `claude /mcp`.
 Verify with `claude mcp list`.
 
+<!-- rule:primary-entry-points -->
 ### Primary entry points
 
 | Entry point | When to use |
@@ -233,6 +244,7 @@ Verify with `claude mcp list`.
 | `continue-thread` prompt | Review thread state and get a next-action suggestion |
 | `validate-state` prompt | Review diagnostics and identify issues to fix |
 
+<!-- rule:mcp-rules -->
 ### Rules
 
 - **`loom://catalog` is loaded at session start (step 3) — consult it, never keyword-flail.** MCP tool schemas are deferred, so you only see tool *names* until you fetch them. The catalog (loaded up front) is the grouped name index; find the exact tool in it, then `ToolSearch select:<exact name>` (one targeted fetch). If for any reason the catalog is not yet in context when you need a `loom_*` tool, read `loom://catalog` **before** the first `ToolSearch` — a blind `ToolSearch` for a `loom_*` tool (keyword guessing without the catalog) is a rule violation.
@@ -246,6 +258,7 @@ Verify with `claude mcp list`.
 
 ---
 
+<!-- rule:ai-session-rules -->
 ## AI session rules
 
 > **#1 rule — reply INSIDE the active chat doc.** This is the single most-violated rule. If a chat doc is the active context and you answer only in the terminal, that is a **bug**, not a stylistic choice — the reply is lost the moment the terminal scrolls. Once a chat doc is active, every reply (including short follow-ups) goes inside it via `loom_append_to_chat` until Rafa says `close` or opens a different chat. See the full rule below.
@@ -262,11 +275,14 @@ Verify with `claude mcp list`.
   - New idea/design/plan/done → `loom_create_*` (or `loom_generate_*` if sampling is available)
   - Step progress → `loom_complete_step` / `loom_append_done`
   - Existing doc body or frontmatter → `loom_update_doc`
+  - Surgical body-prose edits → `loom_patch_doc` (one-line/section find-and-replace — preferred over re-supplying the whole body via `loom_update_doc`; refuses the generated plan `## Steps` table)
+  - Plan step edits → `loom_update_step` (amend a pending step's description/files/blockedBy/satisfies) / `loom_reorder_steps` (reorder pending steps); done steps are immutable history
   - Renames/archives → `loom_rename` / `loom_archive`
   - Excluded from the gate: `loom/refs/*.md` (reference docs maintained by hand), `loom/.archive/**/*.md` (archived/deferred docs are frozen — no reducer to run), `CLAUDE.md` at repo root, anything under `packages/**`. Edits to those use normal `Edit`/`Write`.
   - If MCP is genuinely down (rare), output `⚠️ MCP unavailable — editing file directly`, ask Rafa to disable the hook via `/hooks` for this session, and proceed only with explicit go.
 - **Treat MCP tool failures as findings, not friction.** If a `loom_*` tool returns the wrong shape, a malformed doc (missing Steps table, double type-suffix, broken frontmatter), or times out — stop, report what happened in the active chat, and let Rafa decide how to proceed. Routing around a buggy MCP tool by editing the file directly hides the bug; you've now also bypassed the very thing you were supposed to be testing.
 
+<!-- rule:mcp-visibility -->
 ### MCP visibility (required)
 
 When calling any MCP tool, output one line before the call:
@@ -286,6 +302,7 @@ If MCP is unavailable and you must fall back to direct file editing, output:
 
 This makes MCP usage visible. If you don't see these prefixes, either MCP is not running or the AI is bypassing it (which the rules forbid).
 
+<!-- rule:context-injection -->
 ### Chat-reply context injection (required)
 
 When replying inside a chat doc that lives in a thread (`loom/{weave}/{thread}/chats/...`):
@@ -304,12 +321,15 @@ When replying inside a chat doc that lives in a thread (`loom/{weave}/{thread}/c
   ```
 - **Same thread, but a `refine` or `generate` ran since last reply** — re-read the context (it may have changed) and re-emit the doc-loaded visibility lines.
 
+To load the chat's own new turns cheaply on first touch, call `loom_read_chat_tail` — it returns only the turns since your last `## AI:` reply (via the chat's `last_ai_block` cursor) instead of re-reading the whole chat.
+
 For a chat at weave root (loose fiber, no thread), load the parent doc(s) the chat refers to and emit `📄 {doc}.md — loaded for context` for each. No thread-scoped context call.
 
 The "is this thread already in transcript?" decision lives **in the AI**, not in the MCP server — the server is stateless across calls and cannot see the LLM transcript.
 
 ---
 
+<!-- rule:session-start -->
 ## Session start protocol
 
 **Order of operations at session start:**
@@ -339,6 +359,7 @@ STOP — waiting for go
 
 ---
 
+<!-- rule:stop-rules -->
 ## Non-negotiable stop rules
 
 1. **After each step**: mark ✅ in the plan · state the next step + files that will be touched · **STOP** — wait for `go`. For ad-hoc tasks (no active plan), end every response with a `Next:` line: one sentence describing what comes next, or "waiting for direction." **Exception — explicit multi-step authorization:** when the user explicitly asks for a range or all steps in advance (e.g. "do steps 2–4", "do all remaining steps", "do the whole plan") via chat, Claude CLI, or the extension, continue through the authorized range without stopping between steps. Still mark ✅ and append the per-step done note as each completes. Rules 2 (error loop) and 3 (design decision) continue to interrupt the range — they always stop.
@@ -348,6 +369,7 @@ STOP — waiting for go
 
 ---
 
+<!-- rule:collaboration-style -->
 ## Collaboration style
 
 - **Vision check (before any design proposal).** Before suggesting code, file changes, or architecture, state in one sentence which user-visible behavior in [loom/refs/vision-reference.md](loom/refs/vision-reference.md) this serves and which manual step it removes. If you cannot — if the proposal does not map to a vision element or replace a manual step — the proposal is probably wrong. Stop and ask before continuing. The cost of writing this sentence is one line; the cost of building the wrong thing is hours.

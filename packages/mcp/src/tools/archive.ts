@@ -4,7 +4,7 @@ import { resolveDocIdOrThrow } from '../../../fs/dist';
 
 export const toolDef = {
     name: 'loom_archive',
-    description: 'Archive a document by moving it to the .archive/ directory at the same level. Use this tool to archive Loom docs — do not move files directly.',
+    description: 'Archive a document by moving it under the single top-level loom/.archive/ tree, mirroring its weave/thread path (e.g. loom/core-engine/foo/plans/x.md → loom/.archive/core-engine/foo/plans/x.md). Use this tool to archive Loom docs — do not move files directly.',
     inputSchema: {
         type: 'object' as const,
         properties: {

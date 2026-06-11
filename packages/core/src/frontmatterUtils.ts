@@ -131,6 +131,8 @@ const ORDERED_KEYS = [
     'staled',
     'refined',
     'steps',
+    // chat-specific
+    'last_ai_block',
     // ctx-specific
     'source_hash',
 ];

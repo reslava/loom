@@ -78,6 +78,14 @@ run_test tests/event-save-scope.test.ts
 # Step 7: buildCtxSource — pure ctx source assembler + helpers (no IO)
 run_test tests/build-ctx-source.test.ts
 
+# CLAUDE.md two-surface sync: the root CLAUDE.md and the LOOM_CLAUDE_MD install template
+# must carry the same <!-- rule:id --> set + shared verbatim invariants (no silent drift)
+run_test tests/claude-md-sync.test.ts
+
+# New MCP tools: patch_doc body-prose guard + Steps-table refusal, update_step/reorder_steps
+# done-immutability + leading-block, read_chat_tail tail-after-last-AI with configured ai.model
+run_test tests/mcp-new-tools.test.ts
+
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
 

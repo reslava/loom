@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-06-11
+
+### Added
+- **`loom_patch_doc` — surgical body-prose edits.** Find-and-replace (`old_string` → `new_string`, optional `replace_all`) on a doc's body, so a one-line change no longer means re-supplying the whole body through `loom_update_doc`. Frontmatter is never matched; on a plan, the generated `## Steps` table is refused (use the step tools below) while the rest of the body stays editable.
+- **`loom_update_step` / `loom_reorder_steps` — amend plans without recreating them.** `loom_update_step` amends a pending step's `description` / `files` / `blockedBy` / `satisfies`; `loom_reorder_steps` reorders steps (permutation-checked, `blockedBy` survives via stable ids). Done/cancelled steps are immutable history — both tools reject touching them, and reorder keeps completed steps pinned as the leading block.
+- **`loom_read_chat_tail` + chat read-cursor — cheaper chat replies.** Returns only the turns since the AI last replied, instead of re-reading the whole chat. A `last_ai_block` cursor in chat frontmatter is auto-advanced by `loom_append_to_chat`; `read_chat_tail` falls back to on-the-fly detection for chats without the cursor. Block detection keys on the configured `ai.model` header, never a hardcoded `## AI:`.
+- **`target_release` on `loom_update_doc`.** A design's `target_release` is now settable through MCP (previously the one design frontmatter field with no write path).
+- **CLAUDE.md two-surface drift guard.** Rules shared between the root contract and the installed `LOOM_CLAUDE_MD` template are tagged with `<!-- rule:id -->` markers in both; `test-all` (`tests/claude-md-sync.test.ts`) asserts the rule-id sets match and that a set of verbatim invariants (visibility prefixes, core tool names, stop-rule hallmarks) appear in both — so a rule changed in one surface and forgotten in the other fails the suite instead of drifting silently. Per-surface wording is still free to differ.
+
+### Fixed
+- **`loom_archive` description** now accurately states it mirrors the doc's path under the single top-level `loom/.archive/` tree (the old "same level" wording was wrong; the behavior was already correct).
+
 ## [1.3.0] - 2026-06-09
 
 ### Changed
@@ -400,7 +412,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/reslava/loom/releases/tag/v1.4.0
 [1.3.0]: https://github.com/reslava/loom/releases/tag/v1.3.0
 [1.2.1]: https://github.com/reslava/loom/releases/tag/v1.2.1
 [1.2.0]: https://github.com/reslava/loom/releases/tag/v1.2.0

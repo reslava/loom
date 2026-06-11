@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.4.0] - 2026-06-11
+
+### Notes
+- No functional extension changes this release. Lockstep 1.4.0 bump with the CLI and the
+  rest of the monorepo — the 1.4.0 work is the new agent-facing MCP tools (`loom_patch_doc`,
+  `loom_update_step` / `loom_reorder_steps`, `loom_read_chat_tail`) plus the CLAUDE.md
+  two-surface drift guard, all in core/app/mcp.
+
 ## [1.3.0] - 2026-06-09
 
 ### Changed
