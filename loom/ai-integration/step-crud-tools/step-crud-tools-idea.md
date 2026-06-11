@@ -2,9 +2,10 @@
 type: idea
 id: id_01KTV4H68TX91DYCG331W68BWR
 title: Plan step-CRUD tools
-status: draft
-created: 2026-06-11
-version: 1
+status: done
+created: "2026-06-11T00:00:00.000Z"
+updated: 2026-06-11
+version: 2
 tags: []
 parent_id: null
 requires_load: []

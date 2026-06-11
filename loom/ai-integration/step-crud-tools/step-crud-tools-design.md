@@ -2,10 +2,10 @@
 type: design
 id: de_01KTV4J19RRZ2BENGHZW56P35S
 title: Plan step-CRUD tools
-status: draft
+status: done
 created: "2026-06-11T00:00:00.000Z"
 updated: 2026-06-11
-version: 3
+version: 4
 tags: []
 parent_id: id_01KTV4H68TX91DYCG331W68BWR
 requires_load: []
