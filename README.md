@@ -83,6 +83,7 @@ loom/
   {weave}/                     ← workstream (e.g. "auth", "payment-system")
     ctx.md                     ← AI-generated weave summary
     {thread}/                  ← feature thread
+      req.md                   ← locked requirements (include / exclude / constrain), loaded first
       {thread}-idea.md         ← raw concept
       {thread}-design.md       ← design decisions and conversation log
       plans/
