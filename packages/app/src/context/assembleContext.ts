@@ -8,6 +8,8 @@ import {
     BundledDoc,
     ExcludedDoc,
     ContextOverrides,
+    LoadedDoc,
+    ManifestEntry,
     OperationMode,
     DocScope,
     isPlanStale,
@@ -107,12 +109,21 @@ function loadWhenAllows(doc: ReferenceDoc, effectiveMode: string): boolean {
  * reachable via requires_load. No token budget yet (Phase 5). The `overrides`
  * argument is honoured (exclude wins, include adds) — the sidebar UX that
  * *produces* overrides is Phase 3.
+ *
+ * Context Dispatcher (model C): `alreadyLoaded` is the caller-declared ledger of
+ * `{id, version}` it currently holds. After the full bundle is resolved, any doc
+ * whose `{id@version}` matches the ledger is suppressed from `docs` (the delta)
+ * and recorded in `manifest` (assumed-present) instead. The dedupe unit is
+ * `{id@version}`: a version bump (refine) no longer matches, so the fresh doc is
+ * always re-emitted — no silent under-load. An empty/absent ledger yields the
+ * full bundle and an empty manifest. Still pure: no IO, no side effects.
  */
 export function assembleContext(
     targetId: string,
     mode: OperationMode,
     overrides: ContextOverrides,
     state: LoomState,
+    alreadyLoaded: LoadedDoc[] = [],
 ): ContextBundle {
     const catalog = buildCatalog(state);
 
@@ -158,6 +169,7 @@ export function assembleContext(
             type: doc.type,
             scope,
             reason: emitReason,
+            version: doc.version,
             content: doc.content,
             tokenEstimate: estimateTokens(doc.content),
         };
@@ -245,7 +257,27 @@ export function assembleContext(
     add(targetEntry.doc, 'target', 'auto');
     resolveRequiresLoad(canonicalTargetId, catalog, state, emitted, order, excluded, add);
 
-    const docs = order.map(id => emitted.get(id)!);
+    const resolved = order.map(id => emitted.get(id)!);
+
+    // Context Dispatcher (model C): split the resolved bundle into the delta the
+    // caller still needs and the manifest it already holds. The dedupe unit is
+    // `{id@version}` — a doc is assumed-present only when BOTH its id and version
+    // match the declared ledger, so a version bump (refine) always falls through
+    // to the delta (no silent under-load). Ledger ids are resolved through the
+    // index so a slug declaration matches its canonical id.
+    const loadedSet = new Set(
+        alreadyLoaded.map(l => `${resolveId(state.index, l.id) ?? l.id}@${l.version}`),
+    );
+    const docs: BundledDoc[] = [];
+    const manifest: ManifestEntry[] = [];
+    for (const d of resolved) {
+        if (loadedSet.has(`${d.id}@${d.version}`)) {
+            manifest.push({ id: d.id, version: d.version });
+        } else {
+            docs.push(d);
+        }
+    }
+    // totalTokens reflects the delta actually injected, not the full resolved set.
     const totalTokens = docs.reduce((sum, d) => sum + d.tokenEstimate, 0);
 
     // An emitted doc carries no exclusion record: requires_load / user-include win over
@@ -256,7 +288,7 @@ export function assembleContext(
         e => !((e.reason === 'load_when-filter' || e.reason === 'user-exclude') && emitted.has(e.id)),
     );
 
-    return { targetId: canonicalTargetId, mode, docs, excluded: finalExcluded, totalTokens };
+    return { targetId: canonicalTargetId, mode, docs, excluded: finalExcluded, totalTokens, manifest };
 }
 
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {
@@ -315,6 +347,7 @@ function resolveRequiresLoad(
                     type: 'reference',
                     scope: 'target',
                     reason: 'requires_load',
+                    version: 0,
                     content: '',
                     tokenEstimate: 0,
                     missing: true,

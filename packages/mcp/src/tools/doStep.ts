@@ -1,7 +1,8 @@
 import * as path from 'path';
 import { findDocumentById, resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { PlanDoc } from '../../../core/dist/entities/plan';
-import { Document } from '../../../core/dist';
+import { Document, ContextBundle } from '../../../core/dist';
+import { serializeBundle } from '../../../app/dist/context/serializeBundle';
 import { handleContextResource } from '../resources/context';
 
 const INSTRUCTIONS = `Implement this step using your file-editing tools (Read, Edit, Write, Bash, etc.).
@@ -12,13 +13,27 @@ If you reach a decision that needs human input, stop and ask — do not guess.`;
 
 export const toolDef = {
     name: 'loom_do_step',
-    description: 'Get a brief for a step of a plan: thread context, step description, instructions. Pure read — no state changes, no AI inference. If stepNumber is omitted, returns the brief for the first not-done step. If provided, returns the brief for that exact step (errors if already done). The host agent (Claude Code, Cursor, etc.) is expected to act on the brief using its own tools, then call loom_append_done and loom_complete_step.',
+    description: 'Get a brief for a step of a plan: thread context, step description, instructions. Pure read — no state changes, no AI inference. If stepNumber is omitted, returns the brief for the first not-done step. If provided, returns the brief for that exact step (errors if already done). When advancing through several steps of the same plan in one session, pass context: "skip" (or brief_only: true) on every call after the first so the ~6–7k-token thread bundle is not re-injected — you already hold it. The host agent (Claude Code, Cursor, etc.) is expected to act on the brief using its own tools, then call loom_append_done and loom_complete_step.',
     inputSchema: {
         type: 'object' as const,
         properties: {
             planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
             stepNumber: { type: 'number', description: 'Optional. Specific step number to brief. If omitted, the first not-done step is used.' },
             context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject into the brief context.' },
+            context: { type: 'string', enum: ['skip'], description: 'Optional. Coarse "I hold the whole thread" shortcut: suppress the entire thread context bundle (~6–7k tokens). Use for the 2nd+ step of the same plan when nothing changed. For precise per-doc dedupe (e.g. after a refine bumped one doc) use alreadyLoaded instead.' },
+            brief_only: { type: 'boolean', description: 'Optional. Alias for context: "skip". When true, the brief omits the thread context bundle and returns only the step description, files, summary, and instructions.' },
+            alreadyLoaded: {
+                type: 'array',
+                items: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string', description: 'Doc id you already hold.' },
+                        version: { type: 'number', description: 'The version you hold. A different current version re-injects the doc.' },
+                    },
+                    required: ['id', 'version'],
+                },
+                description: 'Optional. The context ledger (Context Dispatcher, model C): the {id, version} docs you already hold this session. The brief injects ONLY the delta (docs absent from the ledger or whose version changed) and reports the assumed-present rest in `contextManifest`. The precise form of context:"skip"; declaring every thread doc here ≡ skip. A version bump always re-injects, so there is no silent under-load.',
+            },
         },
         required: ['planId'],
     },
@@ -28,6 +43,12 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const planId = args['planId'] as string;
     const stepNumber = typeof args['stepNumber'] === 'number' ? (args['stepNumber'] as number) : undefined;
     const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
+    const skipContext = args['context'] === 'skip' || args['brief_only'] === true;
+    const alreadyLoaded = Array.isArray(args['alreadyLoaded'])
+        ? (args['alreadyLoaded'] as { id: string; version: number }[]).filter(
+              l => l && typeof l.id === 'string' && typeof l.version === 'number',
+          )
+        : [];
 
     // Primary (agent-supplied) id → suggest-on-miss. The contextIds lookups below
     // stay on findDocumentById (best-effort enrichment, not the agent's target id).
@@ -59,14 +80,32 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const threadId = path.basename(threadDir);
     const weaveId = path.basename(weaveDir);
 
+    // Context Dispatcher (model C). Two dedupe controls, both routed through the one
+    // injection door (the loom://context resource → assembleContext):
+    //   - context:"skip" / brief_only — coarse: suppress the whole bundle (caller
+    //     holds the entire thread). No resource call at all.
+    //   - alreadyLoaded — precise: declare the {id, version} ledger; the assembler
+    //     returns only the delta (docs absent or version-changed) + a manifest of
+    //     what it assumed present. A version bump always re-injects (no silent
+    //     under-load). Explicit context_ids stay additive — the inverse of the ledger.
     let threadContext = '';
-    try {
-        const ctx = await handleContextResource(
-            root,
-            `loom://context/${planId}?mode=implementing`
-        );
-        threadContext = ctx.contents[0].text;
-    } catch { /* proceed without ctx if unavailable */ }
+    let contextManifest: { id: string; version: number }[] = [];
+    if (skipContext) {
+        threadContext = '(thread context suppressed — caller declared it already loaded this session; omit the context/brief_only flag to re-inject the full bundle)';
+    } else {
+        try {
+            const loadedQuery = alreadyLoaded.length
+                ? `&loaded=${alreadyLoaded.map(l => `${encodeURIComponent(l.id)}@${l.version}`).join(',')}`
+                : '';
+            const ctx = await handleContextResource(
+                root,
+                `loom://context/${planId}?mode=implementing&format=json${loadedQuery}`
+            );
+            const bundle = JSON.parse(ctx.contents[0].text) as ContextBundle;
+            threadContext = serializeBundle(bundle);
+            contextManifest = bundle.manifest ?? [];
+        } catch { /* proceed without ctx if unavailable */ }
+    }
 
     if (contextIds.length > 0) {
         const extraParts = await Promise.all(
@@ -95,6 +134,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
         stepNumber: nextStep.order,
         stepDescription: nextStep.description,
         filesToTouch: nextStep.files_touched,
+        contextSkipped: skipContext,
+        contextManifest,
         threadContext,
         planSummary,
         instructions: INSTRUCTIONS,

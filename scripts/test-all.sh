@@ -53,6 +53,11 @@ run_test tests/do-step.test.ts
 # Context pipeline: pure assembler + serialiser (no IO)
 run_test tests/context-assembler.test.ts
 
+# Context Dispatcher (model C): pure assembleContext dedupe (empty ledger → full bundle,
+# full ledger → 0 delta, version bump → re-injected, manifest = assumed-present) + a
+# loom_do_step / loom://context round-trip threading the alreadyLoaded ledger param
+run_test tests/context-dispatcher.test.ts
+
 # req use-cases: create/refine/finalize lifecycle (real fs, injected loom root)
 run_test tests/req-usecases.test.ts
 

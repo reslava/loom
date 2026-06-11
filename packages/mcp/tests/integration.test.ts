@@ -256,9 +256,12 @@ async function run(): Promise<void> {
         });
         const content = result.content[0] as { type: string; text: string };
         const data = JSON.parse(content.text);
-        // completeStep returns { plan, autoCompleted }
-        assert(data.plan?.id === 'tw-plan-001', 'result.plan.id should match');
-        assert(data.plan?.steps?.[0]?.status === 'done', 'step 1 should be marked done');
+        // completeStep returns a compact reference (Context Dispatcher, 1.6.0): the plan id,
+        // the changed step, and a per-step status line — NOT the full plan body.
+        assert(data.planId === 'tw-plan-001', 'result.planId should match');
+        assert(data.completedStep?.order === 1 && data.completedStep?.status === 'done', 'completedStep should be step 1, done');
+        assert(data.steps?.[0]?.status === 'done', 'step 1 should be marked done in the status line');
+        assert(data.plan === undefined, 'the full plan body must NOT be echoed back');
     });
 
     // (e) error path: loom_find_doc with unknown ID

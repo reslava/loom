@@ -74,8 +74,11 @@ assembleContext(
   mode: OperationMode,
   overrides: { include: string[]; exclude: string[] },
   state: LoomState,
+  alreadyLoaded?: { id: string; version: number }[],   // Context Dispatcher ledger (model C)
 ): ContextBundle
 ```
+
+The optional `alreadyLoaded` ledger is the **Context Dispatcher** (model C): the caller declares the `{id, version}` docs it already holds, and the assembler returns only the *delta* (docs absent from the ledger, or whose version differs) plus a `manifest` of the assumed-present rest. An empty/omitted ledger yields the full bundle. It stays pure — dedupe is a function of the declared ledger, not of any server-side session state — which is what keeps the stateless MCP server multi-agent-safe and the behaviour unit-testable.
 
 No file IO, no async, no VS Code calls. This is possible because `getState()` already loads every document's body into memory (`BaseDoc.content`), so the assembler reads everything it needs from `state` and resolves cross-references through `state.index`. Purity is the design's main lever: the whole behaviour is unit-testable from a hand-built state fixture, and the bundle records *why* each doc was included or excluded — so "why didn't X load?" is always answerable from data, never a mystery about whether the AI followed a rule.
 
@@ -87,13 +90,14 @@ The single impure step — calling `getState()` and reading the prefs file — l
 interface ContextBundle {
   targetId: string;
   mode: OperationMode;
-  docs: BundledDoc[];        // ORDERED; serialisation + visibility + sidebar all walk this
+  docs: BundledDoc[];        // ORDERED delta; serialisation + visibility + sidebar all walk this
   excluded: ExcludedDoc[];   // each with a reason code
-  totalTokens: number;
+  totalTokens: number;       // tokens of the delta actually injected
+  manifest: { id: string; version: number }[];  // assumed-present (suppressed by the ledger)
 }
 ```
 
-Each `BundledDoc` carries `id, title, type, scope, reason, content, tokenEstimate`, an optional `stale` marker, and a `missing` flag for a requested doc that doesn't exist. Each `ExcludedDoc` carries a reason: `user-exclude | load_when-filter | stale-skip | budget | missing`.
+Each `BundledDoc` carries `id, title, type, scope, reason, version, content, tokenEstimate`, an optional `stale` marker, and a `missing` flag for a requested doc that doesn't exist (a missing placeholder carries `version: 0`). The `version` is what lets the agent declare a received doc as `{id, version}` for the next call. Each `ExcludedDoc` carries a reason: `user-exclude | load_when-filter | stale-skip | budget | missing`. When an `alreadyLoaded` ledger is supplied, `docs` is the delta and `manifest` lists what the dispatcher assumed already-present; with no ledger, `docs` is the full bundle and `manifest` is empty.
 
 ### The pipeline, step by step
 
@@ -105,7 +109,8 @@ Each `BundledDoc` carries `id, title, type, scope, reason, content, tokenEstimat
 6. **Resolve `requires_load` eagerly and transitively** across the target and every emitted doc, with a visited-set so cycles terminate. A `requires_load` id pointing at a missing doc becomes a visible `⚠️ requires_load target missing: <id>` placeholder rather than a silent skip.
 7. **Estimate tokens** (heuristic `ceil(chars / 4)` — no tokenizer dependency) and **flag stale docs** using Loom's existing staleness signals.
 8. **Apply the token budget.** *(Phase 5; default unlimited until real usage is measured.)*
-9. **Return the bundle** in a deterministic order: global ctx → weave ctx → references → parent chain → target → `requires_load` refs. ("Broadest context first, the thing you're working on last, its citations after.")
+9. **Dedupe against the declared ledger** (Context Dispatcher). If `alreadyLoaded` was supplied, partition the fully-resolved bundle by `{id@version}`: a doc whose id *and* version match the ledger is suppressed into `manifest`; everything else stays in `docs` (the delta). A version bump (refine) no longer matches, so a changed doc always falls through to the delta — never a silent under-load. `totalTokens` is recomputed over the delta.
+10. **Return the bundle** in a deterministic order: global ctx → weave ctx → references → parent chain → target → `requires_load` refs. ("Broadest context first, the thing you're working on last, its citations after.")
 
 ### Serialisation — why plain markdown
 
@@ -148,6 +153,7 @@ The mode is explicit, derived from the command: `chatReply → chat`, `doStep �
 - Context loads only on an explicit user action, never in the background.
 - Stale docs are flagged, never silently dropped or rewritten.
 - The serialised bundle stays agent-agnostic; nothing Claude-specific leaks into it.
+- **Dedupe never costs correctness.** The dedupe unit is `{id@version}`, never bare `id`: a version bump or a fresh/empty ledger always re-injects. The server is stateless — it suppresses only what the *caller* declared it holds, so it can't silently under-load against a compacted window the way a server-side "already sent" cache would.
 
 ---
 
@@ -173,3 +179,4 @@ All settled during the design discussion and the Phase 1 build:
 - **Phase 2 shipped.** `load` / `load_when` are now first-class fields on `ReferenceDoc` and in the canonical frontmatter; the pure assembler auto-loads `load: always` refs in matching scope and filters by `load_when` vs the effective mode (`refine` resolves to the target doc's type). `by-request` and unset refs stay reachable only via `requires_load`. The `load-when` and `reference-load-context` threads were absorbed and archived (Option C, 2026-05-27). Verified by `tests/context-assembler.test.ts`.
 - **Phase 3 shipped (`ai-integration/context-sidebar`).** The CONTEXT panel is now a pure view of the bundle — what you see is what the AI gets, by construction. Two MCP tools (`loom_get_context_prefs` / `loom_set_context_prefs`) read/write `.loom/context-prefs.json` with a mode-agnostic per-target schema (`{ [targetId]: { include: string[], exclude: string[] } }`); both `loom://context` and the `loom_do_step` / refine brief assembly read that file as `overrides`. The sidebar renders one row per `BundledDoc` (✓ auto, 📌 user-include, 🚫 user-exclude, ⊘ filtered-but-required, 🔒 always-locked, ⚠ stale, ❌ missing), every toggle persists then re-runs the pipeline (no predictive UI), and selecting a row opens the underlying doc/ref in the editor. The old ephemeral `getSelectedIds()` → `buildPrompt(context_ids)` launch channel is deleted — overrides reach every consumer through the one prefs file.
 - **Reference scope labelling (still cosmetic).** `loom/refs/*.md` continue to classify as scope `weave` because `getState` loads `loom/refs/` as a pseudo-weave. Phase 2 added the filter but did *not* reclassify scope; this remains a known cosmetic gap.
+- **Context Dispatcher shipped (1.6.0, `ai-integration/context-dispatcher`).** The pure assembler now takes an optional `alreadyLoaded: {id, version}[]` ledger (model C — client-declared, not a server-side session cache, which was rejected for the silent-under-load risk) and returns `{ docs: delta, manifest }`. Both injection doors route through it: `loom_do_step` accepts `context: "skip"` (coarse) and `alreadyLoaded` (precise) and surfaces `contextManifest`; the `loom://context` resource accepts the same ledger via `?loaded=id@version,…`. `loom_complete_step` / `loom_append_done` stopped echoing the full plan back (compact reference + changed step instead). Verified by `tests/context-dispatcher.test.ts` (pure dedupe invariants + a `loom_do_step` / `loom://context` round-trip). Surfacing the ledger in the extension UI is a deliberate follow-up.

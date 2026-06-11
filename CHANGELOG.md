@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-06-11
+
+### Added
+- **Context Dispatcher — context injection now dedupes against what the agent already holds.** `loom_do_step` re-sent the entire thread bundle (~6–7k tokens: global ctx + vision + workflow + idea + design + active plan) on *every* call; across a 5-step session that was ~25k tokens of verbatim repeat, and `loom_complete_step` / `loom_append_done` echoed the whole plan doc back each time. The agent now declares the `{id, version}` context it already holds and the server returns only the delta. Two controls on `loom_do_step`: `context: "skip"` (coarse — "I hold the whole thread", suppresses the bundle) and `alreadyLoaded: [{ id, version }]` (precise, per-doc); the brief reports the assumed-present set in `contextManifest`. The `loom://context` resource takes the same ledger via `?loaded=id@version,…`. Built on a stateless, pure assembler (model C, client-declared ledger) — the dedupe unit is `{id@version}`, so a refine (version bump) or a fresh session always re-injects (no silent under-load). `loom_complete_step` / `loom_append_done` now return a compact reference + the changed step instead of echoing the full plan body.
+
+### Fixed
+- **`loom_append_to_chat` no longer defaults an omitted `role` to a user turn.** `role` is now optional and defaults to `'ai'` (the overwhelming caller); a present-but-invalid role throws instead of being silently guessed. Previously an omitted role could mis-attribute an AI reply to the human.
+
+### Notes
+- The agent protocol (the `alreadyLoaded` / `context: "skip"` params and the rule to declare your loaded `{id@version}` set) is documented in both CLAUDE.md surfaces under the new `context-ledger` shared rule. Extension UI to *display* the ledger is intentionally out of scope — a follow-up for when a consumer needs the display hook.
+
 ## [1.5.0] - 2026-06-11
 
 ### Added
@@ -420,7 +431,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/reslava/loom/releases/tag/v1.6.0
 [1.5.0]: https://github.com/reslava/loom/releases/tag/v1.5.0
 [1.4.0]: https://github.com/reslava/loom/releases/tag/v1.4.0
 [1.3.0]: https://github.com/reslava/loom/releases/tag/v1.3.0

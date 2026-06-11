@@ -31,6 +31,30 @@ export interface ContextOverrides {
 }
 
 /**
+ * One entry of the caller-declared context ledger (Context Dispatcher, model C).
+ * The dedupe unit is `{id, version}` — a doc the caller declares it already holds.
+ * A version bump (refine) makes the old `{id@version}` no longer match, so the
+ * fresh version is always re-emitted: there is no silent under-load. This is the
+ * inverse of the additive `ContextOverrides.include` — `loaded` *removes* a doc
+ * from the delta when present and unchanged.
+ */
+export interface LoadedDoc {
+    id: string;
+    version: number;
+}
+
+/**
+ * One entry of a ContextBundle manifest: a doc the dispatcher assumed the caller
+ * already holds (matched the declared ledger by `{id@version}`) and therefore
+ * suppressed from the delta `docs`. Lets the agent/log reconcile what the server
+ * believed present against what is actually in the window.
+ */
+export interface ManifestEntry {
+    id: string;
+    version: number;
+}
+
+/**
  * Persisted sidebar overrides for one target, stored in `.loom/context-prefs.json`
  * (Phase 3). Mode-agnostic per-target — same shape as ContextOverrides (design §3, Option A).
  */
@@ -46,6 +70,12 @@ export interface BundledDoc {
     type: DocumentType;
     scope: DocScope;
     reason: EmitReason;
+    /**
+     * Document version (from BaseDoc.version). The dedupe unit is `{id@version}`:
+     * the agent declares received docs as `{id, version}` so the next call can be
+     * deduped against this exact pair. A missing placeholder carries version 0.
+     */
+    version: number;
     /** Raw markdown body (verbatim from BaseDoc.content). Empty for a missing placeholder. */
     content: string;
     tokenEstimate: number;
@@ -83,7 +113,19 @@ export interface ExcludedDoc {
 export interface ContextBundle {
     targetId: string;
     mode: OperationMode;
+    /**
+     * The delta to inject: docs the assembler resolved MINUS those the caller
+     * declared already-loaded (matched by `{id@version}`). With an empty ledger
+     * this is the full bundle. `totalTokens` reflects this delta, not the full set.
+     */
     docs: BundledDoc[];
     excluded: ExcludedDoc[];
     totalTokens: number;
+    /**
+     * Docs the dispatcher assumed the caller already holds — resolved by the
+     * assembler but suppressed from `docs` because they matched the declared
+     * ledger by `{id@version}`. Empty when no ledger was supplied (full bundle).
+     * Lets the agent reconcile assumed-present vs actually-in-window.
+     */
+    manifest: ManifestEntry[];
 }

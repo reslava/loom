@@ -2,11 +2,35 @@ import { getState } from '../../../app/dist/getState';
 import { assembleContext } from '../../../app/dist/context/assembleContext';
 import { serializeBundle } from '../../../app/dist/context/serializeBundle';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex, readContextPrefsEntry } from '../../../fs/dist';
-import { ConfigRegistry, resolveId } from '../../../core/dist';
+import { ConfigRegistry, resolveId, LoadedDoc } from '../../../core/dist';
 import * as fs from 'fs-extra';
 
 const VALID_MODES = ['chat', 'idea', 'design', 'plan', 'implementing', 'refine', 'promote', 'ctx'] as const;
 type Mode = typeof VALID_MODES[number];
+
+/**
+ * Parse the Context Dispatcher ledger from the `loaded` query param.
+ * Format: comma-separated `id@version` tokens (e.g. `loaded=loom-ctx@3,de_x@2`).
+ * Malformed tokens are dropped — a bad ledger entry must never suppress a doc
+ * (failing toward re-injection, never silent under-load). Ids are resolved to
+ * canonical form inside assembleContext, so a slug here still matches.
+ */
+function parseLoadedLedger(param: string | null): LoadedDoc[] {
+    if (!param) return [];
+    return param
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map((token): LoadedDoc | null => {
+            const at = token.lastIndexOf('@');
+            if (at <= 0) return null;
+            const id = token.slice(0, at);
+            const version = parseInt(token.slice(at + 1), 10);
+            if (!id || Number.isNaN(version)) return null;
+            return { id, version };
+        })
+        .filter((x): x is LoadedDoc => x !== null);
+}
 
 /**
  * loom://context/{docId}?mode={mode}
@@ -73,7 +97,12 @@ export async function handleContextResource(root: string, uri: string) {
     const canonicalId = resolveId(state.index, targetId) ?? targetId;
     const overrides = await readContextPrefsEntry(root, canonicalId);
 
-    const bundle = assembleContext(targetId, mode, overrides, state);
+    // Context Dispatcher (model C): the caller declares the {id@version} set it
+    // already holds via `?loaded=…`; the assembler returns only the delta + a
+    // manifest of what it assumed present. Absent param ⇒ empty ledger ⇒ full bundle.
+    const alreadyLoaded = parseLoadedLedger(url.searchParams.get('loaded'));
+
+    const bundle = assembleContext(targetId, mode, overrides, state, alreadyLoaded);
 
     // The sidebar needs the structured bundle (reasons, stale/missing/locked flags,
     // per-doc token estimates) to render its marks; prompt injection needs the

@@ -4,8 +4,8 @@ id: loom-ctx
 title: loom — Global Context
 status: active
 created: "2026-04-29T00:00:00.000Z"
-updated: 2026-05-07
-version: 3
+updated: 2026-06-11
+version: 4
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -126,6 +126,11 @@ this in Claude Code sessions; see CLAUDE.md for the full hard rule.
   for a thread. Load before working on it.
 - `do-next-step` prompt — gives the next incomplete step with full context loaded
   and a pre-filled `loom_complete_step` call.
+- **Declare what you already hold (Context Dispatcher).** Stepping through one plan
+  across a session, pass `context: "skip"` or `alreadyLoaded: [{ id, version }]` to
+  `do-next-step` / `loom_do_step` so only the *delta* re-injects — the dedupe unit is
+  `{id@version}`, so a refine always re-injects (no silent under-load). See the
+  `context-ledger` rule in CLAUDE.md.
 
 **Chat docs are the conversation surface.** When a `-chat.md` doc is the active
 context, every reply goes inside it under `## AI:`. Replies that live only in the

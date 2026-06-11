@@ -8,6 +8,7 @@ import { loadWeave, saveDoc, loadDoc } from '../packages/fs/dist/index.js';
 import { weavePlan } from '../packages/app/dist/weavePlan.js';
 import { handle as patchDocHandle } from '../packages/mcp/dist/tools/patchDoc.js';
 import { handle as readChatTailHandle } from '../packages/mcp/dist/tools/readChatTail.js';
+import { handle as appendToChatHandle } from '../packages/mcp/dist/tools/appendToChat.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-mcp-new-tools-tests');
 
@@ -159,6 +160,38 @@ async function run() {
         assert(tailText.includes('q2 NEWTURN'), 'tail includes the new human turn after the last ROBOT block');
         assert(!tailText.includes('a1') && !tailText.includes('q1'), 'tail excludes earlier turns (before/at last AI block)');
         console.log('    ✅ read_chat_tail: tail-after-last-AI, configured header');
+    }
+
+    // ── F. append_to_chat role: omitted → ai (never silently a user turn); invalid → throw ──
+    console.log('  • append_to_chat defaults omitted role to ai, rejects an invalid role...');
+    {
+        const root = path.join(TMP, 'appendws');
+        await fs.remove(root);
+        await fs.ensureDir(path.join(root, '.loom'));
+        await fs.ensureDir(path.join(root, 'loom', 'demo', 'chats'));
+        await fs.outputFile(path.join(root, '.loom', 'settings.json'), JSON.stringify({ 'user.name': 'HUMAN:', 'ai.model': 'ROBOT:' }));
+
+        const chatFm = serializeFrontmatter({
+            type: 'chat', id: 'ch_TESTAPPEND000000000000001', title: 'Append Chat', status: 'active',
+            created: '2026-06-11', version: 1, tags: [], parent_id: null, requires_load: [],
+        });
+        const chatPath = path.join(root, 'loom', 'demo', 'chats', 'demo-chat.md');
+        await fs.outputFile(chatPath, `${chatFm}\n# Append Chat\n`);
+
+        // role omitted → must default to the ai header, NOT the user one (the bug we fixed)
+        await appendToChatHandle(root, { id: 'ch_TESTAPPEND000000000000001', body: 'agent turn' });
+        const afterAi: any = await loadDoc(chatPath);
+        assert(afterAi.content.includes('## ROBOT:\n\nagent turn'), 'omitted role → ai header (not user)');
+        assert(!afterAi.content.includes('## HUMAN:'), 'omitted role never produced a user turn');
+
+        // explicit role: 'user' → the user header
+        await appendToChatHandle(root, { id: 'ch_TESTAPPEND000000000000001', role: 'user', body: 'human turn' });
+        const afterUser: any = await loadDoc(chatPath);
+        assert(afterUser.content.includes('## HUMAN:\n\nhuman turn'), "explicit role 'user' → user header");
+
+        // a present-but-invalid role is a caller bug → throw (no silent guess)
+        await expectThrow(() => appendToChatHandle(root, { id: 'ch_TESTAPPEND000000000000001', role: 'robot', body: 'x' }), 'invalid role rejected');
+        console.log('    ✅ append_to_chat: omitted→ai, explicit user honoured, invalid→throw');
     }
 
     await fs.remove(TMP);

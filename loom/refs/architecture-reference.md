@@ -110,6 +110,8 @@ Session start: call `do-next-step` prompt (loads context + step instructions).
 
 **Sampling:** MCP server requests the host agent to run an LLM inference on its behalf. Used by the VS Code extension when an Anthropic/OpenAI API key is configured (`reslava-loom.ai.apiKey`). **Not available in Claude Code CLI sessions** — the CLI is already the AI; recursive server→client inference is intentionally blocked.
 
+**Context Dispatcher (1.6.0) — injection dedupes against a declared ledger.** The MCP server is stateless and can't see the agent's window, so context injection is deduped against a ledger the *caller* declares. `loom_do_step` and the `loom://context` resource route through one pure assembler (`assembleContext`) that takes an optional `alreadyLoaded: {id, version}[]` ledger and returns only the delta + a `manifest` of the assumed-present rest. Controls: `context: "skip"` (coarse — "I hold the whole thread") and `alreadyLoaded` (precise, per-doc) on `loom_do_step`; `?loaded=id@version,…` on the resource. The dedupe unit is `{id@version}` — a refine (version bump) or a fresh session always re-injects, so the saving never costs correctness (model C; a server-side "already sent" cache was rejected for the silent-under-load risk). `loom_complete_step` / `loom_append_done` likewise stopped echoing the full plan back, returning a compact reference + the changed step. This directly serves "Making AI Stateful" (§5) — it stops paying to reread what's already in context.
+
 ## 2a. VS Code Extension AI Button Paths
 
 The extension toolbar buttons support two AI paths, chosen at click time:

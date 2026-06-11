@@ -9,16 +9,23 @@ export const toolDef = {
         type: 'object' as const,
         properties: {
             id: { type: 'string', description: 'Chat document id' },
-            role: { type: 'string', enum: ['user', 'ai'], description: 'Message author role' },
+            role: { type: 'string', enum: ['user', 'ai'], description: "Message author role. Defaults to 'ai' (the common caller); pass 'user' for the rare programmatic human turn." },
             body: { type: 'string', description: 'Message body (markdown)' },
         },
-        required: ['id', 'role', 'body'],
+        required: ['id', 'body'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const id = args['id'] as string;
-    const role = args['role'] as string;
+    // The MCP transport does not enforce schema `required`, and the overwhelming caller
+    // is the AI — so an omitted role defaults to 'ai' rather than silently becoming a
+    // user turn (which once mis-attributed an AI reply to the human). A *present* but
+    // invalid role is a caller bug → fail loud instead of guessing.
+    const role = args['role'] === undefined ? 'ai' : (args['role'] as string);
+    if (role !== 'user' && role !== 'ai') {
+        throw new Error(`loom_append_to_chat: role must be 'user' | 'ai' (got '${role}').`);
+    }
     const body = args['body'] as string;
 
     // Primary (agent-supplied) id → suggest-on-miss.

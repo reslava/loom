@@ -31,6 +31,20 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const result = await completeStepUseCase({ planId, step: stepNumber }, deps);
-    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
+    const { plan, autoCompleted } = await completeStepUseCase({ planId, step: stepNumber }, deps);
+
+    // Stopgap: do not echo the whole PlanDoc back on every call (redundant across a
+    // multi-step session — the agent already holds the plan). Return a reference plus
+    // the changed step and a compact status line for the rest.
+    const completedStep = (plan.steps ?? []).find(s => s.order === stepNumber);
+    const trimmed = {
+        planId: plan.id,
+        planStatus: plan.status,
+        autoCompleted,
+        completedStep: completedStep
+            ? { order: completedStep.order, status: completedStep.status, description: completedStep.description }
+            : { order: stepNumber, status: 'done' },
+        steps: (plan.steps ?? []).map(s => ({ order: s.order, status: s.status })),
+    };
+    return { content: [{ type: 'text' as const, text: JSON.stringify(trimmed) }] };
 }

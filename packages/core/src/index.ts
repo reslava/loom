@@ -26,6 +26,8 @@ export {
     ContextOverrides,
     ContextPrefsEntry,
     ContextPrefs,
+    LoadedDoc,
+    ManifestEntry,
     BundledDoc,
     ExcludedDoc,
     ContextBundle,

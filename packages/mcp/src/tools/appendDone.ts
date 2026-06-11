@@ -94,7 +94,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         } as DoneDoc;
         await saveDoc(doc, doneFilePath);
         return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ filePath: doneFilePath, created: true }) }],
+            content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumber, filePath: doneFilePath, created: true }) }],
         };
     }
 
@@ -125,6 +125,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
     await saveDoc(updatedDoc, doneFilePath);
 
     return {
-        content: [{ type: 'text' as const, text: JSON.stringify({ filePath: doneFilePath, created: false }) }],
+        content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumber, filePath: doneFilePath, created: false }) }],
     };
 }

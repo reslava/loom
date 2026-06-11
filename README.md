@@ -124,7 +124,7 @@ tool has some version of it. What's genuinely different is the **context-routing
 treats *what the AI knows before it acts* as a first-class, controllable thing instead of an
 accident of chat history.
 
-Five mechanisms decide the AI's working context:
+Six mechanisms decide the AI's working context:
 
 | Mechanism | What it routes |
 |-----------|----------------|
@@ -133,6 +133,7 @@ Five mechanisms decide the AI's working context:
 | **Reference docs** (`requires_load` + `load_when`) | Static facts a doc cites; `load_when` makes them *conditional* — an API spec that loads only while implementing, not while brainstorming. |
 | **Requirements** (`req`) | A thread's locked scope: **include / exclude / constrain**, auto-loaded into every action so a "no interaction testing" said once is never silently dropped. |
 | **Context panel** | Shows *exactly* what will be fed to the AI **before** you click — the same bundle that becomes the prompt. Most tools hide context assembly; Loom shows it and lets you toggle it. |
+| **Context dispatcher** | Doesn't re-send what the AI already holds. Stepping through one plan, it injects only the *delta* against a declared `{id@version}` ledger — a changed doc always re-injects, an unchanged one isn't paid for twice. |
 
 Together they make the AI's memory **structural** rather than conversational, and they assemble in
 a deterministic order on every action:

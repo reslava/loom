@@ -1,5 +1,15 @@
 # Loom VS Code Extension — Changelog
 
+## [1.6.0] - 2026-06-11
+
+### Notes
+- No functional extension changes this release. Lockstep 1.6.0 bump with the CLI and the
+  rest of the monorepo — the 1.6.0 work is the Context Dispatcher: `loom_do_step` and the
+  `loom://context` resource now dedupe injection against a caller-declared `{id@version}`
+  ledger (`context: "skip"` / `alreadyLoaded`), and `loom_complete_step` / `loom_append_done`
+  stop echoing the full plan back, all in core/app/mcp. Surfacing the ledger in the
+  extension UI is a deliberate follow-up, not part of this release.
+
 ## [1.5.0] - 2026-06-11
 
 ### Notes
