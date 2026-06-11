@@ -31,6 +31,8 @@ import * as createChat from './tools/createChat';
 import * as startPlan from './tools/startPlan';
 import * as completeStep from './tools/completeStep';
 import * as updateStep from './tools/updateStep';
+import * as addStep from './tools/addStep';
+import * as removeStep from './tools/removeStep';
 import * as reorderSteps from './tools/reorderSteps';
 import * as closePlan from './tools/closePlan';
 import { createPromoteTool } from './tools/promote';
@@ -108,7 +110,7 @@ export function createLoomMcpServer(root: string): Server {
         ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
         ...reg('refine', [refineReq, createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
-        ...reg('plan', [startPlan, completeStep, updateStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
+        ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
         ...reg('req', [finalizeReq, createVerifyReqTool(server)]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),

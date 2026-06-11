@@ -2,13 +2,14 @@
 type: chat
 id: ch_01KTTH5BTWHVR449VDKMBD6BSY
 title: mcp-new-tools Chat
-status: active
+status: done
 created: "2026-06-11T00:00:00.000Z"
-version: 1
+updated: 2026-06-11
+version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 23
+last_ai_block: 28
 ---
 # mcp-new-tools Chat
 
@@ -446,3 +447,54 @@ Say "push it" and I'll run those, or run them yourself.
 Two flags: `bump-version.sh` reminds to eyeball the **3 READMEs** for hardcoded version strings (I didn't touch them); and both plans are now `done` (mcp-new-tools + claude-md-sync).
 
 **Next when you're ready:** the deferred **step-CRUD tools** thread — `loom_add_step` / `loom_remove_step` + the detail-section-keying fix (so `### Step N` prose survives restructuring).
+
+## AI:
+
+**Shipped — v1.4.0 is pushed.** The push initially rejected because the remote had 3 commits ahead (your `.github/FUNDING.yml` funding-sources edits — disjoint from everything here), so I rebased the single release commit on top (no conflicts), moved the tag, and pushed:
+- `main` → `2b8e69e` (release commit, now on top of your funding commits)
+- tag `v1.4.0` → pushed (the release workflow extracts the `## [1.4.0]` CHANGELOG section as the GitHub release notes).
+
+1.4.0 is out. Outstanding, non-blocking: eyeball the 3 READMEs for hardcoded versions, and the deferred step-CRUD tools thread whenever you want it.
+
+## Rafa:
+
+- Review/update the 3 READMEs (this should be done before release)
+- create step-CRUD tools thread, create design
+
+## AI:
+
+**READMEs reviewed — nothing to change for 1.4.0.** The only semver across the 3 project READMEs is `packages/cli/README.md` saying `loom migrate-plan-steps` migrates to "the v1.3.0 source of truth" — a *correct historical* reference (when frontmatter-steps landed), not a current-version banner. None of the READMEs pin a "current version," so there was nothing to bump. (That's also why the pre-release README check is cheap here — the convention describes features by the version they shipped in. If you ever add a version badge, that changes.)
+
+**step-CRUD thread created** (`loom/ai-integration/step-crud-tools/`):
+- **Idea** → `step-crud-tools-idea.md` (`id_01KTV4H68TX91DYCG331W68BWR`)
+- **Design** → `step-crud-tools-design.md` (`de_01KTV4J19RRZ2BENGHZW56P35S`)
+
+The design covers `loom_add_step` + `loom_remove_step` (event-sourced, same shape as the 1.4.0 step tools; done steps immutable; `update_whole_plan` stays rejected). But the **foundational decision is open and blocks planning**:
+
+> Per-step detail lives in `### Step N — {title}` body sections **keyed by order number N**, and `title`/`detail` aren't in frontmatter — so reorder/add/remove drift the detail prose (the `reorder_steps` we shipped in 1.4.0 already has this latent gap). Fix is either:
+> - **(A, recommended)** key detail sections by stable step **id** (id-anchored heading or a `<!-- step:{id} -->` marker) and have the saver regenerate/prune by id — prose stays body-authored, just addressable; or
+> - **(B)** persist `title`/`detail` into frontmatter and fully generate the body — reverses "body owns prose."
+
+I lean **A** (smallest change, keeps prose human-authored, fixes reorder's gap too). Two smaller open questions are in the design too (remove-step dependent handling; detail-heading form under A).
+
+Your call on **A vs B** — once that's settled I'll turn the design into a plan.
+
+## Rafa:
+
+A
+Create design, if no more open questions raise then create plan
+
+## AI:
+
+**Option A locked.** Updated the design (via `loom_patch_doc` ×2): the foundational decision now reads **Decision: A**, and the two sub-questions are resolved — `remove_step` does **strip-and-report** on dependents, and detail sections keep the readable `### Step N — {title}` heading as a generated view with a hidden `<!-- step:{id} -->` marker above each for stable id keying. No open questions remain.
+
+**Plan created** → `step-crud-tools-plan-001.md` (`pl_01KTV5CCCDWJP8BYVZ18DNE849`), target **1.5.0**, 5 steps:
+1. **Id-keyed detail sections + saver re-keying (Option A foundation)** — tag detail sections with `<!-- step:{id} -->`; saver re-keys/reorders/prunes them by id (preserving authored prose), alongside table regen. Retroactively fixes `reorder_steps`'s drift.
+2. **`loom_add_step`** — insert at append/before/after; new slug id; recompute order *(blocked by 1)*.
+3. **`loom_remove_step`** — reject done/cancelled; strip+report `blockedBy` dependents *(blocked by 1, 2)*.
+4. **Tests** — reducer + saver round-trip invariant (detail survives reorder/add/remove by id) + a `reorder_steps` reflow regression *(blocked by 1–3)*.
+5. **Docs sync, build, release 1.5.0** — both CLAUDE.md surfaces (drift-guarded), CHANGELOG, build+test, lockstep bump *(blocked by 1–4)*.
+
+Note the key insight baked into step 1: under Option A the saver *preserves* authored detail prose (keyed by the marker) and re-emits it in step order — it doesn't regenerate prose from a model (title/detail stay body-owned). Step 1 is the meaty one; 2–3 are the familiar event+reducer+tool pattern.
+
+Plan is `active`, nothing started. Say `go` for step 1, or `do whole plan`.

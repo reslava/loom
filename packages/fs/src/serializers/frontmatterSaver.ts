@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { Document, serializeFrontmatter, updateStepsTableInContent, syncBodyH1 } from '../../../core/dist';
+import { Document, serializeFrontmatter, updateStepsTableInContent, rekeyDetailSections, syncBodyH1 } from '../../../core/dist';
 
 export class FileWriteError extends Error {
   constructor(public filePath: string, originalError: Error) {
@@ -28,10 +28,13 @@ export async function saveDoc(doc: Document, filePath: string): Promise<void> {
   const frontmatterNative = doc.type === 'plan' && _stepsFromFrontmatter === true && Array.isArray(steps);
 
   // Body: the steps table is a generated view. Regenerate it from steps in place,
-  // preserving the authored Goal / `### Step N` detail / Notes prose around it.
+  // preserving the authored Goal / `### Step N` detail / Notes prose around it. Then
+  // re-key the per-step detail sections by stable id (Option A) so they survive
+  // reorder/add/remove — authored prose preserved, orphans pruned, `Step N` renumbered.
   let bodyContent = content;
   if (doc.type === 'plan' && steps) {
     bodyContent = updateStepsTableInContent(content, steps);
+    bodyContent = rekeyDetailSections(bodyContent, steps);
   }
   if (rest.title) {
     bodyContent = syncBodyH1(bodyContent ?? '', rest.title);

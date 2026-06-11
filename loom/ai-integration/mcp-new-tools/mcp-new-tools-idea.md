@@ -2,9 +2,10 @@
 type: idea
 id: id_01KTTM64G1B2XZMDS739CDABYF
 title: MCP friction-reduction tools
-status: draft
-created: 2026-06-11
-version: 1
+status: done
+created: "2026-06-11T00:00:00.000Z"
+updated: 2026-06-11
+version: 2
 tags: []
 parent_id: null
 requires_load: []

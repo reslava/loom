@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-06-11
+
+### Added
+- **`loom_add_step` / `loom_remove_step` — complete plan-step CRUD without recreating the plan.** `loom_add_step` inserts a new step (append by default, or `before`/`after` an existing step id), mints a fresh stable slug id, and recomputes order; `loom_remove_step` deletes a pending step, strips any `blockedBy` references to it from the surviving steps (no dangling blocker) and reports which were re-threaded. Together with 1.4.0's `loom_update_step` / `loom_reorder_steps`, the step surface is now full CRUD. Done/cancelled steps stay immutable history (both tools reject them; a new step can't be inserted before the leading done block), consistent with `update_step` / `reorder`. A wholesale approach change is still a new plan (archive + `loom_create_plan`) — `loom_update_whole_plan` is intentionally not built.
+
+### Fixed
+- **Per-step detail prose now survives restructuring (latent 1.4.0 bug).** A plan body's `### Step N — {title}` detail sections were keyed by the order number `N`, and `title`/`detail` aren't in frontmatter — so `loom_reorder_steps` (and any add/remove) kept the `## Steps` table correct but left the detail headings/prose pointing at the wrong or a removed step. Detail sections are now anchored by a hidden `<!-- step:{id} -->` marker and re-keyed by stable id on every save: reorder reflows them, add stubs one, remove prunes the orphan, and the visible `Step N` number is re-rendered from current order. Authored prose stays body-owned and editable in place. This retroactively fixes `loom_reorder_steps`'s detail drift.
+
 ## [1.4.0] - 2026-06-11
 
 ### Added
@@ -412,7 +420,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/reslava/loom/releases/tag/v1.5.0
 [1.4.0]: https://github.com/reslava/loom/releases/tag/v1.4.0
 [1.3.0]: https://github.com/reslava/loom/releases/tag/v1.3.0
 [1.2.1]: https://github.com/reslava/loom/releases/tag/v1.2.1

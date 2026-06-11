@@ -58,7 +58,7 @@ export function applyEvent(weave: Weave, event: WorkflowEvent): ApplyResult {
             if (eventPlanId && planDoc.id !== eventPlanId) continue;
 
             if (
-                ['ACTIVATE_PLAN', 'START_IMPLEMENTING_PLAN', 'COMPLETE_STEP', 'UPDATE_STEP', 'REORDER_STEPS', 'FINISH_PLAN', 'BLOCK_PLAN', 'UNBLOCK_PLAN', 'CANCEL_PLAN'].includes(event.type)
+                ['ACTIVATE_PLAN', 'START_IMPLEMENTING_PLAN', 'COMPLETE_STEP', 'UPDATE_STEP', 'ADD_STEP', 'REMOVE_STEP', 'REORDER_STEPS', 'FINISH_PLAN', 'BLOCK_PLAN', 'UNBLOCK_PLAN', 'CANCEL_PLAN'].includes(event.type)
             ) {
                 updatedDocs[i] = planReducer(planDoc, event as any);
                 changed.add(planDoc.id);

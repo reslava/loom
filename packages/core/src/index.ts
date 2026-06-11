@@ -55,7 +55,7 @@ export { createBaseFrontmatter, serializeFrontmatter, serializeStepsBlock, parse
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, stripTrailingTypeWord, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
 export { ConfigRegistry } from './registry';
 export { AIClient, Message } from './ai';
-export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows } from './planTableUtils';
+export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep } from './planUtils';
 export { ChatBlock, parseChatBlocks, lastAiBlockIndex, tailAfterBlock } from './chatUtils';

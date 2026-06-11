@@ -152,7 +152,7 @@ export function serializePlanBody(steps: PlanStep[], opts: { goal?: string } = {
 
     const detailSections = steps
         .filter(s => s.detail && s.detail.trim())
-        .map(s => `### Step ${s.order} — ${s.title}\n\n${s.detail!.trim()}`)
+        .map(s => `${stepMarker(s.id)}\n### Step ${s.order} — ${s.title}\n\n${s.detail!.trim()}`)
         .join('\n\n');
 
     return [
@@ -227,4 +227,157 @@ export function updateStepsTableInContent(originalContent: string, steps: PlanSt
     }
 
     return `${originalContent}\n\n## Steps\n\n${newTable}`;
+}
+
+// --- Option A: id-keyed per-step detail sections -----------------------------
+// Per-step detail prose lives in the body as `### Step N — {title}` sections, and
+// `title`/`detail` are deliberately body-owned (not in frontmatter). Keyed only by
+// the order number N, those sections drift the moment steps reorder/add/remove. The
+// fix: tag each section with a hidden `<!-- step:{id} -->` marker so the saver can
+// re-key, reorder, and prune them by stable id — the `Step N` number becomes a
+// generated view of current order, authored prose (incl. the title) is preserved.
+
+/** The hidden, stable per-section anchor written above each `### Step N` heading. */
+function stepMarker(id: string): string {
+    return `<!-- step:${id} -->`;
+}
+
+const STEP_MARKER_RE = /^<!--\s*step:(.+?)\s*-->\s*$/;
+/** A marker-less (legacy/generated) detail heading: `### Step 3 — …`. */
+const STEP_HEADING_RE = /^###\s+Step\s+\d+\b/;
+
+interface ParsedDetailSection {
+    id?: string;
+    title: string;
+    prose: string;
+}
+
+/** Strip a leading `Step N — ` from a detail heading, leaving the authored title. */
+function stripStepNumber(headingText: string): string {
+    return headingText.replace(/^Step\s+\d+\s*—?\s*/, '').trim();
+}
+
+/** Render the ordered detail-section block from the step model, drawing prose from
+ *  the parsed body sections (`byId`) and falling back to a step's transient `detail`
+ *  (set when a step is freshly added) when the body has no section for that id. A
+ *  step with neither yields no section — which is also how orphans get pruned. */
+function renderDetailSections(steps: PlanStep[], byId: Map<string, ParsedDetailSection>): string {
+    const out: string[] = [];
+    for (const step of steps) {
+        const sec = byId.get(step.id);
+        let prose: string;
+        let title: string;
+        if (sec && sec.prose.trim()) {
+            // Authored prose + title win — they are the body-owned source of truth.
+            prose = sec.prose.trim();
+            title = sec.title.trim();
+        } else if (step.detail && step.detail.trim()) {
+            // A newly added step carries its detail transiently on the model.
+            prose = step.detail.trim();
+            title = titleFromDescription(step.title || step.description);
+        } else {
+            continue;
+        }
+        const heading = title ? `### Step ${step.order} — ${title}` : `### Step ${step.order}`;
+        out.push(`${stepMarker(step.id)}\n${heading}\n\n${prose}`);
+    }
+    return out.join('\n\n');
+}
+
+/**
+ * Re-keys a plan body's per-step detail sections by stable step id (Option A).
+ *
+ * Parses the body's existing `### Step N` detail sections — by their
+ * `<!-- step:{id} -->` marker, or, for a marker-less legacy body, mapped to step ids
+ * best-effort by document order — then re-emits them in the frontmatter step order:
+ * authored prose (and title) preserved, the `Step N` number re-rendered from current
+ * order, orphaned sections (id no longer in the plan) pruned, and a freshly added
+ * step's `detail` stubbed in. Everything before the first detail section (Goal,
+ * Steps table, Legend) and any non-detail trailing section (e.g. `### Notes`) are
+ * preserved verbatim. Idempotent. This also retroactively fixes the detail drift
+ * that `updateStepsTableInContent` (and thus `loom_reorder_steps`) leaves behind.
+ */
+export function rekeyDetailSections(content: string, steps: PlanStep[]): string {
+    if (!steps || steps.length === 0) return content;
+
+    const lines = content.split('\n');
+
+    // Find where the detail sections begin: a `<!-- step:{id} -->` marker or a
+    // legacy `### Step N` heading. The Legend (`### Legend`) and other h3s are not
+    // detail sections and stay in the preamble.
+    let firstIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+        if (STEP_MARKER_RE.test(lines[i]) || STEP_HEADING_RE.test(lines[i])) {
+            firstIdx = i;
+            break;
+        }
+    }
+
+    if (firstIdx === -1) {
+        // No detail sections present. Append sections only for steps carrying a
+        // transient `detail` (e.g. a just-added step); otherwise leave body as-is.
+        const fresh = renderDetailSections(steps, new Map());
+        if (!fresh) return content;
+        return `${content.replace(/\s*$/, '')}\n\n${fresh}\n`;
+    }
+
+    const preamble = lines.slice(0, firstIdx).join('\n').replace(/\s*$/, '');
+    const region = lines.slice(firstIdx);
+
+    // Parse the detail region into ordered sections. A non-detail `### ` heading
+    // (e.g. `### Notes`) ends the region; the rest is preserved as a verbatim tail.
+    const sections: ParsedDetailSection[] = [];
+    let cur: ParsedDetailSection | null = null;
+    let pendingId: string | undefined;
+    const tailLines: string[] = [];
+    let inTail = false;
+
+    for (const line of region) {
+        if (inTail) { tailLines.push(line); continue; }
+
+        const markerMatch = line.match(STEP_MARKER_RE);
+        if (markerMatch) { pendingId = markerMatch[1]; continue; }
+
+        const headingMatch = line.match(/^###\s+(.*)$/);
+        if (headingMatch) {
+            const isDetail = pendingId !== undefined || STEP_HEADING_RE.test(line);
+            if (isDetail) {
+                if (cur) sections.push(cur);
+                cur = { id: pendingId, title: stripStepNumber(headingMatch[1].trim()), prose: '' };
+                pendingId = undefined;
+                continue;
+            }
+            // Non-detail heading → end of the detail region.
+            if (cur) { sections.push(cur); cur = null; }
+            inTail = true;
+            tailLines.push(line);
+            continue;
+        }
+
+        if (cur) cur.prose += (cur.prose ? '\n' : '') + line;
+    }
+    if (cur) sections.push(cur);
+
+    // Index parsed sections by id; collect marker-less ones for positional backfill.
+    const byId = new Map<string, ParsedDetailSection>();
+    const unmarked: ParsedDetailSection[] = [];
+    for (const s of sections) {
+        if (s.id) byId.set(s.id, s);
+        else unmarked.push(s);
+    }
+    // Backfill: assign each marker-less section to the next step lacking prose, in
+    // step order — the best-effort one-time bridge for legacy (marker-less) bodies.
+    for (const step of steps) {
+        if (!byId.has(step.id) && unmarked.length) {
+            byId.set(step.id, unmarked.shift()!);
+        }
+    }
+
+    const detailBlock = renderDetailSections(steps, byId);
+    const tail = tailLines.join('\n').trim();
+
+    let result = preamble;
+    if (detailBlock) result += `\n\n${detailBlock}`;
+    if (tail) result += `\n\n${tail}`;
+    return `${result}\n`;
 }

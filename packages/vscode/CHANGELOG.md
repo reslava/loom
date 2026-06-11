@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.5.0] - 2026-06-11
+
+### Notes
+- No functional extension changes this release. Lockstep 1.5.0 bump with the CLI and the
+  rest of the monorepo — the 1.5.0 work is the new agent-facing plan-step CRUD tools
+  (`loom_add_step` / `loom_remove_step`) plus the id-keyed per-step detail sections that
+  make reorder/add/remove preserve detail prose, all in core/app/mcp.
+
 ## [1.4.0] - 2026-06-11
 
 ### Notes

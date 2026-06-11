@@ -86,6 +86,11 @@ run_test tests/claude-md-sync.test.ts
 # done-immutability + leading-block, read_chat_tail tail-after-last-AI with configured ai.model
 run_test tests/mcp-new-tools.test.ts
 
+# Step-CRUD: ADD_STEP/REMOVE_STEP reducers (positions, order, slug, strip+report, guards),
+# the rekeyDetailSections Option-A invariant (backfill/reorder-reflow/add-stub/remove-prune),
+# and a real-fs save round-trip proving the saver tracks detail sections by id
+run_test tests/step-crud.test.ts
+
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
 
