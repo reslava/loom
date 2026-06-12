@@ -8,7 +8,7 @@ import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
 import { finalizeCommand } from './commands/finalize';
-import { generateReqCommand, finalizeReqCommand, refineReqCommand, verifyReqCommand } from './commands/req';
+import { generateReqCommand, finalizeReqCommand, amendReqCommand, verifyReqCommand } from './commands/req';
 import { renameCommand } from './commands/rename';
 import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.finalize', (node?: TreeNode) => finalizeCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.generateReq', (node?: TreeNode) => generateReqCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.finalizeReq', (node?: TreeNode) => finalizeReqCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.refineReq', (node?: TreeNode) => refineReqCommand(treeProvider, node)),
+        vscode.commands.registerCommand('loom.amendReq', (node?: TreeNode) => amendReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.verifyReq', (node?: TreeNode) => verifyReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.rename', (node?: TreeNode) => renameCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.refineDesign', (node?: TreeNode) => refineCommand(treeProvider, node)),

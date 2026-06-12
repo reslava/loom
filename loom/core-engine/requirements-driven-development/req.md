@@ -4,8 +4,8 @@ id: rq_01KTCWA9S049W8ZXMJ7VFRJ99R
 title: Requirements-Driven Development — Requirements
 status: locked
 created: "2026-06-05T00:00:00.000Z"
-updated: 2026-06-05
-version: 1
+updated: 2026-06-12
+version: 2
 tags: []
 parent_id: id_01KT77TXDA9H80GMW62NY0GD7B
 requires_load: []
@@ -22,6 +22,9 @@ requires_load: []
 - `IN7` Semantic backstop — an AI judgment pass for phrased-differently violations of an Excluded/Constraint item.
 - `IN8` `req_version` staleness propagation — re-locking marks downstream idea/design/plan stale via the existing machinery.
 - `IN9` Wired across all four layers: core, app, mcp, and the VS Code extension (tree node + Generate/Refine/Finalize buttons).
+- `IN10` Requirement handles are immutable for the life of a thread — append-only: an existing `IN`/`EX`/`C` id is never renumbered, reused, or deleted; enforced by a pure guard (`diffReqHandles`) that refuses any amend which drops or renumbers a handle (new ids may only be appended).
+- `IN11` A `~dropped` marker retires a superseded Included item — the handle stays present and citation-resolvable but is exempt from coverage nagging; a still-uncovered (deferred) item needs no marker and keeps surfacing in `verify`.
+- `IN12` The `req` evolve-path is `loom_amend_req` (reconcile new/changed requirements under append-only rules, re-open locked → draft, bump version → downstream stale), replacing `refine` for the `req` doc-type.
 
 ### ❌ Excluded
 - `EX1` **Generator policy** — no step-count rule, no banned-step list hardcoded into the generic plan generator. Constraints come from the user's spec, never from generator policy.

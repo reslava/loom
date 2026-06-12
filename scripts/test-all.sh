@@ -29,6 +29,9 @@ run_test tests/req.test.ts
 # req coverage: pure structural check (uncovered / excluded-violation / unknown citation)
 run_test tests/req-coverage.test.ts
 
+# req handle integrity: diffReqHandles refuses renumber/delete, allows append + ~dropped
+run_test tests/req-diff.test.ts
+
 # Step 2: weaveRepository (done/ subfolder)
 run_test tests/weave-repository.test.ts
 

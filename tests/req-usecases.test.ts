@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
-import { createReq, refineReq, finalizeReq, weavePlan } from '../packages/app/dist/index.js';
+import { createReq, amendReq, finalizeReq, weavePlan } from '../packages/app/dist/index.js';
 import { saveDoc, loadDoc, loadWeave } from '../packages/fs/dist/index.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-req-usecase-tests');
@@ -47,17 +47,43 @@ async function run() {
     assert(req.version === 1, 'finalize does not bump version');
     console.log('    ✅ locked at v1');
 
-    // ── refine → re-open draft + bump ──
-    console.log('  • refineReq re-opens to draft and bumps version...');
-    const refined = await refineReq(
+    // ── amend (append) → re-open draft + bump ──
+    console.log('  • amendReq appends a handle, re-opens to draft, bumps version...');
+    const amended = await amendReq(
         { weaveId, threadId, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` More.\n' },
         deps(loomRoot),
     );
     req = await loadDoc(created.filePath);
-    assert(req.status === 'draft', 'refine re-opens to draft');
-    assert(req.version === 2 && refined.version === 2, `refine bumps to v2, got ${req.version}`);
-    assert(req.content.includes('IN2'), 'content updated');
-    console.log('    ✅ re-opened draft v2 with new content');
+    assert(req.status === 'draft', 'amend re-opens to draft');
+    assert(req.version === 2 && amended.version === 2, `amend bumps to v2, got ${req.version}`);
+    assert(req.content.includes('IN2'), 'content updated (IN2 appended)');
+    console.log('    ✅ re-opened draft v2 with appended IN2');
+
+    // ── amend guard: deleting or renumbering an existing handle is refused ──
+    console.log('  • amendReq refuses to delete or renumber a handle...');
+    {
+        let delThrew = false;
+        try {
+            // drop IN1 entirely → must throw, state unchanged
+            await amendReq({ weaveId, threadId, content: '### ✅ Included\n- `IN2` More.\n' }, deps(loomRoot));
+        } catch (e) {
+            delThrew = e instanceof Error && e.message.includes('IN1');
+        }
+        assert(delThrew, 'deleting IN1 must throw an error naming IN1');
+
+        let renumThrew = false;
+        try {
+            // renumber IN1 → IN9 (same text) → must throw
+            await amendReq({ weaveId, threadId, content: '### ✅ Included\n- `IN9` Thing.\n- `IN2` More.\n' }, deps(loomRoot));
+        } catch (e) {
+            renumThrew = e instanceof Error && e.message.includes('IN1');
+        }
+        assert(renumThrew, 'renumbering IN1→IN9 must throw');
+
+        req = await loadDoc(created.filePath);
+        assert(req.version === 2 && req.content.includes('IN1') && req.content.includes('IN2'), 'refused amends leave state unchanged at v2');
+        console.log('    ✅ delete + renumber refused; state intact');
+    }
 
     // ── finalize again → locked v2 (idempotent on re-call) ──
     console.log('  • finalize again locks v2 and is idempotent...');
@@ -75,6 +101,19 @@ async function run() {
         const plan: any = await loadDoc(filePath);
         assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
         console.log('    ✅ plan.req_version stamped from locked req');
+    }
+
+    // ── amend can retire a handle via ~dropped (handle survives → allowed) ──
+    console.log('  • amendReq accepts retiring a handle with ~dropped...');
+    {
+        const dropped = await amendReq(
+            { weaveId, threadId, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` ~dropped Retired.\n' },
+            deps(loomRoot),
+        );
+        req = await loadDoc(created.filePath);
+        assert(req.content.includes('~dropped'), 'dropped marker persisted');
+        assert(dropped.version === 3, `bumped to v3, got ${dropped.version}`);
+        console.log('    ✅ ~dropped accepted; both handles still present');
     }
 
     await fs.remove(TMP);

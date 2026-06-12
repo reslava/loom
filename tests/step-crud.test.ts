@@ -124,6 +124,31 @@ async function run() {
         console.log('    ✅ REMOVE_STEP recompute + strip + done/cancelled/unknown guards');
     }
 
+    // ── B2. planReducer UPDATE_STEP: citation-only amend on a done step / done plan ──
+    console.log('  • UPDATE_STEP: satisfies-only amends a done step/plan; other edits + cancelled rejected...');
+    {
+        const donePlan = makePlan('done', [{ id: 'a', order: 1, description: 'A', status: 'done' }]);
+
+        // citation-only patch on a done step of a DONE plan → allowed (both guards relaxed)
+        const cited = planReducer(donePlan, { type: 'UPDATE_STEP', stepId: 'a', patch: { satisfies: ['IN1'] } } as any);
+        assert(JSON.stringify(cited.steps[0].satisfies) === '["IN1"]', 'satisfies amended on a done step of a done plan');
+        assert(cited.steps[0].status === 'done', 'the step stays done');
+        assert(cited.status === 'done', 'the plan stays done');
+
+        // a non-citation patch (description) on a done step → still rejected
+        await expectThrow(() => planReducer(donePlan, { type: 'UPDATE_STEP', stepId: 'a', patch: { description: 'rewrite' } } as any), 'description edit on a done step');
+        // a mixed patch (satisfies + files) is NOT citation-only → rejected on a done step
+        await expectThrow(() => planReducer(donePlan, { type: 'UPDATE_STEP', stepId: 'a', patch: { satisfies: ['IN2'], files_touched: ['x.ts'] } } as any), 'mixed satisfies+files patch on a done step');
+        // citation on a cancelled step → rejected (cancelled work satisfies nothing)
+        await expectThrow(() => planReducer(makePlan('implementing', [{ id: 'c', order: 1, description: 'C', status: 'cancelled' }]),
+            { type: 'UPDATE_STEP', stepId: 'c', patch: { satisfies: ['IN1'] } } as any), 'cite a cancelled step');
+        // sanity: satisfies on a pending step still works as before
+        const okPending = planReducer(makePlan('implementing', [{ id: 'p', order: 1, description: 'P', status: 'pending' }]),
+            { type: 'UPDATE_STEP', stepId: 'p', patch: { satisfies: ['IN9'] } } as any);
+        assert(JSON.stringify(okPending.steps[0].satisfies) === '["IN9"]', 'satisfies on a pending step unchanged');
+        console.log('    ✅ citation-only amends a done step/plan; description/mixed/cancelled rejected');
+    }
+
     // ── C. rekeyDetailSections (pure) — the Option-A invariant ──
     console.log('  • rekeyDetailSections: backfill, reorder-reflow, add-stub, remove-prune, idempotent...');
     {

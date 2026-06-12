@@ -54,6 +54,23 @@ async function run() {
         console.log('    ✅ no headings needed; - and * bullets both parse');
     }
 
+    // ── the `~dropped` marker retires an item without deleting the handle ──
+    console.log('  • parseReq reads the ~dropped marker...');
+    {
+        const body = [
+            '### ✅ Included',
+            '- `IN1` Still in force.',
+            '- `IN2` ~dropped Superseded by IN7.',
+            '- `IN3` ~DROPPED case-insensitive marker.',
+        ].join('\n');
+        const parsed = parseReq(body);
+        assert(parsed.included[0].status === 'active', 'IN1 defaults to active');
+        assert(parsed.included[1].status === 'dropped', 'IN2 marked dropped');
+        assert(parsed.included[1].text === 'Superseded by IN7.', `IN2 marker stripped from text, got: ${parsed.included[1].text}`);
+        assert(parsed.included[2].status === 'dropped', 'IN3 dropped marker is case-insensitive');
+        console.log('    ✅ ~dropped sets status and is stripped from text; default is active');
+    }
+
     // ── A locked req is perpetual context — must not block a thread reaching DONE ──
     console.log('  • a locked req does not block DONE...');
     {

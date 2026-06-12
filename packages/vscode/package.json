@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",
@@ -141,8 +141,8 @@
         "icon": "$(lock)"
       },
       {
-        "command": "loom.refineReq",
-        "title": "Refine Requirements",
+        "command": "loom.amendReq",
+        "title": "Amend Requirements",
         "category": "Loom",
         "icon": "$(sync)"
       },
@@ -580,7 +580,7 @@
           "group": "inline@1"
         },
         {
-          "command": "loom.refineReq",
+          "command": "loom.amendReq",
           "when": "view == loom.threads && viewItem == req",
           "group": "inline@1"
         },
@@ -630,7 +630,7 @@
           "group": "edit@1"
         },
         {
-          "command": "loom.refineReq",
+          "command": "loom.amendReq",
           "when": "view == loom.threads && viewItem == req",
           "group": "edit@1"
         },

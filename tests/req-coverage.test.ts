@@ -57,6 +57,28 @@ async function run() {
         console.log('    ✅ IN9 flagged unknown');
     }
 
+    // ── a dropped Included is exempt from coverage but still citation-resolvable ──
+    console.log('  • dropped Included → exempt from uncovered, still resolves...');
+    {
+        const reqWithDrop = parseReq([
+            '### ✅ Included',
+            '- `IN1` Registration.',
+            '- `IN2` ~dropped Superseded.',
+            '### ⛓ Constraints',
+            '- `C1` TypeScript only.',
+        ].join('\n'));
+
+        // No step covers IN2, but it is dropped → not uncovered.
+        const cov = checkReqCoverage(reqWithDrop, [step(1, ['IN1'])]);
+        assert(cov.uncovered.length === 0, 'a dropped IN2 must not be flagged uncovered');
+        assert(isReqSatisfied(cov) === true, 'satisfied even though IN2 has no covering step');
+
+        // A leftover citation to the dropped handle still resolves (not unknown).
+        const cov2 = checkReqCoverage(reqWithDrop, [step(1, ['IN1', 'IN2'])]);
+        assert(cov2.unknownCitations.length === 0, 'citing a dropped handle is not an unknown citation');
+        console.log('    ✅ dropped item exempt from coverage; its handle still resolves');
+    }
+
     console.log('\n✅ req-coverage tests passed\n');
 }
 

@@ -4,7 +4,7 @@ import { updateStep as updateStepUseCase } from '../../../app/dist/updateStep';
 
 export const toolDef = {
     name: 'loom_update_step',
-    description: 'Amend the structured fields of a single pending plan step (description, files, blockedBy, satisfies). Surgical only — for cosmetic/citation/typo fixes, NOT substantive plan redesign (use refine/regenerate for that). title and detail are body prose — edit those with loom_patch_doc. Done/cancelled steps are immutable history and are rejected. Use this tool to amend steps — do not edit plan files directly.',
+    description: 'Amend the structured fields of a single plan step (description, files, blockedBy, satisfies). Surgical only — for cosmetic/citation/typo fixes, NOT substantive plan redesign (use refine/regenerate for that). title and detail are body prose — edit those with loom_patch_doc. A done step (and a done plan) is immutable history EXCEPT for a citation-only patch: passing only `satisfies` (no description/files/blockedBy) records what completed work served, e.g. citing a requirement added later via loom_amend_req. Any other field on a done step, and any edit to a cancelled step, is rejected. Use this tool to amend steps — do not edit plan files directly.',
     inputSchema: {
         type: 'object' as const,
         properties: {

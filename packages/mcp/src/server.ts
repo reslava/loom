@@ -21,7 +21,7 @@ import * as createIdea from './tools/createIdea';
 import * as createDesign from './tools/createDesign';
 import * as createPlan from './tools/createPlan';
 import * as createReq from './tools/createReq';
-import * as refineReq from './tools/refineReq';
+import * as amendReq from './tools/amendReq';
 import * as finalizeReq from './tools/finalizeReq';
 import * as updateDoc from './tools/updateDoc';
 import * as patchDoc from './tools/patchDoc';
@@ -108,10 +108,10 @@ export function createLoomMcpServer(root: string): Server {
     const TOOLS: GroupedTool[] = [
         ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat]),
         ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
-        ...reg('refine', [refineReq, createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
+        ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
-        ...reg('req', [finalizeReq, createVerifyReqTool(server)]),
+        ...reg('req', [amendReq, finalizeReq, createVerifyReqTool(server)]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
         ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs]),

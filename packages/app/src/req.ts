@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
-import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, parseReq, diffReqHandles } from '../../core/dist';
 
 /**
  * Use-cases for the per-thread `req` doc — the authoritative include/exclude/
@@ -10,7 +10,8 @@ import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc } from '../../cor
  * weaveId + threadId rather than a doc id.
  *
  *   create  → new draft req (parented to the thread idea if present)
- *   refine  → update body, re-open to draft, bump version (→ downstream stale, Ph2)
+ *   amend   → reconcile new/changed requirements under append-only rules
+ *             (never renumber or delete a handle), re-open to draft, bump version
  *   finalize→ draft → locked (the explicit anchor)
  */
 
@@ -71,7 +72,7 @@ export async function createReq(
     const filePath = reqPathFor(loomRoot, input.weaveId, input.threadId);
     if (await deps.fs.pathExists(filePath)) {
         throw new Error(
-            `A req doc already exists for ${input.weaveId}/${input.threadId}. Use refineReq to update it.`,
+            `A req doc already exists for ${input.weaveId}/${input.threadId}. Use amendReq to update it.`,
         );
     }
 
@@ -98,15 +99,25 @@ export async function createReq(
     return { id, filePath };
 }
 
-export interface RefineReqInput {
+export interface AmendReqInput {
     weaveId: string;
     threadId: string;
     /** New body. Omit to leave the body unchanged (a pure re-open). */
     content?: string;
 }
 
-export async function refineReq(
-    input: RefineReqInput,
+/**
+ * Amend a thread's req: reconcile a new body into the spec under **append-only**
+ * rules, then re-open (locked → draft) and bump version (→ downstream stale).
+ *
+ * Requirement handles (`IN`/`EX`/`C`) are citation targets — plan steps point at
+ * them via `satisfies` — so the use-case refuses any body that deletes or
+ * renumbers an existing handle. New handles may be appended; an obsolete one is
+ * retired by marking it `~dropped` (which keeps the handle present), never by
+ * removing it. A pure re-open (no `content`) skips the check.
+ */
+export async function amendReq(
+    input: AmendReqInput,
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string; version: number }> {
     const loomRoot = deps.getActiveLoomRoot();
@@ -116,11 +127,24 @@ export async function refineReq(
     }
 
     const req = (await deps.loadDoc(filePath)) as ReqDoc;
+
+    // Referential integrity: an incoming body may add handles or retire them
+    // (~dropped), but must never renumber or delete an existing one.
+    if (input.content !== undefined) {
+        const diff = diffReqHandles(parseReq(req.content ?? ''), parseReq(input.content));
+        if (!diff.ok) {
+            throw new Error(
+                `Amend refused: requirement handles are immutable, but this body drops ${diff.deleted.join(', ')}. ` +
+                `Append new handles instead, and retire an obsolete one by marking it \`~dropped\` (do not delete or renumber).`,
+            );
+        }
+    }
+
     const updated: ReqDoc = {
         ...req,
         content: input.content ?? req.content,
         status: 'draft', // re-open for curation; a locked req drops back to draft
-        version: req.version + 1, // bump → marks downstream stale (Phase 2 staleness)
+        version: req.version + 1, // bump → marks downstream stale
         updated: new Date().toISOString().split('T')[0],
     };
 

@@ -100,24 +100,25 @@ export async function finalizeReqCommand(treeProvider: LoomTreeProvider, node?: 
 }
 
 /**
- * Re-open a locked req for curation. Dual path: a Claude CLI session re-extracts
- * from the chat and calls loom_refine_req with new content; otherwise we re-open
- * to draft (bumping the version) and open the file for manual editing.
+ * Amend a req under append-only rules. Dual path: a Claude CLI session reconciles
+ * the chat into the spec and calls loom_amend_req with new content (never deleting
+ * or renumbering a handle); otherwise we re-open to draft (bumping the version)
+ * and open the file for manual curation.
  */
-export async function refineReqCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
+export async function amendReqCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
     const weaveId = node?.weaveId;
     const threadId = node?.threadId;
-    if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req doc to refine it.'); return; }
+    if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req doc to amend it.'); return; }
 
     if (await isClaudeInstalled()) {
-        await launchClaude(root, 'Loom: Refine Requirements',
-            `Loom refine requirements task. weaveId="${weaveId}", threadId="${threadId}". Re-read the thread's chat context (loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_refine_req ONCE with weaveId="${weaveId}" threadId="${threadId}" and content — ${REQ_BODY_SHAPE} This re-opens the req to draft and bumps its version.`,
+        await launchClaude(root, 'Loom: Amend Requirements',
+            `Loom amend requirements task. weaveId="${weaveId}", threadId="${threadId}". First READ the current req (its existing handles are AUTHORITATIVE — keep them verbatim). Re-read the thread's chat context (loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_amend_req ONCE with weaveId="${weaveId}" threadId="${threadId}" and content — ${REQ_BODY_SHAPE} APPEND-ONLY RULES (the tool refuses any other change): preserve every existing handle id and its number EXACTLY; add new scope only as fresh handles continuing the numbering (e.g. if IN1–IN6 exist, new items are IN7, IN8, …); NEVER renumber, reuse, or delete a handle; to retire an obsolete requirement, keep its line and mark it by inserting \`~dropped\` immediately after the handle (e.g. \`- \\\`IN3\\\` ~dropped superseded by IN7\`). This re-opens the req to draft and bumps its version.`,
         );
     } else {
         try {
-            const result: any = await getMCP(root).callTool('loom_refine_req', { weaveId, threadId });
+            const result: any = await getMCP(root).callTool('loom_amend_req', { weaveId, threadId });
             treeProvider.refresh();
             if (result?.filePath) {
                 const doc = await vscode.workspace.openTextDocument(result.filePath);

@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-06-13
+
+### Changed
+- **`loom_refine_req` → `loom_amend_req`, now append-only on requirement handles.** A thread's `req` is cumulative across its plans: when a second plan adds scope you append fresh handles (`IN7`, `IN8`, …). The old refine path re-extracted the whole body and could renumber or drop existing `IN`/`EX`/`C` handles — silently breaking the `satisfies` citations plan steps point at (an existing handle is a primary key, not a line number). `loom_amend_req` enforces referential integrity via a pure core guard (`diffReqHandles`): **every handle present before the edit must still be present after it.** Renumbering or deleting a handle is refused (returned as a clean `{ ok: false, error }` finding naming the dropped id); appends and status changes are allowed. The rename is intentionally breaking — no `loom_refine_req` alias.
+
+### Added
+- **Dropped-status for requirements (`~dropped`).** Retire an obsolete Included item without breaking the citations that resolve to it: mark its line `` - `IN3` ~dropped superseded by IN7 `` instead of deleting it. A `dropped` item (`ReqItemStatus = 'active' | 'dropped'`, parsed and stripped by `parseReq`) is exempt from coverage — it never shows as "uncovered" — yet its handle still resolves, so old `satisfies` citations are never flagged as unknown. A still-needed-but-uncovered Included item surfaces as uncovered as before (deferral tracking is free). The structural coverage check (`checkReqCoverage`) already aggregates steps across all plans in the thread.
+- **VS Code:** the req node's *Refine Requirements* action is now *Amend Requirements* (`loom.amendReq`); its launched-agent prompt instructs append-only editing (keep existing handles verbatim, append new ones, retire via `~dropped`).
+- **`loom_update_step` can now cite a `done` step (and a `done` plan).** A **citation-only** patch — `satisfies` and nothing else — is allowed on completed work; any other field on a done step, and any edit to a cancelled step, stays rejected. Rationale: `satisfies` is traceability metadata ("what this work served"), not the immutable record of "what was done", so annotating it later doesn't rewrite history. This closes the hole where a requirement added or clarified mid-thread (via `loom_amend_req` + re-lock) could never be cited on the steps that already satisfied it, leaving permanently uncoverable handles in `loom_verify_req`.
+
 ## [1.6.0] - 2026-06-11
 
 ### Added

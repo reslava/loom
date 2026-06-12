@@ -1,5 +1,15 @@
 # Loom VS Code Extension — Changelog
 
+## [1.7.0] - 2026-06-13
+
+### Changed
+- The req node's **Refine Requirements** action is now **Amend Requirements** (`loom.amendReq`),
+  calling the renamed `loom_amend_req` tool. Its launched-agent prompt now instructs append-only
+  editing of the requirements spec: keep every existing `IN`/`EX`/`C` handle verbatim, add new
+  scope only as fresh handles, and retire an obsolete requirement by marking it `~dropped` rather
+  than deleting it (the tool refuses any renumber/delete). The rest of the 1.7.0 work — the
+  `diffReqHandles` integrity guard and the dropped-status model — is in core/app/mcp.
+
 ## [1.6.0] - 2026-06-11
 
 ### Notes

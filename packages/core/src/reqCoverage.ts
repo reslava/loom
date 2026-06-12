@@ -20,12 +20,16 @@ export interface ReqCoverage {
  * Pure deterministic coverage check. No IO, no AI.
  *
  * Rules:
- * - every `Included` id must be cited by ≥1 step (else it's uncovered),
+ * - every **active** `Included` id must be cited by ≥1 step (else it's uncovered),
  * - no step may cite an `Excluded` id (a violation),
  * - a citation must resolve to an Included or Constraint id (else it's unknown).
  *
  * Constraints are boundaries, not deliverables — a step *may* cite one but is
  * never *required* to, so constraints never appear in `uncovered`.
+ *
+ * A `dropped` Included item is retired: it stays a valid citation target (so old
+ * `satisfies` references never become `unknownCitations`) but is exempt from the
+ * coverage requirement, so it never appears in `uncovered`.
  */
 export function checkReqCoverage(req: ParsedReq, steps: PlanStep[]): ReqCoverage {
     const includedIds = new Set(req.included.map(i => i.id));
@@ -47,7 +51,7 @@ export function checkReqCoverage(req: ParsedReq, steps: PlanStep[]): ReqCoverage
         }
     }
 
-    const uncovered = req.included.filter(i => !citedIds.has(i.id));
+    const uncovered = req.included.filter(i => i.status !== 'dropped' && !citedIds.has(i.id));
 
     return { uncovered, excludedViolations, unknownCitations };
 }

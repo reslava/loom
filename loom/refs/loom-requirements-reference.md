@@ -78,9 +78,36 @@ immutable, ID'd lists:
 
 The handles (`IN`/`EX`/`C` + ordinal) are inline-code prefixes. A **pure parser in
 `packages/core`** (`parseReq(body) → { included, excluded, constraints }`, each
-`{ id, text }[]`) extracts them. The entity is
+`{ id, text, status }[]`) extracts them. The entity is
 `ReqDoc extends BaseDoc<ReqStatus>` (`packages/core/src/entities/req.ts`);
 `ReqStatus = 'draft' | 'locked'`.
+
+### Handles are immutable; retire with `~dropped`
+
+A handle is a **citation target** — plan steps point at it through `satisfies`
+(see Verification) — so it is a primary key, not a line number. Once authored, a
+handle is **immutable**: it is **never renumbered, reused, or deleted**. A req
+grows only by **appending** fresh handles (a thread that already has `IN1`–`IN6`
+gains new scope as `IN7`, `IN8`, …), so the same handle always denotes the same
+requirement for the life of the thread and across however many plans cite it.
+
+This makes a thread's `req` **cumulative**, not plan-scoped: a second plan does not
+get "its own req" — it appends to the one thread spec. To retire a requirement
+without breaking the citations that point at it, mark it **`~dropped`** instead of
+removing the line:
+
+```markdown
+### ✅ Included
+- `IN3` ~dropped Superseded by IN7.
+```
+
+A `dropped` Included item (`ReqItemStatus = 'active' | 'dropped'`, the marker
+parsed and stripped by `parseReq`) stays a valid citation target but is exempt
+from coverage — see Verification. The pure guard
+`diffReqHandles(prev, next)` (`packages/core/src/reqDiff.ts`) enforces the
+invariant on every amend: **every handle present in the prior body must still be
+present in the next one.** A vanished handle (a delete, or a renumber where the old
+id disappears) is refused; appends and status changes are allowed.
 
 ### What belongs in `req` — and what does not
 
@@ -142,9 +169,12 @@ excluded from the every-doc-done predicate in `getThreadStatus` /
 - **Finalize** — an **explicit** `draft → locked` action with a visible button.
   The lock is the whole point of the anchor, so it is deliberate, never a silent
   flip on first downstream use.
-- **Re-open** — editing a locked `req` returns it to `draft`; the next finalize
-  re-locks at **version + 1**, which marks downstream idea / design / plan stale
-  via the existing staleness machinery.
+- **Amend / re-open** — `loom_amend_req` reconciles new or changed requirements
+  into a locked `req` under the **append-only** rules above (append fresh handles;
+  retire obsolete ones with `~dropped`; never renumber or delete), returns it to
+  `draft`, and bumps the version. The next finalize re-locks at **version + 1**,
+  which marks downstream idea / design / plan stale via the existing staleness
+  machinery.
 
 **Immutability means "can't silently drift", not "frozen forever."** Changing
 scope is a deliberate version bump with visible downstream consequences.
@@ -161,10 +191,13 @@ functional correctness of the built code. Three layers, prevention-first:
    the `Included` / `Constraint` IDs a step advances. The planner is handed the
    `Excluded` / `Constraints` lists as hard boundaries and emits `satisfies` as it
    generates, so most violations never occur.
-2. **Structural check (pure, core, always).** A deterministic reducer over the
-   parsed `req` and the plan steps: every `Included` ID has ≥1 covering step; no
-   step cites an `Excluded` ID; constraints carry through. Surfaced as a diagnostic
-   alongside stale / blocked-step. No AI.
+2. **Structural check (pure, core, always).** A deterministic reducer
+   (`checkReqCoverage`) over the parsed `req` and the plan steps **across all plans
+   in the thread**: every **active** `Included` ID has ≥1 covering step; no step
+   cites an `Excluded` ID; every citation resolves to a known handle. A `~dropped`
+   Included item is exempt from coverage (it never appears as "uncovered") yet its
+   handle still resolves, so old citations to it are never flagged as unknown.
+   Surfaced as a diagnostic alongside stale / blocked-step. No AI.
 3. **Semantic backstop (AI).** "Did a step violate `EX1` / `C2` phrased
    differently?" — runs as a **sampling** diagnostic in the VS Code extension; in a
    Claude Code CLI session the agent verifies directly (server→client sampling is
@@ -187,7 +220,7 @@ Mirrors the idea / design pattern:
 |------|---------|
 | `loom_create_req(weaveId, threadId, content?)` | Create the `req` doc (pass `content` to author it in one call) |
 | `loom_generate_req` | Extension sampling path; a CLI agent calls `loom_create_req` with `content` instead |
-| `loom_refine_req` | Re-extract on chat change → `draft`, version bump |
+| `loom_amend_req` | Reconcile new/changed requirements under append-only rules (refuses renumber/delete; retire via `~dropped`) → `draft`, version bump |
 | `loom_finalize_req` | `draft → locked` |
 | `loom_verify_req` | Run the structural (and, where available, semantic) scope check |
 

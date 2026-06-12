@@ -292,7 +292,8 @@ async function run(): Promise<void> {
         assert(names.includes('loom_set_context_prefs'), 'should include loom_set_context_prefs');
         assert(names.includes('loom_get_context_prefs'), 'should include loom_get_context_prefs');
         assert(names.includes('loom_create_req'), 'should include loom_create_req');
-        assert(names.includes('loom_refine_req'), 'should include loom_refine_req');
+        assert(names.includes('loom_amend_req'), 'should include loom_amend_req');
+        assert(!names.includes('loom_refine_req'), 'loom_refine_req should be gone (renamed to loom_amend_req)');
         assert(names.includes('loom_finalize_req'), 'should include loom_finalize_req');
         assert(names.includes('loom_generate_req'), 'should include loom_generate_req');
         assert(names.includes('loom_verify_req'), 'should include loom_verify_req');
@@ -325,6 +326,34 @@ async function run(): Promise<void> {
         const reqPos = text.indexOf(created.id);
         const ideaPos = text.indexOf('id: t1-idea');
         assert(reqPos !== -1 && ideaPos !== -1 && reqPos < ideaPos, 'req should be injected before the idea');
+    });
+
+    // (f2) loom_amend_req: append is allowed, deleting/renumbering a handle is refused
+    await test('loom_amend_req appends a handle but refuses to delete one', async () => {
+        await client.callTool({
+            name: 'loom_create_req',
+            arguments: {
+                weaveId: 'tw',
+                threadId: 'tamend',
+                content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n',
+            },
+        });
+
+        // append IN3 → ok
+        const okRes = await client.callTool({
+            name: 'loom_amend_req',
+            arguments: { weaveId: 'tw', threadId: 'tamend', content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n- `IN3` Third.\n' },
+        });
+        const ok = JSON.parse((okRes.content[0] as { text: string }).text);
+        assert(ok.version === 2, `append bumps to v2, got ${ok.version}`);
+
+        // delete IN1 → refused (clean finding, not a crash)
+        const badRes = await client.callTool({
+            name: 'loom_amend_req',
+            arguments: { weaveId: 'tw', threadId: 'tamend', content: '### ✅ Included\n- `IN2` Second.\n- `IN3` Third.\n' },
+        });
+        const bad = JSON.parse((badRes.content[0] as { text: string }).text);
+        assert(bad.ok === false && typeof bad.error === 'string' && bad.error.includes('IN1'), 'deleting IN1 is refused with an error naming IN1');
     });
 
     // (g) diagnostics report req scope-coverage gaps (depends on f: t1 now has a locked req)

@@ -60,17 +60,40 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
         }
 
         case 'UPDATE_STEP': {
-            assertStatus(doc.status, ['draft', 'active', 'implementing', 'blocked'], 'UPDATE_STEP');
             const { stepId, patch } = event;
+            // A citation-only patch (`satisfies` and nothing else) is traceability
+            // metadata — *what this work served*, not the immutable record of *what was
+            // done* — so it may amend a done step and a done plan. This is what lets a
+            // requirement added or clarified mid-thread (via amend + re-lock) be cited on
+            // the work that already satisfies it. Any other field keeps the original guards.
+            const citationOnly =
+                patch.satisfies !== undefined &&
+                patch.description === undefined &&
+                patch.files_touched === undefined &&
+                patch.blockedBy === undefined;
+            assertStatus(
+                doc.status,
+                citationOnly
+                    ? ['draft', 'active', 'implementing', 'blocked', 'done']
+                    : ['draft', 'active', 'implementing', 'blocked'],
+                'UPDATE_STEP'
+            );
             const idx = doc.steps.findIndex(s => s.id === stepId);
             if (idx === -1) {
                 throw new Error(`Step '${stepId}' not found. Plan steps: ${doc.steps.map(s => s.id).join(', ') || '(none)'}`);
             }
             const target = doc.steps[idx];
-            if (target.status === 'done' || target.status === 'cancelled') {
+            if (target.status === 'cancelled') {
                 throw new Error(
-                    `Step '${stepId}' is ${target.status} and immutable — done/cancelled steps are history. ` +
+                    `Step '${stepId}' is cancelled and immutable — cancelled work satisfies nothing. ` +
                     `Record corrections forward (a new step or a note), not by mutating the past.`
+                );
+            }
+            if (target.status === 'done' && !citationOnly) {
+                throw new Error(
+                    `Step '${stepId}' is done and immutable except for requirement citations — ` +
+                    `only \`satisfies\` may be amended on a done step (it records what the work served, ` +
+                    `not what was done). Record other corrections forward (a new step or a note).`
                 );
             }
             const steps = doc.steps.map((s, i) =>

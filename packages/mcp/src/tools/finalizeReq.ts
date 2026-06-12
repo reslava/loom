@@ -5,7 +5,7 @@ import { finalizeReq } from '../../../app/dist/req';
 export const toolDef = {
     name: 'loom_finalize_req',
     description:
-        "Lock a thread's req doc: flips status \"draft\" → \"locked\" (the explicit anchor downstream idea/design/plan build against). Does not bump the version. Idempotent if already locked. To change a locked req later, use loom_refine_req (which re-opens it to draft and bumps the version). Use this tool to lock a req — do not edit weave files directly.",
+        "Lock a thread's req doc: flips status \"draft\" → \"locked\" (the explicit anchor downstream idea/design/plan build against). Does not bump the version. Idempotent if already locked. To change a locked req later, use loom_amend_req (which re-opens it to draft and bumps the version under append-only rules). Use this tool to lock a req — do not edit weave files directly.",
     inputSchema: {
         type: 'object' as const,
         properties: {
