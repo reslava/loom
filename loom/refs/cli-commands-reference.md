@@ -4,7 +4,7 @@ id: rf_01KQYDFDDD6SYMCJ1Q2Z6748EK
 title: cli — Commands
 status: active
 created: "2026-04-14T00:00:00.000Z"
-version: 2
+version: 3
 tags: [cli, commands, reference, loom, public]
 requires_load: []
 slug: cli-commands-reference
@@ -58,6 +58,9 @@ Show derived state of weaves/threads.
 
 ### `loom validate [weave-id] [--all] [--fix] [--verbose]`
 Validate document integrity, links, and staleness. `--all` validates every weave; `--verbose` shows detailed issues. (`--fix` is not yet implemented.)
+
+### `loom roadmap [--group-by-thread]`
+Print the derived cross-weave roadmap (a thin renderer over the `loom://roadmap` resource): **future** (pending/blocked threads in dependency + `priority` order, each blocked node annotated with what it's blocked on), **present** (active/implementing), and **history** (shipped plans, newest first). `--group-by-thread` groups the history under each `weave/thread`. Pure read — never mutates; a thread missing its `thread.md` surfaces as a diagnostic, not a silent write.
 
 ---
 
@@ -123,6 +126,16 @@ Move a plan to `implementing`.
 
 ### `loom complete-step <plan-id> --step <n>`
 Mark plan step `n` as done.
+
+---
+
+## Maintenance
+
+### `loom migrate [--dry-run]`
+Run registered repository migrations. The current migration, `backfill-thread-manifests`, creates a `thread.md` manifest (a fresh `th_` ULID, a title from the thread's idea/slug, default `priority`, empty `depends_on`) for every thread folder lacking one — required for the derived roadmap. **Idempotent** (skips threads that already have a manifest, safe to re-run and to ship in every release); `--dry-run` prints what it would create and touches nothing.
+
+### `loom migrate-plan-steps [plan-id] [--dry-run]`
+Migrate legacy plans (steps in the body `## Steps` table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched).
 
 ---
 

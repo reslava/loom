@@ -4,7 +4,7 @@ id: rf_01KQYDFDDDZDXZDHVWCM2VF3EN
 title: vscode — Commands Reference
 status: active
 created: "2026-04-14T00:00:00.000Z"
-version: 2
+version: 3
 tags: [vscode, commands, reference, ui, loom, public]
 requires_load: []
 slug: vscode-commands-reference
@@ -49,6 +49,10 @@ All commands are under the **Loom** category (`Ctrl+Shift+P` → type `Loom:`). 
 | Filter by status | `loom.setStatusFilter` |
 | Toggle Archived | `loom.toggleArchived` / `loom.toggleArchivedOff` |
 | Sync Doc → Tree | `loom.toggleSyncDocToTree` / `loom.toggleSyncDocToTreeOff` |
+| Show Roadmap / Show Threads | `loom.toggleRoadmap` / `loom.toggleRoadmapOff` |
+| Group History by Thread / Flatten History | `loom.toggleGroupHistory` / `loom.toggleGroupHistoryOff` |
+
+> **Roadmap view.** *Show Roadmap* re-lays the Threads tree into the derived cross-weave roadmap — **Future** (pending/blocked, dependency + `priority` order, each showing what it's blocked on), **Present** (active/implementing), **History** (shipped plans). In roadmap mode *Filter by status* folds to **all / roadmap / history**, the History band has a **Group History by Thread** toggle, and dragging a Future/Present thread within its band rewrites soft `priority` (`loom_set_priority`) — refusing any drop that violates a hard `depends_on` edge.
 
 ### Create documents
 
@@ -136,7 +140,7 @@ Right-clicking a node in the Threads view exposes actions by node type:
 
 ## Toolbar (Threads view title bar)
 
-New Weave · Set Grouping · Filter by status · Filter by text · Toggle Archived · Sync Doc → Tree · Refresh.
+Show Roadmap · New Weave · Set Grouping · Filter by status · Filter by text · Toggle Archived · Sync Doc → Tree · Refresh. In roadmap mode the grouping/text-filter buttons are hidden and a **Group History by Thread** toggle appears.
 
 ---
 

@@ -139,6 +139,8 @@ Button clicked
 
 | Type | File location | Purpose |
 |------|--------------|---------|
+| `thread` | `{thread}/thread.md` | Thread manifest — authored-only roadmap metadata: a stable `th_` ULID, a soft `priority`, and hard `depends_on` edges. No `status` (always derived); kept off the done-rollup; no staleness. Powers the derived roadmap (`buildRoadmap`). |
+| `req` | `{thread}/req.md` | The thread's locked scope spec — Included / Excluded / Constraints (`IN`/`EX`/`C` handles), auto-loaded into every action built after it |
 | `idea` | `{thread}/{thread}-idea.md` | Raw concept, pre-design |
 | `design` | `{thread}/{thread}-design.md` | Design conversation + decision log |
 | `plan` | `{thread}/plans/{plan-id}.md` | Implementation plan — structured `steps` in frontmatter (source of truth); the body `## Steps` table is a generated view |
@@ -151,7 +153,7 @@ Button clicked
 
 ```yaml
 ---
-type: idea | design | plan | done | chat | ctx | reference
+type: idea | design | plan | done | chat | ctx | reference | req | thread
 id: kebab-case-id
 title: "Human Readable Title"
 status: draft | active | implementing | done | archived
@@ -222,6 +224,8 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
       ctx.md                ← weave-level context summary
       .archive/             ← archived weave-level docs
       {thread-id}/
+        thread.md           ← thread manifest (th_ ULID + soft priority + depends_on) — powers the roadmap
+        req.md              ← locked scope spec (Included / Excluded / Constraints)
         {thread-id}-idea.md
         {thread-id}-design.md
         chats/              ← thread-level AI chat docs (promote to idea/design/plan)
