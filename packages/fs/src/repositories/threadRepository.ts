@@ -7,6 +7,7 @@ import { PlanDoc } from '../../../core/dist/entities/plan';
 import { DoneDoc } from '../../../core/dist/entities/done';
 import { ChatDoc } from '../../../core/dist/entities/chat';
 import { ReqDoc } from '../../../core/dist/entities/req';
+import { ThreadDoc } from '../../../core/dist/entities/thread';
 import { Document } from '../../../core/dist/entities/document';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import { loadDoc, FrontmatterParseError } from '../serializers/frontmatterLoader';
@@ -62,6 +63,14 @@ export async function loadThread(
         req = await loadDoc(reqPath) as ReqDoc;
     }
 
+    // thread.md — the thread manifest (authored th_ ULID + priority + depends_on).
+    // Flat filename (no `${threadId}-` prefix), like ctx.md and req.md.
+    let manifest: ThreadDoc | undefined;
+    const manifestPath = path.join(threadPath, 'thread.md');
+    if (await fs.pathExists(manifestPath)) {
+        manifest = await loadDoc(manifestPath) as ThreadDoc;
+    }
+
     const plans = await loadMdFiles<PlanDoc>(path.join(threadPath, 'plans'), 'plan');
     const dones = await loadMdFiles<DoneDoc>(path.join(threadPath, 'done'), 'done');
     const chats = await loadMdFiles<ChatDoc>(path.join(threadPath, 'chats'), 'chat');
@@ -80,6 +89,7 @@ export async function loadThread(
         ...(idea ? [idea] : []),
         ...(design ? [design] : []),
         ...(req ? [req] : []),
+        ...(manifest ? [manifest] : []),
         ...plans,
         ...dones,
         ...chats,
@@ -98,7 +108,7 @@ export async function loadThread(
         }
     }
 
-    return { id: threadId, weaveId, idea, design, req, plans, dones, chats, refDocs, allDocs };
+    return { id: threadId, weaveId, idea, design, req, manifest, plans, dones, chats, refDocs, allDocs };
 }
 
 export function docPathInThread(doc: Document, threadPath: string, threadId: string): string {
@@ -106,6 +116,7 @@ export function docPathInThread(doc: Document, threadPath: string, threadId: str
         case 'idea':   return path.join(threadPath, `${threadId}-idea.md`);
         case 'design': return path.join(threadPath, `${threadId}-design.md`);
         case 'req':    return path.join(threadPath, 'req.md');
+        case 'thread': return path.join(threadPath, 'thread.md');
         case 'plan':   return path.join(threadPath, 'plans', `${doc.id}.md`);
         case 'done':   return path.join(threadPath, 'done', `${doc.id}.md`);
         case 'chat':      return path.join(threadPath, 'chats', `${doc.id}.md`);

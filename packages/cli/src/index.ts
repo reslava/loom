@@ -25,6 +25,8 @@ import { searchCommand } from './commands/search';
 import { staleCommand } from './commands/stale';
 import { blockedCommand } from './commands/blocked';
 import { migratePlanStepsCommand } from './commands/migratePlanSteps';
+import { migrateCommand } from './commands/migrate';
+import { roadmapCommand } from './commands/roadmap';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -197,6 +199,18 @@ program
     .description('Migrate legacy plans (body-table steps) to frontmatter-native steps. Idempotent; never empties an unparseable table.')
     .option('--dry-run', 'Preview what would change without writing')
     .action((docId, options) => migratePlanStepsCommand(docId, options));
+
+program
+    .command('migrate')
+    .description('Run Loom migrations (v1: backfill a thread.md manifest for every thread missing one). Idempotent.')
+    .option('--dry-run', 'Preview what would be created without writing')
+    .action((options) => migrateCommand({ dryRun: options.dryRun }));
+
+program
+    .command('roadmap')
+    .description('Print the derived cross-weave roadmap: future (pending/blocked), present (active/implementing), history (shipped plans)')
+    .option('--group-by-thread', 'Group history by thread')
+    .action((options) => roadmapCommand({ groupByThread: options.groupByThread }));
 
 program
     .command('mcp')

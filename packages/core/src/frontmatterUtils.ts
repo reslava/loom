@@ -117,6 +117,9 @@ const ORDERED_KEYS = [
     'tags',
     'parent_id',
     'requires_load',
+    // thread-manifest fields
+    'priority',
+    'depends_on',
     // reference-doc fields
     'slug',
     'load',

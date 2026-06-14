@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, parseReq, diffReqHandles } from '../../core/dist';
+import { ensureThreadManifest } from './thread';
 
 /**
  * Use-cases for the per-thread `req` doc — the authoritative include/exclude/
@@ -96,6 +97,8 @@ export async function createReq(
     } as ReqDoc;
 
     await deps.saveDoc(doc, filePath);
+    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+    await ensureThreadManifest(input.weaveId, input.threadId, title, deps);
     return { id, filePath };
 }
 

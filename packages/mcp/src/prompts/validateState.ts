@@ -30,7 +30,7 @@ export async function handle(root: string, _args: Record<string, string | undefi
                 role: 'user' as const,
                 content: {
                     type: 'text' as const,
-                    text: 'Review the diagnostics and summary above. Identify issues (broken links, stale docs, orphaned documents, and requirement scope-coverage gaps — uncovered Included reqs, steps citing an Excluded req, or dangling citations) and propose concrete fixes using the available Loom tools.',
+                    text: 'Review the diagnostics and summary above. Identify issues (broken links, stale docs, orphaned documents, requirement scope-coverage gaps — uncovered Included reqs, steps citing an Excluded req, or dangling citations — and roadmap issues: depends_on cycles, dangling thread dependencies, or threads missing thread.md which need `loom migrate`) and propose concrete fixes using the available Loom tools.',
                 },
             },
         ],

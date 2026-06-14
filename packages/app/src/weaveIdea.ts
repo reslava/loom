@@ -6,6 +6,7 @@ import { generateDocId, toKebabCaseId } from '../../core/dist';
 import { createBaseFrontmatter } from '../../core/dist';
 import { generateIdeaBody } from '../../core/dist';
 import { IdeaDoc } from '../../core/dist';
+import { ensureThreadManifest } from './thread';
 
 export interface WeaveIdeaInput {
     title: string;
@@ -40,6 +41,8 @@ export async function weaveIdea(
         const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
+        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+        await ensureThreadManifest(weaveName, input.threadId, input.title, deps);
         return { id, filePath };
     }
 

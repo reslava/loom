@@ -9,6 +9,7 @@ import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
 import { lockedReqVersion } from './req';
+import { ensureThreadManifest } from './thread';
 
 export interface WeaveDesignInput {
     weaveId: string;
@@ -115,6 +116,8 @@ export async function weaveDesign(
         const doc: DesignDoc = { ...frontmatter, content, ...(reqV !== undefined ? { req_version: reqV } : {}) } as DesignDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
+        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+        await ensureThreadManifest(input.weaveId, input.threadId, designTitle, deps);
         return { id, filePath, autoFinalized: false };
     }
 

@@ -23,6 +23,10 @@ run_test() {
 # Step 1: Entity tests (no IO)
 run_test tests/entity.test.ts
 
+# Derived roadmap: pure buildRoadmap read-model — status overlay, dependency blocked-on,
+# topo+priority order, done-plan history, and cycle/dangling/missing-manifest diagnostics
+run_test tests/roadmap.test.ts
+
 # req doc-type: parseReq buckets by IN/EX/C prefix; locked req never blocks DONE
 run_test tests/req.test.ts
 

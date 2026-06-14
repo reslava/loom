@@ -6,6 +6,7 @@ import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
 import { PlanDoc, DesignDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
 import { lockedReqVersion } from './req';
+import { ensureThreadManifest } from './thread';
 
 /** One structured step as supplied to create a plan. `title`/`detail` seed the body
  *  view (`### Step N` sections) but are not persisted to frontmatter (body owns prose). */
@@ -107,6 +108,12 @@ export async function weavePlan(
 
         const filePath = path.join(plansDir, `${planFilename}.md`);
         await deps.saveDoc(doc, filePath);
+        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+        await ensureThreadManifest(input.weaveId, input.threadId, planTitle, {
+            getActiveLoomRoot: () => deps.loomRoot,
+            saveDoc: deps.saveDoc,
+            fs: deps.fs,
+        });
         return { id: planId, filePath };
     }
 

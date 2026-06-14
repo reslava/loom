@@ -54,6 +54,17 @@ export { planReducer } from './reducers/planReducer';
 // ============================================================================
 export { applyEvent, ApplyResult } from './applyEvent';
 export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, getReqStaleDocs } from './derived';
+export {
+    buildRoadmap,
+    RoadmapView,
+    RoadmapNode,
+    RoadmapStatus,
+    ShippedPlan,
+    RoadmapDiagnostic,
+    RoadmapDiagnosticKind,
+    DEFAULT_ROADMAP_PRIORITY,
+} from './derived';
+export { ThreadDoc, ThreadDocStatus } from './entities/thread';
 export { createBaseFrontmatter, serializeFrontmatter, serializeStepsBlock, parseFrontmatterSteps } from './frontmatterUtils';
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, stripTrailingTypeWord, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
 export { ConfigRegistry } from './registry';

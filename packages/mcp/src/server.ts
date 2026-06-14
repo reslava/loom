@@ -13,6 +13,7 @@ import { handleStatusResource } from './resources/status';
 import { handleLinkIndexResource } from './resources/linkIndex';
 import { handleDiagnosticsResource } from './resources/diagnostics';
 import { handleSummaryResource } from './resources/summary';
+import { handleRoadmapResource } from './resources/roadmap';
 import { handleDocsResource } from './resources/docs';
 import { handleContextResource } from './resources/context';
 import { handlePlanResource } from './resources/plan';
@@ -23,6 +24,9 @@ import * as createPlan from './tools/createPlan';
 import * as createReq from './tools/createReq';
 import * as amendReq from './tools/amendReq';
 import * as finalizeReq from './tools/finalizeReq';
+import * as createThread from './tools/createThread';
+import * as setPriority from './tools/setPriority';
+import * as setThreadDeps from './tools/setThreadDeps';
 import * as updateDoc from './tools/updateDoc';
 import * as patchDoc from './tools/patchDoc';
 import * as appendToChat from './tools/appendToChat';
@@ -89,6 +93,7 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://link-index', name: 'Link Index', description: 'Document graph: id→path (byId, documents), parent/child relationships, backlinks, slugs', mimeType: 'application/json' },
     { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
     { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
+    { uri: 'loom://roadmap', name: 'Roadmap', description: 'Derived cross-weave roadmap: future (pending/blocked, dependency+priority order), present (active/implementing), history (shipped plans), and diagnostics (cycles, dangling deps, missing thread.md)', mimeType: 'application/json' },
     { uri: 'loom://catalog', name: 'Tool Catalog', description: 'Grouped index of all loom_* MCP tools (name + one-line purpose). Read this BEFORE searching for a tool, then ToolSearch select:<exact name>.', mimeType: 'text/markdown' },
 ];
 
@@ -112,6 +117,7 @@ export function createLoomMcpServer(root: string): Server {
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
         ...reg('req', [amendReq, finalizeReq, createVerifyReqTool(server)]),
+        ...reg('thread', [createThread, setPriority, setThreadDeps]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
         ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs]),
@@ -144,6 +150,9 @@ export function createLoomMcpServer(root: string): Server {
         }
         if (uri === 'loom://summary') {
             return handleSummaryResource(root);
+        }
+        if (uri === 'loom://roadmap') {
+            return handleRoadmapResource(root, uri);
         }
         if (uri === 'loom://catalog') {
             return { contents: [{ uri, mimeType: 'text/markdown', text: getToolCatalogBlock() }] };

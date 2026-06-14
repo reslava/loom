@@ -1,6 +1,6 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry, parseReq, checkReqCoverage } from '../../../core/dist';
+import { ConfigRegistry, parseReq, checkReqCoverage, buildRoadmap } from '../../../core/dist';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import * as fs from 'fs-extra';
 
@@ -66,11 +66,15 @@ export async function handleDiagnosticsResource(root: string) {
         }
     }
 
+    // Roadmap diagnostics: depends_on cycles, dangling dependency targets, and
+    // threads missing thread.md (→ run `loom migrate`). Derived from the same state.
+    const roadmapDiagnostics = buildRoadmap(state).diagnostics;
+
     return {
         contents: [{
             uri: 'loom://diagnostics',
             mimeType: 'application/json',
-            text: JSON.stringify({ issueCount: issues.length, issues, reqCoverage }, null, 2),
+            text: JSON.stringify({ issueCount: issues.length, issues, reqCoverage, roadmap: roadmapDiagnostics }, null, 2),
         }],
     };
 }
