@@ -4,12 +4,12 @@ id: ch_01KV3C6SKC40ED9K818CV3R6JR
 title: roadmap Chat
 status: done
 created: "2026-06-14T00:00:00.000Z"
-updated: 2026-06-14
+updated: "2026-06-14T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 16
+last_ai_block: 17
 ---
 # roadmap Chat
 
@@ -392,3 +392,24 @@ Safeguard sequence complete, plus a bug you caught along the way:
 **Plan-1 shipped end-to-end and on `main`.** Plan-2 (extension surface) remains `draft`, unblocked.
 
 Next: waiting on whether to start Plan-2.
+
+## AI:
+
+Confirmed — you're right, the double-`## AI:` fix was **never actually done**. At line 104 I only *agreed* it was the right approach (sharpen the `loom_append_to_chat` tool description + the extension launch prompt) and then moved on with the roadmap design; no code changed. I just verified the live state before this reply:
+
+- `packages/mcp/src/tools/appendToChat.ts` still had the bare description "Append a new message… do not edit chat files directly" — no "body only / no header" guidance.
+- `packages/vscode/src/commands/chatReply.ts` still told the agent `body="<your reply>"` with nothing about omitting the header.
+
+Now fixed, in all three places the agent reads:
+
+1. **MCP tool description** — now states the tool writes the role header itself and you must pass the body only, calling out the doubled-header failure mode explicitly.
+2. **`body` param description** — "the reply text ONLY… the tool adds the role header (including a header here produces a duplicate)."
+3. **Extension chat-reply launch prompt** — the stronger lever (it out-ranks tool descriptions): now says the body must be reply text only, no `## AI:` line, because the tool adds the header.
+
+`build-all` clean.
+
+**Effect timing (two known caveats):**
+- The running `loom mcp` in *this* session is stale — it won't serve the new tool description until the MCP server / session restarts. New sessions get it immediately.
+- The extension launch-prompt change needs a **Reload Window** (it's baked into the bundled extension), so it takes effect next reload.
+
+Not committed yet (sits with the uncommitted roadmap Plan-3 work in the tree). Want me to fold it into the same commit when we commit Plan-3, or keep it as its own `fix(mcp)` commit?

@@ -4,13 +4,13 @@ import { getUserName, getAiName } from '../../../app/dist/utils/chatNames';
 
 export const toolDef = {
     name: 'loom_append_to_chat',
-    description: 'Append a new message to an existing chat document. Use this tool to add messages to Loom chats — do not edit chat files directly.',
+    description: 'Append a new message to an existing chat document. IMPORTANT: this tool writes the role header itself (## AI: for role "ai", ## {UserName}: for role "user") — pass ONLY the reply body in the "body" argument, with NO "## AI:" / "## {name}:" header line of your own, or the chat ends up with a doubled header. Use this tool to add messages to Loom chats — do not edit chat files directly.',
     inputSchema: {
         type: 'object' as const,
         properties: {
             id: { type: 'string', description: 'Chat document id' },
             role: { type: 'string', enum: ['user', 'ai'], description: "Message author role. Defaults to 'ai' (the common caller); pass 'user' for the rare programmatic human turn." },
-            body: { type: 'string', description: 'Message body (markdown)' },
+            body: { type: 'string', description: 'Message body (markdown) — the reply text ONLY. Do NOT prefix it with a "## AI:" / "## {name}:" role header; the tool adds the role header itself (including a header here produces a duplicate).' },
         },
         required: ['id', 'body'],
     },

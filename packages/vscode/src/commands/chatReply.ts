@@ -69,7 +69,7 @@ export async function chatReplyCommand(treeProvider: LoomTreeProvider, node?: Tr
             ? `The chat document is already included in the Loom context above; you may also read the file at "${filePath}" with the Read tool if needed (not Bash, not loom_find_doc).`
             : `The chat document is already included in the Loom context above.`;
         await launchClaude(root, `Loom: Chat Reply`,
-            `${contextBlock}Loom chat reply task. chatId="${chatId}". ${readInstruction} Using the pre-loaded context, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="${chatId}", role="ai", body="<your reply>". Emit one "📄 <title> — loaded for context" line per context doc above before replying. Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.`
+            `${contextBlock}Loom chat reply task. chatId="${chatId}". ${readInstruction} Using the pre-loaded context, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="${chatId}", role="ai", body="<your reply>". The body must be the reply text ONLY — do NOT include a "## AI:" header line; loom_append_to_chat writes the role header itself, so adding your own produces a doubled header. Emit one "📄 <title> — loaded for context" line per context doc above before replying. Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {
