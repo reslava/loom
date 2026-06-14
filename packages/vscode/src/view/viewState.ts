@@ -1,5 +1,8 @@
 export type GroupingMode = 'type' | 'thread' | 'status' | 'release';
 
+/** Which band(s) of the roadmap are shown when the Roadmap view is enabled. */
+export type RoadmapBand = 'all' | 'history' | 'roadmap';
+
 export interface ViewState {
     grouping: GroupingMode;
     textFilter?: string;
@@ -7,6 +10,12 @@ export interface ViewState {
     showArchived: boolean;
     focusedweaveId?: string;
     syncDocToTreeEnabled: boolean;
+    /** Roadmap view toggle — when on, the tree re-lays out into future/present/history bands. */
+    roadmapEnabled: boolean;
+    /** Which roadmap band(s) to show (the filter folds to this when roadmap is enabled). */
+    roadmapBand: RoadmapBand;
+    /** History band: group shipped plans by thread (opt-in; default flat newest-first). */
+    groupHistoryByThread: boolean;
 }
 
 export const defaultViewState: ViewState = {
@@ -15,4 +24,7 @@ export const defaultViewState: ViewState = {
     statusFilter: [],
     showArchived: false,
     syncDocToTreeEnabled: true,
+    roadmapEnabled: false,
+    roadmapBand: 'all',
+    groupHistoryByThread: false,
 };

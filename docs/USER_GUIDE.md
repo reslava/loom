@@ -41,7 +41,7 @@ In Loom, the durable artifacts of your work — what you want, how you'll build 
 | Term | Meaning |
 |------|---------|
 | **Weave** | A project area / folder under `loom/` (e.g. `auth`, `billing`). The top level of organization. |
-| **Thread** | A workstream inside a weave (`loom/{weave}/{thread}/`). Holds one idea, one design, its plans, done records, and chats. |
+| **Thread** | A workstream inside a weave (`loom/{weave}/{thread}/`). Holds one idea, one design, its plans, done records, and chats — plus a small `thread.md` manifest (a stable id, a soft `priority`, and `depends_on` edges) that powers the roadmap. |
 | **Loose fiber** | An idea or design sitting at a weave's root, not yet grouped into a thread. |
 | **Document types** | The artifacts that move through the loop — see below. |
 
@@ -59,6 +59,8 @@ In Loom, the durable artifacts of your work — what you want, how you'll build 
 | **reference** | A static fact sheet (an API note, a convention, a spec) that docs can cite. |
 
 The distinction between **ctx** and **reference** matters and is covered in §4.
+
+**The cross-weave roadmap.** Because each thread carries a `thread.md` (a soft `priority` and hard `depends_on` edges), Loom derives a project-wide **roadmap** with no hand-maintained list: where every thread sits (future / present / history) and — the part you can't compute by hand — which threads are **blocked on an unfinished thread in another weave**. See it with `loom roadmap` (terminal) or the **Show Roadmap** toggle in the extension. Status and ordering are derived; the only authored bits are `priority` and `depends_on`.
 
 ---
 

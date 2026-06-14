@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
+import { RoadmapDragAndDropController } from './tree/roadmapDnd';
 import { ViewStateManager } from './view/viewStateManager';
 import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
@@ -57,6 +58,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     const viewStateManager = new ViewStateManager(context.workspaceState);
     vscode.commands.executeCommand('setContext', 'loom.showArchived', viewStateManager.getState().showArchived);
     vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', viewStateManager.getState().syncDocToTreeEnabled);
+    vscode.commands.executeCommand('setContext', 'loom.roadmapEnabled', viewStateManager.getState().roadmapEnabled);
+    vscode.commands.executeCommand('setContext', 'loom.groupHistoryByThread', viewStateManager.getState().groupHistoryByThread);
     const treeProvider = new LoomTreeProvider(viewStateManager);
     const tokenEstimator = new TokenEstimatorService(context);
     const contextSidebar = new ContextSidebarProvider(treeProvider, tokenEstimator);
@@ -64,6 +67,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     const treeView = vscode.window.createTreeView('loom.threads', {
         treeDataProvider: treeProvider,
         showCollapseAll: true,
+        dragAndDropController: new RoadmapDragAndDropController(treeProvider, viewStateManager),
     });
     context.subscriptions.push(treeView);
 
@@ -74,7 +78,10 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(contextView);
 
     function updateViewTitle(): void {
-        treeView.title = statusFilterLabel(viewStateManager.getState().statusFilter);
+        const vs = viewStateManager.getState();
+        treeView.title = vs.roadmapEnabled
+            ? `Roadmap${vs.roadmapBand !== 'all' ? ` · ${vs.roadmapBand}` : ''}`
+            : statusFilterLabel(vs.statusFilter);
     }
     updateViewTitle();
 
@@ -159,6 +166,27 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             viewStateManager.update({ syncDocToTreeEnabled: enabled });
             vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', enabled);
         }),
+        ...((): vscode.Disposable[] => {
+            const toggleRoadmap = () => {
+                const enabled = !viewStateManager.getState().roadmapEnabled;
+                viewStateManager.update({ roadmapEnabled: enabled });
+                vscode.commands.executeCommand('setContext', 'loom.roadmapEnabled', enabled);
+                updateViewTitle();
+                treeProvider.refresh();
+            };
+            const toggleGroupHistory = () => {
+                const on = !viewStateManager.getState().groupHistoryByThread;
+                viewStateManager.update({ groupHistoryByThread: on });
+                vscode.commands.executeCommand('setContext', 'loom.groupHistoryByThread', on);
+                treeProvider.refresh();
+            };
+            return [
+                vscode.commands.registerCommand('loom.toggleRoadmap', toggleRoadmap),
+                vscode.commands.registerCommand('loom.toggleRoadmapOff', toggleRoadmap),
+                vscode.commands.registerCommand('loom.toggleGroupHistory', toggleGroupHistory),
+                vscode.commands.registerCommand('loom.toggleGroupHistoryOff', toggleGroupHistory),
+            ];
+        })(),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.chatReply', (node?: TreeNode) => chatReplyCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.promoteToIdea', (node?: TreeNode) => promoteToIdeaCommand(treeProvider, node)),

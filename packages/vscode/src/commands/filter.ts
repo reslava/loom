@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { ViewStateManager } from '../view/viewStateManager';
 import { LoomTreeProvider } from '../tree/treeProvider';
+import { RoadmapBand } from '../view/viewState';
 
 export async function setTextFilter(
     manager: ViewStateManager,
@@ -22,6 +23,27 @@ export async function setStatusFilter(
     treeProvider: LoomTreeProvider,
     onChange?: () => void
 ): Promise<void> {
+    // In the Roadmap view the status filter folds to a band selector
+    // (all / roadmap / history) — the present band already subsumes the old
+    // active+implementing filter, so there is no redundant status value.
+    if (manager.getState().roadmapEnabled) {
+        const currentBand = manager.getState().roadmapBand;
+        const bands: { label: string; description: string; band: RoadmapBand }[] = [
+            { label: '$(list-flat) All', description: 'Future + Present + History', band: 'all' },
+            { label: '$(milestone) Roadmap', description: 'Future + Present only (forward-looking)', band: 'roadmap' },
+            { label: '$(history) History', description: 'Shipped plans only', band: 'history' },
+        ];
+        const pickedBand = await vscode.window.showQuickPick(bands, {
+            title: 'Roadmap band',
+            placeHolder: bands.find(b => b.band === currentBand)?.label ?? 'Select a band',
+        });
+        if (!pickedBand) return;
+        manager.update({ roadmapBand: pickedBand.band });
+        treeProvider.refresh();
+        onChange?.();
+        return;
+    }
+
     const current = manager.getState().statusFilter;
     const options: { label: string; description: string; filter: string[] }[] = [
         { label: '$(list-unordered) All', description: 'Show all statuses', filter: [] },

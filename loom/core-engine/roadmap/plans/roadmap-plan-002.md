@@ -2,7 +2,7 @@
 type: plan
 id: pl_01KV3GYQ36HM981ACDCMCE3ZYN
 title: Derived Roadmap — Extension Surface
-status: active
+status: done
 created: "2026-06-14T00:00:00.000Z"
 updated: 2026-06-14
 version: 1
@@ -14,32 +14,39 @@ target_version: 0.1.0
 steps:
   - id: roadmap-toolbar-toggle
     order: 1
-    status: pending
+    status: done
     description: Add a Roadmap toolbar button (Enabled/Disabled) that toggles the roadmap view in the extension.
     files_touched: [packages/vscode/src/, packages/vscode/package.json]
     blocked_by: [pl_01KV3GY83XJXDAGJ87HK64MRXS]
     satisfies: [IN8]
   - id: roadmap-panel
     order: 2
-    status: pending
+    status: done
     description: "Render the roadmap panel: future (top), present (middle), history (bottom), with blocked-on annotations."
     files_touched: [packages/vscode/src/]
     blocked_by: [step-1]
     satisfies: [IN8]
   - id: filter-folds-to-all-history-roadmap
     order: 3
-    status: pending
+    status: done
     description: When Roadmap is enabled, the existing filter offers all / history / roadmap instead of the current status filter.
     files_touched: [packages/vscode/src/]
     blocked_by: [step-2]
     satisfies: [IN9]
   - id: drag-to-reorder-priority
     order: 4
-    status: pending
+    status: done
     description: Drag-to-reorder among independent threads writes soft priority via loom_set_priority; a drag violating a hard depends_on edge is refused.
     files_touched: [packages/vscode/src/]
     blocked_by: [step-2]
     satisfies: [IN10]
+  - id: history-group-by-thread-toggle
+    order: 5
+    status: done
+    description: When Roadmap is enabled, the History band can group shipped plans by thread via an opt-in toggle (default flat, newest-first), mirroring the CLI's `loom roadmap --group-by-thread`.
+    files_touched: [packages/vscode/src/, packages/vscode/package.json]
+    blocked_by: [roadmap-panel]
+    satisfies: [IN8]
 ---
 # Derived Roadmap — Extension Surface
 
@@ -53,10 +60,11 @@ Render the proven roadmap read-model in the VS Code extension. Add a Roadmap too
 
 | Done | # | Step | Files touched | Blocked by | Satisfies |
 |---|---|---|---|---|---|
-| 🔳 | 1 | Add a Roadmap toolbar button (Enabled/Disabled) that toggles the roadmap view in the extension. | packages/vscode/src/, packages/vscode/package.json | pl_01KV3GY83XJXDAGJ87HK64MRXS | IN8 |
-| 🔳 | 2 | Render the roadmap panel: future (top), present (middle), history (bottom), with blocked-on annotations. | packages/vscode/src/ | step-1 | IN8 |
-| 🔳 | 3 | When Roadmap is enabled, the existing filter offers all / history / roadmap instead of the current status filter. | packages/vscode/src/ | step-2 | IN9 |
-| 🔳 | 4 | Drag-to-reorder among independent threads writes soft priority via loom_set_priority; a drag violating a hard depends_on edge is refused. | packages/vscode/src/ | step-2 | IN10 |
+| ✅ | 1 | Add a Roadmap toolbar button (Enabled/Disabled) that toggles the roadmap view in the extension. | packages/vscode/src/, packages/vscode/package.json | pl_01KV3GY83XJXDAGJ87HK64MRXS | IN8 |
+| ✅ | 2 | Render the roadmap panel: future (top), present (middle), history (bottom), with blocked-on annotations. | packages/vscode/src/ | step-1 | IN8 |
+| ✅ | 3 | When Roadmap is enabled, the existing filter offers all / history / roadmap instead of the current status filter. | packages/vscode/src/ | step-2 | IN9 |
+| ✅ | 4 | Drag-to-reorder among independent threads writes soft priority via loom_set_priority; a drag violating a hard depends_on edge is refused. | packages/vscode/src/ | step-2 | IN10 |
+| ✅ | 5 | When Roadmap is enabled, the History band can group shipped plans by thread via an opt-in toggle (default flat, newest-first), mirroring the CLI's `loom roadmap --group-by-thread`. | packages/vscode/src/, packages/vscode/package.json | roadmap-panel | IN8 |
 ---
 
 ### Legend
@@ -87,3 +95,8 @@ When the Roadmap toggle is enabled, the filter control switches its options to `
 ### Step 4 — Drag-to-reorder → priority
 
 Drag-to-reorder calls loom_set_priority for the moved thread. The hard dependency graph is inviolable: a drag that would place a thread before something it depends on is refused (client pre-check for instant feedback + server-side validation in loom_set_thread_deps/loom_set_priority as the backstop). Reorder = setting priority within the slack the dependencies allow, never overriding them.
+
+<!-- step:history-group-by-thread-toggle -->
+### Step 5 — History group-by-thread toggle
+
+Add a `Group History by Thread` toolbar toggle, visible only when the Roadmap view is enabled. Off (default): the History band renders shipped plans as a flat newest-first list (`weave/thread · date · plan title`). On: shipped plans are grouped under their `weave/thread` heading, each group's plans newest-first. Pure rendering over `loom://roadmap`'s `history` (each `ShippedPlan` already carries `weaveId`/`threadId`) — no read-model change, mirroring `packages/cli/src/commands/roadmap.ts`'s `--group-by-thread`.

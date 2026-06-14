@@ -1,5 +1,25 @@
 # Loom VS Code Extension — Changelog
 
+## [1.8.0] - 2026-06-14
+
+### Added
+- **Roadmap view.** A new **Show Roadmap** toolbar toggle re-lays the Threads tree into three
+  derived bands — **Future** (pending/blocked threads in dependency-then-priority order, each
+  showing what it is **blocked on**, across weaves), **Present** (active/implementing), and
+  **History** (shipped plans, newest first). A pure renderer over the `loom://roadmap` read-model —
+  no hand-authored roadmap list anywhere.
+  - In roadmap mode the **status filter folds** to **all / roadmap / history**.
+  - The **History** band has an opt-in **Group History by Thread** toggle (default flat, newest-first).
+  - **Drag-to-reorder** a Future/Present thread within its band writes soft `priority` (via
+    `loom_set_priority`); a drop that would place a thread before one it `depends_on` is refused —
+    the hard dependency graph is inviolable.
+
+### Notes
+- Lockstep 1.8.0 bump with the CLI and the rest of the monorepo. The roadmap's engine — the
+  `thread.md` doc type, the pure `buildRoadmap` read-model, `loom://roadmap`, the thread write tools
+  (`loom_create_thread` / `loom_set_priority` / `loom_set_thread_deps`), `loom migrate`, and the
+  `loom roadmap` CLI — ships in core/fs/app/mcp/cli; the extension is the human surface over it.
+
 ## [1.7.0] - 2026-06-13
 
 ### Changed

@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-06-14
+
+### Added
+- **Derived cross-weave Roadmap — the project's forward view, computed not authored.** Loom's "state is derived" promise held *within* a thread but broke at the project level: there was no view of where the whole project stands, so the gap got filled by a hand-maintained roadmap markdown — the exact "hand-written active-work pointer" anti-pattern Loom tells the AI not to trust. This release closes it with one pure read-model, `buildRoadmap(state)` in `core`, surfaced through every layer:
+  - **`thread.md` — a new authored-only doc type.** One flat manifest per thread (following the `req.md` precedent), holding only a stable `th_` ULID identity, a soft `priority`, and hard `depends_on` edges. **No `status` field** — status is always derived, never stored. `depends_on` references other threads by ULID (never folder path), so it resolves **cross-weave** and survives renames/moves.
+  - **The headline signal — cross-weave `blocked on`.** For any thread, the roadmap shows whether it is waiting on another unfinished thread *across weave boundaries* — the one fact a human can't compute by hand. Plus topological-then-`priority` ordering, done-plan history (keyed on completed plans' dated done-docs, newest first), and cycle / dangling-dep / missing-manifest diagnostics that report rather than crash.
+  - **`loom roadmap` CLI** — a three-band ASCII renderer (future / present / history), with `--group-by-thread` to group the shipped history by thread.
+  - **`loom migrate`** — backfills `thread.md` for every existing thread (fresh `th_` ULID), idempotent and `--dry-run` capable, shipped in the `loom` binary so every downstream install gets the same backfill on upgrade.
+  - **`loom://roadmap` MCP resource** + roadmap diagnostics folded into `loom://diagnostics` / `validate-state`. Validated write tools `loom_create_thread`, `loom_set_priority`, `loom_set_thread_deps` (refuse cycles / unknown targets / self-deps at write time); the first `loom_create_*` into a new thread auto-scaffolds its `thread.md`, making "every thread has a manifest" an invariant.
+  - **VS Code Roadmap view.** A toolbar toggle re-lays the Threads tree into Future / Present / History bands (each blocked node showing what it's blocked on); the status filter folds to **all / roadmap / history**; the History band has an opt-in **group-by-thread** toggle; and drag-to-reorder within a band writes soft `priority` — refusing any drop that would violate a hard `depends_on` edge. The dependency graph is inviolable; `priority` only orders the slack it leaves free.
+
+### Fixed
+- **`loom roadmap` (and any state-backed CLI resource read) no longer hangs on exit.** The `loom://roadmap` / `loom://state` handlers start a recursive `fs.watch` via `initStateCache`; the in-process MCP client closed its transports but not the watcher, so the Node event loop stayed alive and the command never exited. Added `closeStateCache()`, called on client close — the long-running `loom mcp` keeps its watcher, while the CLI now exits cleanly. Latent for every state-backed CLI resource read, not just roadmap.
+
 ## [1.7.0] - 2026-06-13
 
 ### Changed
@@ -441,7 +455,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/reslava/loom/releases/tag/v1.8.0
 [1.6.0]: https://github.com/reslava/loom/releases/tag/v1.6.0
 [1.5.0]: https://github.com/reslava/loom/releases/tag/v1.5.0
 [1.4.0]: https://github.com/reslava/loom/releases/tag/v1.4.0

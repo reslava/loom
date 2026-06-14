@@ -83,6 +83,7 @@ loom/
   {weave}/                     ← workstream (e.g. "auth", "payment-system")
     ctx.md                     ← AI-generated weave summary
     {thread}/                  ← feature thread
+      thread.md                ← thread manifest (id + soft priority + depends_on) — powers the roadmap
       req.md                   ← locked requirements (include / exclude / constrain), loaded first
       {thread}-idea.md         ← raw concept
       {thread}-design.md       ← design decisions and conversation log
@@ -213,6 +214,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `loom://plan/{id}` | Plan doc with parsed steps array |
 | `loom://requires-load/{id}` | Recursively resolved context chain |
 | `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) — read it before searching for a tool, then `ToolSearch select:<name>` |
+| `loom://roadmap` | Derived cross-weave roadmap: future / present / history bands + cross-weave **blocked-on** + cycle/dangling diagnostics |
 | `loom://diagnostics` | Broken links, dangling references |
 
 ### Key tools (state mutations)
@@ -304,6 +306,8 @@ reads everything in its `requires_load` chain. It can't miss context it doesn't 
 The VS Code extension is the **human surface** over the same document graph.
 
 The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads → idea / design / plans / chats / done) and a **Context** view showing exactly what the AI will receive for the selected node. Full walkthrough in the **[Extension User Guide](./docs/EXTENSION_USER_GUIDE.md)**.
+
+A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-weave roadmap — **Future** (pending/blocked, dependency-ordered, each showing what it's blocked on), **Present** (active/implementing), and **History** (shipped plans) — with drag-to-reorder writing soft `priority`. No hand-maintained roadmap list; the whole view is computed from the documents.
 
 | Button | What it does |
 |--------|-------------|

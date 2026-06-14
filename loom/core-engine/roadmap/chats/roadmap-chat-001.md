@@ -2,13 +2,14 @@
 type: chat
 id: ch_01KV3C6SKC40ED9K818CV3R6JR
 title: roadmap Chat
-status: active
+status: done
 created: "2026-06-14T00:00:00.000Z"
-version: 1
+updated: 2026-06-14
+version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 15
+last_ai_block: 16
 ---
 # roadmap Chat
 
@@ -376,3 +377,18 @@ agree?
 Agree — that's the right safeguard: a clean code-only commit as a checkpoint, then the bulk data migration as a separate commit, so if the 87-file backfill ever looks wrong you can diff/revert it independently of the implementation. Executing in order: commit+push (code), `loom migrate`, check, commit+push (manifests).
 
 One heads-up before I stage: `git status` at session start also had pre-existing **unrelated** edits (`requirements-driven-development` chat/done/plan files). "Commit all" will sweep those into the pre-migration commit too. I'll check the status and, if it's just those + my roadmap work, fold them in (solo-dev, main, all-in as you said) — but I'll show you exactly what landed. Proceeding.
+
+## AI:
+
+Safeguard sequence complete, plus a bug you caught along the way:
+
+1. **Pre-migration checkpoint** — committed + pushed: `docs(rdd)` (stray edits) and `feat(roadmap)` (Plan-1) → `36aa320`.
+2. **Migration run** — `loom migrate` created **87** `thread.md` manifests (fresh `th_` ULIDs).
+3. **Check caught a real hang** — `loom roadmap` printed then never exited. Root cause: the `loom://roadmap`/`loom://state` handlers call `initStateCache`, which starts a recursive `fs.watch`; the CLI's `connectLocalMcp.close()` tore down the transports but **not** the watcher, so the Node event loop stayed alive. Latent for *any* state-backed CLI resource read, not just roadmap. Fixed at the root: added `closeStateCache()` and call it on client close (the long-running `loom mcp` keeps its watcher; the CLI now exits in ~1.5s). Killed the leaked processes.
+4. **Post-migration** — committed + pushed: `fix(cli)` (hang) and `chore(roadmap)` (87 manifests) → `cb8daa0`.
+
+`loom roadmap` now: 0 missing-manifest diagnostics, exits clean, renders the full cross-weave future/present/history.
+
+**Plan-1 shipped end-to-end and on `main`.** Plan-2 (extension surface) remains `draft`, unblocked.
+
+Next: waiting on whether to start Plan-2.

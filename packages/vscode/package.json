@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",
@@ -375,6 +375,30 @@
         "title": "Sync Doc → Tree (disabled)",
         "category": "Loom",
         "icon": "$(eye-closed)"
+      },
+      {
+        "command": "loom.toggleRoadmap",
+        "title": "Show Roadmap",
+        "category": "Loom",
+        "icon": "$(map)"
+      },
+      {
+        "command": "loom.toggleRoadmapOff",
+        "title": "Show Threads",
+        "category": "Loom",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "loom.toggleGroupHistory",
+        "title": "Group History by Thread",
+        "category": "Loom",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "loom.toggleGroupHistoryOff",
+        "title": "Flatten History",
+        "category": "Loom",
+        "icon": "$(list-tree)"
       }
     ],
     "configuration": {
@@ -473,13 +497,33 @@
     "menus": {
       "view/title": [
         {
+          "command": "loom.toggleRoadmap",
+          "when": "view == loom.threads && loom.workspaceInitialized && !loom.roadmapEnabled",
+          "group": "navigation@0"
+        },
+        {
+          "command": "loom.toggleRoadmapOff",
+          "when": "view == loom.threads && loom.roadmapEnabled",
+          "group": "navigation@0"
+        },
+        {
+          "command": "loom.toggleGroupHistory",
+          "when": "view == loom.threads && loom.roadmapEnabled && !loom.groupHistoryByThread",
+          "group": "navigation@01"
+        },
+        {
+          "command": "loom.toggleGroupHistoryOff",
+          "when": "view == loom.threads && loom.roadmapEnabled && loom.groupHistoryByThread",
+          "group": "navigation@01"
+        },
+        {
           "command": "loom.weaveCreate",
-          "when": "view == loom.threads && loom.workspaceInitialized",
+          "when": "view == loom.threads && loom.workspaceInitialized && !loom.roadmapEnabled",
           "group": "navigation@1"
         },
         {
           "command": "loom.setGrouping",
-          "when": "view == loom.threads",
+          "when": "view == loom.threads && !loom.roadmapEnabled",
           "group": "navigation@2"
         },
         {
@@ -489,7 +533,7 @@
         },
         {
           "command": "loom.setTextFilter",
-          "when": "view == loom.threads",
+          "when": "view == loom.threads && !loom.roadmapEnabled",
           "group": "navigation@4"
         },
         {

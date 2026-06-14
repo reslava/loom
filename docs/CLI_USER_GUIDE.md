@@ -138,6 +138,8 @@ Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent —
 |---------|-------------|
 | `loom status [weave-id] [--verbose] [--json] [--filter <…>] [--sort <…>]` | Show derived state of weaves/threads. |
 | `loom validate [weave-id] [--all] [--verbose]` | Check document integrity, links, and staleness. |
+| `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap: future (pending/blocked, dependency + priority order, **blocked-on** annotated), present (active/implementing), and history (shipped plans, newest first). Pure read. |
+| `loom migrate [--dry-run]` | Backfill the `thread.md` manifest (`th_` ULID + soft `priority` + `depends_on`) for any thread missing one — required for the roadmap. Idempotent; `--dry-run` shows what it would create. |
 
 ### Documents (manual CRUD)
 

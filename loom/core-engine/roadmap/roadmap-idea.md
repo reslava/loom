@@ -2,10 +2,10 @@
 type: idea
 id: id_01KV3GC10MFGWMKQ84JEGYQEQW
 title: Derived Roadmap
-status: active
+status: done
 created: "2026-06-14T00:00:00.000Z"
 updated: 2026-06-14
-version: 2
+version: 3
 tags: []
 parent_id: null
 requires_load: []

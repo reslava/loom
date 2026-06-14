@@ -11,6 +11,7 @@ import { DesignDoc } from '@reslava-loom/core/dist/entities/design';
 import { ChatDoc } from '@reslava-loom/core/dist/entities/chat';
 import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
 import { getWeaveStatus, getThreadStatus, getReqStaleDocs } from '@reslava-loom/core/dist/derived';
+import { RoadmapView, RoadmapNode, ShippedPlan, RoadmapStatus, DEFAULT_ROADMAP_PRIORITY } from '@reslava-loom/core/dist/derived';
 import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
 import { ViewStateManager } from '../view/viewStateManager';
 import { GroupingMode, ViewState } from '../view/viewState';
@@ -21,6 +22,10 @@ export interface TreeNode extends vscode.TreeItem {
     weaveId?: string;
     threadId?: string;
     doc?: Document;
+    /** Roadmap future/present thread node — carries the read-model node for drag-reorder. */
+    roadmap?: RoadmapNode;
+    /** Which roadmap band this node lives in (drag-reorder is within a single band). */
+    roadmapBand?: 'future' | 'present';
 }
 
 export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
@@ -33,6 +38,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private state: LoomState | null = null;
     private lastGoodState: LoomState | null = null;
     private workspaceRoot: string | undefined;
+    /** Last rendered roadmap — the drag-reorder controller reads its band ordering from here. */
+    private lastRoadmap: RoadmapView | null = null;
 
     private filePathToNode = new Map<string, TreeNode>();
     private nodeToParent = new Map<TreeNode, TreeNode>();
@@ -55,6 +62,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     getState(): LoomState | null { return this.state; }
     getLoomRoot(): string | undefined { return this.workspaceRoot; }
+    getRoadmap(): RoadmapView | null { return this.lastRoadmap; }
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -141,6 +149,15 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             }
 
             const viewState = this.viewStateManager.getState();
+
+            // Roadmap view: re-lay the tree out into future/present/history bands.
+            if (viewState.roadmapEnabled) {
+                const nodes = await this.getRoadmapChildren(viewState);
+                this.buildNodeMaps(nodes, undefined);
+                pendingCallbacks.forEach(cb => cb());
+                return nodes;
+            }
+
             const filtered = this.filterWeaves(this.state.weaves, viewState);
 
             const globalDocs = (this.state as any).globalDocs as Document[] | undefined;
@@ -318,6 +335,157 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 if (w.id === 'refs') return true;
                 return w.threads.length > 0;
             });
+    }
+
+    // ---------------------------------------------------------------------
+    // Roadmap view — a thin renderer over the loom://roadmap read-model. When
+    // the Roadmap toggle is on, the tree is re-laid out into three bands:
+    // Future (pending/blocked, dependency+priority order), Present
+    // (active/implementing), and History (shipped plans). No derivation here.
+    // ---------------------------------------------------------------------
+
+    private static readonly ROADMAP_STATUS_ICON: Record<RoadmapStatus, string> = {
+        done: 'pass-filled',
+        implementing: 'sync',
+        active: 'circle-filled',
+        pending: 'circle-outline',
+        blocked: 'error',
+    };
+
+    private async getRoadmapChildren(viewState: ViewState): Promise<TreeNode[]> {
+        let roadmap: RoadmapView;
+        try {
+            const json = await getMCP(this.workspaceRoot!).readResource('loom://roadmap');
+            roadmap = JSON.parse(json) as RoadmapView;
+        } catch (e: any) {
+            this.lastRoadmap = null;
+            return [this.messageNode(`Roadmap unavailable: ${e.message}`)];
+        }
+        this.lastRoadmap = roadmap;
+
+        // ULID → "weave/thread" label, for rendering blocked-on targets by name.
+        const label = new Map<string, string>();
+        for (const n of [...roadmap.present, ...roadmap.future]) {
+            if (n.ulid) label.set(n.ulid, `${n.weaveId}/${n.threadId}`);
+        }
+        const nameOf = (u: string) => label.get(u) ?? u;
+
+        const nodes: TreeNode[] = [];
+
+        if (roadmap.diagnostics.length > 0) {
+            const n = roadmap.diagnostics.length;
+            const warn = new vscode.TreeItem(
+                `⚠️ ${n} roadmap diagnostic${n === 1 ? '' : 's'}`,
+                vscode.TreeItemCollapsibleState.None,
+            );
+            warn.contextValue = 'roadmap-warning';
+            warn.iconPath = new vscode.ThemeIcon('warning');
+            warn.tooltip = roadmap.diagnostics.map(d => `${d.kind}: ${d.detail}`).join('\n');
+            nodes.push({ ...warn });
+        }
+
+        const band = viewState.roadmapBand;
+        if (band === 'all' || band === 'roadmap') {
+            nodes.push(this.createRoadmapBand('Future', 'future', roadmap.future, nameOf));
+            nodes.push(this.createRoadmapBand('Present', 'present', roadmap.present, nameOf));
+        }
+        if (band === 'all' || band === 'history') {
+            nodes.push(this.createHistoryBand(roadmap.history, viewState.groupHistoryByThread));
+        }
+        return nodes;
+    }
+
+    private createRoadmapBand(
+        label: string,
+        bandKey: 'future' | 'present',
+        bandNodes: RoadmapNode[],
+        nameOf: (u: string) => string,
+    ): TreeNode {
+        const node = new vscode.TreeItem(`${label}  (${bandNodes.length})`, vscode.TreeItemCollapsibleState.Expanded);
+        node.contextValue = `roadmap-band-${bandKey}`;
+        node.iconPath = new vscode.ThemeIcon(bandKey === 'future' ? 'milestone' : 'play-circle');
+        const children = bandNodes.length > 0
+            ? bandNodes.map(n => this.createRoadmapNode(n, bandKey, nameOf))
+            : [this.messageNode('(none)')];
+        return { ...node, children };
+    }
+
+    private createRoadmapNode(n: RoadmapNode, bandKey: 'future' | 'present', nameOf: (u: string) => string): TreeNode {
+        const node = new vscode.TreeItem(`${n.weaveId}/${n.threadId}`, vscode.TreeItemCollapsibleState.None);
+        const blocked = n.blockedOn.length ? `⛔ blocked on ${n.blockedOn.map(nameOf).join(', ')}` : '';
+        const prio = n.priority !== DEFAULT_ROADMAP_PRIORITY ? `p${n.priority}` : '';
+        node.description = [n.status, prio, blocked].filter(Boolean).join(' · ');
+        node.iconPath = new vscode.ThemeIcon(LoomTreeProvider.ROADMAP_STATUS_ICON[n.status] ?? 'circle-outline');
+        node.tooltip = `${n.title} — ${n.status}${blocked ? `\n${blocked}` : ''}`;
+        node.contextValue = 'roadmap-thread';
+
+        const docPath = this.resolveThreadDocPath(n.weaveId, n.threadId);
+        if (docPath) {
+            node.command = { command: 'vscode.open', title: 'Open', arguments: [vscode.Uri.file(docPath)] };
+        }
+        return { ...node, weaveId: n.weaveId, threadId: n.threadId, roadmap: n, roadmapBand: bandKey, children: [] };
+    }
+
+    private createHistoryBand(history: ShippedPlan[], groupByThread: boolean): TreeNode {
+        const day = (d: string) => (d || '').slice(0, 10);
+        let children: TreeNode[];
+        if (history.length === 0) {
+            children = [this.messageNode('(none)')];
+        } else if (groupByThread) {
+            const byThread = new Map<string, ShippedPlan[]>();
+            for (const h of history) {
+                const k = `${h.weaveId}/${h.threadId}`;
+                if (!byThread.has(k)) byThread.set(k, []);
+                byThread.get(k)!.push(h);
+            }
+            children = [...byThread.entries()].map(([k, items]) => {
+                const sec = new vscode.TreeItem(k, vscode.TreeItemCollapsibleState.Expanded);
+                sec.contextValue = 'roadmap-history-thread';
+                sec.iconPath = new vscode.ThemeIcon('git-commit');
+                sec.description = `${items.length} shipped`;
+                return { ...sec, children: items.map(h => this.createShippedPlanNode(h, day, false)) };
+            });
+        } else {
+            children = history.map(h => this.createShippedPlanNode(h, day, true));
+        }
+        const node = new vscode.TreeItem(`History  (${history.length})`, vscode.TreeItemCollapsibleState.Expanded);
+        node.contextValue = 'roadmap-band-history';
+        node.iconPath = new vscode.ThemeIcon('history');
+        return { ...node, children };
+    }
+
+    private createShippedPlanNode(h: ShippedPlan, day: (d: string) => string, showThread: boolean): TreeNode {
+        const node = new vscode.TreeItem(h.planTitle, vscode.TreeItemCollapsibleState.None);
+        node.description = showThread ? `${day(h.date)} · ${h.weaveId}/${h.threadId}` : day(h.date);
+        node.iconPath = new vscode.ThemeIcon('check-all');
+        node.contextValue = 'roadmap-shipped-plan';
+        node.tooltip = `${h.planTitle}\nshipped ${day(h.date)} — ${h.weaveId}/${h.threadId}`;
+        const planPath = this.resolvePlanPath(h.planId);
+        if (planPath) {
+            node.command = { command: 'vscode.open', title: 'Open Plan', arguments: [vscode.Uri.file(planPath)] };
+        }
+        return { ...node, weaveId: h.weaveId, threadId: h.threadId, children: [] };
+    }
+
+    private findThreadInState(weaveId: string, threadId: string): Thread | undefined {
+        return this.state?.weaves.find(w => w.id === weaveId)?.threads.find(t => t.id === threadId);
+    }
+
+    /** Best-effort path to open for a roadmap thread node: design, then idea, then manifest. */
+    private resolveThreadDocPath(weaveId: string, threadId: string): string | undefined {
+        const t = this.findThreadInState(weaveId, threadId);
+        const doc = t?.design ?? t?.idea ?? t?.manifest;
+        return (doc as any)?._path;
+    }
+
+    private resolvePlanPath(planId: string): string | undefined {
+        for (const w of this.state?.weaves ?? []) {
+            for (const t of w.threads) {
+                const p = t.plans.find(pl => pl.id === planId);
+                if (p) return (p as any)._path;
+            }
+        }
+        return undefined;
     }
 
     private groupWeaves(weaves: Weave[], grouping: GroupingMode): TreeNode[] {

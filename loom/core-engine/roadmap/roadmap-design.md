@@ -2,10 +2,10 @@
 type: design
 id: de_01KV3GPTMNXT66C4N73WAFN7ZW
 title: Derived Roadmap
-status: active
+status: done
 created: "2026-06-14T00:00:00.000Z"
 updated: 2026-06-14
-version: 4
+version: 5
 tags: []
 parent_id: id_01KV3GC10MFGWMKQ84JEGYQEQW
 requires_load: []

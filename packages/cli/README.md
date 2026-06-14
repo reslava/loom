@@ -102,6 +102,7 @@ designing, writing code for a step) is done through your MCP agent.
 |---------|-------------|
 | `loom status [weave-id] [--verbose] [--json] [--filter <c>] [--sort <o>]` | Show derived state of weaves/threads. |
 | `loom validate [weave-id] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
+| `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — future (pending/blocked, dependency + priority order, blocked-on annotated), present (active/implementing), and history (shipped plans, newest first). Pure read. |
 
 ### MCP surface & queries
 
@@ -145,6 +146,7 @@ These event/CRUD commands change document **state** only.
 
 | Command | Description |
 |---------|-------------|
+| `loom migrate [--dry-run]` | Backfill `thread.md` (a fresh `th_` ULID + title + default priority) for every thread folder missing one — needed for the derived roadmap. Idempotent (skips threads that already have a manifest); `--dry-run` prints what it would create and touches nothing. |
 | `loom migrate-plan-steps [plan-id] [--dry-run]` | Migrate legacy plans (steps in the body table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched). |
 
 ---

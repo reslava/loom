@@ -64,12 +64,25 @@ A tree: **weaves** → **threads** → documents (idea, design, plans, chats, do
 
 | Toolbar button | What it does |
 |----------------|--------------|
+| **Show Roadmap** | Re-lay the tree into the derived cross-weave roadmap (future / present / history). See [§3.1](#31-the-roadmap-view). |
 | **New Weave** | Create a new project area. |
 | **Set Grouping** | Group the tree by type / thread / status / release. |
 | **Filter by status** / **Filter by text** | Narrow what's shown. |
 | **Toggle Archived** | Show or hide archived items. |
 | **Sync Doc → Tree** | When on, selecting a file in the editor highlights it in the tree. |
 | **Refresh** | Re-read state. |
+
+### 3.1 The Roadmap view
+
+**Show Roadmap** swaps the weave tree for the **derived cross-weave roadmap** — computed from the documents, never a hand-maintained list. Three bands:
+
+- **Future** — pending and blocked threads, in dependency-then-`priority` order. Each blocked thread shows **what it's blocked on** — including a thread in *another weave*, the one fact you can't eyeball by hand.
+- **Present** — threads that are active or implementing.
+- **History** — shipped plans, newest first. A **Group History by Thread** toggle (roadmap-mode only) groups them under their thread.
+
+In roadmap mode the status filter folds to **all / roadmap / history**, and you can **drag a Future/Present thread to reorder it** — that writes its soft `priority`. A drag that would place a thread before one it depends on is refused: the hard dependency graph always wins; `priority` only orders the slack it leaves free.
+
+> Each thread needs a `thread.md` manifest (`th_` ULID + `priority` + `depends_on`) to appear. New threads get one automatically; for a project created before this feature, run `loom migrate` once to backfill them (the roadmap also flags any that are missing).
 
 ### Context view
 
