@@ -5,7 +5,7 @@ title: Derived Roadmap — Requirements
 status: locked
 created: "2026-06-14T00:00:00.000Z"
 updated: 2026-06-14
-version: 1
+version: 2
 tags: []
 parent_id: id_01KV3GC10MFGWMKQ84JEGYQEQW
 requires_load: []
@@ -20,10 +20,10 @@ requires_load: []
 - `IN4` `loom://roadmap` MCP resource + cycle/dangling/missing-manifest findings folded into `loom://diagnostics` and `validate-state`
 - `IN5` Validated thread write tools (`loom_create_thread`, `loom_set_priority`, `loom_set_thread_deps`) plus first-`loom_create_*` auto-scaffold seam
 - `IN6` `loom migrate` backfill command — idempotent, `--dry-run`, shipped in the `loom` binary for downstream installs
-- `IN7` `loom roadmap` CLI — ASCII future / present / history renderer
-- `IN8` Extension Roadmap toolbar toggle + panel (future / present / history bands)
-- `IN9` Filter folds to all / history / roadmap when Roadmap is enabled
-- `IN10` Drag-to-reorder writes soft `priority` among dependency-free slack
+- `IN7` `loom roadmap` CLI — ASCII two-band renderer: one **Roadmap** band (present+future in a single topo+priority order, status + blocked-on per row) and **History**
+- `IN8` Extension Roadmap toolbar toggle + panel: a single drag-orderable **Roadmap** node (present+future in one order, status per-row) and a separate **History** band
+- `IN9` Filter folds to all / roadmap / history when Roadmap is enabled
+- `IN10` Drag-to-reorder writes soft `priority` among dependency-free slack, spanning the whole Roadmap list regardless of a thread's status
 
 ### ❌ Excluded
 
@@ -38,4 +38,4 @@ requires_load: []
 - `C2` `depends_on` references threads by `th_` ULID, never by folder path (rename / move / cross-weave safe)
 - `C3` `buildRoadmap` is pure (no IO) and lives in `core`; every delivery layer is a thin renderer over it
 - `C4` `thread.md` stays out of the `Document` union (never counts as a deliverable) and has no staleness
-- `C5` Re-deriving the roadmap over unchanged docs is deterministic
+- `C5` Re-deriving the roadmap over unchanged docs is deterministic — present+future resolve to one canonical ordered `roadmap[]`, status is per-node and never an ordering boundary

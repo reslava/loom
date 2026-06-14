@@ -10,9 +10,10 @@ const ROADMAP_MIME = 'application/vnd.loom.roadmap-thread';
 const PRIORITY_SPACING = 10;
 
 /**
- * Drag-to-reorder in the Roadmap view (Plan-2 Step 4). Dragging a Future or
- * Present thread onto another in the SAME band rewrites soft `priority` (via
- * loom_set_priority) so the dropped thread takes the target's slot.
+ * Drag-to-reorder in the Roadmap view. The Roadmap band is one list (present +
+ * future in a single dependency+priority order); dragging a thread onto another
+ * rewrites soft `priority` (via loom_set_priority) so the dropped thread takes
+ * the target's slot — reordering spans the whole list regardless of status.
  *
  * The hard dependency graph is inviolable: a drop that would place a thread
  * before one it depends on (or before a dependent of it) is refused with a
@@ -32,43 +33,40 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
     handleDrag(source: readonly TreeNode[], dataTransfer: vscode.DataTransfer): void {
         if (!this.viewStateManager.getState().roadmapEnabled) return;
         const node = source[0];
-        if (!node?.roadmap?.ulid || !node.roadmapBand) return;
+        if (!node?.roadmap?.ulid) return;
         dataTransfer.set(
             ROADMAP_MIME,
-            new vscode.DataTransferItem({ ulid: node.roadmap.ulid, band: node.roadmapBand }),
+            new vscode.DataTransferItem({ ulid: node.roadmap.ulid }),
         );
     }
 
     async handleDrop(target: TreeNode | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
         const item = dataTransfer.get(ROADMAP_MIME);
         if (!item) return;
-        const dragged = item.value as { ulid: string; band: 'future' | 'present' };
+        const dragged = item.value as { ulid: string };
 
         const roadmap = this.treeProvider.getRoadmap();
         const root = this.treeProvider.getLoomRoot();
         if (!roadmap || !root) return;
 
-        const band: RoadmapNode[] = dragged.band === 'future' ? roadmap.future : roadmap.present;
-        const source = band.find(n => n.ulid === dragged.ulid);
+        const list: RoadmapNode[] = roadmap.roadmap;
+        const source = list.find(n => n.ulid === dragged.ulid);
         if (!source) return;
 
-        // Resolve the drop position. Onto a node in the same band → before it;
-        // onto that band's header → append to the end.
+        // Resolve the drop position. Onto another roadmap thread → before it;
+        // onto the Roadmap band header → append to the end.
         let targetUlid: string | undefined;
-        if (target?.roadmap?.ulid && target.roadmapBand === dragged.band) {
+        if (target?.roadmap?.ulid) {
             targetUlid = target.roadmap.ulid;
-        } else if (target?.contextValue === `roadmap-band-${dragged.band}`) {
+        } else if (target?.contextValue === 'roadmap-band-roadmap') {
             targetUlid = undefined;
-        } else if (target?.roadmapBand && target.roadmapBand !== dragged.band) {
-            vscode.window.showWarningMessage('Roadmap reorder works within a single band (Future or Present).');
-            return;
         } else {
             return;
         }
         if (targetUlid === source.ulid) return;
 
-        // New band order: source removed, then re-inserted before the target.
-        const without = band.filter(n => n.ulid !== source.ulid);
+        // New order: source removed, then re-inserted before the target.
+        const without = list.filter(n => n.ulid !== source.ulid);
         const at = targetUlid ? without.findIndex(n => n.ulid === targetUlid) : without.length;
         const reordered = [...without];
         reordered.splice(at < 0 ? without.length : at, 0, source);

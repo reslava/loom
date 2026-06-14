@@ -4,12 +4,12 @@ id: ch_01KV3NFS4DHC6ERP7QF5F97YFZ
 title: Phase 2 - Extension Surface
 status: done
 created: "2026-06-14T00:00:00.000Z"
-updated: 2026-06-14
+updated: "2026-06-14T00:00:00.000Z"
 version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 6
+last_ai_block: 8
 ---
 # Phase 2 - Extension Surface
 
@@ -106,3 +106,30 @@ bump 1.8.0
 commit, push, tag
 
 check if i miss some step
+
+
+## AI:
+
+**v1.8.0 is shipped and published.** Full release checklist + the answer to "did I miss a step":
+
+## Release checklist — v1.8.0
+
+| Step | Status |
+|---|---|
+| Feature implemented (Plan-2, all 5 steps ✅, plan auto-done) | ✅ |
+| `build-all` + vscode `tsc --noEmit` + full `test-all` green | ✅ |
+| Root `CHANGELOG.md` — 1.8.0 section | ✅ |
+| `packages/vscode/CHANGELOG.md` — hand-added 1.8.0 (guard requires both) | ✅ |
+| READMEs — root, cli, vscode | ✅ |
+| Docs — USER_GUIDE, EXTENSION_USER_GUIDE, CLI_USER_GUIDE | ✅ |
+| Version bump — all 7 `package.json` → 1.8.0 (lockstep) + CHANGELOG link refs | ✅ |
+| Commit (incl. your done-marked docs + roadmap chat/done) | ✅ `db11647` |
+| Annotated tag `v1.8.0` + pushed main + **tag pushed explicitly** | ✅ |
+| Release CI — npm · Marketplace (vsce) · Open VSX · GitHub release | ✅ all green |
+
+## The step you'd have missed
+The **canonical `loom/refs/` reference docs** weren't updated for the roadmap (a Plan-1 gap, not just Plan-2): `cli-commands-reference` lacked `loom roadmap`/`loom migrate`, `architecture-reference`'s doc-type table lacked `thread` (and `req`), and `vscode-commands-reference` lacked the new toggles. Fixed and pushed in a follow-up `docs(refs)` commit (`18d098d`). These aren't in the published packages, so doing it after the tag was fine — the 1.8.0 artifacts are correct.
+
+## Two non-blocking heads-ups
+- **CI Node-20 deprecation warnings** — `upload/download-artifact@v4` on the release workflow run on Node 20, which GitHub forces to Node 24 on **2026-06-16**. Worth a small `.github/workflows` bump sometime; it didn't affect this release. *(Now being addressed.)*
+- The `.vsix` files in `packages/vscode/` are gitignored (not committed) — the Marketplace/Open VSX builds come from CI, so nothing stale shipped.

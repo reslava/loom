@@ -5,7 +5,7 @@ title: Derived Roadmap
 status: done
 created: "2026-06-14T00:00:00.000Z"
 updated: 2026-06-14
-version: 5
+version: 10
 tags: []
 parent_id: id_01KV3GC10MFGWMKQ84JEGYQEQW
 requires_load: []
@@ -86,15 +86,14 @@ interface RoadmapNode {
   priority: number;
 }
 interface RoadmapView {
-  future: RoadmapNode[];     // pending/blocked, topo+priority order
-  present: RoadmapNode[];    // active/implementing
+  roadmap: RoadmapNode[];    // present+future in ONE topo+priority order — the drag-orderable forward backlog (see decision 2026-06-14)
   history: ShippedPlan[];    // done plans, newest first
   diagnostics: RoadmapDiagnostic[]; // cycles, dangling deps
 }
 ```
 
 - **Status overlay.** Start from the existing `getThreadStatus(thread)` (intra-thread: implementing / active / done / blocked-by-own-plan). Then overlay **dependency-blocked**: a non-done thread with any `depends_on` target not `done` becomes `blocked`, with `blockedOn` naming which. This overlay *must* live in `buildRoadmap`, not in `getThreadStatus` — the latter takes one `Thread` and can't see other threads' status. `getThreadStatus` stays unchanged; the cross-thread judgment is roadmap-level. **This is the headline signal** — the one fact a human can't compute by hand.
-- **Order.** Topological sort (Kahn) over `depends_on`; among the ready set, sort by `priority` then a stable secondary (`created`, then slug) so the view is deterministic even when no priority is set.
+- **Order.** Topological sort (Kahn) over `depends_on`; among the ready set, sort by `priority` then a stable secondary (`created`, then slug) so the view is deterministic even when no priority is set. This single ordering **is** `roadmap[]` — present and future threads interleave in one list; status is per-node, never an ordering boundary, so the whole forward backlog is drag-reorderable as one. `future`/`present` are no longer separate fields; a consumer that wants a status band filters `roadmap[]` by `node.status`.
 - **History.** Keyed on **completed plans**, not threads. A plan reaching `status: done` is a shipping event; its date comes from the plan's done record. Newest-first, with `weaveId`/`threadId` so the renderer can group by thread.
 - **Diagnostics (don't crash, report).** Cycle in `depends_on` → emit a diagnostic, drop the cyclic edges from the ordering so the rest still renders. Dangling/archived target → `blockedOn` records it as a diagnostic; archived-as-done counts as satisfied. Surfaced through the existing `loom://diagnostics` resource + `validate-state` prompt, alongside broken-parent / req-coverage issues.
 
@@ -120,7 +119,7 @@ interface RoadmapView {
 
 ## 5. CLI — `loom roadmap`
 
-Thin renderer over `loom://roadmap`: prints an ASCII three-band view — **future** (pending/blocked, dependency-then-priority order, with `blocked on →` annotations), **present** (active/implementing), **history** (shipped plans newest-first, optionally `--group-by-thread`). This is the Plan-1 acceptance surface and is fully scriptable/testable headless.
+Thin renderer over `loom://roadmap`: prints an ASCII two-band view — **Roadmap** (`roadmap[]`: present+future in one topo+priority order, each row showing its status + `blocked on →` annotations) and **History** (shipped plans newest-first, optionally `--group-by-thread`). This is the Plan-1 acceptance surface and is fully scriptable/testable headless.
 
 ## 6. Build phases (→ two plans)
 
@@ -139,11 +138,21 @@ Thin renderer over `loom://roadmap`: prints an ASCII three-band view — **futur
 3. Filter folds to `all / history / roadmap` when enabled.
 4. Drag-to-reorder → `loom_set_priority`, refusing any drag that violates a hard `depends_on` edge (client pre-check + server validation).
 
+**Plan-3 — merge present+future into one orderable Roadmap view (this refine):**
+1. `core/derived.ts` — `RoadmapView.roadmap: RoadmapNode[]` (present+future, one topo+priority order); drop the `future`/`present` fields; unit tests for the combined ordering.
+2. `cli loom roadmap` — collapse the Future/Present bands into one **Roadmap** band over `roadmap[]`, History unchanged; output test.
+3. `vscode` — merge the two tree sections into one Roadmap node; drag-reorder spans the whole list (the existing `depends_on` pre-check generalizes); the All / Roadmap / History filter maps Roadmap → the single node.
+4. Docs/refs — USER_GUIDE / EXTENSION_USER_GUIDE / CLI_USER_GUIDE + the cli/vscode reference docs that describe three bands.
+
 ## Resolved decisions (Rafa, 2026-06-14 — "go with your leans")
 
 1. **Thread-manifest creation seam — ADOPTED: auto-scaffold.** The first `loom_create_*` into a brand-new `threadId` auto-scaffolds `thread.md`, making "every thread has a manifest" an invariant nobody can forget. Explicit `loom_create_thread` (empty threads) and `loom migrate` (existing threads) remain.
 2. **History "shipped" date — ADOPTED: the plan's done-doc `created`.** The done-doc is born when the plan closes, so its `created` is the shipping timestamp.
 3. **BLOCKED — ADOPTED: one merged `blocked` status** in `RoadmapNode`, with `blockedOn[]` as the discriminator (own-plan vs dependency cause stays legible). `ThreadStatus` is unchanged; the merge is roadmap-level.
+
+## Resolved decision (Rafa, 2026-06-14 — one orderable Roadmap node)
+
+**Present + Future merge into a single drag-orderable `roadmap[]` view; History stays separate.** Splitting active vs pending into two sibling nodes invented a drag barrier that is absent from the data: there is one authored `priority` per thread and one topo+priority order, so the active/pending split is a derived *status overlay*, not an ordering boundary. Two render bands made cross-status reordering impossible — e.g. positioning a pending thread that blocks an active thread's next phase. The read-model now exposes one canonical `roadmap[]`; `future`/`present` are dropped (no consumer kept them). Both CLI and extension render the single order; status stays legible per-row via its status icon / `blocked on` annotation. **(A) read-model field + CLI follows**, per Rafa.
 
 ## Trade-offs / risks
 

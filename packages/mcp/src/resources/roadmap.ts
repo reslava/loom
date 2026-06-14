@@ -6,9 +6,9 @@ import { initStateCache, getCachedState, setCachedState } from '../stateCache';
 
 /**
  * `loom://roadmap` — the derived cross-weave roadmap. A thin renderer over the
- * pure `buildRoadmap(state)` read-model in core: future (pending/blocked, topo +
- * priority order), present (active/implementing), history (shipped plans newest
- * first), and diagnostics (cycles, dangling deps, threads missing thread.md).
+ * pure `buildRoadmap(state)` read-model in core: roadmap (present+future in one
+ * topo + priority order, status per-node), history (shipped plans newest first),
+ * and diagnostics (cycles, dangling deps, threads missing thread.md).
  * Reuses the unfiltered full-state cache (the same hot path as loom://state).
  * Pure read — never mutates.
  */

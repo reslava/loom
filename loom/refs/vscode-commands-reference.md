@@ -52,7 +52,7 @@ All commands are under the **Loom** category (`Ctrl+Shift+P` → type `Loom:`). 
 | Show Roadmap / Show Threads | `loom.toggleRoadmap` / `loom.toggleRoadmapOff` |
 | Group History by Thread / Flatten History | `loom.toggleGroupHistory` / `loom.toggleGroupHistoryOff` |
 
-> **Roadmap view.** *Show Roadmap* re-lays the Threads tree into the derived cross-weave roadmap — **Future** (pending/blocked, dependency + `priority` order, each showing what it's blocked on), **Present** (active/implementing), **History** (shipped plans). In roadmap mode *Filter by status* folds to **all / roadmap / history**, the History band has a **Group History by Thread** toggle, and dragging a Future/Present thread within its band rewrites soft `priority` (`loom_set_priority`) — refusing any drop that violates a hard `depends_on` edge.
+> **Roadmap view.** *Show Roadmap* re-lays the Threads tree into the derived cross-weave roadmap — one **Roadmap** band (present + future in a single dependency + `priority` order, each row showing its status and, when blocked, what it's blocked on) and **History** (shipped plans). In roadmap mode *Filter by status* folds to **all / roadmap / history**, the History band has a **Group History by Thread** toggle, and dragging any Roadmap thread rewrites soft `priority` (`loom_set_priority`) — refusing any drop that violates a hard `depends_on` edge.
 
 ### Create documents
 

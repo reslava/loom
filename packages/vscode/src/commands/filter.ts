@@ -29,8 +29,8 @@ export async function setStatusFilter(
     if (manager.getState().roadmapEnabled) {
         const currentBand = manager.getState().roadmapBand;
         const bands: { label: string; description: string; band: RoadmapBand }[] = [
-            { label: '$(list-flat) All', description: 'Future + Present + History', band: 'all' },
-            { label: '$(milestone) Roadmap', description: 'Future + Present only (forward-looking)', band: 'roadmap' },
+            { label: '$(list-flat) All', description: 'Roadmap + History', band: 'all' },
+            { label: '$(milestone) Roadmap', description: 'Present + future only (forward-looking)', band: 'roadmap' },
             { label: '$(history) History', description: 'Shipped plans only', band: 'history' },
         ];
         const pickedBand = await vscode.window.showQuickPick(bands, {

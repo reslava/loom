@@ -60,7 +60,7 @@ In Loom, the durable artifacts of your work — what you want, how you'll build 
 
 The distinction between **ctx** and **reference** matters and is covered in §4.
 
-**The cross-weave roadmap.** Because each thread carries a `thread.md` (a soft `priority` and hard `depends_on` edges), Loom derives a project-wide **roadmap** with no hand-maintained list: where every thread sits (future / present / history) and — the part you can't compute by hand — which threads are **blocked on an unfinished thread in another weave**. See it with `loom roadmap` (terminal) or the **Show Roadmap** toggle in the extension. Status and ordering are derived; the only authored bits are `priority` and `depends_on`.
+**The cross-weave roadmap.** Because each thread carries a `thread.md` (a soft `priority` and hard `depends_on` edges), Loom derives a project-wide **roadmap** with no hand-maintained list: where every thread sits (one ordered Roadmap of present + future, plus History) and — the part you can't compute by hand — which threads are **blocked on an unfinished thread in another weave**. See it with `loom roadmap` (terminal) or the **Show Roadmap** toggle in the extension. Status and ordering are derived; the only authored bits are `priority` and `depends_on`.
 
 ---
 

@@ -60,7 +60,7 @@ Show derived state of weaves/threads.
 Validate document integrity, links, and staleness. `--all` validates every weave; `--verbose` shows detailed issues. (`--fix` is not yet implemented.)
 
 ### `loom roadmap [--group-by-thread]`
-Print the derived cross-weave roadmap (a thin renderer over the `loom://roadmap` resource): **future** (pending/blocked threads in dependency + `priority` order, each blocked node annotated with what it's blocked on), **present** (active/implementing), and **history** (shipped plans, newest first). `--group-by-thread` groups the history under each `weave/thread`. Pure read — never mutates; a thread missing its `thread.md` surfaces as a diagnostic, not a silent write.
+Print the derived cross-weave roadmap (a thin renderer over the `loom://roadmap` resource): one **Roadmap** band (present + future threads in a single dependency + `priority` order, each row showing its status and, when blocked, what it's blocked on) and **History** (shipped plans, newest first). `--group-by-thread` groups the history under each `weave/thread`. Pure read — never mutates; a thread missing its `thread.md` surfaces as a diagnostic, not a silent write.
 
 ---
 

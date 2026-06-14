@@ -8,8 +8,8 @@ const STATUS_ICON: Record<string, string> = {
 
 /**
  * `loom roadmap` — print the derived cross-weave roadmap (a thin ASCII renderer
- * over the loom://roadmap resource): future (pending/blocked, dependency+priority
- * order, blocked-on annotated), present (active/implementing), and history
+ * over the loom://roadmap resource): one Roadmap band (present+future in a single
+ * dependency+priority order, status icon + blocked-on per row) and history
  * (shipped plans, newest first; `--group-by-thread` to group). Pure read.
  */
 export async function roadmapCommand(options: { groupByThread?: boolean }): Promise<void> {
@@ -20,7 +20,7 @@ export async function roadmapCommand(options: { groupByThread?: boolean }): Prom
 
         // ULID → "weave/thread" label, for rendering blocked-on targets by name.
         const label = new Map<string, string>();
-        for (const n of [...r.present, ...r.future]) {
+        for (const n of r.roadmap) {
             if (n.ulid) label.set(n.ulid, `${n.weaveId}/${n.threadId}`);
         }
         const nameOf = (u: string) => label.get(u) ?? u;
@@ -30,18 +30,14 @@ export async function roadmapCommand(options: { groupByThread?: boolean }): Prom
 
         console.log(chalk.bold('\n🗺️  Roadmap\n'));
 
-        console.log(chalk.bold('FUTURE') + chalk.gray('  (pending / blocked — dependency + priority order)'));
-        if (r.future.length === 0) console.log(chalk.gray('  (none)'));
-        for (const n of r.future) {
+        console.log(chalk.bold('ROADMAP') + chalk.gray('  (present + future — dependency + priority order)'));
+        if (r.roadmap.length === 0) console.log(chalk.gray('  (none)'));
+        for (const n of r.roadmap) {
             const blocked = n.blockedOn.length
                 ? chalk.red(`  ⛔ blocked on → ${n.blockedOn.map(nameOf).join(', ')}`)
                 : '';
             console.log(node(n, blocked));
         }
-
-        console.log('\n' + chalk.bold('PRESENT') + chalk.gray('  (active / implementing)'));
-        if (r.present.length === 0) console.log(chalk.gray('  (none)'));
-        for (const n of r.present) console.log(node(n));
 
         console.log('\n' + chalk.bold('HISTORY') + chalk.gray('  (shipped plans, newest first)'));
         if (r.history.length === 0) {

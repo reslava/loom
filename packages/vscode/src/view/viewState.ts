@@ -10,7 +10,7 @@ export interface ViewState {
     showArchived: boolean;
     focusedweaveId?: string;
     syncDocToTreeEnabled: boolean;
-    /** Roadmap view toggle — when on, the tree re-lays out into future/present/history bands. */
+    /** Roadmap view toggle — when on, the tree re-lays out into a Roadmap band + History band. */
     roadmapEnabled: boolean;
     /** Which roadmap band(s) to show (the filter folds to this when roadmap is enabled). */
     roadmapBand: RoadmapBand;

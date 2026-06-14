@@ -137,10 +137,14 @@ export interface RoadmapDiagnostic {
 }
 
 export interface RoadmapView {
-    /** Pending/blocked threads, topological-then-priority order. */
-    future: RoadmapNode[];
-    /** Active/implementing threads. */
-    present: RoadmapNode[];
+    /**
+     * Present + future threads in ONE topological-then-priority order — the
+     * drag-orderable forward backlog. Status is per-node (`RoadmapNode.status`),
+     * never an ordering boundary, so active and pending threads interleave by
+     * priority; a consumer that wants a status band filters this list. Done
+     * threads are not here — they surface in `history` as shipped plans.
+     */
+    roadmap: RoadmapNode[];
     /** Completed plans, newest first. */
     history: ShippedPlan[];
     diagnostics: RoadmapDiagnostic[];
@@ -310,8 +314,7 @@ export function buildRoadmap(state: LoomState): RoadmapView {
     }
 
     return {
-        future: ordered.filter(n => n.status === 'pending' || n.status === 'blocked'),
-        present: ordered.filter(n => n.status === 'implementing' || n.status === 'active'),
+        roadmap: ordered,
         history: buildHistory(state),
         diagnostics,
     };
