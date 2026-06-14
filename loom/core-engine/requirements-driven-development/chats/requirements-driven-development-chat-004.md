@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 15
+last_ai_block: 16
 ---
 # loom_refine_req fix
 
@@ -259,3 +259,16 @@ Then finish release
 **B step 1 ✅** — built plan-006 by dogfooding `loom_add_step` (3 steps, worked cleanly), then implemented the reducer relaxation: in `planReducer` UPDATE_STEP a **citation-only** patch (`satisfies` and nothing else) is now allowed on a done step *and* a done plan; `cancelled` steps and any non-citation edit on a done step still reject. New `step-crud` test block covers all four cases; build + full `test-all` green.
 
 **Stop for reconnect.** Step 2 cites the four gaps through the *live* `loom_update_step`, which still holds the old reducer (it would reject a done-step edit). **Reconnect MCP** and I'll cite `IN1` (plan-001), `IN10`+`IN11` (plan-005 step 1), `IN12` (plan-005 step 3), then re-run `loom_verify_req` → expect 0 uncovered. After that, step 3 finishes the 1.7.0 release (CHANGELOG note, commit, tag, push).
+
+## AI:
+
+**Done — v1.7.0 shipped.**
+
+- **B step 2 (live):** cited `IN1` (plan-001), `IN10`+`IN11` (plan-005 step 1), `IN12` (plan-005 step 3) through the relaxed `loom_update_step` → `loom_verify_req` returns **0 uncovered**. The mid-thread requirements were cited onto already-`done` steps — the exact thing the old reducer refused. B is proven on its own thread.
+- **B step 3 (release):** fixed `loom_update_step`'s tool description (citation-only-on-done exception), CHANGELOG note, build + `test-all` green, committed `f82fc56`, tagged **`v1.7.0`** (annotated), pushed `main` + tag.
+
+Net for the session: `loom_refine_req → loom_amend_req` (append-only, `diffReqHandles` guard, `~dropped` retire) **and** cite-on-done — both dogfooded end-to-end on this thread, which now verifies clean. The release workflow will cut the GitHub release from the `[1.7.0]` CHANGELOG section.
+
+One genuinely useful thing this session surfaced for free: the **req-first inversion** is what created the gaps, and B is the durable fix for the recurring "requirement clarified after the work was done" case. Worth remembering as the canonical argument for authoring `req` before the plan.
+
+`close` whenever you're ready — or point me at the next thing.

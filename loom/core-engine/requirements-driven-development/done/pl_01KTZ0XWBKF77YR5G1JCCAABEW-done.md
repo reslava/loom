@@ -4,7 +4,7 @@ id: pl_01KTZ0XWBKF77YR5G1JCCAABEW-done
 title: Done — RDD v1.7.0 (B) — cite requirements on done steps
 status: done
 created: "2026-06-12T00:00:00.000Z"
-version: 2
+version: 3
 tags: []
 parent_id: pl_01KTZ0XWBKF77YR5G1JCCAABEW
 requires_load: []
@@ -28,3 +28,14 @@ Build green; full `test-all` green (incl. the new block + all 17 MCP integration
 - `IN12` → plan-005 step `mcp-rename-tool-to-loom-amend` (now `[IN4, C3, IN12]`).
 
 `loom_verify_req` → `{ uncovered: [], excludedViolations: [], unknownCitations: [] }`. The thread is green. This *is* the live dogfood of B: requirements added mid-thread (IN10–12) were cited onto already-done steps, which the old reducer would have refused at both the plan and step level.
+
+## Step 3 — **build + test + finish the 1.7.0 release.** `./scripts/build-all.sh` + `./scripts/test-all.sh` green. Add a B note to the 1.7.0 CHANGELOG entries (citation-only amend on done steps). Then finish the release: commit all of 1.7.0 (A + B) to `main`, tag `v1.7.0`, and push the tag explicitly (lightweight tag won't ride `--follow-tags`).
+
+**build + test + finish 1.7.0 release.**
+
+- Updated `loom_update_step`'s tool description (`packages/mcp/src/tools/updateStep.ts`) to state the citation-only-on-done-step exception (it previously claimed done steps are always rejected).
+- Added the cite-on-done item to the root `CHANGELOG.md` 1.7.0 entry.
+- `./scripts/build-all.sh` + `./scripts/test-all.sh` green (17/17 integration + all unit).
+- Committed all of 1.7.0 (A + B) to `main` as `f82fc56` (38 files), tagged **`v1.7.0`** (annotated), pushed `main` + the tag explicitly. The release workflow extracts the `[1.7.0]` CHANGELOG section as the GitHub release notes.
+
+Thread is green (`loom_verify_req` → 0 uncovered). Both plan-005 (A) and plan-006 (B) are done.

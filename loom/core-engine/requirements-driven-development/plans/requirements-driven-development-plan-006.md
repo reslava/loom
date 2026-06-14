@@ -2,7 +2,7 @@
 type: plan
 id: pl_01KTZ0XWBKF77YR5G1JCCAABEW
 title: RDD v1.7.0 (B) — cite requirements on done steps
-status: implementing
+status: done
 created: "2026-06-12T00:00:00.000Z"
 updated: 2026-06-12
 version: 1
@@ -29,7 +29,7 @@ steps:
     satisfies: []
   - id: build-test-finish-the-1-7
     order: 3
-    status: pending
+    status: done
     description: "**build + test + finish the 1.7.0 release.** `./scripts/build-all.sh` + `./scripts/test-all.sh` green. Add a B note to the 1.7.0 CHANGELOG entries (citation-only amend on done steps). Then finish the release: commit all of 1.7.0 (A + B) to `main`, tag `v1.7.0`, and push the tag explicitly (lightweight tag won't ride `--follow-tags`)."
     files_touched: [CHANGELOG.md, packages/vscode/CHANGELOG.md, git]
     blocked_by: []
@@ -49,7 +49,7 @@ Close the coverage hole the amend dogfood exposed: once a step is `done`, there 
 |---|---|---|---|---|---|
 | ✅ | 1 | **core — citation-only UPDATE_STEP on done step / done plan.** In `planReducer` UPDATE_STEP: detect a citation-only patch (`satisfies !== undefined` && `description`/`files_touched`/`blockedBy` all `undefined`). Relax the plan-level guard to also allow status `done` when citation-only (else unchanged: draft\|active\|implementing\|blocked). Relax the step-level guard so a `done` target is mutable when citation-only; a `cancelled` step (and a non-citation patch on a done step) still throws the immutable-history error. Unit tests in `tests/`: cite `satisfies` on a done step of a done plan → ok; a `description` patch on a done step → still rejected; citation on a cancelled step → rejected. | packages/core/src/reducers/planReducer.ts, tests/plan-step-crud.test.ts (or core reducer test) | — | — |
 | ✅ | 2 | **close the coverage gaps via citation.** After the step-1 build + MCP reconnect, use the relaxed `loom_update_step` to cite the four uncovered handles on the done steps that implemented them: `IN1` → plan-001's `req`-doctype step; `IN10` + `IN11` → plan-005 step 1 (core: `diffReqHandles` guard + `~dropped` parse/coverage); `IN12` → plan-005 step 3 (mcp: `loom_amend_req`). Preserve each step's existing `satisfies` (append, don't replace). Then `loom_verify_req` for the thread → expect 0 uncovered. | loom/core-engine/requirements-driven-development/plans/* (via loom_update_step) | — | — |
-| 🔳 | 3 | **build + test + finish the 1.7.0 release.** `./scripts/build-all.sh` + `./scripts/test-all.sh` green. Add a B note to the 1.7.0 CHANGELOG entries (citation-only amend on done steps). Then finish the release: commit all of 1.7.0 (A + B) to `main`, tag `v1.7.0`, and push the tag explicitly (lightweight tag won't ride `--follow-tags`). | CHANGELOG.md, packages/vscode/CHANGELOG.md, git | — | — |
+| ✅ | 3 | **build + test + finish the 1.7.0 release.** `./scripts/build-all.sh` + `./scripts/test-all.sh` green. Add a B note to the 1.7.0 CHANGELOG entries (citation-only amend on done steps). Then finish the release: commit all of 1.7.0 (A + B) to `main`, tag `v1.7.0`, and push the tag explicitly (lightweight tag won't ride `--follow-tags`). | CHANGELOG.md, packages/vscode/CHANGELOG.md, git | — | — |
 ---
 
 ### Legend
