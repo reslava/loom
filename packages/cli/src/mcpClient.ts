@@ -1,6 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createLoomMcpServer } from '../../mcp/dist/server';
+import { closeStateCache } from '../../mcp/dist/stateCache';
 
 /**
  * In-process MCP client for the CLI delivery layer.
@@ -64,6 +65,9 @@ export async function connectLocalMcp(root: string): Promise<LocalMcpClient> {
         async close(): Promise<void> {
             await client.close();
             await server.close();
+            // Tear down the state-cache fs.watch watcher — otherwise it keeps the
+            // CLI's Node event loop alive and the process never exits (hang).
+            closeStateCache();
         },
     };
 }

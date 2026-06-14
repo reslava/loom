@@ -56,3 +56,17 @@ export function invalidateStateCache(): void {
     if (_cache) log('[cache] invalidate path=<manual> reason=invalidateStateCache');
     _cache = null;
 }
+
+/**
+ * Fully tear down the cache + its fs.watch watcher. The long-running `loom mcp`
+ * server keeps the watcher for its whole life, but an in-process consumer (the
+ * CLI's connectLocalMcp) MUST call this on close — otherwise the recursive
+ * fs.watch keeps the Node event loop alive and the CLI process never exits.
+ */
+export function closeStateCache(): void {
+    _watcher?.close();
+    _watcher = null;
+    _root = null;
+    _cache = null;
+    _rebuildStartedAt = null;
+}
