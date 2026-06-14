@@ -96,7 +96,7 @@ The **Loom** Activity Bar icon opens the Loom sidebar, which contains two views:
 
 Shows your **weaves** (project areas) → **threads** (workstreams) → docs (idea, design, plans, chats, done docs). Buttons appear inline on a node and in its right-click menu, grouped by what they do.
 
-A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave roadmap — **Future** (pending/blocked, dependency-ordered, each showing what it's blocked on), **Present** (active/implementing), and **History** (shipped plans). In roadmap mode the status filter folds to *all / roadmap / history*, the History band can group by thread, and drag-to-reorder writes soft `priority` (never overriding a hard dependency). It's all computed from the documents — no roadmap list to maintain.
+A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave roadmap — one **Roadmap** band (present + future threads in a single dependency-then-priority order, each row showing its status and, when blocked, what it's blocked on) and **History** (shipped plans). In roadmap mode the status filter folds to *all / roadmap / history*, the History band can group by thread, and drag-to-reorder spans the whole Roadmap list, writing soft `priority` (never overriding a hard dependency). It's all computed from the documents — no roadmap list to maintain.
 
 **AI actions** (run the agent):
 

@@ -102,7 +102,7 @@ designing, writing code for a step) is done through your MCP agent.
 |---------|-------------|
 | `loom status [weave-id] [--verbose] [--json] [--filter <c>] [--sort <o>]` | Show derived state of weaves/threads. |
 | `loom validate [weave-id] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
-| `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — future (pending/blocked, dependency + priority order, blocked-on annotated), present (active/implementing), and history (shipped plans, newest first). Pure read. |
+| `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — one Roadmap band (present + future in a single dependency + priority order, status + blocked-on per row) and history (shipped plans, newest first). Pure read. |
 
 ### MCP surface & queries
 

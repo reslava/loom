@@ -214,7 +214,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `loom://plan/{id}` | Plan doc with parsed steps array |
 | `loom://requires-load/{id}` | Recursively resolved context chain |
 | `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) — read it before searching for a tool, then `ToolSearch select:<name>` |
-| `loom://roadmap` | Derived cross-weave roadmap: future / present / history bands + cross-weave **blocked-on** + cycle/dangling diagnostics |
+| `loom://roadmap` | Derived cross-weave roadmap: one ordered `roadmap` (present + future) + history + cross-weave **blocked-on** + cycle/dangling diagnostics |
 | `loom://diagnostics` | Broken links, dangling references |
 
 ### Key tools (state mutations)
@@ -307,7 +307,7 @@ The VS Code extension is the **human surface** over the same document graph.
 
 The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads → idea / design / plans / chats / done) and a **Context** view showing exactly what the AI will receive for the selected node. Full walkthrough in the **[Extension User Guide](./docs/EXTENSION_USER_GUIDE.md)**.
 
-A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-weave roadmap — **Future** (pending/blocked, dependency-ordered, each showing what it's blocked on), **Present** (active/implementing), and **History** (shipped plans) — with drag-to-reorder writing soft `priority`. No hand-maintained roadmap list; the whole view is computed from the documents.
+A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-weave roadmap — one **Roadmap** band (present + future in a single dependency-then-priority order, each showing its status and, when blocked, what it's blocked on) and **History** (shipped plans) — with drag-to-reorder across the whole list writing soft `priority`. No hand-maintained roadmap list; the whole view is computed from the documents.
 
 | Button | What it does |
 |--------|-------------|

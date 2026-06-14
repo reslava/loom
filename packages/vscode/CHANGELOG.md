@@ -1,5 +1,19 @@
 # Loom VS Code Extension — Changelog
 
+## [1.9.0] - 2026-06-15
+
+### Changed
+- **Roadmap view: one Roadmap band instead of separate Future/Present bands.** The Threads tree's
+  roadmap mode now shows a single **Roadmap** node — present + future threads in one
+  dependency-then-priority order, each row carrying its status icon and, when blocked, what it's
+  blocked on — plus **History**. Drag-to-reorder now spans the whole forward backlog, so you can
+  place a pending blocker right next to the active thread waiting on it; a drop that would violate a
+  hard `depends_on` edge is still refused. Renders on the merged `loom://roadmap` read-model — no
+  extension-side derivation.
+
+### Notes
+- Lockstep 1.9.0 bump with the CLI and the rest of the monorepo.
+
 ## [1.8.0] - 2026-06-14
 
 ### Added

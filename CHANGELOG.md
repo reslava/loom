@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-06-15
+
+### Changed
+- **Roadmap: Present and Future merged into one drag-orderable band.** The active/pending split is a derived *status overlay*, not an ordering boundary — yet the roadmap rendered it as two separate bands, inventing a drag barrier absent from the data (there is one soft `priority` per thread and one topological+priority order). You couldn't, for instance, drag a pending thread that blocks an active thread's next phase to sit next to it. Now `buildRoadmap` exposes one canonical `roadmap[]` (present+future in a single topo+priority order, status carried per-node); `loom roadmap` prints one **Roadmap** band + **History**, and the VS Code roadmap is a single **Roadmap** tree node whose drag-reorder spans the whole forward backlog — the hard `depends_on` pre-check still refuses any drop that would place a thread before a dependency. **Resource-shape note:** `loom://roadmap` no longer returns `future`/`present`; it returns one ordered `roadmap` array (each node carries its `status`).
+
+### Fixed
+- **No more doubled `## AI:` header in chat replies.** `loom_append_to_chat` writes the role header itself, but neither its tool description nor the extension's chat-reply launch prompt said so — so an agent would sometimes add its own `## AI:` line and produce a duplicate. The tool description, its `body` parameter description, and the chat-reply launch prompt now all state that the body must be the reply text only (the tool adds the role header).
+
 ## [1.8.0] - 2026-06-14
 
 ### Added
@@ -455,7 +463,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.8.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.9.0...HEAD
+[1.9.0]: https://github.com/reslava/loom/releases/tag/v1.9.0
 [1.8.0]: https://github.com/reslava/loom/releases/tag/v1.8.0
 [1.6.0]: https://github.com/reslava/loom/releases/tag/v1.6.0
 [1.5.0]: https://github.com/reslava/loom/releases/tag/v1.5.0
