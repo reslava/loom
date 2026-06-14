@@ -126,7 +126,7 @@ jobs:
           npx @vscode/vsce package --no-dependencies \
             --out "$GITHUB_WORKSPACE/artifacts/loom-vscode-${{ needs.guard.outputs.version }}.vsix"
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-artifacts
           path: artifacts/
@@ -153,7 +153,7 @@ jobs:
       - name: Upgrade npm for OIDC publish support
         run: npm install -g npm@latest
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
           path: artifacts
@@ -199,7 +199,7 @@ jobs:
         with:
           node-version: '20'
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
           path: artifacts
@@ -238,7 +238,7 @@ jobs:
         with:
           node-version: '20'
       - name: Download release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-artifacts
           path: artifacts
