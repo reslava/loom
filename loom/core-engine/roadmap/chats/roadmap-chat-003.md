@@ -98,6 +98,3 @@ Also: design refined in place, and the locked **req** amended (IN7–IN9 reworde
 **Verified:** `build-all` clean (incl. vscode type-check) · `test-all` green (multi-loom + 17 MCP integration). The panel/drag visuals still want a manual **Reload Window** (or `npm run package` + install) to eyeball — automated tests don't render VS Code trees.
 
 Nothing committed yet (working tree). Like Plan-2, this is a user-visible change. Want me to **commit + bump + release** (this'd be 1.9.0, lockstep), or do the Reload-Window eyeball first? And do you want a CLI `loom roadmap` output test added (none exists today)?
-
-## Rafa:
-

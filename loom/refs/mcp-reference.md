@@ -1,159 +1,189 @@
 ---
 type: reference
 id: rf_01KQYDFDD9XKK20AREQ1TF6BCA
-title: mcp
+title: loom — MCP
 status: active
 created: "2026-04-27T00:00:00.000Z"
-version: 1
+updated: 2026-06-15
+version: 2
 tags: [mcp, reference, ai-integration, ai, public]
 requires_load: []
 slug: mcp-reference
 load: by-request
 ---
 
-# mcp
+# loom — MCP
+
+This doc explains **how** the Loom MCP surface works — the protocol, the host
+landscape, the single-AI model, and the four kinds of surface (resources, tools,
+prompts, sampling).
+
+Three docs, three questions — don't duplicate across them:
+
+- **WHERE MCP sits** in the package architecture → [architecture-reference.md](architecture-reference.md) (`cli / vscode → mcp → app → core + fs`).
+- **HOW MCP works** → this doc.
+- **WHAT tools exist right now** → the `loom://catalog` resource. It is auto-generated from the live tool registry (`packages/mcp/src/server.ts`), grouped by purpose, and therefore never drifts.
+
+> **Tools are deliberately not enumerated here.** The tool registry changes often;
+> a hand-maintained table drifts the moment a tool is added or its args change.
+> `loom://catalog` owns the list. This doc names tools only as *illustrative
+> examples* of a category, and lists the **resources** and **prompts** (which are
+> few, stable, and have no catalog of their own).
 
 ## How MCP works
 
-MCP (Model Context Protocol) is a client-server protocol over stdio.
+MCP (Model Context Protocol) is a client–server protocol over stdio.
 
 ```
 Claude Code (MCP client)  ←→  loom mcp (MCP server subprocess)
 ```
 
-Claude Code spawns `loom mcp` on session start, discovers its capabilities (resources, tools, prompts), then calls them during the conversation. The server process runs until Claude Code exits or restarts.
+The host spawns `loom mcp` on session start, discovers its capabilities
+(resources, tools, prompts), then calls them during the conversation. The server
+process runs until the host exits or restarts — note that `build-all.sh` does
+**not** restart an already-running server, so new tool args only take effect after
+a session/MCP restart.
+
+## Host landscape (who can reach MCP)
+
+| Host | MCP? | Notes |
+|------|------|-------|
+| **Claude Code (CLI)** | ✅ resources · tools · prompts | Sampling is **blocked** — the CLI is already the AI (see Sampling below). |
+| **Claude desktop app** + other MCP agents (Cursor, Continue…) | ✅ | Standard MCP client behaviour. |
+| **Loom VS Code extension** (`packages/vscode`) | ✅ as a *client* | It is itself an MCP client talking to the Loom server, and it advertises `{ sampling: {} }` (the fallback AI path). |
+| **Claude VS Code extension** | ❌ no MCP | Cannot reach `loom://` resources or `loom_*` tools; must fall back to direct file edits (`⚠️ MCP unavailable — editing file directly`). Unrelated to the Loom extension above. |
 
 ## Who owns what
 
 | Side | Owns |
 |------|------|
-| **AI (Claude Code)** | Conversation context · reasoning · generation · deciding which tools to call |
-| **Loom MCP Server** | Document state · frontmatter · link index · plan-step validation · reducers |
+| **AI (host agent)** | Conversation context · reasoning · generation · deciding which tools to call |
+| **Loom MCP server** | Document state · frontmatter · link index · plan-step validation · reducers |
 
-**Rule:** The AI never edits loom markdown files directly. All state changes go through MCP tools, which validate inputs and maintain consistency via reducers.
+**Rule:** the AI never edits loom markdown files directly. All state changes go
+through MCP tools, which validate inputs and maintain consistency via reducers.
 
 ---
 
-## Resources (read-only)
+## 1. Resources (read-only)
 
-Resources give the AI read access to Loom state without file I/O.
+Resources give the AI read access to Loom state without file IO. They are few and
+stable, so they are listed here in full.
+
+### Concrete resources
 
 | URI | Returns | Use when |
 |-----|---------|----------|
-| `loom://state` | Full project state (all weaves, threads, plans) as JSON | Need a global view |
-| `loom://status` | Raw `.loom/_status.md` text | Stage 1 only |
-| `loom://link-index` | Document graph (parent_id / child_ids) | Checking relationships |
-| `loom://diagnostics` | Broken links, orphaned docs | Before a cleanup pass |
+| `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) | **Before searching for a tool** — then `ToolSearch select:<exact name>` |
+| `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveId=&threadId=` filterable | Need a global or filtered view |
+| `loom://roadmap` | Derived cross-weave roadmap (`RoadmapView` JSON): the single topo+priority `roadmap[]`, history, diagnostics | Reason about cross-weave **blocked-on** |
+| `loom://diagnostics` | Broken links, orphaned docs, and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |
 | `loom://summary` | Health counts (weaves, threads, plans, open steps) | Quick status |
+| `loom://link-index` | Document graph: `byId`, parent/child, backlinks, slugs | Checking relationships |
+| `loom://status` | Raw `.loom/_status.md` text | Stage 1 legacy only |
+
+### Resource templates (parameterised)
+
+| URI | Returns | Use when |
+|-----|---------|----------|
+| `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) | Unified context bundle: global/weave ctx + parent chain + `requires_load` for a target; append `?mode={chat\|idea\|design\|plan\|implementing\|refine\|promote\|ctx}` and `?loaded=id@version,…` | **Start of any thread work** |
 | `loom://docs/{id}` | Raw markdown of any doc by id | Reading a specific doc |
-| `loom://thread-context/{weaveId}/{threadId}` | Bundled: ctx summary + idea + design + active plan + requires_load refs | **Start of any thread work** |
 | `loom://plan/{id}` | Plan doc with steps parsed as JSON | Inspecting a plan's step list |
 | `loom://requires-load/{id}` | All `requires_load` docs, recursive + deduplicated | Loading a doc's full dependency tree |
 
-`loom://thread-context` is the primary entry point. It bundles everything needed for a thread in one call.
+`loom://context` is the primary entry point — it bundles everything needed for a
+thread in one call, and dedupes against a declared ledger (see Context Dispatcher
+in [architecture-reference.md](architecture-reference.md)).
 
 ---
 
-## Tools (state mutations)
+## 2. Tools (state mutations)
 
-Always use tools to change state. Never edit weave markdown files directly.
+Always use tools to change state — never edit `loom/**/*.md` directly (a PreToolUse
+gate hook enforces this in Claude Code). Tools are organised into these groups (the
+same grouping `loom://catalog` renders):
 
-### Creation
+| Group | What it covers | Example tool |
+|-------|----------------|--------------|
+| **create** | New idea / design / plan / req / reference / chat | `loom_create_idea` |
+| **doc** | Body / frontmatter edits, finalize, archive, rename, promote | `loom_update_doc`, `loom_patch_doc` |
+| **refine** | Sampling-based rewrite of a stale idea / design / plan | `loom_refine_design` |
+| **generate** | Sampling-based first-draft generation | `loom_generate_plan` |
+| **plan** | Step lifecycle: start, complete, add/remove/reorder/update steps, do-step brief, append-done, close | `loom_do_step`, `loom_complete_step` |
+| **req** | Requirements: amend, finalize (lock), verify a plan against the locked req | `loom_verify_req` |
+| **thread** | Roadmap metadata writes: create thread, set priority, set deps | `loom_set_priority` |
+| **chat** | Append a reply, read only the new tail since the last AI block | `loom_append_to_chat` |
+| **context** | Read/write per-target context-prefs, refresh ctx | `loom_set_context_prefs` |
+| **query** | Find / search docs, list blocked steps, list stale plans/docs | `loom_search_docs` |
 
-| Tool | Required | Optional |
-|------|---------|---------|
-| `loom_create_idea` | `weaveId`, `title` | `threadId` |
-| `loom_create_design` | `weaveId`, `threadId`, `title` | — |
-| `loom_create_plan` | `weaveId`, `threadId`, `title` | — |
-| `loom_create_chat` | `weaveId`, `threadId`, `title` | — |
+**For the exact tool names, args, and one-line purposes, read `loom://catalog`** —
+then `ToolSearch select:<exact name>` to load a tool's schema before the first call.
 
-### Document editing
+Two tools write content via an **API-key AI client** rather than host sampling:
 
-| Tool | Required | Optional |
-|------|---------|---------|
-| `loom_update_doc` | `id`, `content` | — |
-| `loom_append_to_chat` | `chatId`, `role`, `text` | — |
-| `loom_finalize_doc` | `id` | — |
-| `loom_archive` | `id` | — |
-| `loom_rename` | `id`, `newTitle` | — |
-
-### Workflow lifecycle
-
-| Tool | Required | Optional | Notes |
-|------|---------|---------|-------|
-| `loom_start_plan` | `planId` | — | Sets plan status to `implementing` |
-| `loom_complete_step` | `planId`, `stepNumber` | — | Idempotent |
-| `loom_close_plan` | `planId` | `notes` | Creates done doc; uses **DeepSeek** if `DEEPSEEK_API_KEY` is set |
-| `loom_promote` | `sourceId`, `targetType` | — | `targetType`: `idea` \| `design` \| `plan`; uses **DeepSeek** for content draft |
-
-### Search & query
-
-| Tool | Required | Optional |
-|------|---------|---------|
-| `loom_find_doc` | `query` | `type`, `weaveId` |
-| `loom_search_docs` | `query` | `type`, `weaveId` |
-| `loom_get_blocked_steps` | — | — |
-| `loom_get_stale_plans` | — | — |
-| `loom_get_stale_docs` | — | — |
-
-### AI generation — via sampling (fallback path only)
-
-These tools call back to the **host** via MCP sampling (`sampling/createMessage`). Sampling is the **fallback** AI path — it runs only when the user has no Claude CLI installed; the primary path is the extension launching a Claude CLI agent that writes via content tools (`loom_update_doc` / `loom_create_*`). Sampling availability is host-dependent: the Loom VS Code extension provides it (via `makeAIClient()` + `reslava-loom.ai.apiKey`); a **Claude Code CLI session blocks it** (`MethodNotFound`) — there the agent itself generates and passes `content` to `loom_create_*` / `loom_update_doc`.
-
-| Tool | Required | Optional |
-|------|---------|---------|
-| `loom_generate_idea` | `weaveId`, `title`, `prompt` | `threadId` |
-| `loom_generate_design` | `weaveId`, `threadId`, `title` | — |
-| `loom_generate_plan` | `weaveId`, `threadId`, `title` | — |
-| `loom_generate_chat_reply` | `chatId` | — |
-| `loom_refresh_ctx` | `weaveId`, `threadId` | — |
-
-### AI generation — via DeepSeek (any client)
-
-`loom_close_plan` and `loom_promote` use `DEEPSEEK_API_KEY` if set. Without it they generate a placeholder.
+- `loom_close_plan` — drafts the done-doc body via the DeepSeek-flavoured `makeAiClient` if `DEEPSEEK_API_KEY` is set; otherwise writes a placeholder you fill in.
+- `loom_promote` — accepts an inline `body` (the path used in Claude Code, where you write the content) **or** generates it via sampling when `body` is omitted (sampling-capable hosts only).
 
 ---
 
-## Prompts (workflow drivers)
+## 3. Prompts (workflow drivers)
 
-Prompts are pre-built conversation starters that combine context loading + instruction in one call. Call them instead of assembling context manually.
+Prompts combine context loading + instruction in one call. Few and stable, listed
+here in full.
 
 | Prompt | Required args | What it does |
 |--------|--------------|-------------|
-| `do-next-step` | `planId` | Loads thread context + plan, returns step instruction + `loom_complete_step` call to make |
+| `do-next-step` | `planId` | Loads thread context + plan, returns the next step instruction + a pre-filled `loom_complete_step` call. **Primary workflow driver.** |
 | `continue-thread` | `weaveId`, `threadId` | Reviews thread state, suggests next action |
-| `refine-design` | `weaveId`, `threadId` | Reviews design doc, suggests refinements |
-| `weave-idea` | `weaveId`, `title` | Starts a new idea in the workflow |
-| `weave-design` | `weaveId`, `threadId` | Transitions from idea to design |
-| `weave-plan` | `weaveId`, `threadId` | Generates a plan from design |
-| `validate-state` | — | Reviews diagnostics, identifies issues |
-
-`do-next-step` is the primary workflow driver. Call it with the active `planId` to get context + step instruction in one shot.
+| `refine-design` | `weaveId`, `threadId` | Reviews a design doc, suggests refinements |
+| `validate-state` | — | Reviews diagnostics (incl. roadmap cycles/dangling deps) and identifies issues |
+| `weave-idea` | `weaveId`, `title` | Starts a new idea in the workflow (sampling) |
+| `weave-design` | `weaveId`, `threadId` | Transitions idea → design (sampling) |
+| `weave-plan` | `weaveId`, `threadId` | Generates a plan from a design (sampling) |
 
 ---
 
-## Sampling (the fallback AI path)
+## 4. The roadmap surface (worked example)
 
-Sampling is MCP's mechanism for the server to request AI completions from the client (reverse call). In Loom it is the **fallback** path — see the single-AI architecture: the **primary** path is the Loom VS Code extension launching a **Claude Code CLI agent** (`launchClaude`) that does the work and writes via content tools, needing no sampling and no API key.
+The derived roadmap shows how one feature spans **read** and **write** MCP surfaces
+— and is a complete agent surface, not CLI-only:
 
-**Flow (fallback):** a `loom_generate_*` / `loom_refine_*` tool is called → Loom server builds a prompt → calls `sampling/createMessage` on the host → host runs inference → result returned to server → server writes content to the document.
-
-**Host support (note: opposite of what older docs claimed):**
-- **Loom VS Code extension** *supports* sampling — its `mcp-client.ts` advertises `{ sampling: {} }` and routes the call through `makeAIClient()` (`reslava-loom.ai.apiKey`, default `claude-haiku-4-5`).
-- **Claude Code CLI** *blocks* sampling — it is already the agent, so server→client inference returns `MethodNotFound`. The agent generates content itself and passes it to `loom_create_*` / `loom_update_doc`.
-
-**Single-AI rule:** Loom requires exactly one AI provider — either a Claude CLI (primary) or a configured API key (fallback) — never both.
+- **Read:** `loom://roadmap` — `getState → buildRoadmap(state) → RoadmapView` JSON (the single topo+priority `roadmap[]`, shipped-plan history, diagnostics). The CLI's `loom roadmap` is a *separate* human ASCII renderer over the same pure function; the resource is what lets an agent reason about cross-weave **blocked-on** without parsing CLI text.
+- **Diagnostics:** roadmap cycles, dangling `depends_on`, and threads missing `thread.md` fold into `loom://diagnostics` and the `validate-state` prompt.
+- **Write (group `thread`):** `loom_create_thread`, `loom_set_priority`, `loom_set_thread_deps` — author the only non-derived inputs (soft `priority`, hard `depends_on`), with write-time cycle/existence validation.
 
 ---
 
-## Setup
+## 5. Sampling (the fallback AI path)
 
-`.claude/mcp.json` (project-scoped):
+Sampling is MCP's mechanism for the **server to request an AI completion from the
+client** (a reverse call). In Loom it is the **fallback** path — the **primary**
+path is the Loom VS Code extension launching a **Claude Code CLI agent**
+(`launchClaude`) that does the work and writes via content tools, needing no
+sampling and no API key.
+
+**Flow (fallback):** a `loom_generate_*` / `loom_refine_*` tool is called → the
+Loom server builds a prompt → calls `sampling/createMessage` on the host → host
+runs inference → result returned to the server → server writes the document.
+
+**Host support:**
+- **Loom VS Code extension** *supports* sampling — `mcp-client.ts` advertises `{ sampling: {} }` and routes the call through `makeAIClient()` (`reslava-loom.ai.apiKey`, default `claude-haiku-4-5`).
+- **Claude Code CLI** *blocks* sampling — it is already the agent, so server→client inference returns `MethodNotFound`. The agent generates content itself and passes it to `loom_create_*` / `loom_update_doc` (and `body` to `loom_promote`).
+
+**Single-AI rule:** Loom requires exactly one AI provider — either a Claude CLI
+(primary) or a configured API key (fallback) — never both.
+
+---
+
+## 6. Setup
+
+`.mcp.json` in the project root (project-scoped):
 
 ```json
 {
   "mcpServers": {
     "loom": {
+      "type": "stdio",
       "command": "loom",
       "args": ["mcp"],
       "env": {
@@ -165,19 +195,22 @@ Sampling is MCP's mechanism for the server to request AI completions from the cl
 }
 ```
 
-`DEEPSEEK_API_KEY` enables AI-generated content in `loom_close_plan` and `loom_promote`. Without it, those tools write a placeholder body that you can fill in manually.
+Project-scoped servers require one-time approval per project (run `claude` in the
+project root and approve `loom`, or use `claude /mcp`; verify with
+`claude mcp list`). `DEEPSEEK_API_KEY` enables the AI-drafted done-doc in
+`loom_close_plan`; without it that tool writes a placeholder.
 
 ---
 
-## Making MCP usage visible in the conversation
+## 7. Making MCP usage visible
 
-Add this rule to `CLAUDE.md` to make MCP calls visible:
+Output one line before each MCP interaction so routing is auditable:
 
 ```
-When calling any MCP tool, output one line before the tool call:
-  🔧 MCP: {tool-name}({key-args})
-When reading any MCP resource, output:
-  📡 MCP: {uri}
+🔧 MCP: {tool-name}({key-args})     ← before a tool call
+📡 MCP: {uri}                       ← before reading a resource
+⚠️ MCP unavailable — editing file directly   ← only if MCP is genuinely down
 ```
 
-This lets you verify whether the AI is routing through MCP or editing files directly.
+If you don't see these prefixes, either MCP is not running or the agent is
+bypassing it (which the rules forbid).

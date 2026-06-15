@@ -445,6 +445,7 @@ that forgets, every time.
 | [Extension User Guide](./docs/EXTENSION_USER_GUIDE.md) | The VS Code panel, buttons, and CONTEXT view |
 | [CLI / Claude Code Guide](./docs/CLI_USER_GUIDE.md) | Driving Loom from the terminal via an MCP agent |
 | [Architecture Reference](./loom/refs/architecture-reference.md) | Package relationships, AI integration, frontmatter fields, directory structure |
+| [MCP Reference](./loom/refs/mcp-reference.md) | The MCP surface: protocol, host landscape, resources, prompts, sampling, and the single-AI model |
 | [Context Pipeline Reference](./loom/refs/loom-context-pipeline-reference.md) | How Loom decides what the AI sees — context assembly, internals |
 | [Requirements Reference](./loom/refs/loom-requirements-reference.md) | The `req` doc-type: include / exclude / constraints, lifecycle, verification |
 | [CLI Commands Reference](./loom/refs/cli-commands-reference.md) | Every `loom` command |

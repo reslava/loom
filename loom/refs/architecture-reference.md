@@ -70,7 +70,7 @@ User
  └── AI Agent (Claude Code / Cursor / any MCP host)
        ├── built-in tools: read_file, write_file, bash, grep, edit
        └── via MCP (stdio) → Loom MCP server (packages/mcp)
-             ├── Resources  — read Loom state (loom://state, loom://thread-context/...)
+             ├── Resources  — read Loom state (loom://state, loom://context/...)
              ├── Tools      — mutate Loom state (loom_complete_step, loom_create_idea...)
              ├── Prompts    — guided workflow templates (do-next-step, continue-thread...)
              └── Sampling   — server asks host agent to run LLM inference (API-key path only)
@@ -82,31 +82,16 @@ Loom MCP config (Claude Code):
 **Stage 2 — MCP is the single source of truth.** No manual `.loom/_status.md` file.
 Session start: call `do-next-step` prompt (loads context + step instructions).
 
-**Key resources:**
-- `loom://state?weaveId=&threadId=` — full Loom state JSON, filterable; single source of truth
-- `loom://thread-context/{weaveId}/{threadId}?mode=` — bundled idea+design+plan+ctx for a thread; primary agent entry point
-- `loom://plan/{id}` — plan doc with parsed steps array
-- `loom://requires-load/{id}` — recursively resolved `requires_load` chain
-- `loom://diagnostics` — broken links, dangling child_ids, stale docs
-- `loom://summary` — health counts (weaves, threads, plans, open steps)
-
-**Key tools:**
-- `loom_complete_step` — mark a plan step done (idempotent)
-- `loom_create_idea / design / plan / chat` — create Loom docs
-- `loom_update_doc` — rewrite doc content, preserve frontmatter
-- `loom_append_to_chat` — append a message to a chat doc (role: user | ai)
-- `loom_promote` — idea → design → plan, chat → idea
-- `loom_refresh_ctx` — regenerate ctx summary (sampling path; use loom_update_doc in Claude Code CLI)
-- `loom_get_context_prefs` / `loom_set_context_prefs` — read/write per-target context overrides in `.loom/context-prefs.json` (mode-agnostic `{ [targetId]: { include, exclude } }`); the sidebar CONTEXT panel and both `loom://context` + `loom_do_step` / refine read this file as `overrides`
-- `loom_rename` / `loom_archive`
-- `loom_search_docs` / `loom_get_stale_docs` / `loom_get_blocked_steps` — query tools that
-  delegate to the shared `app` use-cases (`searchDocs` / `getStaleDocs` / `getBlockedSteps`);
-  the `loom search` / `stale` / `blocked` CLI commands call the same use-cases
-
-**Key prompts:**
-- `do-next-step` — loads full plan step context; primary "do work" entry point for agents
-- `continue-thread` — loads thread context and asks agent to propose next action
-- `weave-idea / design / plan` — guided doc creation via sampling
+**The MCP surface** has four kinds — resources (read), tools (mutate), prompts
+(workflow drivers), and sampling (server→host inference). This doc owns only
+*where* that surface sits in the architecture (above). For *how* it works and the
+full resource/prompt catalogue see
+[mcp-reference.md](mcp-reference.md); for the always-current **tool** list read the
+auto-generated `loom://catalog` resource — neither is re-enumerated here, to avoid
+drift. The primary entry points worth naming at the architecture level:
+`loom://state` (single source of truth), `loom://context/{docId}` (bundled thread
+context — the primary agent entry point), and the `do-next-step` prompt (the "do
+work" driver).
 
 **Sampling:** MCP server requests the host agent to run an LLM inference on its behalf. Used by the VS Code extension when an Anthropic/OpenAI API key is configured (`reslava-loom.ai.apiKey`). **Not available in Claude Code CLI sessions** — the CLI is already the AI; recursive server→client inference is intentionally blocked.
 

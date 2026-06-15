@@ -4,8 +4,8 @@ id: loom-ctx
 title: loom — Global Context
 status: active
 created: "2026-04-29T00:00:00.000Z"
-updated: 2026-06-11
-version: 4
+updated: 2026-06-15
+version: 6
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -108,8 +108,10 @@ upward. The VS Code extension **must not** import `app` directly — MCP is the 
 **Reducers are pure** — no IO, no async, no VS Code. Side effects run *after* the
 reducer, in `runEvent`.
 
-→ Deeper: [refs/architecture-reference.md](refs/architecture-reference.md) for
-the full diagram, all MCP resources/tools/prompts, doc-type table, and stale-detection rules.
+→ Deeper: [refs/architecture-reference.md](refs/architecture-reference.md) for the
+full diagram, doc-type table, and stale-detection rules; [refs/mcp-reference.md](refs/mcp-reference.md)
+for the MCP surface (resources, prompts, sampling) and `loom://catalog` for the
+live tool list.
 
 ---
 
@@ -122,8 +124,9 @@ the link index, and plan-step validation. A PreToolUse hook physically enforces
 this in Claude Code sessions; see CLAUDE.md for the full hard rule.
 
 **Primary entry points:**
-- `loom://thread-context/{weaveId}/{threadId}` — bundled idea + design + plan + ctx
-  for a thread. Load before working on it.
+- `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) —
+  bundled global/weave ctx + parent chain + requires_load for a doc/thread. Load
+  before working on it.
 - `do-next-step` prompt — gives the next incomplete step with full context loaded
   and a pre-filled `loom_complete_step` call.
 - **Declare what you already hold (Context Dispatcher).** Stepping through one plan
