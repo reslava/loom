@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.9.2] - 2026-06-16
+
+### Fixed
+- **Creating a thread always writes its `thread.md` manifest.** Previously the extension created the
+  thread folder with raw `fs` and skipped the manifest, leaving the thread without a roadmap
+  identity. All extension mutations (create thread/weave, delete, archive, restore, validate, add
+  requires_load) now go through the Loom MCP client instead of reaching into `fs`/`app`.
+
+### Notes
+- Lockstep 1.9.2 bump with the CLI and the rest of the monorepo.
+
 ## [1.9.1] - 2026-06-16
 
 ### Fixed

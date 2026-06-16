@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 3
+last_ai_block: 5
 ---
 # create-plan-hardening Chat
 
@@ -91,3 +91,13 @@ thread has no plan and its done, so do not appear in roadmap history
 create a minimal post plan, mark all done
 
 commit push
+
+## AI:
+
+Done.
+
+- Created a minimal plan `create-plan-hardening-plan-001` (3 steps: confirm root cause → add guards → regression tests), started it, marked all 3 done → plan auto-completed to **done**, so the thread now shows in roadmap history.
+- Completing the plan auto-marked the idea **done (v2)** — the thread is fully resolved.
+- Committed `df470ba` (`fix(app): harden loom_create_plan against malformed agent calls`) and pushed to `main`. Left the unrelated `core-purity-chat-001.md` change unstaged.
+
+Closing this thread. `close` whenever you're ready, or open another chat.

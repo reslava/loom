@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 8
+last_ai_block: 10
 ---
 # core-purity Chat
 
@@ -186,3 +186,13 @@ Next: review/finalize the idea (then design → plan when you want it built), or
 commit push
 
 note: I find roadmap very useful
+
+## AI:
+
+Committed + pushed (`d8c9c68..bfc05a3`). Split into two per the commit-scope convention:
+- **`bc8f879` docs(refs)** — the mcp dependency-rule correction (ref v5) + the new `layer-imports-guard` idea & its thread manifest + this chat record.
+- **`bfc05a3` chore: roadmap** — the 16 `thread.md` priority-only reflows that adding the new thread triggered (kept out of the docs commit; the new thread's own manifest stayed *with* its feature commit).
+
+On the note: glad the roadmap earns its keep — I've recorded that. It's a genuinely useful datapoint given how little external signal there is: the roadmap is the one surface confirmed valuable by actual use. Worth leaning on when you weigh what to build next, and worth featuring in any validation push (the loom-flow probe, a demo). I'll treat roadmap-adjacent work as higher-priority by default unless you say otherwise.
+
+Next: finalize the `layer-imports-guard` idea (→ design → plan) when you want it built, or move on. Waiting.

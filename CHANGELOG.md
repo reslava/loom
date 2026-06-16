@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-06-16
+
+### Added
+- **New MCP lifecycle tools** — `loom_create_weave`, `loom_delete` (a doc, or a whole thread/weave folder), a folder-aware `loom_archive`, `loom_restore`, a `loom_validate` query tool, and a `loom://refs` resource. These let every host mutate weave/doc structure through the `mcp → app` chain instead of touching the filesystem directly.
+
+### Fixed
+- **Creating a thread no longer skips its `thread.md` manifest.** The VS Code extension created the thread folder with raw `fs` and never wrote the manifest, so the new thread had no roadmap identity. Thread creation (and delete / archive / restore) now route through MCP/app use-cases, which always write `thread.md`.
+- **`loom_create_plan` no longer silently corrupts a plan on a malformed agent call.** A malformed tool call could land the raw wire blob in `goal` while `steps` arrived `undefined`; the plan was saved with `steps: []` and the wire markers serialized into the body — and still returned success, hiding the corruption. `weavePlan` now rejects wire-marker leakage in `goal`/`title` and validates `steps` (parses a stringified array, rejects non-arrays and steps missing a description, never degrades a non-empty input to `[]`) at the app boundary, so CLI/MCP/extension all inherit the guard.
+
+### Changed
+- **`core` is now 100% IO-free.** `ConfigRegistry` (which read/wrote `~/.loom/config.yaml`) moved out of `core` into the `fs` layer, restoring the "core is pure, no IO" contract; a new `core-no-fs-imports` guard test fails the build on any IO import under `core`. No user-facing behavior change.
+
 ## [1.9.1] - 2026-06-16
 
 ### Fixed
@@ -471,7 +483,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.9.1...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.9.2...HEAD
+[1.9.2]: https://github.com/reslava/loom/releases/tag/v1.9.2
 [1.9.1]: https://github.com/reslava/loom/releases/tag/v1.9.1
 [1.9.0]: https://github.com/reslava/loom/releases/tag/v1.9.0
 [1.8.0]: https://github.com/reslava/loom/releases/tag/v1.8.0
