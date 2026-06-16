@@ -2,17 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as yaml from 'yaml';
-
-export interface LoomEntry {
-    name: string;
-    path: string;
-    created: string;
-}
-
-export interface LoomRegistry {
-    active_loom: string | null;
-    looms: LoomEntry[];
-}
+import { LoomRegistry } from '../repositories/registryRepository';
 
 /**
  * Resolves the absolute path to the currently active Loom workspace root.

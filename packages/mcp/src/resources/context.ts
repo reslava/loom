@@ -2,7 +2,8 @@ import { getState } from '../../../app/dist/getState';
 import { assembleContext } from '../../../app/dist/context/assembleContext';
 import { serializeBundle } from '../../../app/dist/context/serializeBundle';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex, readContextPrefsEntry } from '../../../fs/dist';
-import { ConfigRegistry, resolveId, LoadedDoc } from '../../../core/dist';
+import { resolveId, LoadedDoc } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 const VALID_MODES = ['chat', 'idea', 'design', 'plan', 'implementing', 'refine', 'promote', 'ctx'] as const;

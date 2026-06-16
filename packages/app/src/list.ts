@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { ConfigRegistry } from '../../core/dist/registry';
+import { ConfigRegistry } from '../../fs/dist';
 
 export interface LoomListEntry {
     name: string;

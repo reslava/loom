@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { initLocal } from './init';
-import { ConfigRegistry } from '../../core/dist/registry';
+import { ConfigRegistry } from '../../fs/dist';
 import { today } from '../../core/dist';
 
 export interface InstallWorkspaceInput {

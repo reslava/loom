@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import * as fs from 'fs-extra';
-import { ConfigRegistry } from '../../../core/dist/registry';
+import { ConfigRegistry } from '../../../fs/dist';
 import { installWorkspace } from '../../../app/dist/installWorkspace';
 
 export async function installCommand(options: { force?: boolean }): Promise<void> {

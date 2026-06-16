@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { listLooms } from '../../../app/dist/list';
 import * as fs from 'fs-extra';
-import { ConfigRegistry } from '../../../core/dist/registry';
+import { ConfigRegistry } from '../../../fs/dist';
 
 export async function listCommand(): Promise<void> {
     try {

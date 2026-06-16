@@ -1,6 +1,7 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry, getStalePlans } from '../../../core/dist';
+import { getStalePlans } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 export const toolDef = {

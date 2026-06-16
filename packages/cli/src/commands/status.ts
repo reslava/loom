@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { getState, GetStateInput } from '../../../app/dist';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 import { Weave } from '../../../core/dist';
 import { getWeaveStatus, getWeavePhase } from '../../../core/dist';

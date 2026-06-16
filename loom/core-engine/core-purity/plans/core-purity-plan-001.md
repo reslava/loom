@@ -2,8 +2,9 @@
 type: plan
 id: pl_01KV8SQQ2KWVEKWWRS9ZJKPSZ2
 title: Move ConfigRegistry IO into fs + add a core-purity guard
-status: active
+status: done
 created: 2026-06-16
+updated: 2026-06-16
 version: 1
 design_version: 1
 tags: []
@@ -13,35 +14,35 @@ target_version: 0.1.0
 steps:
   - id: relocate-registry-io-to-fs
     order: 1
-    status: pending
+    status: done
     description: "Move ConfigRegistry's file IO into the fs layer: relocate registry.ts to packages/fs/src (e.g. repositories/registryRepository.ts), keep its `nowIso` import from core (fs→core is allowed), and export it from the fs barrel (packages/fs/src/index.ts)."
     files_touched: [packages/fs/src/repositories/registryRepository.ts, packages/core/src/registry.ts, packages/fs/src/index.ts]
     blocked_by: []
     satisfies: []
   - id: repoint-importers
     order: 2
-    status: pending
+    status: done
     description: Repoint every importer from '@reslava-loom/core/dist/registry' (and core/dist re-exports of ConfigRegistry) to '@reslava-loom/fs/dist'. Remove the ConfigRegistry export from the core barrel.
     files_touched: [packages/cli/src/commands/list.ts, packages/cli/src/commands/switch.ts, packages/cli/src/commands/current.ts, packages/cli/src/commands/init.ts, packages/cli/src/commands/setup.ts, packages/cli/src/commands/install.ts, packages/cli/src/commands/status.ts, packages/core/src/index.ts]
     blocked_by: []
     satisfies: []
   - id: verify-core-is-pure
     order: 3
-    status: pending
+    status: done
     description: "Verify core purity: confirm packages/core/src imports zero fs/fs-extra/os-for-IO; core builds without any IO dependency. Resolve any remaining leak surfaced by the move."
     files_touched: [packages/core/src]
     blocked_by: []
     satisfies: []
   - id: guard-ban-fs-imports-in-core
     order: 4
-    status: pending
+    status: done
     description: "Add the core-purity guard test (sibling to tests/vscode-no-fs-imports.test.ts): fail if anything under packages/core/src imports fs, fs-extra, node:fs, or fs/promises. Wire it into ./scripts/test-all.sh."
     files_touched: [tests/core-no-fs-imports.test.ts, scripts/test-all.sh]
     blocked_by: []
     satisfies: []
   - id: build-test
     order: 5
-    status: pending
+    status: done
     description: Build (./scripts/build-all.sh) and run the full suite (./scripts/test-all.sh); fix any importer missed in step 2. Confirm the new core guard and all existing tests pass.
     files_touched: []
     blocked_by: []
@@ -59,11 +60,11 @@ Restore the "core has zero IO" contract. ConfigRegistry currently lives in packa
 
 | Done | # | Step | Files touched | Blocked by | Satisfies |
 |---|---|---|---|---|---|
-| 🔳 | 1 | Move ConfigRegistry's file IO into the fs layer: relocate registry.ts to packages/fs/src (e.g. repositories/registryRepository.ts), keep its `nowIso` import from core (fs→core is allowed), and export it from the fs barrel (packages/fs/src/index.ts). | packages/fs/src/repositories/registryRepository.ts, packages/core/src/registry.ts, packages/fs/src/index.ts | — | — |
-| 🔳 | 2 | Repoint every importer from '@reslava-loom/core/dist/registry' (and core/dist re-exports of ConfigRegistry) to '@reslava-loom/fs/dist'. Remove the ConfigRegistry export from the core barrel. | packages/cli/src/commands/list.ts, packages/cli/src/commands/switch.ts, packages/cli/src/commands/current.ts, packages/cli/src/commands/init.ts, packages/cli/src/commands/setup.ts, packages/cli/src/commands/install.ts, packages/cli/src/commands/status.ts, packages/core/src/index.ts | — | — |
-| 🔳 | 3 | Verify core purity: confirm packages/core/src imports zero fs/fs-extra/os-for-IO; core builds without any IO dependency. Resolve any remaining leak surfaced by the move. | packages/core/src | — | — |
-| 🔳 | 4 | Add the core-purity guard test (sibling to tests/vscode-no-fs-imports.test.ts): fail if anything under packages/core/src imports fs, fs-extra, node:fs, or fs/promises. Wire it into ./scripts/test-all.sh. | tests/core-no-fs-imports.test.ts, scripts/test-all.sh | — | — |
-| 🔳 | 5 | Build (./scripts/build-all.sh) and run the full suite (./scripts/test-all.sh); fix any importer missed in step 2. Confirm the new core guard and all existing tests pass. | — | — | — |
+| ✅ | 1 | Move ConfigRegistry's file IO into the fs layer: relocate registry.ts to packages/fs/src (e.g. repositories/registryRepository.ts), keep its `nowIso` import from core (fs→core is allowed), and export it from the fs barrel (packages/fs/src/index.ts). | packages/fs/src/repositories/registryRepository.ts, packages/core/src/registry.ts, packages/fs/src/index.ts | — | — |
+| ✅ | 2 | Repoint every importer from '@reslava-loom/core/dist/registry' (and core/dist re-exports of ConfigRegistry) to '@reslava-loom/fs/dist'. Remove the ConfigRegistry export from the core barrel. | packages/cli/src/commands/list.ts, packages/cli/src/commands/switch.ts, packages/cli/src/commands/current.ts, packages/cli/src/commands/init.ts, packages/cli/src/commands/setup.ts, packages/cli/src/commands/install.ts, packages/cli/src/commands/status.ts, packages/core/src/index.ts | — | — |
+| ✅ | 3 | Verify core purity: confirm packages/core/src imports zero fs/fs-extra/os-for-IO; core builds without any IO dependency. Resolve any remaining leak surfaced by the move. | packages/core/src | — | — |
+| ✅ | 4 | Add the core-purity guard test (sibling to tests/vscode-no-fs-imports.test.ts): fail if anything under packages/core/src imports fs, fs-extra, node:fs, or fs/promises. Wire it into ./scripts/test-all.sh. | tests/core-no-fs-imports.test.ts, scripts/test-all.sh | — | — |
+| ✅ | 5 | Build (./scripts/build-all.sh) and run the full suite (./scripts/test-all.sh); fix any importer missed in step 2. Confirm the new core guard and all existing tests pass. | — | — | — |
 ---
 
 ### Legend

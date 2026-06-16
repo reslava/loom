@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import * as fs from 'fs-extra';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import { getStaleDocs } from '../../../app/dist';
 
 /**

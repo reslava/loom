@@ -103,6 +103,11 @@ run_test tests/claude-md-sync.test.ts
 # justified whitelist). Enforces vscode → mcp → app where the gate hook can't see.
 run_test tests/vscode-no-fs-imports.test.ts
 
+# Core purity guard: packages/core is pure domain logic — nothing under
+# packages/core/src may import a node fs module (fs/fs-extra/node:fs/fs/promises).
+# Sibling to the vscode guard, one layer down; caught the ConfigRegistry IO drift.
+run_test tests/core-no-fs-imports.test.ts
+
 # New MCP tools: patch_doc body-prose guard + Steps-table refusal, update_step/reorder_steps
 # done-immutability + leading-block, read_chat_tail tail-after-last-AI with configured ai.model
 run_test tests/mcp-new-tools.test.ts

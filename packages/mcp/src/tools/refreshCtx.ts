@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import { serializeFrontmatter } from '../../../core/dist/frontmatterUtils';
 import { buildCtxSource, ctxTarget, computeSourceHash, buildCtxFrontmatter } from '../../../app/dist';
 

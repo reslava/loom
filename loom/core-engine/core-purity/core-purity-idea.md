@@ -2,9 +2,10 @@
 type: idea
 id: id_01KV8SQ30HTWQF3EK4KT98RR73
 title: "Restore core-layer purity: move ConfigRegistry IO into fs"
-status: draft
+status: done
 created: 2026-06-16
-version: 1
+updated: 2026-06-16
+version: 2
 tags: []
 parent_id: null
 requires_load: []

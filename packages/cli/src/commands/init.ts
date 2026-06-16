@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { initLocal, initMulti } from '../../../app/dist/init';
 import * as fs from 'fs-extra';
-import { ConfigRegistry } from '../../../core/dist/registry';
+import { ConfigRegistry } from '../../../fs/dist';
 
 export async function initCommand(options: { force?: boolean }): Promise<void> {
     try {

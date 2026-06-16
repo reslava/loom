@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import * as yaml from 'yaml';
-import { nowIso } from './dates';
+import { nowIso } from '../../../core/dist';
 
 export interface LoomEntry {
     name: string;
@@ -63,7 +63,7 @@ export class ConfigRegistry {
             relativePath = path.join('..', 'looms', name);
         }
         relativePath = normalizePath(relativePath);
-        
+
         const existing = this.registry.looms.find(l => l.name === name);
         if (existing) {
             throw new Error(`Loom '${name}' already exists`);
@@ -136,10 +136,10 @@ export class ConfigRegistry {
             const resolved = this.resolveLoomPath(loom.path);
             return fs.existsSync(resolved);
         });
-        
+
         const removedCount = this.registry.looms.length - validLooms.length;
         this.registry.looms = validLooms;
-        
+
         // If the active loom was removed, clear it
         if (this.registry.active_loom) {
             const activeExists = validLooms.some(l => l.path === this.registry.active_loom);
@@ -147,7 +147,7 @@ export class ConfigRegistry {
                 this.registry.active_loom = null;
             }
         }
-        
+
         if (removedCount > 0) {
             this.save();
         }

@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { setupLoom } from '../../../app/dist';
 import * as fs from 'fs-extra';
-import { ConfigRegistry } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 
 export async function setupCommand(name: string, options: { path?: string; switch?: boolean }): Promise<void> {
     try {

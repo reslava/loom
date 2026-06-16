@@ -68,7 +68,6 @@ export { ThreadDoc, ThreadDocStatus } from './entities/thread';
 export { createBaseFrontmatter, serializeFrontmatter, serializeStepsBlock, parseFrontmatterSteps } from './frontmatterUtils';
 export { LoomDate, today, nowIso, toEpoch, compareDates, toCanonical } from './dates';
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, stripTrailingTypeWord, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
-export { ConfigRegistry } from './registry';
 export { AIClient, Message } from './ai';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';

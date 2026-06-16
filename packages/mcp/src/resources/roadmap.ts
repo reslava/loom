@@ -1,6 +1,7 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry, buildRoadmap } from '../../../core/dist';
+import { buildRoadmap } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 import { initStateCache, getCachedState, setCachedState } from '../stateCache';
 

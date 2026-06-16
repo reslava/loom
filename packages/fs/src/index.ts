@@ -16,3 +16,4 @@ export {
     setContextPrefs,
     SetContextPrefsInput,
 } from './repositories/contextPrefsRepository';
+export { ConfigRegistry, LoomEntry, LoomRegistry } from './repositories/registryRepository';

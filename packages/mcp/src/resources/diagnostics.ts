@@ -1,6 +1,7 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { ConfigRegistry, parseReq, checkReqCoverage, buildRoadmap } from '../../../core/dist';
+import { parseReq, checkReqCoverage, buildRoadmap } from '../../../core/dist';
+import { ConfigRegistry } from '../../../fs/dist';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import * as fs from 'fs-extra';
 

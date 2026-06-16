@@ -2,7 +2,7 @@ import { getActiveLoomRoot } from '../../fs/dist';
 import { loadWeave } from '../../fs/dist';
 import { buildLinkIndex } from '../../fs/dist';
 import { loadDoc } from '../../fs/dist';
-import { ConfigRegistry } from '../../core/dist/registry';
+import { ConfigRegistry } from '../../fs/dist';
 import { LoomState, LoomMode } from '../../core/dist/entities/state';
 import { Document } from '../../core/dist/entities/document';
 import { ChatDoc } from '../../core/dist/entities/chat';
