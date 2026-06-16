@@ -98,6 +98,11 @@ run_test tests/build-ctx-source.test.ts
 # must carry the same <!-- rule:id --> set + shared verbatim invariants (no silent drift)
 run_test tests/claude-md-sync.test.ts
 
+# VS Code import guard: the extension must reach Loom only via the MCP client —
+# no node fs / @reslava-loom/{app,fs} imports under packages/vscode/src (small
+# justified whitelist). Enforces vscode → mcp → app where the gate hook can't see.
+run_test tests/vscode-no-fs-imports.test.ts
+
 # New MCP tools: patch_doc body-prose guard + Steps-table refusal, update_step/reorder_steps
 # done-immutability + leading-block, read_chat_tail tail-after-last-AI with configured ai.model
 run_test tests/mcp-new-tools.test.ts

@@ -1,8 +1,12 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import { getMCP } from '../mcp-client';
 import { TreeNode } from '../tree/treeProvider';
+
+interface RefEntry {
+    id: string;
+    title: string;
+    file: string;
+}
 
 export async function addRequiresLoadCommand(node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -11,31 +15,25 @@ export async function addRequiresLoadCommand(node?: TreeNode): Promise<void> {
     const docId = node?.doc?.id;
     if (!docId) { vscode.window.showErrorMessage('Select an idea, design, or plan first.'); return; }
 
-    const refsDir = path.join(root, 'loom', 'refs');
-    let files: string[];
+    let refs: RefEntry[];
     try {
-        files = fs.readdirSync(refsDir).filter(f => f.endsWith('.md'));
-    } catch {
-        vscode.window.showErrorMessage('No loom/refs/ directory found.');
+        const raw = await getMCP(root).readResource('loom://refs');
+        refs = (JSON.parse(raw).refs ?? []) as RefEntry[];
+    } catch (e: any) {
+        vscode.window.showErrorMessage(`Failed to load references: ${e.message}`);
         return;
     }
 
-    const items: vscode.QuickPickItem[] = [];
-    for (const file of files) {
-        try {
-            const content = fs.readFileSync(path.join(refsDir, file), 'utf8');
-            const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
-            const idMatch = content.match(/^id:\s*(\S+)/m);
-            const title = titleMatch?.[1] ?? file.replace(/-reference\.md$/, '');
-            const id = idMatch?.[1] ?? file.replace('.md', '');
-            items.push({ label: title, description: file, detail: id });
-        } catch { /* skip unreadable files */ }
-    }
-
-    if (items.length === 0) {
+    if (refs.length === 0) {
         vscode.window.showInformationMessage('No reference docs found in loom/refs/.');
         return;
     }
+
+    const items: vscode.QuickPickItem[] = refs.map(r => ({
+        label: r.title,
+        description: r.file,
+        detail: r.id,
+    }));
 
     const currentRequiresLoad: string[] = (node?.doc as any)?.requires_load ?? [];
     const selected = await vscode.window.showQuickPick(items, {

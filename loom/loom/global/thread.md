@@ -4,11 +4,12 @@ id: th_01KV3MWSBEWS367MQBWNBENBKH
 title: global
 status: active
 created: 2026-06-14
+updated: 2026-06-16
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 80
 depends_on: []
 ---
 # global

@@ -1,5 +1,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+// Carve-out (see tests/vscode-no-fs-imports.test.ts): activation/bootstrap probes
+// .loom/ config to decide whether to light up — this runs before the MCP client
+// exists, so it cannot go through it. Reads .loom/ config, never loom/ docs.
 import * as fs from 'fs';
 import { execSync } from 'child_process';
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
@@ -61,7 +64,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     vscode.commands.executeCommand('setContext', 'loom.roadmapEnabled', viewStateManager.getState().roadmapEnabled);
     vscode.commands.executeCommand('setContext', 'loom.groupHistoryByThread', viewStateManager.getState().groupHistoryByThread);
     const treeProvider = new LoomTreeProvider(viewStateManager);
-    const tokenEstimator = new TokenEstimatorService(context);
+    const tokenEstimator = new TokenEstimatorService();
     const contextSidebar = new ContextSidebarProvider(treeProvider, tokenEstimator);
 
     const treeView = vscode.window.createTreeView('loom.threads', {

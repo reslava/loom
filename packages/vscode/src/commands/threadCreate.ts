@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
+import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
 export async function threadCreateCommand(
@@ -8,11 +7,8 @@ export async function threadCreateCommand(
     treeView: vscode.TreeView<TreeNode>,
     node?: TreeNode
 ): Promise<void> {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!workspaceRoot) {
-        vscode.window.showErrorMessage('No workspace open.');
-        return;
-    }
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
     const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
     const weaveId = selectedNode?.weaveId ?? await vscode.window.showInputBox({
@@ -28,15 +24,14 @@ export async function threadCreateCommand(
     });
     if (!threadId) return;
 
-    const threadPath = path.join(workspaceRoot, 'loom', weaveId, threadId);
-    if (await fs.pathExists(threadPath)) {
-        vscode.window.showWarningMessage(`Thread '${threadId}' already exists in '${weaveId}'.`);
-        return;
+    try {
+        // loom_create_thread writes the thread.md manifest via the app use-case —
+        // this is what was missing when the command created the folder with raw fs.
+        await getMCP(root).callTool('loom_create_thread', { weaveId, threadId });
+        await treeProvider.waitForRefresh();
+        const threadNode = treeProvider.getNodeByThreadId(weaveId, threadId);
+        if (threadNode) treeView.reveal(threadNode, { select: true, focus: true, expand: false });
+    } catch (e: any) {
+        vscode.window.showErrorMessage(`Failed to create thread: ${e.message}`);
     }
-
-    await fs.ensureDir(threadPath);
-    await fs.ensureDir(path.join(threadPath, 'chats'));
-    await treeProvider.waitForRefresh();
-    const threadNode = treeProvider.getNodeByThreadId(weaveId, threadId);
-    if (threadNode) treeView.reveal(threadNode, { select: true, focus: true, expand: false });
 }

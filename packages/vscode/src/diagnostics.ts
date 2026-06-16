@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { validate } from '@reslava-loom/app/dist/validate';
-import { buildLinkIndex, loadDoc } from '@reslava-loom/fs/dist';
-import * as fs from 'fs-extra';
+import { getMCP } from './mcp-client';
+
+interface ValidationResult {
+    id: string;
+    issues: string[];
+}
 
 export async function updateDiagnostics(
     collection: vscode.DiagnosticCollection,
@@ -10,26 +13,18 @@ export async function updateDiagnostics(
 ): Promise<void> {
     collection.clear();
 
-    let result;
+    let results: ValidationResult[];
     try {
-        result = await validate(
-            { all: true },
-            {
-                getActiveLoomRoot: () => workspaceRoot,
-                buildLinkIndex,
-                loadDoc,
-                fs,
-                loomRoot: workspaceRoot,
-            }
-        );
+        const r = await getMCP(workspaceRoot).callTool('loom_validate', { all: true }) as { results: ValidationResult[] };
+        results = r.results ?? [];
     } catch {
         return;
     }
 
-    const weavesWithIssues = result.results.filter(r => r.issues.length > 0);
+    const weavesWithIssues = results.filter(r => r.issues.length > 0);
     if (weavesWithIssues.length === 0) return;
 
-    const idToUri = await buildDocIdMap();
+    const idToUri = await buildDocIdMap(workspaceRoot);
 
     for (const weaveResult of weavesWithIssues) {
         const weavePath = path.join(workspaceRoot, 'loom', weaveResult.id);
@@ -65,16 +60,16 @@ export async function updateDiagnostics(
     }
 }
 
-async function buildDocIdMap(): Promise<Map<string, vscode.Uri>> {
+async function buildDocIdMap(workspaceRoot: string): Promise<Map<string, vscode.Uri>> {
     const map = new Map<string, vscode.Uri>();
-    const files = await vscode.workspace.findFiles('loom/**/*.md');
-    for (const uri of files) {
-        try {
-            const doc = await loadDoc(uri.fsPath) as any;
-            if (doc?.id) map.set(doc.id, uri);
-        } catch {
-            // skip unparseable files
+    try {
+        const raw = await getMCP(workspaceRoot).readResource('loom://link-index');
+        const byId = (JSON.parse(raw).byId ?? {}) as Record<string, string>;
+        for (const [id, filePath] of Object.entries(byId)) {
+            map.set(id, vscode.Uri.file(filePath));
         }
+    } catch {
+        // leave map empty — issues fall back to findAnyFileUnder / are skipped
     }
     return map;
 }

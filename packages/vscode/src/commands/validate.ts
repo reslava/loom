@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
-import { validate } from '@reslava-loom/app/dist/validate';
-import { getActiveLoomRoot, buildLinkIndex, loadDoc } from '@reslava-loom/fs/dist';
-import * as fs from 'fs-extra';
+import { getMCP } from '../mcp-client';
 import { LoomTreeProvider } from '../tree/treeProvider';
 
+interface ValidationResult {
+    id: string;
+    issues: string[];
+}
+
 export async function validateCommand(treeProvider: LoomTreeProvider): Promise<void> {
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-    if (!workspaceRoot) {
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (!root) {
         vscode.window.showErrorMessage('No workspace open.');
         return;
     }
@@ -26,18 +29,12 @@ export async function validateCommand(treeProvider: LoomTreeProvider): Promise<v
     }
 
     try {
-        const result = await validate(
-            { weaveId, all: !weaveId },
-            {
-                getActiveLoomRoot: () => workspaceRoot,
-                buildLinkIndex,
-                loadDoc,
-                fs,
-                loomRoot: workspaceRoot,
-            }
-        );
+        const result = await getMCP(root).callTool(
+            'loom_validate',
+            weaveId ? { weaveId } : { all: true }
+        ) as { results: ValidationResult[] };
 
-        const issues = result.results.filter(r => r.issues.length > 0);
+        const issues = (result.results ?? []).filter(r => r.issues.length > 0);
         if (issues.length === 0) {
             vscode.window.showInformationMessage('✅ All weaves valid — no issues found.');
             return;

@@ -1,37 +1,35 @@
-import * as path from 'path';
 import * as fs from 'fs-extra';
 import { resolveDocIdOrThrow } from '../../../fs/dist';
+import { archiveItem, ArchiveInput } from '../../../app/dist/archive';
 
 export const toolDef = {
     name: 'loom_archive',
-    description: 'Archive a document by moving it under the single top-level loom/.archive/ tree, mirroring its weave/thread path (e.g. loom/core-engine/foo/plans/x.md → loom/.archive/core-engine/foo/plans/x.md). Use this tool to archive Loom docs — do not move files directly.',
+    description:
+        'Archive a Loom doc (by id) or an entire thread/weave folder (by { weaveId, threadId? }) by moving it under the single top-level loom/.archive/ tree, mirroring its weave/thread path (e.g. loom/core-engine/foo/plans/x.md → loom/.archive/core-engine/foo/plans/x.md). Recoverable via loom_restore. Pass exactly one of: id, or weaveId (+ optional threadId). Use this tool — do not move files directly.',
     inputSchema: {
         type: 'object' as const,
         properties: {
-            id: { type: 'string', description: 'Document id to archive' },
+            id: { type: 'string', description: 'Document id to archive (mutually exclusive with weaveId)' },
+            weaveId: { type: 'string', description: 'Weave to archive (whole folder), or the weave of the thread to archive' },
+            threadId: { type: 'string', description: 'Thread to archive (requires weaveId)' },
         },
-        required: ['id'],
+        required: [],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const id = args['id'] as string;
+    const id = args['id'] as string | undefined;
+    const weaveId = args['weaveId'] as string | undefined;
+    const threadId = args['threadId'] as string | undefined;
 
-    // Primary (agent-supplied) id → suggest-on-miss.
-    const { filePath } = await resolveDocIdOrThrow(root, id);
+    const input: ArchiveInput = id
+        ? { id }
+        : { weaveId: weaveId as string, threadId };
 
-    // Archive convention: mirror the doc's path under a single top-level
-    // loom/.archive/ tree (e.g. loom/core-engine/foo/plans/x.md →
-    // loom/.archive/core-engine/foo/plans/x.md). Never an in-thread .archive/.
-    // Mirrors the VS Code archiveItem command so both surfaces agree.
-    const loomDir = path.join(root, 'loom') + path.sep;
-    if (!filePath.startsWith(loomDir)) {
-        throw new Error(`Cannot archive: ${filePath} is not inside loom/`);
-    }
-    const rel = filePath.slice(loomDir.length);
-    const archivedPath = path.join(root, 'loom', '.archive', rel);
-    await fs.ensureDir(path.dirname(archivedPath));
-    await fs.move(filePath, archivedPath, { overwrite: false });
-
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ id, archivedPath }) }] };
+    const result = await archiveItem(input, {
+        getActiveLoomRoot: () => root,
+        resolveDocIdOrThrow,
+        fs,
+    });
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

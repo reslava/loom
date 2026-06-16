@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KT9S7NK592FBRGB3D7C7189G
 title: v0.9.0
-status: active
+status: done
 created: 2026-06-04
-version: 1
+updated: 2026-06-16
+version: 2
 tags: []
 parent_id: null
 requires_load: []

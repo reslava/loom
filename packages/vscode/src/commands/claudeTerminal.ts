@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as cp from 'child_process';
+// Carve-out (see tests/vscode-no-fs-imports.test.ts): writes a prompt tmpfile to
+// os.tmpdir() to feed the Claude CLI — outside loom/, not a doc mutation.
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';

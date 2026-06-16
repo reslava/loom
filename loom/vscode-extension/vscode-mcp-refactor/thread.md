@@ -4,11 +4,12 @@ id: th_01KV3MWSE3NR988C4HN51PA6CV
 title: Refactor VS Code Extension to Use MCP
 status: active
 created: 2026-06-14
+updated: 2026-06-16
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 150
 depends_on: []
 ---
 # Refactor VS Code Extension to Use MCP

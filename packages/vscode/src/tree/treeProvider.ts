@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { getMCP, disposeMCP } from '../mcp-client';
 import { LoomState } from '@reslava-loom/core/dist/entities/state';
 import { Weave } from '@reslava-loom/core/dist/entities/weave';
@@ -118,12 +116,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             return [this.messageNode('No workspace open')];
         }
 
-        const loomDir = path.join(this.workspaceRoot, '.loom');
-        if (!fs.existsSync(loomDir)) {
-            pendingCallbacks.forEach(cb => cb());
-            return [];
-        }
-
+        // Whether this is an initialised Loom workspace is derived from the
+        // loom://state read below (empty/!state ⇒ empty tree), not a direct
+        // fs.existsSync('.loom') probe — the extension never touches fs.
         this.filePathToNode.clear();
         this.nodeToParent.clear();
         this.weaveIdToNode.clear();

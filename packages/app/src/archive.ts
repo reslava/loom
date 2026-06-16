@@ -1,0 +1,59 @@
+import * as path from 'path';
+import * as fsExtra from 'fs-extra';
+import { getActiveLoomRoot, resolveDocIdOrThrow } from '../../fs/dist';
+
+/**
+ * Use-case for archiving a Loom item: a single doc (by id) or a whole
+ * thread/weave folder (by weaveId + optional threadId). The item is *moved*
+ * under the single top-level `loom/.archive/` tree, mirroring its weave/thread
+ * path (never an in-thread `.archive/`). Recoverable via `restoreItem`.
+ *
+ * Previously this logic lived directly in the MCP archive tool (raw `fs.move`);
+ * it now lives here so archive shares the "all loom/ mutation goes through app"
+ * seam with create/delete/restore.
+ */
+
+export interface ArchiveDeps {
+    getActiveLoomRoot: typeof getActiveLoomRoot;
+    resolveDocIdOrThrow: typeof resolveDocIdOrThrow;
+    fs: typeof fsExtra;
+}
+
+export type ArchiveInput =
+    | { id: string }
+    | { weaveId: string; threadId?: string };
+
+export async function archiveItem(
+    input: ArchiveInput,
+    deps: ArchiveDeps,
+): Promise<{ source: string; archivedPath: string }> {
+    const loomRoot = deps.getActiveLoomRoot();
+    const loomDir = path.join(loomRoot, 'loom');
+    const prefix = loomDir + path.sep;
+
+    let source: string;
+    if ('id' in input && input.id) {
+        const { filePath } = await deps.resolveDocIdOrThrow(loomRoot, input.id);
+        source = filePath;
+    } else if ('weaveId' in input && input.weaveId) {
+        source = input.threadId
+            ? path.join(loomDir, input.weaveId, input.threadId)
+            : path.join(loomDir, input.weaveId);
+    } else {
+        throw new Error('archiveItem requires either { id } or { weaveId, threadId? }.');
+    }
+
+    if (!source.startsWith(prefix)) {
+        throw new Error(`Cannot archive: ${source} is not inside loom/.`);
+    }
+    if (!(await deps.fs.pathExists(source))) {
+        throw new Error(`Nothing to archive at ${path.relative(loomRoot, source)}.`);
+    }
+
+    // Mirror the path under the single top-level loom/.archive/ tree.
+    const rel = source.slice(prefix.length);
+    const archivedPath = path.join(loomDir, '.archive', rel);
+    await deps.fs.ensureDir(path.dirname(archivedPath));
+    await deps.fs.move(source, archivedPath, { overwrite: false });
+    return { source, archivedPath };
+}

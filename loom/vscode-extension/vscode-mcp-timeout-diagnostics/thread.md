@@ -4,11 +4,12 @@ id: th_01KV3MWSEBY7SYFZERPN7ZF9FW
 title: Diagnose MCP timeout root cause via instrumentation
 status: active
 created: 2026-06-14
+updated: 2026-06-16
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 170
 depends_on: []
 ---
 # Diagnose MCP timeout root cause via instrumentation

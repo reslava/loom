@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 24
+last_ai_block: 25
 ---
 # roadmap history sort criteria
 
@@ -278,3 +278,13 @@ So it lands as a patch: fixes a bug, hardens internals, no additive public featu
 **One caveat worth a CHANGELOG line either way:** on-disk frontmatter dates now self-heal to canonical `YYYY-MM-DD` on save (some docs that carried full-ISO will rewrite their `created`/`updated` on their next save). It's non-breaking — purely a normalization — but it's a visible diff in users' repos, so it's worth noting.
 
 Recommendation: **1.9.1**, with a CHANGELOG entry covering the History fix + the date-self-heal note. Want me to run the version bump (and the tag-push gotcha applies — I'll push the tag explicitly so the release triggers)?
+
+## AI:
+
+**Released v1.9.1.**
+
+- All 7 `package.json` bumped to 1.9.1 (lockstep); root CHANGELOG rolled `[Unreleased] → [1.9.1]`; vscode CHANGELOG hand-added `[1.9.1]`.
+- Commit `97f9dac` ("release: v1.9.1") on `main`, annotated tag `v1.9.1` pushed **explicitly** (the `--follow-tags` lightweight-tag gotcha avoided).
+- Release workflow triggered on the tag — currently `in_progress` (it extracts the `## [1.9.1]` CHANGELOG section verbatim as the GitHub release notes).
+
+That closes the loop from your original chat question — the History sort bug is fixed, root-caused, regression-tested, shipped.

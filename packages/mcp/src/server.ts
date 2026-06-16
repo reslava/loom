@@ -13,6 +13,7 @@ import { handleStatusResource } from './resources/status';
 import { handleLinkIndexResource } from './resources/linkIndex';
 import { handleDiagnosticsResource } from './resources/diagnostics';
 import { handleSummaryResource } from './resources/summary';
+import { handleRefsResource } from './resources/refs';
 import { handleRoadmapResource } from './resources/roadmap';
 import { handleDocsResource } from './resources/docs';
 import { handleContextResource } from './resources/context';
@@ -25,6 +26,7 @@ import * as createReq from './tools/createReq';
 import * as amendReq from './tools/amendReq';
 import * as finalizeReq from './tools/finalizeReq';
 import * as createThread from './tools/createThread';
+import * as createWeave from './tools/createWeave';
 import * as setPriority from './tools/setPriority';
 import * as setThreadDeps from './tools/setThreadDeps';
 import * as updateDoc from './tools/updateDoc';
@@ -45,12 +47,15 @@ import { createRefinePlanTool } from './tools/refinePlan';
 import { createRefineDesignTool } from './tools/refineDesign';
 import * as finalizeDoc from './tools/finalizeDoc';
 import * as archive from './tools/archive';
+import * as deleteItem from './tools/delete';
+import * as restore from './tools/restore';
 import * as rename from './tools/rename';
 import * as findDoc from './tools/findDoc';
 import * as searchDocs from './tools/searchDocs';
 import * as getBlockedSteps from './tools/getBlockedSteps';
 import * as getStalePlans from './tools/getStalePlans';
 import * as getStaleDocs from './tools/getStaleDocs';
+import * as validate from './tools/validate';
 import { createGenerateTools } from './tools/generate';
 import { createVerifyReqTool } from './tools/verifyReq';
 import { createRefreshCtxTool } from './tools/refreshCtx';
@@ -95,6 +100,7 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
     { uri: 'loom://roadmap', name: 'Roadmap', description: 'Derived cross-weave roadmap: future (pending/blocked, dependency+priority order), present (active/implementing), history (shipped plans), and diagnostics (cycles, dangling deps, missing thread.md)', mimeType: 'application/json' },
     { uri: 'loom://catalog', name: 'Tool Catalog', description: 'Grouped index of all loom_* MCP tools (name + one-line purpose). Read this BEFORE searching for a tool, then ToolSearch select:<exact name>.', mimeType: 'text/markdown' },
+    { uri: 'loom://refs', name: 'References', description: 'Reference docs under loom/refs/ as { id, title, file } — backs the requires_load picker', mimeType: 'application/json' },
 ];
 
 const RESOURCE_TEMPLATES = [
@@ -111,8 +117,8 @@ export function createLoomMcpServer(root: string): Server {
     );
 
     const TOOLS: GroupedTool[] = [
-        ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat]),
-        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, rename, createPromoteTool(server)]),
+        ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat, createWeave]),
+        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
@@ -120,7 +126,7 @@ export function createLoomMcpServer(root: string): Server {
         ...reg('thread', [createThread, setPriority, setThreadDeps]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
-        ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs]),
+        ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs, validate]),
     ];
 
     // Build the discovery catalog once from the live registry (static for this server).
@@ -150,6 +156,9 @@ export function createLoomMcpServer(root: string): Server {
         }
         if (uri === 'loom://summary') {
             return handleSummaryResource(root);
+        }
+        if (uri === 'loom://refs') {
+            return handleRefsResource(root);
         }
         if (uri === 'loom://roadmap') {
             return handleRoadmapResource(root, uri);
