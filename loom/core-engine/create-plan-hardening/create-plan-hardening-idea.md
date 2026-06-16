@@ -2,9 +2,10 @@
 type: idea
 id: id_01KV8SRTQJ1N3HG9VWD1N7HEC4
 title: Harden loom_create_plan against malformed / stringified steps payloads
-status: draft
+status: done
 created: 2026-06-16
-version: 1
+updated: 2026-06-16
+version: 2
 tags: []
 parent_id: null
 requires_load: []

@@ -40,7 +40,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
         threadId: args['threadId'] as string,
         title: args['title'] as string | undefined,
         goal: args['goal'] as string | undefined,
-        steps: args['steps'] as any[] | undefined,
+        // Pass through unparsed — weavePlan's coerceSteps validates/parses at the
+        // app boundary (a malformed call can deliver this JSON-encoded as a string).
+        steps: args['steps'] as any[] | string | undefined,
         parentId: args['parentId'] as string | undefined,
     };
     const result = await weavePlan(input, {

@@ -23,8 +23,10 @@ export interface WeavePlanInput {
     weaveId: string;
     title?: string;
     goal?: string;
-    /** Structured ordered steps. The plan is born frontmatter-native (Loom owns the table). */
-    steps?: PlanStepInput[];
+    /** Structured ordered steps. The plan is born frontmatter-native (Loom owns the table).
+     *  Typed `| string` because a malformed agent tool-call can deliver the array
+     *  JSON-encoded; {@link coerceSteps} parses/validates it at the use-case boundary. */
+    steps?: PlanStepInput[] | string;
     parentId?: string;
     threadId?: string;
 }
@@ -35,6 +37,66 @@ export interface WeavePlanDeps {
     loadDoc: typeof loadDoc;
     fs: typeof fs;
     loomRoot: string;
+}
+
+/**
+ * Tool-call wire markers that must never appear in a plan's `goal`/`title`.
+ * When an agent emits a malformed tool call, the harness can shove the raw
+ * function-call XML (e.g. `</goal>`, `<parameter name="steps">…`) into a string
+ * argument; serialized verbatim it corrupts the plan body. Their presence is a
+ * positive signal of a malformed call, never legitimate prose.
+ */
+const WIRE_MARKER = /<\/?(?:antml:)?(?:goal|parameter|invoke|function_calls)\b/i;
+
+/** Throw if a free-text plan field carries tool-call wire markers (malformed call). */
+function assertNoWireLeak(field: string, value: string | undefined): void {
+    if (value && WIRE_MARKER.test(value)) {
+        throw new Error(
+            `loom_create_plan: "${field}" contains tool-call wire markers ` +
+            `(e.g. </goal>, <parameter …>). The call was malformed and would corrupt ` +
+            `the plan — re-issue it with clean field values and a structured "steps" array.`
+        );
+    }
+}
+
+/**
+ * Normalize the `steps` argument at the use-case boundary into a validated array.
+ * A malformed agent call can deliver `steps` JSON-encoded as a string (cast
+ * `as any[]` at the tool layer hides it); coerce a string via JSON.parse, then
+ * hard-reject anything that is not an array of step objects with a non-empty
+ * `description`. Never silently degrade a non-empty input to `[]`.
+ */
+function coerceSteps(raw: PlanStepInput[] | string | undefined): PlanStepInput[] {
+    if (raw === undefined || raw === null) return [];
+    let steps: unknown = raw;
+    if (typeof steps === 'string') {
+        const trimmed = steps.trim();
+        if (trimmed === '') return [];
+        try {
+            steps = JSON.parse(trimmed);
+        } catch (e) {
+            throw new Error(
+                `loom_create_plan: "steps" arrived as an unparseable string, not an array ` +
+                `(JSON parse failed: ${(e as Error).message}). Pass steps as a structured array.`
+            );
+        }
+    }
+    if (!Array.isArray(steps)) {
+        throw new Error(`loom_create_plan: "steps" must be an array of step objects, got ${typeof steps}.`);
+    }
+    steps.forEach((s, i) => {
+        if (typeof s !== 'object' || s === null || Array.isArray(s)) {
+            throw new Error(
+                `loom_create_plan: step ${i + 1} is not an object ` +
+                `(got ${Array.isArray(s) ? 'array' : typeof s}).`
+            );
+        }
+        const desc = (s as { description?: unknown }).description;
+        if (typeof desc !== 'string' || desc.trim() === '') {
+            throw new Error(`loom_create_plan: step ${i + 1} is missing a non-empty "description".`);
+        }
+    });
+    return steps as PlanStepInput[];
 }
 
 /** Build canonical PlanSteps from structured create input (born frontmatter-native). */
@@ -61,6 +123,13 @@ export async function weavePlan(
     input: WeavePlanInput,
     deps: WeavePlanDeps
 ): Promise<{ id: string; filePath: string }> {
+    // Validate the agent's input at the use-case boundary so every delivery layer
+    // (CLI, MCP, extension) inherits the guard: reject wire-marker body leaks and
+    // coerce/validate steps. A corrupt plan must error, never persist + return success.
+    assertNoWireLeak('goal', input.goal);
+    assertNoWireLeak('title', input.title);
+    const steps = coerceSteps(input.steps);
+
     const weavePath = path.join(deps.loomRoot, 'loom', input.weaveId);
 
     if (input.threadId) {
@@ -88,7 +157,7 @@ export async function weavePlan(
             }
         }
 
-        const planSteps: PlanStep[] = buildStructuredSteps(input.steps ?? []);
+        const planSteps: PlanStep[] = buildStructuredSteps(steps);
         const body = serializePlanBody(planSteps, { goal: input.goal });
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
         // Stamp the locked req version this plan was built against (req-staleness baseline).
@@ -128,7 +197,7 @@ export async function weavePlan(
     const planFilename = generatePlanId(input.weaveId, existingPlanIds);
     const planId = generateDocId('plan');
 
-    const planSteps: PlanStep[] = buildStructuredSteps(input.steps ?? []);
+    const planSteps: PlanStep[] = buildStructuredSteps(steps);
     const body = serializePlanBody(planSteps, { goal: input.goal });
     const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, input.parentId ?? null);
     const doc: PlanDoc = {

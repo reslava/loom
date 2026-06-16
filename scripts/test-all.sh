@@ -126,6 +126,11 @@ run_test tests/resolution-dx.test.ts
 # create-with-body: one-call body on create_* + sampling-free promote (real fs)
 run_test tests/create-with-body.test.ts
 
+# create-plan-hardening: weavePlan rejects malformed agent calls — wire-marker body
+# leaks in goal/title, stringified/unparseable/non-array steps, missing descriptions —
+# never persists a corrupt plan + returns success (real fs)
+run_test tests/create-plan-hardening.test.ts
+
 # Legacy integration tests
 run_test tests/id-management.test.ts
 run_test tests/multi-loom.test.ts

@@ -97,7 +97,7 @@ async function run() {
     console.log('  • weavePlan stamps req_version from the locked req...');
     {
         const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
-        const { filePath } = await weavePlan({ weaveId, threadId, title: 'P', steps: ['do a thing'] }, planDeps);
+        const { filePath } = await weavePlan({ weaveId, threadId, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
         const plan: any = await loadDoc(filePath);
         assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
         console.log('    ✅ plan.req_version stamped from locked req');
