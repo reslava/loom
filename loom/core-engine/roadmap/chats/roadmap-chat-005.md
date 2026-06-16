@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 21
+last_ai_block: 24
 ---
 # roadmap history sort criteria
 
@@ -248,3 +248,33 @@ The original symptom — History mis-ordering on a bare-date done-doc — is fix
 commit push
 
 can I test with `loom migrate --dry-run` in other project?
+
+## AI:
+
+Committed + pushed to `main` (`a5405a9`, 36 files).
+
+**Yes — `loom migrate --dry-run` in another project is safe to test right now.**
+
+- `build-all.sh` just relinked the global `loom` binary, so it has the new code. `loom migrate` is a plain CLI command (fresh process each run), so it picks up the new build immediately — *no* MCP-staleness caveat (that only bites live MCP tool calls in a running session).
+- The other project must be a Loom workspace (have a `.loom/`). `cd` into its root and run `loom migrate --dry-run`.
+- `--dry-run` **touches nothing** — it scans and prints what it *would* do for both registered migrations: any missing `thread.md` (backfill) and any non-canonical `created`/`updated` it would rewrite (e.g. `created: 2026-06-09T00:00:00.000Z → 2026-06-09`). Drop `--dry-run` to actually apply.
+- Expect it to list a fair number of date normalizations in an older project — those are exactly the full-ISO timestamps the load→save drift had been accumulating.
+
+One note: `--dry-run` reports what it'd change but, because the fix is also self-healing + tolerant-compare, you're not obligated to run the real migration — it's cleanup, not a correctness gate. Good way to *see* the scale of the drift in a real repo, though.
+
+## AI:
+
+**My lean: `1.9.1` (patch).**
+
+Semver by user-facing surface:
+- The headline change is a **bug fix** — roadmap History mis-ordering. That's textbook patch.
+- **No new public surface**: no new CLI command, no new MCP tool, no new API. `core/dates.ts` is internal; the stamp/compare refactor is invisible to users.
+- The one thing that smells minor-ish is the `normalize-dates` migration — but it's **hygiene folded into the existing `loom migrate` command**, behind `--dry-run`, not a new headline capability. That doesn't clear the bar for a minor bump on its own.
+
+So it lands as a patch: fixes a bug, hardens internals, no additive public feature.
+
+**When I'd say `1.10.0` instead:** if we were presenting `normalize-dates` as a *promoted feature* users should act on (e.g. release notes leading with "run `loom migrate` to normalize your dates"), or if there were a new command/flag/tool. There isn't — the migration is opportunistic cleanup and the system self-heals without it.
+
+**One caveat worth a CHANGELOG line either way:** on-disk frontmatter dates now self-heal to canonical `YYYY-MM-DD` on save (some docs that carried full-ISO will rewrite their `created`/`updated` on their next save). It's non-breaking — purely a normalization — but it's a visible diff in users' repos, so it's worth noting.
+
+Recommendation: **1.9.1**, with a CHANGELOG entry covering the History fix + the date-self-heal note. Want me to run the version bump (and the tag-push gotcha applies — I'll push the tag explicitly so the release triggers)?

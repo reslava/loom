@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.9.1] - 2026-06-16
+
+### Fixed
+- **Roadmap History orders shipped plans correctly.** The History band rendered shipped plans in the
+  wrong order when their done-doc dates mixed bare-date and full-ISO formats. Fixed in the shared
+  `loom://roadmap` read-model (canonical date handling in `core`) — no extension-side change beyond
+  picking up the corrected order.
+
+### Notes
+- Lockstep 1.9.1 bump with the CLI and the rest of the monorepo.
+
 ## [1.9.0] - 2026-06-15
 
 ### Changed

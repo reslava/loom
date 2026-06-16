@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-06-16
+
+### Fixed
+- **Roadmap History no longer mis-orders shipped plans.** History sorted by a raw *string* comparison of frontmatter dates, which is wrong whenever formats are mixed — `"2026-06-16"` sorts *before* `"2026-06-16T00:00:00.000Z"` (the shorter prefix wins), so a plan whose done-doc carried a bare date could land in the wrong slot or sink to the bottom. The root cause ran deeper: `gray-matter` parses an unquoted `created: 2026-06-09` back as a JS `Date`, which the serializer then re-emitted as a full-ISO timestamp — so a doc *drifted* date-only → full-ISO simply by being loaded and re-saved, which is what mixed the formats in the first place. Both are now fixed: all date production, comparison, and serialization flow through one `core/dates.ts` seam (tolerant epoch comparison, canonical `YYYY-MM-DD` on write), and dates are coerced to canonical strings at the load boundary, closing the drift. The same fragile string-compare in staleness detection and document sorting is fixed by the same change.
+
+### Changed
+- **Frontmatter dates self-heal to canonical `YYYY-MM-DD` on save.** Any doc carrying a full-ISO `created`/`updated` (from the load→save drift above) is rewritten to a bare date the next time it is saved — a non-breaking normalization, but a visible diff in your repo. `loom migrate` now also runs a `normalize-dates` pass (idempotent, `--dry-run`) that canonicalizes every doc's dates in one go; it's optional cleanup, since comparison is tolerant of mixed formats regardless.
+
 ## [1.9.0] - 2026-06-15
 
 ### Changed
@@ -463,7 +471,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.9.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.9.1...HEAD
+[1.9.1]: https://github.com/reslava/loom/releases/tag/v1.9.1
 [1.9.0]: https://github.com/reslava/loom/releases/tag/v1.9.0
 [1.8.0]: https://github.com/reslava/loom/releases/tag/v1.8.0
 [1.6.0]: https://github.com/reslava/loom/releases/tag/v1.6.0
