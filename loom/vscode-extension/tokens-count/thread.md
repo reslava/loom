@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 120
+priority: 130
 depends_on: []
 ---
 # Token Count — Local Estimator
