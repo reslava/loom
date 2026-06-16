@@ -4,7 +4,8 @@ id: rf_01KQYDFDDDMS4N0V9G73MNV5JR
 title: loom — Architecture 
 status: active
 created: "2026-04-14T00:00:00.000Z"
-version: 4
+updated: 2026-06-16
+version: 5
 tags: [architecture, reference, loom, mcp, public]
 requires_load: []
 slug: architecture-reference
@@ -55,13 +56,28 @@ CLI (packages/cli)          VSCode (packages/vscode)
   `loom next` read MCP resources & prompts with no subprocess or hand-typed JSON-RPC.
   Query commands (`loom search` / `stale` / `blocked`) call the shared app query
   use-cases directly — the same ones their MCP tools delegate to (one source of truth).
-- `vscode` **must** call MCP only — no direct app imports
-- `mcp` server may **only** import from `app` — it is the gate
-- `app` may **only** import from `core` and `fs`
-- `core` may **only** import from itself
-- `fs` may **only** import from `core` and standard libraries
+- `vscode` **must** call MCP only — no direct `app`/`fs` imports (one whitelisted
+  pre-MCP bootstrap aside). This is the boundary that actually matters and is
+  guarded by `tests/vscode-no-fs-imports.test.ts`.
+- `mcp` is the **mutation gate**: every state *change* an agent makes goes through
+  an `app` use-case. For *reads*, the MCP resources (`state`, `roadmap`,
+  `diagnostics`, `context`) assemble read-models directly from `fs` repositories
+  (`getActiveLoomRoot`/`loadWeave`/`buildLinkIndex`) and `core` derived functions
+  (`buildRoadmap`, validation) — so `mcp` legitimately imports `app` + `core` + `fs`.
+  It must **not** import `cli`/`vscode`. (Routing trivial reads through `app` too
+  was considered and rejected as ceremony — the gate that earns its keep is on
+  *mutations* and on *vscode → mcp*, not on read-only assembly.)
+- `app` may **only** import from `core` and `fs` (never `cli`/`vscode`/`mcp`).
+- `core` may **only** import from itself — zero sibling packages, zero node IO.
+  Guarded by `tests/core-no-fs-imports.test.ts`.
+- `fs` may import from `core` and standard libraries only (never `app`/`cli`/`vscode`/`mcp`).
+- `cli` is a delivery layer: it may call `app` use-cases directly, reach the MCP
+  surface **in-process** (the `mcpClient.ts` detail above), and read `core`/`fs`
+  types for rendering. It must not import `vscode`.
 
-**Stage 2 principle:** MCP is the primary gate. The extension (human UI) routes exclusively through MCP.
+**Stage 2 principle:** MCP is the primary gate **for mutations**, and the extension
+(human UI) routes exclusively through MCP. Read paths inside the engine (cli, mcp
+resources) may compose `core` + `fs` directly.
 
 ## 2. AI Agent Integration (Stage 2)
 

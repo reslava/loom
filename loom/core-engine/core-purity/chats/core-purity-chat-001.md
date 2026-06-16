@@ -2,13 +2,14 @@
 type: chat
 id: ch_01KV8T6JD7YEE8EQ87CRD7WVRX
 title: core-purity Chat
-status: active
+status: done
 created: 2026-06-16
-version: 1
+updated: 2026-06-16
+version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 2
+last_ai_block: 8
 ---
 # core-purity Chat
 
@@ -101,3 +102,87 @@ CLI (packages/cli)          VSCode (packages/vscode)
 ```
 
 Should we create guards for all Dependeccy rules?
+
+
+## AI:
+
+Committed + pushed to `main` (`d8c9c68`). Git tracked the move as a rename.
+
+## Do we need more guards?
+
+Short answer: **not "one per rule" — and one of the rules you'd guard is already false today.** I audited the actual imports before answering.
+
+*Vision check first (per the contract): guards are internal architecture hygiene, not a user-visible feature — same justification as the core-purity guard itself. They don't remove a manual user step; they protect a contract that keeps the engine buildable and stops recursive AI sessions from silently eroding the layering. So judge them on that ROI, not on the vision.*
+
+### The finding: the `mcp → app only` rule is not real
+
+The doc says *"mcp server may only import from app — it is the gate."* The code says otherwise:
+- `packages/mcp/src` imports **fs directly 66×** and **core directly ~24×** (plus app ~20×).
+- That's by design in practice: MCP resources (`state`, `roadmap`, `diagnostics`, `context`) assemble read-models straight from `getActiveLoomRoot`/`loadWeave`/`buildLinkIndex` (fs) + `buildRoadmap`/derived (core), not through app query use-cases.
+
+So a guard for that rule would go **red on ~90 imports on day one**. Before any guard, that's a design decision for you:
+- **(A)** The rule is aspirational — correct the doc to *"mcp may import app, plus core (types/derived) and fs (repositories) for read paths."* Reality wins.
+- **(B)** The rule is right — route every MCP read through an app query use-case so app is truly the only gate. Bigger refactor, arguably purer, but lots of churn for read-only paths.
+
+My lean: **(A)**. The "gate" that actually matters is *vscode → mcp* (already guarded) and *no upward imports*; forcing trivial reads through app is ceremony.
+
+### The rules genuinely worth guarding (true today, cheap)
+
+These hold right now (I verified: zero violations) and are cheap to lock:
+- `app` imports nothing from `cli`/`vscode`/`mcp` ✓
+- `fs` imports nothing from `app`/`cli`/`vscode`/`mcp` ✓
+- `core` imports nothing from any sibling package (extends the guard I just added beyond just fs) ✓
+
+### Form: one table-driven guard, not N copy-pasted files
+
+If we do this, the clean approach is a **single** `tests/layer-imports.test.ts` with a matrix:
+
+```
+core   → (nothing — siblings)        + no node-fs
+fs     → core                        + node-fs allowed
+app    → core, fs
+mcp    → app, core, fs   (per option A)
+cli    → app, mcp, core, fs
+vscode → mcp                         + no node-fs   (whitelist)
+```
+
+Walk each `packages/*/src`, flag any `@reslava-loom/*` or node-fs import not in its row. That covers **all** the dependency rules in one place and folds in the fs-purity concern (core/vscode rows). The two existing bespoke guards could later be subsumed by it (or kept — vscode's has the tmpfile whitelist).
+
+### Honest cost note
+
+This is ~1–2h of inward-facing infra with no user signal — and per our standing context, Loom is still an unvalidated bet where building-in-the-dark is the risk. The two guards we have earned their place because those boundaries *actually drifted*. The `app`/`fs`/`core` rows have **never** drifted, so the table-driven guard is cheap *insurance*, not a fix for an active bug. Defensible inside the "build Loom with Loom" loop; not urgent.
+
+**Decision needed (architecture — I'm stopping here):**
+1. mcp rule → **(A)** correct the doc, or **(B)** refactor mcp reads through app?
+2. Build the single table-driven `layer-imports` guard, or leave the 2 we have?
+
+I won't write anything until you pick. **STOP — waiting for go.**
+
+## Rafa:
+
+1. A correct the doc, review the rest also
+2. Create a weave/thread idea for the single table-driven `layer-imports` guard
+
+
+## AI:
+
+Both done.
+
+**1. Corrected `architecture-reference.md` §1 (option A) + reviewed the rest.** Audited every dependency rule against the actual imports first:
+- **`mcp`** — rewrote the false "may only import from app" rule: `mcp` is the **mutation gate** (state changes go through `app` use-cases), but its read-model resources (`state`/`roadmap`/`diagnostics`/`context`) legitimately compose `core` + `fs` directly. It must not import `cli`/`vscode`. Noted that routing trivial reads through `app` was considered and rejected as ceremony.
+- **`cli`** — clarified it also reads `core`/`fs` types directly (verified: imports app 24×, fs 41×, core 6×, mcp 3×, vscode 0×), not just `app`.
+- **`vscode`** / **`core`** — added cross-references to their guards (`vscode-no-fs-imports`, `core-no-fs-imports`); both rules verified true (core imports zero siblings, zero node IO).
+- **`app`** / **`fs`** — verified accurate (no upward imports), left as-is, tightened wording.
+- Added a closing principle: MCP is the gate **for mutations**; engine-internal read paths may compose `core` + `fs`. Bumped the ref to `version: 5`.
+
+**2. Created the idea** for the table-driven guard: `loom/core-engine/layer-imports-guard/layer-imports-guard-idea.md` (`id_01KV93ZE152CHPW6CTV8VNPBMG`, status `draft`, thread manifest auto-scaffolded). It captures the full matrix, the subsume-and-delete of the two existing guards, success criteria, and one open design question (whether to also assert matrix↔doc parity mechanically, like `claude-md-sync` does).
+
+Both changes are **uncommitted** (working tree: `loom/refs/architecture-reference.md` + the new `layer-imports-guard/` thread). I deliberately didn't auto-commit — say the word.
+
+Next: review/finalize the idea (then design → plan when you want it built), or commit these two changes. Your call — waiting.
+
+## Rafa:
+
+commit push
+
+note: I find roadmap very useful
