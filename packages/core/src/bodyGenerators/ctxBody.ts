@@ -1,3 +1,5 @@
+import { nowIso } from '../dates';
+
 export interface CtxSummaryData {
     /** The problem statement / goal of the design. */
     goal: string;
@@ -20,7 +22,7 @@ export function generateCtxBody(data: CtxSummaryData): string {
     const decisions = data.decisions.map(d => `- ${d}`).join('\n');
     const questions = data.questions.map(q => `- ${q}`).join('\n');
     const plans = data.plans.map(p => `- ${p.id} (status: ${p.status}, progress: ${p.progress})`).join('\n');
-    const now = new Date().toISOString();
+    const now = nowIso();
 
     return `
 ## Problem Statement

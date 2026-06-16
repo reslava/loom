@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { saveDoc, resolveWeaveIdForPlan } from '../../fs/dist';
-import { AIClient, Message } from '../../core/dist';
+import { AIClient, Message, today } from '../../core/dist';
 import { DoneDoc } from '../../core/dist/entities/done';
 import { PlanDoc } from '../../core/dist/entities/plan';
 import { planReducer } from '../../core/dist/reducers/planReducer';
@@ -86,7 +86,7 @@ export async function closePlan(
         id: doneId,
         title: `Done — ${plan.title}`,
         status: 'done',
-        created: new Date().toISOString().split('T')[0],
+        created: today(),
         version: 1,
         tags: [],
         parent_id: input.planId,

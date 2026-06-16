@@ -9,6 +9,7 @@ import { ChatDoc } from './entities/chat';
 import { Document } from './entities/document';
 import { designReducer } from './reducers/designReducer';
 import { planReducer } from './reducers/planReducer';
+import { today } from './dates';
 
 /**
  * Result of applying a workflow event to a weave.
@@ -76,7 +77,7 @@ export function applyEvent(weave: Weave, event: WorkflowEvent): ApplyResult {
                     updatedDocs[i] = {
                         ...planDoc,
                         staled: true,
-                        updated: new Date().toISOString().split('T')[0],
+                        updated: today(),
                     };
                     changed.add(planDoc.id);
                 }

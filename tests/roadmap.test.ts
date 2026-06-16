@@ -129,6 +129,24 @@ async function run() {
         console.log('  ✅ history newest-first');
     }
 
+    // 7b. Regression (roadmap-chat-005): a date-only done-doc must NOT sort below a
+    //     full-ISO done-doc of a STRICTLY OLDER day. Raw string compare flipped these
+    //     ("2026-06-16" < "2026-07-01T..." char-wise is false, but the real bite is
+    //     same-instant flips); here we assert chronological order wins across formats.
+    {
+        const s = state([weave('w', [
+            // shipped LATER, but stamped date-only (the bare-date done-doc Rafa hit)
+            thread('w', 'newer', { manifest: manifest('th_n', 100), plans: [plan('pl_n', 'done')], dones: [done('dn_n', 'pl_n', '2026-06-16')] }),
+            // shipped EARLIER, but stamped full-ISO
+            thread('w', 'older', { manifest: manifest('th_o', 100), plans: [plan('pl_o', 'done')], dones: [done('dn_o', 'pl_o', '2026-01-15T09:00:00.000Z')] }),
+        ])]);
+        const r = buildRoadmap(s);
+        assert(r.history.length === 2, 'both shipped plans in history');
+        assert(r.history[0].planId === 'pl_n', 'date-only newer plan sorts first despite mixed formats');
+        assert(r.history[1].planId === 'pl_o', 'full-ISO older plan sorts second');
+        console.log('  ✅ regression: mixed date-only vs full-ISO order chronologically');
+    }
+
     // 8b. The merge: present + future live in ONE order. Priority resolves the
     //     slack across the active/pending boundary — status is not a band.
     {

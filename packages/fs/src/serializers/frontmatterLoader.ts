@@ -1,6 +1,6 @@
 import matter from 'gray-matter';
 import * as fs from 'fs-extra';
-import { Document, parseStepsTable, parseFrontmatterSteps } from '../../../core/dist';
+import { Document, parseStepsTable, parseFrontmatterSteps, toCanonical } from '../../../core/dist';
 
 export class FrontmatterParseError extends Error {
   constructor(
@@ -40,6 +40,13 @@ export async function loadDoc(filePath: string): Promise<Document> {
     content: parsed.content,
     _path: filePath,
   } as Document;
+
+  // Coerce date fields to canonical YYYY-MM-DD strings. gray-matter parses an
+  // unquoted `created: 2026-06-09` as a JS Date; without this the in-memory domain
+  // would carry Date objects that re-serialize as full-ISO — the drift that mixed
+  // formats in the first place. Now the whole domain sees canonical date strings.
+  if (doc.created !== undefined) doc.created = toCanonical(doc.created as any) as string;
+  if ((doc as any).updated !== undefined) (doc as any).updated = toCanonical((doc as any).updated);
 
   // Plan steps: frontmatter is the source of truth. If a structured `steps` block is
   // present, use it (the body table is a generated view, ignored on load). Otherwise

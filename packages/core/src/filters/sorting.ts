@@ -1,5 +1,6 @@
 import { Weave } from '../entities/weave';
 import { Document } from '../entities/document';
+import { compareDates } from '../dates';
 
 /**
  * Sorts an array of weaves by their ID.
@@ -14,11 +15,9 @@ export function sortWeavesById(weaves: Weave[], ascending: boolean = true): Weav
  * Sorts an array of documents by their creation date.
  */
 export function sortDocumentsByCreated<T extends Document>(docs: T[], ascending: boolean = true): T[] {
-    return [...docs].sort((a, b) => {
-        const dateA = new Date(a.created).getTime();
-        const dateB = new Date(b.created).getTime();
-        return ascending ? dateA - dateB : dateB - dateA;
-    });
+    return [...docs].sort((a, b) =>
+        ascending ? compareDates(a.created, b.created) : compareDates(b.created, a.created)
+    );
 }
 
 /**

@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
-import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, parseReq, diffReqHandles } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, parseReq, diffReqHandles, today } from '../../core/dist';
 import { ensureThreadManifest } from './thread';
 
 /**
@@ -148,7 +148,7 @@ export async function amendReq(
         content: input.content ?? req.content,
         status: 'draft', // re-open for curation; a locked req drops back to draft
         version: req.version + 1, // bump → marks downstream stale
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
     };
 
     await deps.saveDoc(updated, filePath);
@@ -178,7 +178,7 @@ export async function finalizeReq(
     const updated: ReqDoc = {
         ...req,
         status: 'locked',
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
     };
 
     await deps.saveDoc(updated, filePath);

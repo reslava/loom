@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { initLocal } from './init';
 import { ConfigRegistry } from '../../core/dist/registry';
+import { today } from '../../core/dist';
 
 export interface InstallWorkspaceInput {
     force?: boolean;
@@ -226,7 +227,7 @@ type: ctx
 id: global-ctx
 title: "Global Context"
 status: active
-created: ${new Date().toISOString().slice(0, 10)}
+created: ${today()}
 version: 1
 tags: [ctx, session-start]
 parent_id: null

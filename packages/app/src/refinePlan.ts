@@ -1,5 +1,5 @@
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, PlanDoc, PlanStep, parseStepsTable } from '../../core/dist';
+import { AIClient, PlanDoc, PlanStep, parseStepsTable, today } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface RefinePlanInput {
@@ -72,12 +72,11 @@ export async function refinePlan(
         })
         : (doc.steps ?? []); // malformed/empty AI table → keep existing steps, never wipe
 
-    const today = new Date().toISOString().split('T')[0];
     const updated: PlanDoc = {
         ...doc,
         title,
         version: doc.version + 1,
-        updated: today,
+        updated: today(),
         steps: mergedSteps,
         content: `# ${title}\n\n${body}`,
     } as PlanDoc;

@@ -1,5 +1,5 @@
 import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
-import { Document, parseStepsTable } from '../../../core/dist';
+import { Document, parseStepsTable, today } from '../../../core/dist';
 
 export const toolDef = {
     name: 'loom_update_doc',
@@ -46,7 +46,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         ...(newRequiresLoad !== undefined ? { requires_load: newRequiresLoad } : {}),
         ...(newTargetRelease !== undefined ? { target_release: newTargetRelease } : {}),
         version: doc.version + 1,
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
         content,
         ...(isLegacyPlan ? { steps: parseStepsTable(content) } : {}),
     } as Document;

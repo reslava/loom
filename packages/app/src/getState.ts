@@ -8,6 +8,7 @@ import { Document } from '../../core/dist/entities/document';
 import { ChatDoc } from '../../core/dist/entities/chat';
 import { Weave, WeaveStatus } from '../../core/dist/entities/weave';
 import { getWeaveStatus } from '../../core/dist/derived';
+import { nowIso } from '../../core/dist/dates';
 import { filterWeavesByStatus, filterWeavesByPhase, filterWeavesById } from '../../core/dist/filters/weaveFilters';
 import { sortWeavesById } from '../../core/dist/filters/sorting';
 import { isStepBlocked } from '../../core/dist/planUtils';
@@ -201,7 +202,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         archivedWeaves,
         archivedLooseDocs,
         index,
-        generatedAt: new Date().toISOString(),
+        generatedAt: nowIso(),
         summary: {
             totalWeaves,
             activeWeaves,

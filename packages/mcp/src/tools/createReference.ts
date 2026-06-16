@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
-import { generateDocId, stripTrailingTypeWord } from '../../../core/dist';
+import { generateDocId, stripTrailingTypeWord, today as todayStamp } from '../../../core/dist';
 
 export const toolDef = {
     name: 'loom_create_reference',
@@ -29,7 +29,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const refsDir = path.join(root, 'loom', 'refs');
     await fsExtra.ensureDir(refsDir);
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayStamp();
     const filePath = path.join(refsDir, `${slug}-reference.md`);
 
     const lines = [

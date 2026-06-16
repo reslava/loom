@@ -1,9 +1,6 @@
 import { DesignDoc } from '../entities/design';
 import { DesignEvent } from '../events/designEvents';
-
-function today(): string {
-    return new Date().toISOString().split('T')[0];
-}
+import { today } from '../dates';
 
 function assertStatus(current: string, allowed: string[], action: string): void {
     if (!allowed.includes(current)) {

@@ -23,6 +23,10 @@ run_test() {
 # Step 1: Entity tests (no IO)
 run_test tests/entity.test.ts
 
+# Dates seam: core/dates.ts — canonical today()/nowIso(), tolerant toEpoch ordering
+# (mixed YYYY-MM-DD vs full-ISO compare correctly), -Infinity sentinel, idempotent toCanonical
+run_test tests/dates.test.ts
+
 # Derived roadmap: pure buildRoadmap read-model — status overlay, dependency blocked-on,
 # topo+priority order, done-plan history, and cycle/dangling/missing-manifest diagnostics
 run_test tests/roadmap.test.ts

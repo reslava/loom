@@ -5,6 +5,7 @@ import { saveDoc } from '../../fs/dist';
 import { loadDoc } from '../../fs/dist';
 import { generateDocId, generatePermanentId } from '../../core/dist';
 import { createBaseFrontmatter } from '../../core/dist';
+import { today } from '../../core/dist';
 import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
@@ -76,7 +77,7 @@ async function finalizeIdea(
     const updatedIdea: IdeaDoc = {
         ...idea,
         status: 'active',
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
     };
 
     await deps.saveDoc(updatedIdea, ideaPath);

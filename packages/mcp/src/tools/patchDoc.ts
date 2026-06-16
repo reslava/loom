@@ -1,5 +1,5 @@
 import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
-import { Document } from '../../../core/dist';
+import { Document, today } from '../../../core/dist';
 
 export const toolDef = {
     name: 'loom_patch_doc',
@@ -68,7 +68,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const updated: Document = {
         ...doc,
         version: doc.version + 1,
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
         content: newBody,
     } as Document;
 

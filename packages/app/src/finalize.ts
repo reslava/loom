@@ -1,4 +1,4 @@
-import { Document } from '../../core/dist';
+import { Document, today } from '../../core/dist';
 import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById } from '../../fs/dist';
 
 export interface FinalizeInput {
@@ -41,7 +41,7 @@ export async function finalize(
     const updatedDoc = {
         ...doc,
         status: 'active' as const,
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
     } as Document;
 
     await deps.saveDoc(updatedDoc, docPath);

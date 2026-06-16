@@ -2,6 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import * as yaml from 'yaml';
+import { nowIso } from './dates';
 
 export interface LoomEntry {
     name: string;
@@ -70,7 +71,7 @@ export class ConfigRegistry {
         this.registry.looms.push({
             name,
             path: relativePath,
-            created: new Date().toISOString(),
+            created: nowIso(),
         });
         this.save();
     }

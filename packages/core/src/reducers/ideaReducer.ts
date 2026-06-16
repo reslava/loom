@@ -1,9 +1,6 @@
 import { IdeaDoc } from '../entities/idea';
 import { IdeaEvent } from '../events/ideaEvents';
-
-function today(): string {
-    return new Date().toISOString().split('T')[0];
-}
+import { today } from '../dates';
 
 function assertStatus(current: string, allowed: string[], action: string): void {
     if (!allowed.includes(current)) {

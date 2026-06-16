@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
-import { generateDocId, createBaseFrontmatter, ThreadDoc } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, ThreadDoc, today } from '../../core/dist';
 
 /**
  * Use-cases for the per-thread `thread.md` manifest — the authored roadmap
@@ -36,10 +36,6 @@ export const NEW_THREAD_PRIORITY = 1000;
 const DEFAULT_MANIFEST_BODY =
     'Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). ' +
     'The thread\'s roadmap status and history are *derived* (`buildRoadmap`), never stored here.';
-
-function today(): string {
-    return new Date().toISOString().split('T')[0];
-}
 
 function manifestPathFor(loomRoot: string, weaveId: string, threadId: string): string {
     return path.join(loomRoot, 'loom', weaveId, threadId, 'thread.md');

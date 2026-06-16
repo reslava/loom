@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { LoomState, Document, getWeaveStatus, getThreadStatus } from '../../core/dist';
+import { LoomState, Document, getWeaveStatus, getThreadStatus, today as todayStamp } from '../../core/dist';
 import { serializeFrontmatter } from '../../core/dist/frontmatterUtils';
 
 export type CtxScope = 'global' | 'weave';
@@ -33,7 +33,7 @@ export function computeSourceHash(source: string): string {
 export function buildCtxFrontmatter(args: {
     ctxId: string; title: string; version: number; sourceHash: string; today?: string;
 }): Record<string, any> {
-    const today = args.today ?? new Date().toISOString().split('T')[0];
+    const today = args.today ?? todayStamp();
     return {
         type: 'ctx',
         id: args.ctxId,

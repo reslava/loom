@@ -1,4 +1,4 @@
-import { Document, syncBodyH1 } from '../../core/dist';
+import { Document, syncBodyH1, today } from '../../core/dist';
 import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById } from '../../fs/dist';
 
 export interface RenameInput {
@@ -49,7 +49,7 @@ export async function rename(
         ...doc,
         title: input.newTitle,
         content: syncBodyH1((doc as { content?: string }).content ?? '', input.newTitle),
-        updated: new Date().toISOString().split('T')[0],
+        updated: today(),
     } as Document;
 
     await deps.saveDoc(updatedDoc, docPath);

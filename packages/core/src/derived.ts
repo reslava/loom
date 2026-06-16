@@ -5,6 +5,7 @@ import { DesignDoc } from './entities/design';
 import { ReqDoc } from './entities/req';
 import { Document } from './entities/document';
 import { LoomState } from './entities/state';
+import { compareDates } from './dates';
 
 /**
  * ctx, reference, and req docs are perpetual context, not workstream
@@ -168,7 +169,7 @@ function baseRoadmapStatus(thread: Thread): RoadmapStatus {
 
 const ROADMAP_CMP = (a: RoadmapNode, b: RoadmapNode): number =>
     a.priority - b.priority ||
-    (a.created < b.created ? -1 : a.created > b.created ? 1 : 0) ||
+    compareDates(a.created, b.created) ||
     (a.threadId < b.threadId ? -1 : a.threadId > b.threadId ? 1 : 0);
 
 /**
@@ -233,7 +234,9 @@ function buildHistory(state: LoomState): ShippedPlan[] {
             }
         }
     }
-    return shipped.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    // Newest-first, comparing by parsed epoch (not raw string) so a date-only and a
+    // full-ISO value of the same day order correctly — the roadmap History fix.
+    return shipped.sort((a, b) => compareDates(b.date, a.date));
 }
 
 /**

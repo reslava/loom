@@ -2,6 +2,10 @@ import { DocumentType } from './entities/base';
 import { DocumentStatus } from './entities/document';
 import { PlanStep, StepStatus } from './entities/plan';
 import { isUlidId, parseDocId } from './idUtils';
+import { today, toCanonical } from './dates';
+
+/** Frontmatter keys that hold a Loom date and are normalized to canonical YYYY-MM-DD on write. */
+const DATE_KEYS = new Set(['created', 'updated']);
 
 /**
  * Base frontmatter fields present in all Loom documents.
@@ -35,7 +39,7 @@ export function createBaseFrontmatter(
         id,
         title,
         status: 'draft',
-        created: new Date().toISOString().split('T')[0],
+        created: today(),
         version: 1,
         tags: [],
         parent_id: parentId,
@@ -234,7 +238,12 @@ export function serializeFrontmatter(obj: Record<string, any>): string {
         if (key === 'steps' && Array.isArray(rest[key])) {
             return serializeStepsBlock(rest[key]);
         }
-        const value = serializeValue(rest[key]);
+        // Known date keys are normalized to canonical YYYY-MM-DD on write — handling
+        // both strings and Date objects (gray-matter parses unquoted dates as Dates).
+        // This makes writes self-heal to canonical and breaks the load→save drift that
+        // otherwise turns a date-only stamp into a full-ISO timestamp.
+        const raw = DATE_KEYS.has(key) ? toCanonical(rest[key]) : rest[key];
+        const value = serializeValue(raw);
         return `${key}: ${value}`;
     });
 

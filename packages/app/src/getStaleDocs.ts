@@ -1,5 +1,5 @@
 import { getState, GetStateDeps } from './getState';
-import { getStalePlans } from '../../core/dist';
+import { getStalePlans, compareDates } from '../../core/dist';
 import { Document } from '../../core/dist/entities/document';
 
 export interface StaleDoc {
@@ -15,7 +15,7 @@ export type GetStaleDocsDeps = GetStateDeps;
 
 function isNewerDate(a: string | undefined, b: string | undefined): boolean {
     if (!a || !b) return false;
-    return a > b;
+    return compareDates(a, b) > 0;
 }
 
 /**
