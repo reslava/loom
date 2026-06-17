@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 90
+priority: 80
 depends_on: []
 ---
 # global

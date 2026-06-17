@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 180
+priority: 170
 depends_on: []
 ---
 # Diagnose MCP timeout root cause via instrumentation

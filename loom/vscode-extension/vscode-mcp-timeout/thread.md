@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 170
+priority: 160
 depends_on: []
 ---
 # Unify MCP timeout handling across all command paths

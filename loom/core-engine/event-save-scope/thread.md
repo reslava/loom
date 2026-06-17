@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 80
+priority: 70
 depends_on: []
 ---
 # Scope runEvent saves to the changed doc/thread
