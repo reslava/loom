@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 210
+priority: 30
 depends_on: []
 ---
 # Quick-ship: a one-action done plan so fast fixes land in versioned history

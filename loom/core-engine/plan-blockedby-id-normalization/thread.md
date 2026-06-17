@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 200
+priority: 20
 depends_on: []
 ---
 # loom_create_plan should normalize blockedBy ordinals to step-id slugs

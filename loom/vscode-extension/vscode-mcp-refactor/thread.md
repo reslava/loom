@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 160
+priority: 170
 depends_on: []
 ---
 # Refactor VS Code Extension to Use MCP

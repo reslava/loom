@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 50
+priority: 60
 depends_on: []
 ---
 # Context Dispatcher — dedupe context injection across commands
