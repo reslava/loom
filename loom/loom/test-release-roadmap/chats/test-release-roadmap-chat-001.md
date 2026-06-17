@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 7
+last_ai_block: 9
 ---
 # test-release-roadmap Chat
 
@@ -166,3 +166,24 @@ Two ways forward — your call:
 I'd go with **force-add** for now — narrow, reversible, no policy change. Tell me which and I'll make that commit (`chore: require explicit version + roadmap pre-commit in do-release`).
 
 Committing the test thread now regardless, as agreed.
+
+## AI:
+
+That one is a **leftover from the previous session, already-resolved** — not part of this dogfood. The diff is just the chat record of the step-4-done reply: `last_ai_block 2 → 4` plus an appended `## AI:` block noting "Step 4 ✅ — plan done, committed `42ffe73`". The *code* shipped in `42ffe73`, but the chat-doc append recording it was never committed, so it's sitting dirty.
+
+It's a chat log catch-up — not roadmap metadata, not a release change, not related to do-release. Clean move is a standalone commit so it doesn't bleed into the release commit:
+
+```
+chore: log step-4-done reply in vscode-roadmap-release chat
+```
+
+Want me to commit it now? After that the working tree is clean except the gitignored `do-release.md` (still pending your force-add vs un-ignore call).
+
+## AI:
+
+Done — three clean commits:
+- `f4aaa75` chore: add test-release-roadmap dogfood thread for v1.10.0
+- `e9f18a9` chore: log step-4-done reply in vscode-roadmap-release chat
+- `22e3919` chore: require explicit version + roadmap pre-commit in do-release (force-added; `.claude/` stays ignored otherwise)
+
+Working tree is clean except this chat doc (my appends since `f4aaa75` — will fold into a later commit). Ready for `/do-release 1.10.0` whenever you are.
