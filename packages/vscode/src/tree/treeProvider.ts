@@ -425,7 +425,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             children = [this.messageNode('(none)')];
         } else if (grouping === 'release') {
             // Bucket shipped plans by release version, newest version first; the
-            // unversioned bucket (plans not yet stamped) sorts last.
+            // unversioned bucket (plans done but not yet stamped) sorts first —
+            // it's the freshest work, ahead of the latest release.
             const byRelease = new Map<string, ShippedPlan[]>();
             for (const h of history) {
                 const k = h.release ?? '';
@@ -433,8 +434,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 byRelease.get(k)!.push(h);
             }
             const keys = [...byRelease.keys()].sort((a, b) => {
-                if (!a) return 1;          // unversioned last
-                if (!b) return -1;
+                if (!a) return -1;         // unversioned first
+                if (!b) return 1;
                 return compareVersions(b, a); // newest version first
             });
             children = keys.map(k => {

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Roadmap History (grouped by release) lists the unversioned bucket first** in the VS Code extension — done-but-unstamped plans are the freshest work, ahead of the latest release, matching how `loom roadmap --group-by-release` already orders them.
+
 ## [1.10.0] - 2026-06-17
 
 ### Added
