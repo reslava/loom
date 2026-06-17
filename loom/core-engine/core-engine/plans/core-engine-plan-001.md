@@ -3,14 +3,15 @@ type: plan
 id: pl_01KQYDFDDB3FG3HN46KF59N3JJ
 title: Core Engine Implementation — Types and Reducers
 status: done
-created: "2026-04-10T00:00:00.000Z"
-updated: "2026-04-14T00:00:00.000Z"
+created: 2026-04-10
+updated: 2026-04-14
 version: 2
 design_version: 3
 tags: [loom, core, engine, types, reducers]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.1.0
+actual_release: 0.1.0
 steps:
   - id: define-typescript-core-types
     order: 1
@@ -92,6 +93,7 @@ This establishes the foundation for filesystem integration and future CLI/VSIX c
 | ✅ | 6 | Basic tests / usage example | `packages/core/test/` | — | — |
 ---
 
+<!-- step:define-typescript-core-types -->
 ### Step 1 — Define TypeScript Core Types
 
 **File:** `packages/core/src/types.ts`
@@ -175,6 +177,7 @@ export type ThreadPhase = 'ideating' | 'designing' | 'planning' | 'implementing'
 
 ---
 
+<!-- step:implement-design-reducer -->
 ### Step 2 — Implement Design Reducer
 
 **File:** `packages/core/src/designReducer.ts`
@@ -240,6 +243,7 @@ export function designReducer(doc: DesignDoc, event: DesignEvent): DesignDoc {
 
 ---
 
+<!-- step:implement-plan-reducer -->
 ### Step 3 — Implement Plan Reducer
 
 **File:** `packages/core/src/planReducer.ts`
@@ -313,6 +317,7 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
 
 ---
 
+<!-- step:implement-applyevent-orchestrator -->
 ### Step 4 — Implement `applyEvent` Orchestrator
 
 **File:** `packages/core/src/applyEvent.ts`
@@ -357,6 +362,7 @@ export function applyEvent(thread: Thread, event: WorkflowEvent): Thread {
 
 ---
 
+<!-- step:implement-derived-state-functions -->
 ### Step 5 — Implement Derived State Functions
 
 **File:** `packages/core/src/derived.ts`
@@ -404,6 +410,7 @@ export function isPlanStale(plan: any, design: any): boolean {
 
 ---
 
+<!-- step:basic-tests-usage-example -->
 ### Step 6 — Basic Tests / Usage Example
 
 **File:** `packages/core/test/applyEvent.test.ts`

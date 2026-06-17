@@ -3,13 +3,14 @@ type: plan
 id: pl_01KSAW3YTZ4YK0WBZK3R6ABMGV
 title: Doc title H1 sync, section demotion, refs tree fix
 status: done
-created: "2026-05-23T00:00:00.000Z"
+created: 2026-05-23
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.6.5
 steps:
   - id: commit-and-push-current-focus-select
     order: 1

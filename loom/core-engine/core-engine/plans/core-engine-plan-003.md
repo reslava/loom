@@ -3,14 +3,15 @@ type: plan
 id: pl_01KQYDFDDBQZK67JM5PD8174K3
 title: CLI Interface — The `loom` Command
 status: done
-created: "2026-04-10T00:00:00.000Z"
-updated: "2026-04-14T00:00:00.000Z"
+created: 2026-04-10
+updated: 2026-04-14
 version: 2
 design_version: 3
 tags: [loom, cli, ux, commands]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.3.0
+actual_release: 0.1.0
 steps:
   - id: setup-cli-project-structure-with
     order: 1
@@ -112,6 +113,7 @@ This plan builds directly on the multi‑loom foundation established in `multi-w
 | ✅ | 9 | Test CLI with real looms | `looms/test/` | — | — |
 ---
 
+<!-- step:setup-cli-project-structure-with -->
 ### Step 1 — Setup CLI Project Structure with `commander`
 
 **File:** `packages/cli/package.json`
@@ -196,6 +198,7 @@ program.parse(process.argv);
 
 ---
 
+<!-- step:implement-command -->
 ### Step 2 — Implement `loom status` Command (Enhanced with Dependency Visibility)
 
 **File:** `packages/cli/src/commands/status.ts`
@@ -406,6 +409,7 @@ export async function statusCommand(threadId?: string, options?: any): Promise<v
 
 ---
 
+<!-- step:implement-command-2 -->
 ### Step 3 — Implement `loom validate` Command
 
 **File:** `packages/cli/src/commands/validate.ts`
@@ -476,6 +480,7 @@ export async function validateCommand(threadId?: string, options?: any): Promise
 
 ---
 
+<!-- step:implement-command-3 -->
 ### Step 4 — Implement `loom refine-design` Command
 
 **File:** `packages/cli/src/commands/refine.ts`
@@ -492,6 +497,7 @@ export async function refineCommand(threadId: string): Promise<void> {
 
 ---
 
+<!-- step:implement-command-4 -->
 ### Step 5 — Implement `loom start-plan` Command
 
 **File:** `packages/cli/src/commands/startPlan.ts`
@@ -509,6 +515,7 @@ export async function startPlanCommand(planId: string): Promise<void> {
 
 ---
 
+<!-- step:implement-command-5 -->
 ### Step 6 — Implement `loom complete-step` Command
 
 **File:** `packages/cli/src/commands/completeStep.ts`
@@ -531,6 +538,7 @@ export async function completeStepCommand(planId: string, options: any): Promise
 
 ---
 
+<!-- step:implement-command-6 -->
 ### Step 7 — Implement `loom summarise-context` Command
 
 **File:** `packages/cli/src/commands/summarise.ts`
@@ -597,6 +605,7 @@ function extractQuestions(content: string): string {
 
 ---
 
+<!-- step:wire-all-commands-into-the-main -->
 ### Step 8 — Wire All Commands into Main CLI Entry Point
 
 **File:** `packages/cli/src/index.ts`
@@ -605,6 +614,7 @@ function extractQuestions(content: string): string {
 
 ---
 
+<!-- step:test-cli-with-real-looms -->
 ### Step 9 — Test CLI with Real Looms
 
 **Manual Test Plan:**

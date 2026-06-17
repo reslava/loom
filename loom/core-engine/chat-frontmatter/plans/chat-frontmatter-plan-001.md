@@ -3,14 +3,14 @@ type: plan
 id: pl_01KQYDFDDBT6CPRA4A4SAA74XR
 title: Chat doc frontmatter schema
 status: done
-created: "2026-04-29T00:00:00.000Z"
+created: 2026-04-29
 updated: 2026-06-06
 version: 2
 tags: []
 parent_id: id_01KQYDFDDAPGGZTSF7JATTKQ20
 requires_load: []
+actual_release: 1.0.0
 target_release: 0.5.0
-actual_release: null
 ---
 # Chat doc frontmatter schema
 

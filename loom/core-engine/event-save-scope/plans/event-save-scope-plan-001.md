@@ -3,14 +3,15 @@ type: plan
 id: pl_01KSNAFC9TT66GV1BVF761A8KF
 title: Scope runEvent saves to the changed doc set
 status: done
-created: "2026-05-27T00:00:00.000Z"
-updated: "2026-05-27T00:00:00.000Z"
+created: 2026-05-27
+updated: 2026-05-27
 version: 3
 design_version: 1
 tags: []
 parent_id: de_01KSNACN3T97M7HVG3K0W3WBQB
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: add-weave-changed-to-applyevent-and
     order: 1

@@ -32,4 +32,11 @@ export interface PlanDoc extends BaseDoc<PlanStatus> {
     steps: PlanStep[];
     /** Locked req version this plan was last built against (req-staleness baseline). */
     req_version?: number;
+    /**
+     * The release version this plan shipped in (e.g. "1.9.3"), or null until
+     * recorded. Plans are the single authoritative carrier of the shipped
+     * release — written by `recordRelease` (the release pipeline), read by the
+     * roadmap to derive `current_release` and label history.
+     */
+    actual_release?: string | null;
 }

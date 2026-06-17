@@ -3,11 +3,12 @@ type: plan
 id: pl_01KQYDFDDC27E4EDMX7VXXP3A7
 title: Organize Loom Docs — Frontmatter Repair & Thread Assignment
 status: done
-created: "2026-04-24T00:00:00.000Z"
+created: 2026-04-24
 version: 2
 tags: [migration, docs-infra, threads, frontmatter]
 parent_id: null
 requires_load: [migration-reference]
+actual_release: 0.3.0
 steps:
   - id: delete-exact-duplicates-core-engine-plan
     order: 1

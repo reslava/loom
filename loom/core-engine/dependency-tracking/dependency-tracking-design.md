@@ -9,8 +9,6 @@ version: 2
 tags: [dependency, plan, workflow, blocking]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: []
-target_release: 0.3.0
-actual_release: null
 ---
 
 # Dependency Tracking in Plans and Across Plans

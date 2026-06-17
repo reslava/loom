@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTVANY3TXQ9GM48Z9XVE0XBJ
 title: Context Dispatcher — plan
 status: done
-created: "2026-06-11T00:00:00.000Z"
+created: 2026-06-11
 updated: 2026-06-11
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KTVACXRTR1P4AB2PN7P1REXY
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.4.0
 steps:
   - id: cheap-stopgap-skip-flag-trim-echo
     order: 1

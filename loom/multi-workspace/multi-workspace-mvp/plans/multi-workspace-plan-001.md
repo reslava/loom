@@ -3,14 +3,15 @@ type: plan
 id: pl_01KQYDFDDDW7YE4ST2QH8Z5NMS
 title: Implement Minimal Multi-Loom Workspace Support
 status: done
-created: "2026-04-14T00:00:00.000Z"
-updated: "2026-04-14T00:00:00.000Z"
+created: 2026-04-14
+updated: 2026-04-14
 version: 2
 design_version: 1
 tags: [loom, workspace, cli]
 parent_id: de_01KQYDFDDDP2DYGM8GJMCWYWEP
 requires_load: [de_01KQYDFDDDP2DYGM8GJMCWYWEP]
 target_version: 0.2.0
+actual_release: 0.1.0
 steps:
   - id: create-class
     order: 1

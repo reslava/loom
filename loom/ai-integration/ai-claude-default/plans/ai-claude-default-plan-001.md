@@ -3,14 +3,15 @@ type: plan
 id: pl_01KRTM2Z2BQWKE3YQFXCH1SFSR
 title: Add Claude as default AI provider
 status: done
-created: "2026-05-17T00:00:00.000Z"
-updated: "2026-05-17T00:00:00.000Z"
+created: 2026-05-17
+updated: 2026-05-17
 version: 1
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.6.5
 steps:
   - id: create-packages-vscode-src-ai-anthropicclient
     order: 1

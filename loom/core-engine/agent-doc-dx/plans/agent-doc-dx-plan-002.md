@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT3FNB25446NP4J0C6YEK9KH
 title: "create-with-body: one-call doc body + sampling-free promote"
 status: done
-created: "2026-06-02T00:00:00.000Z"
-updated: "2026-06-02T00:00:00.000Z"
+created: 2026-06-02
+updated: 2026-06-02
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT3FG3M865N54WBT3Z95T20Y
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.8.0
 steps:
   - id: thread-an-optional-content-body-through
     order: 1

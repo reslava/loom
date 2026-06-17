@@ -60,8 +60,6 @@ async function createFixture(): Promise<string> {
             'child_ids: [tw-plan-001]',
             'requires_load: []',
             'role: primary',
-            'target_release: "0.5.0"',
-            'actual_release: null',
             '---',
             '',
             '## Overview',

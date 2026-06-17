@@ -9,8 +9,6 @@ tags: [vscode, mcp, architecture, design]
 parent_id: id_01KQYDFDDFT9EE8KH1TWJ7G0B2
 requires_load: [mcp-reference, rf_01KQYDFDDDMS4N0V9G73MNV5JR]
 role: primary
-target_release: 0.5.0
-actual_release: null
 ---
 
 # VS Code Extension MCP Refactor Design

@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDCPDV5E3WFGAVN51QJ
 title: Implement LoomState Entity and getState Use‑Case
 status: done
-created: "2026-04-19T00:00:00.000Z"
+created: 2026-04-19
 version: 1
 tags: [state, core, app, cli, refactor]
 parent_id: id_01KQYDFDDCDX24651YYE1JCQRY
 requires_load: [id_01KQYDFDDCDX24651YYE1JCQRY]
 target_version: 0.6.0
+actual_release: 0.1.0
 steps:
   - id: create-entities-state
     order: 1

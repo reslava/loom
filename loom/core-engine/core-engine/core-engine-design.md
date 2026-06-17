@@ -9,8 +9,6 @@ version: 4
 tags: [loom, core, architecture, markdown, context-management]
 parent_id: id_01KQYDFDDBK79TTRP2W1QK5FFM
 requires_load: []
-target_release: 0.1.0
-actual_release: null
 ---
 
 # REslava Loom — Core Engine Design

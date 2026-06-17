@@ -3,7 +3,7 @@ type: plan
 id: pl_01KV7KWADJVS0ZVQQEFTC0S90X
 title: Canonical Date Handling — core/dates.ts seam
 status: done
-created: "2026-06-16T00:00:00.000Z"
+created: 2026-06-16
 updated: 2026-06-16
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KV7K8QRWASFRVD0RECSB96D2
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.9.1
 steps:
   - id: core-dates-ts-module-unit-tests
     order: 1

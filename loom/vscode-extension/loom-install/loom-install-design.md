@@ -10,8 +10,6 @@ tags: []
 parent_id: vscode-extension
 requires_load: []
 role: primary
-target_release: 0.5.0
-actual_release: null
 ---
 
 # Loom Install — Workspace Onboarding

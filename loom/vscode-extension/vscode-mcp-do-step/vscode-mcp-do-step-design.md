@@ -9,8 +9,6 @@ tags: [vscode, mcp, do-step, claude-code, sampling]
 parent_id: null
 requires_load: [de_01KQYDFDDFZT3CVEBS43EJHVWT]
 role: primary
-target_release: 0.5.0
-actual_release: null
 ---
 
 # DoStep via Claude Code Terminal — Design

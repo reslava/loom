@@ -8,8 +8,6 @@ version: 2
 tags: [loom, workspace, cli, mvp]
 parent_id: null
 requires_load: []
-target_release: 0.2.0
-actual_release: null
 ---
 
 # Minimal Multi-Loom Workspace Support (MVP)

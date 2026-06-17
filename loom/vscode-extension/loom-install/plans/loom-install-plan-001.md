@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDDSVBACFH0DZYT1Q1Y
 title: Loom Install — Implementation Plan 001
 status: done
-created: "2026-04-27T00:00:00.000Z"
+created: 2026-04-27
 updated: 2026-06-06
 version: 3
 tags: []
 parent_id: de_01KQYDFDDDW3C3JYPHQV085GAC
 requires_load: [de_01KQYDFDDDW3C3JYPHQV085GAC]
+actual_release: 1.0.0
 ---
 # Loom Install — Implementation Plan 001
 

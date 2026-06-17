@@ -3,14 +3,15 @@ type: plan
 id: pl_01KRC1SPV7N6G1D6MW4JR04BDD
 title: Install & extension post-install fixes
 status: done
-created: "2026-05-11T00:00:00.000Z"
-updated: "2026-05-11T00:00:00.000Z"
+created: 2026-05-11
+updated: 2026-05-11
 version: 1
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.5.0
 steps:
   - id: a1-rename-installed-ctx-file-change
     order: 1
@@ -91,42 +92,49 @@ Fix issues found during first real install test in j:/temp_mvp: install output c
 | ✅ | 7 | B4 — Weave Idea title fallback: if user leaves title empty, fall back to default {thread}-idea title instead of silently not creating the doc | — | — | — |
 ---
 
+<!-- step:a1-rename-installed-ctx-file-change -->
 ### Step 1 — A1 — Rename installed ctx file: change installWorkspace.ts to write ctx.md (not loom-ctx.md); make it a minimal project-agnostic template with no Loom-specific content
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:a2-fix -->
 ### Step 2 — A2 — Fix .mcp.json LOOM_ROOT path: resolve the real absolute workspace path at install time and write it in forward-slash format (j:/path/path)
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:a3-install-settings -->
 ### Step 3 — A3 — Install settings.json: add a write step in installWorkspace.ts to create .loom/settings.json with {"user.name": "User:", "ai.model": "AI:"}
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:b1-promote-from-chat-with-weave -->
 ### Step 4 — B1 — Promote from chat with weave/thread creation: from global chat prompt for weave (create if missing) then thread (create if missing); from weave chat prompt for thread only
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:b2-new-weave-always-available-add -->
 ### Step 5 — B2 — New Weave always available: add New Weave as a persistent right-click option and/or toolbar button so a fresh install has an entry point to create the first weave
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:b3-right-click-targets-clicked-node -->
 ### Step 6 — B3 — Right-click targets clicked node: fix right-click handler to use the node that was right-clicked, not the current tree selection
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:b4-weave-idea-title-fallback-if -->
 ### Step 7 — B4 — Weave Idea title fallback: if user leaves title empty, fall back to default {thread}-idea title instead of silently not creating the doc
 
 <!-- Detailed spec. -->

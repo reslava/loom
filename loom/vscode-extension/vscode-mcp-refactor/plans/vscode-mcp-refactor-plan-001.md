@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDF0GDECC668E23SX01
 title: Refactor VS Code Extension to Use MCP — Plan 001
 status: done
-created: "2026-04-27T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-04-27
+updated: 2026-06-06
 version: 3
 tags: [vscode, mcp, implementation]
 parent_id: de_01KQYDFDDFZT3CVEBS43EJHVWT
 requires_load: [de_01KQYDFDDFZT3CVEBS43EJHVWT]
+actual_release: 1.0.0
 steps:
   - id: create-the-mcp-client
     order: 1

@@ -3,14 +3,15 @@ type: plan
 id: pl_01KSG7MW7ZZJ2R9D76EPEAX02G
 title: Context Pipeline — Phase 1
 status: done
-created: "2026-05-25T00:00:00.000Z"
-updated: "2026-05-25T00:00:00.000Z"
+created: 2026-05-25
+updated: 2026-05-25
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KSG5XTNGXB2KPE448CA5B586
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: define-core-context-types-in-packages
     order: 1

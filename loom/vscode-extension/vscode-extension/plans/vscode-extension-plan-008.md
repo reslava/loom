@@ -3,13 +3,14 @@ type: plan
 id: pl_01KQYDFDDEHQ0G978XT8RRT1S6
 title: VS Code Polish — Idea Inline Buttons & Minor UX Fixes
 status: done
-created: "2026-04-23T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-04-23
+updated: 2026-06-06
 version: 2
 design_version: 1
 tags: [vscode, polish, ux, inline-buttons]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM, pl_01KQYDFDDEC0K7FANZWDV9AMVH]
+actual_release: 1.0.0
 steps:
   - id: fix-idea-node-inline-buttons-remove
     order: 1

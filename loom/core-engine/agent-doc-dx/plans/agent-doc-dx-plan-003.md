@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT3KTH7F383XWGT0128QCD1G
 title: "resolution-dx-rollout: route remaining findDocumentById callers"
 status: done
-created: "2026-06-02T00:00:00.000Z"
-updated: "2026-06-02T00:00:00.000Z"
+created: 2026-06-02
+updated: 2026-06-02
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT3FG3M865N54WBT3Z95T20Y
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.8.0
 steps:
   - id: route-read-resource-entry-points-primary
     order: 1
@@ -77,24 +78,32 @@ rollout and each step calls out which lookups are primary vs internal.
 | ✅ | 5 | Tests + build | tests/resolution-dx.test.ts, scripts/test-all.sh | — | — |
 ## Per-step detail
 
+<!-- step:route-read-resource-entry-points-primary -->
 ### Step 1 — read resources
+
 Route the primary id of `loom://docs/{id}` (docs.ts), `loom://plan/{id}` (plan.ts), and
 `loom://requires-load/{id}` top-level entry (requiresLoad.ts ~line 43) through
 `resolveDocIdOrThrow`. **Leave** the internal `requires_load` child-resolution lookup
 (requiresLoad.ts ~line 20) on `findDocumentById` — that walks the graph and a miss is a
 dangling reference.
 
+<!-- step:route-prompt-entry-points -->
 ### Step 2 — prompts
+
 Route `refine-design` (prompts/refineDesign.ts `designId`) and `do-next-step`
 (prompts/doNextStep.ts `planId`).
 
+<!-- step:route-tool-entry-points-primary-id -->
 ### Step 3 — tools
+
 Route the primary id arg of: `appendDone` (planId), `archive` (id), `appendToChat` (id),
 `doStep` (planId, ~line 32), `listPlanSteps` (planId), and `refineDesign` /
 `refineIdea` / `refinePlan` (id). **Leave** the secondary child/requires_load lookups
 (`doStep` ~line 74, `refineDesign` ~line 34, `refinePlan` ~line 34) on `findDocumentById`.
 
+<!-- step:assess-generate -->
 ### Step 4 — generate.ts and injected-dep case
+
 Route the primary source/chat id in generate.ts (the chatId at ~line 280); assess lines
 20/227 (likely internal — leave if so). Then the injected-dep case: `finalizeDoc` and
 `rename` pass `findDocumentById` *into* the `finalize` / `rename` app use-cases rather
@@ -102,7 +111,9 @@ than calling it for resolution. Decide cleanly — either inject a resolver-back
 so a bad `oldId`/`tempId` suggests, or document why they stay as-is (`finalize` takes a
 `new-` draft tempId; `rename` an `oldId`) — and apply that decision.
 
+<!-- step:tests-build -->
 ### Step 5 — tests + build
+
 Extend a test to assert suggest-on-miss surfaces through a representative routed resource
 (docs or plan) and a routed tool (archive or appendToChat). Run `build-all.sh` and
 `test-all.sh` — must stay green.

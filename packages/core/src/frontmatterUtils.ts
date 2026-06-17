@@ -130,13 +130,12 @@ const ORDERED_KEYS = [
     'load_when',
     // design-specific
     'role',
-    'target_release',
-    'actual_release',
     // plan-specific
     'target_version',
     'source_version',
     'staled',
     'refined',
+    'actual_release',
     'steps',
     // chat-specific
     'last_ai_block',

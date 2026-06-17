@@ -6,6 +6,7 @@ import { ReqDoc } from './entities/req';
 import { Document } from './entities/document';
 import { LoomState } from './entities/state';
 import { compareDates } from './dates';
+import { maxVersion } from './versionUtils';
 
 /**
  * ctx, reference, and req docs are perpetual context, not workstream
@@ -124,6 +125,8 @@ export interface ShippedPlan {
     weaveId: string;
     /** The plan's done-doc `created` (fallback: plan.updated/created). */
     date: string;
+    /** The release version this plan shipped in, or null if not yet recorded. */
+    release: string | null;
 }
 
 export type RoadmapDiagnosticKind = 'cycle' | 'dangling_dep' | 'missing_manifest';
@@ -148,6 +151,12 @@ export interface RoadmapView {
     roadmap: RoadmapNode[];
     /** Completed plans, newest first. */
     history: ShippedPlan[];
+    /**
+     * The highest release version recorded across shipped plans, or null when no
+     * plan carries an `actual_release` yet. Derived (never stored) — the answer
+     * to "what version is this project on?" without reading package.json or git.
+     */
+    currentRelease: string | null;
     diagnostics: RoadmapDiagnostic[];
 }
 
@@ -230,6 +239,7 @@ function buildHistory(state: LoomState): ShippedPlan[] {
                     threadId: thread.id,
                     weaveId: weave.id,
                     date,
+                    release: plan.actual_release ?? null,
                 });
             }
         }
@@ -316,9 +326,11 @@ export function buildRoadmap(state: LoomState): RoadmapView {
         });
     }
 
+    const history = buildHistory(state);
     return {
         roadmap: ordered,
-        history: buildHistory(state),
+        history,
+        currentRelease: maxVersion(history.map(h => h.release)),
         diagnostics,
     };
 }

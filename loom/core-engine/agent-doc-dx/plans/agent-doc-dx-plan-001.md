@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT3FN2XQCSPJ58C1ZZ76PP12
 title: "resolution-dx: link-index path exposure + suggest-on-miss"
 status: done
-created: "2026-06-02T00:00:00.000Z"
-updated: "2026-06-02T00:00:00.000Z"
+created: 2026-06-02
+updated: 2026-06-02
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT3FG3M865N54WBT3Z95T20Y
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.8.0
 steps:
   - id: fix-loom-link-index-serialization-in
     order: 1

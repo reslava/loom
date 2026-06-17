@@ -9,8 +9,6 @@ version: 3
 tags: [structure, directories, filesystem, organization, loom]
 parent_id: null
 requires_load: []
-target_release: 0.1.0
-actual_release: null
 ---
 
 # Workspace Directory Structure — REslava Loom

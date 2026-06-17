@@ -3,14 +3,15 @@ type: plan
 id: pl_01KSYES8RRR8N3JPQ0PC1QJN4J
 title: Consolidate ctx generators into one (global + weave)
 status: done
-created: "2026-05-31T00:00:00.000Z"
-updated: "2026-05-31T00:00:00.000Z"
+created: 2026-05-31
+updated: 2026-05-31
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KSYEC48HS5VPGRDK5FFDPDFH
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: app-add-pure-buildctxsource-scope-ids
     order: 1

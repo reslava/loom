@@ -9,8 +9,6 @@ version: 2
 tags: [ui, toolbar, viewstate, vscode, loom]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: [de_01KQYDFDDEQ81VMM0SPD1P1DBM]
-target_release: 0.4.0
-actual_release: null
 ---
 
 # Toolbar & ViewState Interaction Model

@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDC12XRVN0870K9T7E4
 title: Implement Common State Filters and Sorting Utilities
 status: done
-created: "2026-04-19T00:00:00.000Z"
+created: 2026-04-19
 version: 1
 tags: [state, filters, sorting, cli, vscode]
 parent_id: id_01KQYDFDDCDX24651YYE1JCQRY
 requires_load: [pl_01KQYDFDDCPDV5E3WFGAVN51QJ]
 target_version: 0.6.0
+actual_release: 0.1.0
 steps:
   - id: create-filters-threadfilters
     order: 1

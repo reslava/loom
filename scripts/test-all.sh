@@ -31,6 +31,16 @@ run_test tests/dates.test.ts
 # topo+priority order, done-plan history, and cycle/dangling/missing-manifest diagnostics
 run_test tests/roadmap.test.ts
 
+# Version utils: pure semver parse/compare/max (release ordering, current_release derivation)
+run_test tests/version-utils.test.ts
+
+# Roadmap release surfacing: history nodes carry plan.actual_release; currentRelease = max (derive-only)
+run_test tests/roadmap-release.test.ts
+
+# recordRelease/backfillReleases use-cases: live sweep-unstamped, backfill date-range assignment,
+# idempotent already-stamped no-op, overwrite restamp (injected loadState + captured runEvent)
+run_test tests/record-release.test.ts
+
 # req doc-type: parseReq buckets by IN/EX/C prefix; locked req never blocks DONE
 run_test tests/req.test.ts
 

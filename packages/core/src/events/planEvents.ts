@@ -34,6 +34,7 @@ export type PlanEvent =
     | { type: 'ADD_STEP'; step: NewStep; position?: StepPosition; planId?: string }
     | { type: 'REMOVE_STEP'; stepId: string; planId?: string }
     | { type: 'REORDER_STEPS'; orderedStepIds: string[]; planId?: string }
+    | { type: 'RECORD_RELEASE'; release: string; planId?: string }
     | { type: 'FINISH_PLAN' }
     | { type: 'BLOCK_PLAN' }
     | { type: 'UNBLOCK_PLAN' }

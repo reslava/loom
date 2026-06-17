@@ -3,14 +3,15 @@ type: plan
 id: pl_01KQYFA0DCH6H1PZ2AYXRJC1RX
 title: Wire steps array through loom_create_plan
 status: done
-created: "2026-05-06T00:00:00.000Z"
-updated: "2026-05-06T00:00:00.000Z"
+created: 2026-05-06
+updated: 2026-05-06
 version: 2
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.5.0
 steps:
   - id: fix-to-scan-frontmatter
     order: 0

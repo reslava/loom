@@ -3,13 +3,14 @@ type: plan
 id: pl_01KQYDFDD811TEXADDXS6CMC6Y
 title: Context Injection — MVP Rule and Tool Metadata
 status: done
-created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-24T00:00:00.000Z"
+created: 2026-05-05
+updated: 2026-05-24
 version: 3
 design_version: 2
 tags: [ai, context, mcp, claude-md, mvp]
 parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+actual_release: 0.6.5
 steps:
   - id: audit-the-chat-reply-context-injection
     order: 1

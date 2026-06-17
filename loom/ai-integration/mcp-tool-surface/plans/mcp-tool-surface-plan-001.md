@@ -3,14 +3,15 @@ type: plan
 id: pl_01KTJ1EFY7SJAQ1XK4A956R5GS
 title: "Phase A — auto-generated tool catalog + loom://catalog resource"
 status: done
-created: "2026-06-07T00:00:00.000Z"
-updated: "2026-06-07T00:00:00.000Z"
+created: 2026-06-07
+updated: 2026-06-07
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KTJ128Q435GJRJQTDR20B8WJ
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.1.0
 steps:
   - id: mcp-add-optional-to-the-tool
     order: 1

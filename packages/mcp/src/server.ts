@@ -41,6 +41,7 @@ import * as addStep from './tools/addStep';
 import * as removeStep from './tools/removeStep';
 import * as reorderSteps from './tools/reorderSteps';
 import * as closePlan from './tools/closePlan';
+import * as recordRelease from './tools/recordRelease';
 import { createPromoteTool } from './tools/promote';
 import { createRefineIdeaTool } from './tools/refineIdea';
 import { createRefinePlanTool } from './tools/refinePlan';
@@ -121,7 +122,7 @@ export function createLoomMcpServer(root: string): Server {
         ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
-        ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, doStep, appendDone, listPlanSteps]),
+        ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, recordRelease, doStep, appendDone, listPlanSteps]),
         ...reg('req', [amendReq, finalizeReq, createVerifyReqTool(server)]),
         ...reg('thread', [createThread, setPriority, setThreadDeps]),
         ...reg('chat', [appendToChat, readChatTail]),

@@ -3,8 +3,8 @@ type: plan
 id: pl_01KTE0YGZ53NB9YBCYMJ6MPE3Z
 title: RDD Phase 2 follow-up 2 — req-node coverage badge + verify-thread rename
 status: done
-created: "2026-06-06T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-06-06
+updated: 2026-06-06
 version: 1
 design_version: 1
 req_version: 1
@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 steps:
   - id: app-surface-per-thread-req-coverage
     order: 1

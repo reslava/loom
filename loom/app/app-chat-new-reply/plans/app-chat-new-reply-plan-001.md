@@ -3,12 +3,13 @@ type: plan
 id: pl_01KR4TRHMZCRQVQZXJ7GFZM1T3
 title: Substitute hardcoded user name and AI model name in chat files with values from settings.json
 status: done
-created: "2026-05-08T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-08
+updated: 2026-05-08
 version: 2
 tags: []
 parent_id: id_01KR4TED5JSRNZ17Z3YFA71YB7
 requires_load: []
+actual_release: 0.5.0
 steps:
   - id: add-a-helper-function-if-not
     order: 1

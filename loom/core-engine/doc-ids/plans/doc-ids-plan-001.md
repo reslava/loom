@@ -3,7 +3,7 @@ type: plan
 id: pl_01KQYDFDDBQQJG41AVKYW539PR
 title: Doc IDs — ULID migration
 status: done
-created: "2026-05-05T00:00:00.000Z"
+created: 2026-05-05
 updated: 2026-06-06
 version: 3
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KQYDFDDBE8A6JD6P57DM5HV4
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 ---
 # Doc IDs — ULID migration
 

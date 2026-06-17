@@ -3,14 +3,15 @@ type: plan
 id: pl_01KTJS51X8B0QWC8Z6MQAKGY5Y
 title: CLI Commands — Tier 1+2 Plan
 status: done
-created: "2026-06-08T00:00:00.000Z"
-updated: "2026-06-08T00:00:00.000Z"
+created: 2026-06-08
+updated: 2026-06-08
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KTJS4ME8XT191QZ53HVC9WKW
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.1.0
 steps:
   - id: add-packages-cli-src-mcpclient
     order: 1

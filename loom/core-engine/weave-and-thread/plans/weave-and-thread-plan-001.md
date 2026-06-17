@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDCS6PZ80MQE2H0C3RK
 title: Weave & Thread — Phase 4 Implementation
 status: done
-created: "2026-04-23T00:00:00.000Z"
+created: 2026-04-23
 version: 1
 design_version: 3
 tags: [refactor, core, threads, weaves, migration, phase-4]
 parent_id: de_01KQYDFDDCMH30S303HF03ET00
 requires_load: [de_01KQYDFDDCMH30S303HF03ET00, de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDEQ81VMM0SPD1P1DBM]
+actual_release: 0.2.0
 steps:
   - id: add-thread-tree-node-with-contextvalue
     order: 18

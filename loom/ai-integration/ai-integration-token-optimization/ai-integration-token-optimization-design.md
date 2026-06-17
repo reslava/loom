@@ -8,8 +8,6 @@ version: 1
 tags: [ai, tokens, cost, optimization, context]
 parent_id: id_01KQYDFDD83WRDGYDY6GS16YH2
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
-target_release: 0.3.0
-actual_release: null
 ---
 
 # Token Optimization & Cost Management Strategy

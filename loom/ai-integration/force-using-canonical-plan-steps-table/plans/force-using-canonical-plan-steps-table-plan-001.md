@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTPMHVP5N3Y8HNFYY42CMSR4
 title: Plan Steps in Frontmatter — Implementation Plan
 status: done
-created: "2026-06-09T00:00:00.000Z"
+created: 2026-06-09
 updated: 2026-06-09
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KTPKWX3A4CSVNK24MRNFF3RN
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.3.0
 steps:
   - id: core-model-migration-single-serializer-reducer
     order: 1
@@ -94,6 +95,7 @@ Implement the design: make frontmatter `steps` the single source of truth, with 
 
 ---
 
+<!-- step:core-model-migration-single-serializer-reducer -->
 ### Step 1 — Core model migration + single serializer + reducer
 
 - `entities/plan.ts` — replace `PlanStep` with the v2 shape: `id`, `order`, `status: 'pending'|'in_progress'|'done'|'cancelled'`, `title`, `description`, `files`, `blocked_by`, `satisfies`, `detail?`. Remove `done`.
@@ -103,6 +105,7 @@ Implement the design: make frontmatter `steps` the single source of truth, with 
 - `filters/planFilters.ts`, `validation.ts`, and every other `.done` reader (`app/completeStep.ts`, `app/validate.ts`, `mcp/resources/diagnostics.ts`, etc.) swept to `status` in the same step.
 - **Done when:** `build-all` green, `test-all` green, and `parseStepsTable(serializePlanBody(steps)) === steps` passes for arbitrary step arrays.
 
+<!-- step:source-of-truth-flip -->
 ### Step 2 — Source-of-truth flip (loader / saver)
 
 - `frontmatterLoader.ts` — if frontmatter has `steps`, use it; the body table is ignored. If absent (legacy), parse the body **read-only** so the doc still loads. No write-back on load.
@@ -110,6 +113,7 @@ Implement the design: make frontmatter `steps` the single source of truth, with 
 - `frontmatterUtils.ts` (`serializeFrontmatter`) — serialize the nested step-object array under `steps`, after `target_version`/`req_version`, preserving canonical key order.
 - **Done when:** a frontmatter-native plan round-trips (save→load→save byte-stable); a legacy plan with no frontmatter steps still loads.
 
+<!-- step:create-path -->
 ### Step 3 — Create path
 
 - `weavePlan.ts` — build `doc.steps` from a structured input array; drop the `content`→`parseStepsTable` branch. Synthesize each `id`.
@@ -117,18 +121,21 @@ Implement the design: make frontmatter `steps` the single source of truth, with 
 - `idUtils.ts` — `generateStepId(title|description, existingIds)` (slug, collisions suffixed `-2`).
 - **Done when:** creating a plan with structured steps yields a canonical body + frontmatter steps; round-trip test passes.
 
+<!-- step:refine-promote-generate-updatedoc-route-through -->
 ### Step 4 — Refine / promote / generate / updateDoc
 
 - `refinePlan.ts`, `promoteToPlan.ts`, `mcp/tools/generate.ts` — emit bodies via `serializePlanBody`; build structured steps rather than re-parsing regenerated markdown.
 - `mcp/tools/updateDoc.ts` — stop re-deriving `steps` from the body on plan edits; the Steps section is serializer-owned, step changes go through step tools.
 - **Done when:** refine/promote/generate produce frontmatter-truth plans; `loom_update_doc` on a plan never rewrites its steps from the body.
 
+<!-- step:step-tools-readers-surface-status-id -->
 ### Step 5 — Step tools & readers surface status / id
 
 - mcp step tools (`listPlanSteps`, `completeStep`, `doStep`, `getBlockedSteps`, `startPlan`, `closePlan`) + `prompts/doNextStep.ts` — read frontmatter steps, surface `status` symbol and step `id`.
 - `app/getState.ts`, `cli/commands/status.ts`, `vscode/tree/treeProvider.ts` — render the four statuses (icons) and step ids.
 - **Done when:** `do-next-step`, `complete_step`, and blocked-step listing work end-to-end on a frontmatter-native plan, showing correct status.
 
+<!-- step:command-body-frontmatter-id-synthesis-idempotent -->
 ### Step 6 — Migration command
 
 - `app/migratePlanSteps.ts` — use-case: for each legacy plan, `parseStepsTable` (+ `parseNumberedSteps` fallback) → structured steps with synthesized ids → write to frontmatter. Idempotent (skips already-migrated docs). Returns a per-doc report.
@@ -136,6 +143,7 @@ Implement the design: make frontmatter `steps` the single source of truth, with 
 - Migrate this repo's existing plans; then run against `J:/src/chord-flow` to shake out very-legacy edge cases.
 - **Done when:** dry-run reports correctly, apply converts this repo's plans, and chord-flow's plans migrate cleanly (or the failures are captured as findings).
 
+<!-- step:contract-docs -->
 ### Step 7 — Contract docs
 
 - `installWorkspace.ts` (`LOOM_CLAUDE_MD`) — document the structured-steps contract so launched agents pass `steps`, never a hand-formatted table.

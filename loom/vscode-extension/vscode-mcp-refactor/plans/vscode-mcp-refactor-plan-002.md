@@ -3,15 +3,14 @@ type: plan
 id: pl_01KQYDFDDFQ9DNQR4GBWDMN7WA
 title: DoStep Button via MCP Sampling — Plan 002
 status: done
-created: "2026-04-29T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-04-29
+updated: 2026-06-06
 version: 3
 design_version: 1
 tags: [vscode, mcp, sampling, do-step]
 parent_id: de_01KQYDFDDFZT3CVEBS43EJHVWT
 requires_load: [de_01KQYDFDDFZT3CVEBS43EJHVWT, pl_01KQYDFDDF0GDECC668E23SX01]
-target_release: 0.5.0
-actual_release: null
+actual_release: 1.0.0
 steps:
   - id: add-a-handler-to-mcp-client
     order: 1
@@ -55,6 +54,7 @@ steps:
     files_touched: []
     blocked_by: []
     satisfies: []
+target_release: 0.5.0
 ---
 # DoStep Button via MCP Sampling — Plan 002
 

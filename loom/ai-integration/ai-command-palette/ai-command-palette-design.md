@@ -9,8 +9,6 @@ version: 2
 tags: [ai, commands, promote, refine, summarize, vscode]
 parent_id: null
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
-target_release: 0.3.0
-actual_release: null
 ---
 
 # AI Command Palette — Promote, Refine, Summarize

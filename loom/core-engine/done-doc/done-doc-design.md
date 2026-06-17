@@ -9,8 +9,6 @@ version: 2
 tags: [done, plan, implementation-notes, doc-type, close-plan]
 parent_id: id_01KQYDFDDB0WEBX52CDG69VXYP
 requires_load: [id_01KQYDFDDB0WEBX52CDG69VXYP]
-target_release: 0.2.0
-actual_release: null
 ---
 
 # Done Documents — Post-Plan Implementation Record

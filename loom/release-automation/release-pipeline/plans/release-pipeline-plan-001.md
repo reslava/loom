@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT21BZMDKRMC6FP9RXKRFD1T
 title: Build the release-pipeline workflow spine
 status: done
-created: "2026-06-01T00:00:00.000Z"
-updated: "2026-06-01T00:00:00.000Z"
+created: 2026-06-01
+updated: 2026-06-01
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KT20ZZ6ZYW01G09F4WDXMT88
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: scaffold
     order: 1

@@ -3,14 +3,15 @@ type: plan
 id: pl_01KRTB3J2BY6EEGKH330HY9V5P
 title: vsix body-builder fixes
 status: done
-created: "2026-05-17T00:00:00.000Z"
-updated: "2026-05-17T00:00:00.000Z"
+created: 2026-05-17
+updated: 2026-05-17
 version: 1
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.6.5
 steps:
   - id: remove-from-ideabody
     order: 1

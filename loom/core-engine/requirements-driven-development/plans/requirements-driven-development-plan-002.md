@@ -3,14 +3,15 @@ type: plan
 id: pl_01KTBD34X8RKH6F2K80GD10XJ2
 title: RDD Phase 2 — requirement citation, coverage check, and req-staleness
 status: done
-created: "2026-06-05T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-06-05
+updated: 2026-06-06
 version: 3
 design_version: 1
 tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 steps:
   - id: core-add-satisfies-to-planstep-and
     order: 1

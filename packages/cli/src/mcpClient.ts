@@ -21,6 +21,8 @@ export interface LocalMcpClient {
     listResources(): Promise<Array<{ uri: string; title: string }>>;
     /** Invoke a prompt and return its concatenated text messages. */
     getPrompt(name: string, args?: Record<string, string>): Promise<string>;
+    /** Call a tool and return its concatenated text content. */
+    callTool(name: string, args?: Record<string, unknown>): Promise<string>;
     /** Tear down the client + server and their transports. */
     close(): Promise<void>;
 }
@@ -59,6 +61,14 @@ export async function connectLocalMcp(root: string): Promise<LocalMcpClient> {
             const res = await client.getPrompt({ name, arguments: args ?? {} });
             return res.messages
                 .map((m) => (m.content.type === 'text' ? m.content.text : ''))
+                .join('\n');
+        },
+
+        async callTool(name: string, args?: Record<string, unknown>): Promise<string> {
+            const res = await client.callTool({ name, arguments: args ?? {} });
+            const content = (res.content ?? []) as Array<{ type: string; text?: string }>;
+            return content
+                .map((c) => (c.type === 'text' && typeof c.text === 'string' ? c.text : ''))
                 .join('\n');
         },
 

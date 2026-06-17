@@ -9,8 +9,6 @@ version: 1
 tags: [ai, chat, design, documentation, ux]
 parent_id: de_01KQYDFDD88BTYTQ61S0Q9W02V
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
-target_release: 0.3.0
-actual_release: null
 ---
 
 # Optional Inline Titles for Chat Mode Conversations

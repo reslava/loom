@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDBA0NCCYJBBYA3QRW1
 title: Move Thread and Derived Types to entities/thread.ts
 status: done
-created: "2026-04-18T00:00:00.000Z"
+created: 2026-04-18
 version: 1
 tags: [core, entities, refactor]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.5.0
+actual_release: 0.1.0
 steps:
   - id: create-entities-thread
     order: 1

@@ -37,6 +37,10 @@ ships a broken or inconsistent release.
       (`packages/vscode`) — for accuracy at the new version. CI does **not**
       touch or verify READMEs; this is human judgment.
 - [ ] **Build + test locally green:** `bash scripts/build-all.sh && bash scripts/test-all.sh`.
+- [ ] **Record the release in Loom:** `loom record-release X.Y.Z` — stamps `actual_release`
+      onto this release's done plans so the roadmap owns "what shipped in vX.Y.Z" (idempotent;
+      run after the build so the freshly-linked CLI is used). The plan-file edits are included
+      in the release commit below.
 - [ ] **Commit, tag, push:**
       ```bash
       git commit -am "release: vX.Y.Z"

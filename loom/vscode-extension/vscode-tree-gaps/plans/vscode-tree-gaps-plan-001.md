@@ -3,14 +3,15 @@ type: plan
 id: pl_01KR1QSV8Q3YPSSZR5SFBS67DB
 title: Fix orphaned dones, missing status icons, summary node
 status: done
-created: "2026-05-07T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-07
+updated: 2026-05-08
 version: 3
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.5.0
 steps:
   - id: add-blocked-and-cancelled-cases-to
     order: 1
@@ -84,6 +85,7 @@ Patch tree presentation gaps in treeProvider.ts: missing status icons, orphaned 
 | ✅ | 6 | Build and smoke-test: verify BLOCKED/CANCELLED threads show the correct icon, orphaned done docs appear under their thread, summary row shows when counts are non-zero, bulk doc creation no longer freezes the tree, and MCP timeout during creation recovers without manual reconnect. | — | — | — |
 ---
 
+<!-- step:add-blocked-and-cancelled-cases-to -->
 ### Step 1 — Add BLOCKED and CANCELLED cases to getThreadIcon and getWeaveIcon
 
 In `icons.ts`, add to `getThreadIcon` and `getWeaveIcon`:
@@ -94,6 +96,7 @@ case 'CANCELLED': return new vscode.ThemeIcon('error');
 
 ---
 
+<!-- step:surface-orphaned-done-docs-in-getthreadchildren -->
 ### Step 2 — Surface orphaned done docs in getThreadChildren
 
 After the plans section is built, collect orphaned dones:
@@ -110,6 +113,7 @@ if (orphanedDones.length > 0) {
 
 ---
 
+<!-- step:add-summary-warning-row-in-getrootchildren -->
 ### Step 3 — Add summary warning row in getRootChildren
 
 After loading state, before building weave nodes:
@@ -127,6 +131,7 @@ if (this.state.summary.stalePlans > 0 || this.state.summary.blockedSteps > 0) {
 
 ---
 
+<!-- step:increase-file-watcher-debounce-from-300ms -->
 ### Step 4 — Increase watcher debounce to 800ms
 
 In `extension.ts`, change:
@@ -141,6 +146,7 @@ This reduces concurrent `loom://state` MCP calls during bulk doc creation.
 
 ---
 
+<!-- step:preserve-last-good-state-on-suspect -->
 ### Step 5 — Preserve last-good state on suspect reads
 
 In `treeProvider.ts`, add a `private lastGoodState: LoomState | null = null` field. In `getRootChildren`, after a successful state read:
@@ -168,6 +174,7 @@ Retries are bounded naturally by the debounce: a retry fires `_onDidChangeTreeDa
 
 ---
 
+<!-- step:build-and-smoke-test-verify-blocked -->
 ### Step 6 — Build and smoke-test
 
 Run `./scripts/build-all.sh`, open Extension Development Host, verify all fixes.

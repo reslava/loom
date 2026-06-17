@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT2J1DV54HHNAPKS92W3MWSG
 title: Build the synchronized bump command
 status: done
-created: "2026-06-01T00:00:00.000Z"
-updated: "2026-06-01T00:00:00.000Z"
+created: 2026-06-01
+updated: 2026-06-01
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT2J0C0AMZHR41BA09XJDTAD
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: create-scripts-bump-version
     order: 1

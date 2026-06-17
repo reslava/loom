@@ -3,8 +3,8 @@ type: plan
 id: pl_01KTDYGX7CN9GNSQ8QC7ZW2VZ9
 title: RDD Phase 2 follow-up — make the refine family req-aware
 status: done
-created: "2026-06-06T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-06-06
+updated: 2026-06-06
 version: 2
 design_version: 1
 req_version: 1
@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 steps:
   - id: app-make-req-aware-and-stop
     order: 1

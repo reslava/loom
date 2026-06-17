@@ -3,14 +3,15 @@ type: plan
 id: pl_01KR1QSHJATBYZZCD8RW3RHW2N
 title: Wire diagnostics to file changes
 status: done
-created: "2026-05-07T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-07
+updated: 2026-05-08
 version: 1
 design_version: 1
 tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.5.0
 steps:
   - id: in-extension
     order: 1
@@ -59,18 +60,21 @@ Make updateDiagnostics run on every file change so structural validation issues 
 | ✅ | 3 | Build and smoke-test: save a doc with a broken parent_id, confirm the VS Code Problems panel updates without a manual refresh. Confirm the tree also refreshes correctly. | — | — | — |
 ---
 
+<!-- step:in-extension -->
 ### Step 1 — In extension.ts, replace the file watcher's debouncedRefresh handler (which calls treeProvider.refresh()) with debouncedSyncAndRefresh (which calls syncAndRefresh()). syncAndRefresh already calls both treeProvider.refresh() and updateDiagnostics, so no extra debounce is needed — just point the watcher at the right function.
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:verify-the-debounce-interval-is-appropriate -->
 ### Step 2 — Verify the debounce interval is appropriate for diagnostics: syncAndRefresh runs validate(all:true) which scans all weave files. If the workspace is large, consider a longer debounce (e.g. 800ms) for the diagnostics path specifically to avoid hammering on rapid saves.
 
 <!-- Detailed spec. -->
 
 ---
 
+<!-- step:build-and-smoke-test-save-a -->
 ### Step 3 — Build and smoke-test: save a doc with a broken parent_id, confirm the VS Code Problems panel updates without a manual refresh. Confirm the tree also refreshes correctly.
 
 <!-- Detailed spec. -->

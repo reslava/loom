@@ -211,6 +211,23 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
             return { ...doc, steps, updated };
         }
 
+        case 'RECORD_RELEASE': {
+            // Mechanism only: stamp the shipped release version on a done plan.
+            // The live-vs-backfill / skip-already-stamped policy lives in the
+            // `recordRelease` use-case — the reducer is an unconditional setter so
+            // a caller that fired the event has already decided to write.
+            //
+            // Deliberately does NOT bump `updated`: actual_release records a *past*
+            // ship, not a fresh edit, and `buildHistory` falls back to `plan.updated`
+            // for the ship date when a plan has no done-doc — bumping it here would
+            // shove every stamped plan to "today" and scramble the history order.
+            assertStatus(doc.status, ['done'], 'RECORD_RELEASE');
+            if (!event.release || !event.release.trim()) {
+                throw new Error('RECORD_RELEASE requires a non-empty release version.');
+            }
+            return { ...doc, actual_release: event.release };
+        }
+
         case 'FINISH_PLAN':
             assertStatus(doc.status, ['implementing'], 'FINISH_PLAN');
             return { ...doc, status: 'done', updated };

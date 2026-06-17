@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDD9W8VKVQM9H19H9490
 title: Loom MCP Server — Implementation Plan
 status: done
-created: "2026-04-25T00:00:00.000Z"
+created: 2026-04-25
 version: 1
 design_version: 1
 tags: [ai, mcp, integration, agent, loom]
 parent_id: de_01KQYDFDD9PRVJT4JBAQ0JHRG6
 requires_load: [de_01KQYDFDD9PRVJT4JBAQ0JHRG6]
+actual_release: 0.3.1
 steps:
   - id: create-with-package
     order: 1

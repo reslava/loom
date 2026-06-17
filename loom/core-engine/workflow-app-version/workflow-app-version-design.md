@@ -64,8 +64,6 @@ Example:
 ---
 type: design
 version: 3
-target_release: "1.2.0"
-actual_release: null   # or omitted until shipped
 ---
 ```
 
@@ -127,8 +125,6 @@ tags: []
 parent_id: {parent_id} 
 child_ids: []          
 requires_load: []
-target_release: "1.0.0"
-actual_release: null   # or omitted until shipped
 ---
 ```
 

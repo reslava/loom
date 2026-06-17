@@ -10,8 +10,6 @@ tags: [ai, mcp, integration, agent, loom]
 parent_id: null
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
 role: primary
-target_release: 0.5.0
-actual_release: 0.4.0
 ---
 
 # Loom MCP Server — Exposing Loom State to AI Agents

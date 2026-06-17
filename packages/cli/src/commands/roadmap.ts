@@ -12,7 +12,7 @@ const STATUS_ICON: Record<string, string> = {
  * dependency+priority order, status icon + blocked-on per row) and history
  * (shipped plans, newest first; `--group-by-thread` to group). Pure read.
  */
-export async function roadmapCommand(options: { groupByThread?: boolean }): Promise<void> {
+export async function roadmapCommand(options: { groupByThread?: boolean; groupByRelease?: boolean }): Promise<void> {
     const root = getActiveLoomRoot();
     const client = await connectLocalMcp(root);
     try {
@@ -25,10 +25,16 @@ export async function roadmapCommand(options: { groupByThread?: boolean }): Prom
         }
         const nameOf = (u: string) => label.get(u) ?? u;
         const day = (d: string) => (d || '').slice(0, 10);
+        const relTag = (h: any) => (h.release ? chalk.magenta(`[v${h.release}]`) : chalk.gray('[unversioned]'));
         const node = (n: any, extra = '') =>
             `  ${STATUS_ICON[n.status] ?? ' '} ${chalk.cyan(`${n.weaveId}/${n.threadId}`)} ${chalk.gray(`(p${n.priority})`)} ${n.title}${extra}`;
 
-        console.log(chalk.bold('\n🗺️  Roadmap\n'));
+        console.log(
+            chalk.bold('\n🗺️  Roadmap') +
+            chalk.gray('   current release: ') +
+            (r.currentRelease ? chalk.magenta(`v${r.currentRelease}`) : chalk.gray('(none)')) +
+            '\n'
+        );
 
         console.log(chalk.bold('ROADMAP') + chalk.gray('  (present + future — dependency + priority order)'));
         if (r.roadmap.length === 0) console.log(chalk.gray('  (none)'));
@@ -42,6 +48,17 @@ export async function roadmapCommand(options: { groupByThread?: boolean }): Prom
         console.log('\n' + chalk.bold('HISTORY') + chalk.gray('  (shipped plans, newest first)'));
         if (r.history.length === 0) {
             console.log(chalk.gray('  (none)'));
+        } else if (options.groupByRelease) {
+            const byRel = new Map<string, any[]>();
+            for (const h of r.history) {
+                const k = h.release ? `v${h.release}` : 'unversioned';
+                if (!byRel.has(k)) byRel.set(k, []);
+                byRel.get(k)!.push(h);
+            }
+            for (const [k, items] of byRel) {
+                console.log(`  ${chalk.magenta(k)}`);
+                for (const h of items) console.log(`    ${chalk.gray(day(h.date))}  ${chalk.cyan(`${h.weaveId}/${h.threadId}`)}  ${h.planTitle}`);
+            }
         } else if (options.groupByThread) {
             const byThread = new Map<string, any[]>();
             for (const h of r.history) {
@@ -51,11 +68,11 @@ export async function roadmapCommand(options: { groupByThread?: boolean }): Prom
             }
             for (const [k, items] of byThread) {
                 console.log(`  ${chalk.cyan(k)}`);
-                for (const h of items) console.log(`    ${chalk.gray(day(h.date))}  ${h.planTitle}`);
+                for (const h of items) console.log(`    ${chalk.gray(day(h.date))}  ${relTag(h)}  ${h.planTitle}`);
             }
         } else {
             for (const h of r.history) {
-                console.log(`  ${chalk.gray(day(h.date))}  ${chalk.cyan(`${h.weaveId}/${h.threadId}`)}  ${h.planTitle}`);
+                console.log(`  ${chalk.gray(day(h.date))}  ${relTag(h)}  ${chalk.cyan(`${h.weaveId}/${h.threadId}`)}  ${h.planTitle}`);
             }
         }
 

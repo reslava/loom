@@ -3,13 +3,14 @@ type: plan
 id: pl_01KQYDFDD9FZPE58GYJHP69ZDT
 title: Showing Docs Loaded — Visibility Rules Audit and Sync
 status: done
-created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-05
+updated: 2026-05-08
 version: 2
 design_version: 2
 tags: [ai, visibility, claude-md, mvp]
 parent_id: showing-docs-loaded-design
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+actual_release: 0.5.0
 steps:
   - id: audit-the-visibility-prefix-table-in
     order: 1

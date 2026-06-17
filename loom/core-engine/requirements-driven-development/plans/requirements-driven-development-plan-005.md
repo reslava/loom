@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTYY898NNAD8KVNC649J54PW
 title: RDD v1.7.0 — req handle integrity, dropped status, and amend
 status: done
-created: "2026-06-12T00:00:00.000Z"
+created: 2026-06-12
 updated: 2026-06-12
 version: 1
 design_version: 1
@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.7.0
 steps:
   - id: core-dropped-status-model-diffreqhandles-guard
     order: 1

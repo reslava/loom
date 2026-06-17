@@ -34,8 +34,6 @@ slug: kebab-case-slug
 loadWhen: null                 # future; reserved
 # design-specific (unchanged):
 role: primary | supporting
-target_release: "0.x.0"
-actual_release: null
 ---
 ```
 

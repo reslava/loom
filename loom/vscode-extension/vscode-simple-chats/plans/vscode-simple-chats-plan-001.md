@@ -3,14 +3,15 @@ type: plan
 id: pl_01KREGDY1Q17GB3R40K975R1FH
 title: Simple Chat Levels Implementation
 status: done
-created: "2026-05-12T00:00:00.000Z"
-updated: "2026-05-14T00:00:00.000Z"
+created: 2026-05-12
+updated: 2026-05-14
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KREGDKW50DT3ZS8HVBNRV8V2
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.5.0
 steps:
   - id: fix-esc-cancel-bug-in-all
     order: 1

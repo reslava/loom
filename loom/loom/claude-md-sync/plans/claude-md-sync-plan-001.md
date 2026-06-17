@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTTSTE25N3CD8A1KT2KJ3KC1
 title: CLAUDE.md two-surface sync
 status: done
-created: "2026-06-11T00:00:00.000Z"
+created: 2026-06-11
 updated: 2026-06-11
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.4.0
 steps:
   - id: tag-shared-rules-with-stable-ids
     order: 1
@@ -68,18 +69,22 @@ Eliminate drift between the two session-contract surfaces — the root recursive
 | 🔳 | Pending |
 | ❌ | Cancelled |
 
+<!-- step:tag-shared-rules-with-stable-ids -->
 ### Step 1 — Tag shared rules with stable ids in both surfaces
 
 Define the rule-id vocabulary for the rules that genuinely exist in both surfaces (e.g. chat-reply, mcp-writes-gate, mcp-visibility, context-injection, stop-rules, session-start, single-ai, plans-structured, sampling-blocked, catalog-first, mcp-failures-are-findings). Insert a `<!-- rule:{id} -->` comment immediately before each such rule/section in the root CLAUDE.md AND inside the LOOM_CLAUDE_MD template literal in installWorkspace.ts. Root-only sections (Architecture, Current active work, Build/test, Applied learning, Two-surfaces) get no marker. This only adds comments — zero behavior/wording change — establishing the parity seam.
 
+<!-- step:build-the-two-surface-drift-test -->
 ### Step 2 — Build the two-surface drift test
 
 Extract the set of `<!-- rule:id -->` markers from (a) the root CLAUDE.md and (b) the LOOM_CLAUDE_MD literal (read installWorkspace.ts source as text). Assert the two id sets are equal; on mismatch, fail with a clear message naming which ids are missing on which side (this is the 'added a rule to one, forgot the other' guard). Then assert a small VERBATIM-INVARIANT list appears identically in both surfaces: the visibility prefixes (`🔧 MCP:`, `📡 MCP:`, `⚠️ MCP unavailable — editing file directly`), the core tool names, and the stop-rule count. Wording within a rule is intentionally NOT compared — surfaces keep their purposeful voice.
 
+<!-- step:wire-the-drift-test-into-test -->
 ### Step 3 — Wire the drift test into test-all
 
 Invoke tests/claude-md-sync.test.ts from scripts/test-all.sh alongside the other suites, so drift fails test-all — moving discovery out of live recursive sessions, which is the stated goal.
 
+<!-- step:document-the-rule-id-invariant-convention -->
 ### Step 4 — Document the rule-id + invariant convention
 
 Replace the current prose-only 'keep them in sync' guidance with the concrete convention: shared rules carry `<!-- rule:id -->` markers in both surfaces; the verbatim-invariant list must match exactly; test-all asserts both. Note explicitly that per-surface wording is allowed to differ by purpose (Rafa vs the user, etc.) — only the rule SET and the invariants are locked.

@@ -9,8 +9,6 @@ version: 2
 tags: [linking, index, validation, performance]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
-target_release: 0.2.0
-actual_release: null
 ---
 
 # Structured Link Index for Document Relationships

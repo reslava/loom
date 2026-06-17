@@ -3,12 +3,13 @@ type: plan
 id: pl_01KR0M5S5FZ13J6RNX6T3TKHRG
 title: Update Toggle Archived button icon for enabled/disabled states
 status: done
-created: "2026-05-07T00:00:00.000Z"
-updated: "2026-06-06T00:00:00.000Z"
+created: 2026-05-07
+updated: 2026-06-06
 version: 3
 tags: []
 parent_id: ch_01KR0EWEQMBSK5HJ1D0YGJ0R0K
 requires_load: []
+actual_release: 0.5.0
 steps:
   - id: locate-the-source-file-e
     order: 1

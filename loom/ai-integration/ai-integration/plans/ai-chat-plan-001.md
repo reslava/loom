@@ -3,13 +3,14 @@ type: plan
 id: pl_01KQYDFDD840P09SBPJCM9MMTB
 title: AI Chat Reply — Core Loop
 status: done
-created: "2026-04-22T00:00:00.000Z"
+created: 2026-04-22
 version: 1
 design_version: 3
 tags: [ai, chat, vscode, core]
 parent_id: de_01KQYDFDD88BTYTQ61S0Q9W02V
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]
 target_version: 0.3.0
+actual_release: 0.2.0
 steps:
   - id: add-to
     order: 1

@@ -3,14 +3,15 @@ type: plan
 id: pl_01KT2GX2Q4C19PP3M8MZE08F8S
 title: Fill the publish job bodies + dry-run + runbook
 status: done
-created: "2026-06-01T00:00:00.000Z"
-updated: "2026-06-01T00:00:00.000Z"
+created: 2026-06-01
+updated: 2026-06-01
 version: 1
 design_version: 1
 tags: []
 parent_id: de_01KT2G8X11XP9Z11D2QKK9E5NK
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: publish-npm
     order: 1

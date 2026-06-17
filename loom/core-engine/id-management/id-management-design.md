@@ -9,8 +9,6 @@ version: 2
 tags: [id, linking, ux, automation]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
-target_release: 0.3.0
-actual_release: null
 ---
 
 # Automatic Document ID Management

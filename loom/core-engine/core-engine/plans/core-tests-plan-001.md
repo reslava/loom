@@ -3,12 +3,13 @@ type: plan
 id: pl_01KQYDFDDB86JZKCBP1NN75RR4
 title: Core + App Use-Case Tests
 status: done
-created: "2026-04-23T00:00:00.000Z"
+created: 2026-04-23
 version: 1
 design_version: 1
 tags: [tests, core, app, fs, weaveRepository, closePlan, doStep, completeStep]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
+actual_release: 0.2.0
 steps:
   - id: add-entity-tests-assert-paren
     order: 1

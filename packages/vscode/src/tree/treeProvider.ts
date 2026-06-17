@@ -11,6 +11,7 @@ import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
 import { getWeaveStatus, getThreadStatus, getReqStaleDocs } from '@reslava-loom/core/dist/derived';
 import { RoadmapView, RoadmapNode, ShippedPlan, RoadmapStatus, DEFAULT_ROADMAP_PRIORITY } from '@reslava-loom/core/dist/derived';
 import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
+import { maxVersion } from '@reslava-loom/core/dist/versionUtils';
 import { ViewStateManager } from '../view/viewStateManager';
 import { GroupingMode, ViewState } from '../view/viewState';
 import { Icons, icon, getDocumentIcon, getWeaveIcon, getThreadIcon, getPlanIcon } from '../icons';
@@ -532,12 +533,21 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private groupByRelease(weaves: Weave[]): TreeNode[] {
         const groups: Record<string, Document[]> = {};
+        const add = (release: string | null | undefined, doc: Document) => {
+            const key = release && release.trim() ? release : 'unspecified';
+            (groups[key] ??= []).push(doc);
+        };
         for (const weave of weaves) {
             for (const thread of weave.threads) {
-                const release = (thread.design as any)?.target_release || 'unspecified';
-                if (!groups[release]) groups[release] = [];
-                if (thread.design) groups[release].push(thread.design);
-                thread.plans.forEach(p => groups[release].push(p));
+                // Plans are the carrier of the shipped release (`actual_release`):
+                // group each plan by its own release. The design rides under the
+                // thread's latest shipped release, or "No Release" until a plan ships.
+                const planReleases: (string | null | undefined)[] = [];
+                thread.plans.forEach(p => {
+                    add(p.actual_release, p);
+                    planReleases.push(p.actual_release);
+                });
+                if (thread.design) add(maxVersion(planReleases), thread.design);
             }
         }
         return Object.entries(groups).map(([release, docs]) =>

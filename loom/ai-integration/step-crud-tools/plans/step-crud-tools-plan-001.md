@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTV5CCCDWJP8BYVZ18DNE849
 title: Plan step-CRUD tools
 status: done
-created: "2026-06-11T00:00:00.000Z"
+created: 2026-06-11
 updated: 2026-06-11
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KTV4J19RRZ2BENGHZW56P35S
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.4.0
 steps:
   - id: id-keyed-detail-sections-saver-re
     order: 1
@@ -76,22 +77,27 @@ Complete the plan-step editing surface with loom_add_step + loom_remove_step, bu
 | 🔳 | Pending |
 | ❌ | Cancelled |
 
+<!-- step:id-keyed-detail-sections-saver-re -->
 ### Step 1 — Id-keyed detail sections + saver re-keying (Option A foundation)
 
 Add a core function that, given the current body + the ordered frontmatter steps, parses existing `### …` detail sections by their `<!-- step:{id} -->` marker into an id→prose map, then re-emits them in frontmatter-step order: each as `<!-- step:{id} -->` + `### Step {order} — {title}` + preserved prose; prunes sections whose id is gone; stubs a new section for an id with no existing prose; renders the Step number from current order. Preserve Goal + any authored Notes. Wire into the plan save path (replacing/augmenting the table-only updateStepsTableInContent). Backfill: a marker-less body maps sections to ids best-effort by current order. This also retroactively fixes loom_reorder_steps's detail drift.
 
+<!-- step:loom-add-step -->
 ### Step 2 — loom_add_step
 
 loom_add_step(planId, { description, title?, files?, blockedBy?, satisfies?, detail? }, position?) where position = append (default) | { after: stepId } | { before: stepId }. Reducer inserts a new step with a fresh slugifyStepId id at the position, recomputes order; allowed in draft/active/implementing/blocked. The new step's detail section is created by the step-1 saver mechanism.
 
+<!-- step:loom-remove-step -->
 ### Step 3 — loom_remove_step
 
 loom_remove_step(planId, stepId). Reducer rejects a done/cancelled step (immutable history); removes the step; strips blockedBy references to its id from the remaining steps and returns the list of steps whose blockers were stripped; recomputes order. The step's detail section is pruned by the step-1 saver mechanism.
 
+<!-- step:tests -->
 ### Step 4 — Tests
 
 Pure reducer tests: ADD_STEP at append/before/after (order recomputed, slug id), REMOVE_STEP (reject done, strip+report blockedBy dependents). Saver round-trip: a plan with detail sections, after reorder/add/remove, has detail sections matching the new step order/set (by id), authored prose preserved, orphans pruned, new step stubbed — and a regression asserting loom_reorder_steps now reflows detail (the latent 1.4.0 gap).
 
+<!-- step:docs-sync-build-release-1-5 -->
 ### Step 5 — Docs sync, build, release 1.5.0
 
 Add loom_add_step / loom_remove_step to the writes-breakdown in BOTH CLAUDE.md and the LOOM_CLAUDE_MD template (tests/claude-md-sync.test.ts verifies rule-set parity). Write CHANGELOG 1.5.0 notes (root) + vscode lockstep note. Run build-all + test-all. Bump all 7 package.json to 1.5.0 via scripts/bump-version.sh; commit + tag; push gated on Rafa.

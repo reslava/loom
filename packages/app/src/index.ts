@@ -28,6 +28,11 @@ export { currentLoom, CurrentLoomInfo, CurrentDeps } from './current';
 // Use‑Cases — State
 // ============================================================================
 export { getState, GetStateDeps, GetStateInput } from './getState';
+export {
+    recordRelease, backfillReleases,
+    RecordReleaseInput, BackfillReleasesInput, RecordReleaseDeps,
+    RecordReleaseResult, StampedPlan, SkippedPlan, ReleaseDate,
+} from './recordRelease';
 export { searchDocs, SearchDocsInput, SearchDocsDeps, SearchResult } from './searchDocs';
 export { getStaleDocs, GetStaleDocsDeps, StaleDoc } from './getStaleDocs';
 export { getBlockedSteps, GetBlockedStepsDeps, BlockedStep } from './getBlockedSteps';

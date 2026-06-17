@@ -9,7 +9,6 @@ version: 5
 tags: []
 parent_id: id_01KTTM64G1B2XZMDS739CDABYF
 requires_load: []
-target_release: 1.4.0
 ---
 # MCP friction-reduction tools
 

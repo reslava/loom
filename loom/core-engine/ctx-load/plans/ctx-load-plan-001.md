@@ -3,14 +3,15 @@ type: plan
 id: pl_01KSTGDER8MA9KJF3JS4CG9BHK
 title: ctx-load — activate thread/weave ctx auto-load
 status: done
-created: "2026-05-29T00:00:00.000Z"
-updated: "2026-05-31T00:00:00.000Z"
+created: 2026-05-29
+updated: 2026-05-31
 version: 3
 design_version: 1
 tags: []
 parent_id: de_01KSTFX5FNN132HHSFHNSK497C
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: status-filter-exclude-and-from-the
     order: 1

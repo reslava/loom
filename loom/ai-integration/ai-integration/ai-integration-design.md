@@ -9,8 +9,6 @@ version: 4
 tags: [ai, integration, protocol, loom]
 parent_id: null
 requires_load: []
-target_release: 0.3.0
-actual_release: null
 ---
 
 # AI Integration & Handshake Protocol — REslava Loom

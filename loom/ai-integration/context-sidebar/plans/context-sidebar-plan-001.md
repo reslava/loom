@@ -3,14 +3,15 @@ type: plan
 id: pl_01KSTGE28WY9C08MBYQSXGGS7R
 title: context-sidebar — CONTEXT tree section + persistent overrides (P3)
 status: done
-created: "2026-05-29T00:00:00.000Z"
-updated: "2026-05-31T00:00:00.000Z"
+created: 2026-05-29
+updated: 2026-05-31
 version: 2
 design_version: 1
 tags: []
 parent_id: de_01KSTFZXP06VXHFDYG1FGAK1KT
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.7.0
 steps:
   - id: add-and-l
     order: 1

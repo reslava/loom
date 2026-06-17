@@ -3,14 +3,15 @@ type: plan
 id: pl_01KQYDFDDBGNCQQ30KVW4WKZC3
 title: Filesystem Integration — Markdown Load and Save
 status: done
-created: "2026-04-10T00:00:00.000Z"
-updated: "2026-04-14T00:00:00.000Z"
+created: 2026-04-10
+updated: 2026-04-14
 version: 1
 design_version: 3
 tags: [loom, core, filesystem, markdown, io]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]
 target_version: 0.2.0
+actual_release: 0.1.0
 steps:
   - id: setup-filesystem-utilities-with-robust-loom
     order: 1
@@ -103,6 +104,7 @@ This step transforms the system from in‑memory logic into a persistent, real�
 | ✅ | 7 | Test with real thread folder | `looms/test/threads/example/` | All | — |
 ---
 
+<!-- step:setup-filesystem-utilities-with-robust-loom -->
 ### Step 1 — Setup Filesystem Utilities (with Robust Loom Resolution)
 
 **File:** `packages/fs/src/utils.ts`
@@ -222,6 +224,7 @@ export function generatePlanId(threadId: string, existingPlanIds: string[]): str
 
 ---
 
+<!-- step:implement-markdown-frontmatter-validation -->
 ### Step 2 — Implement `loadDoc` (Markdown + frontmatter + validation)
 
 **File:** `packages/fs/src/load.ts`
@@ -292,6 +295,7 @@ function parseStepsTable(content: string): any[] {
 
 ---
 
+<!-- step:implement-atomic-markdown-writer -->
 ### Step 3 — Implement `saveDoc` (Atomic Markdown Writer)
 
 **File:** `packages/fs/src/save.ts`
@@ -367,6 +371,7 @@ function generateStepsTable(steps: any[], originalContent: string): string {
 
 ---
 
+<!-- step:implement -->
 ### Step 4 — Implement `loadThread`
 
 **File:** `packages/fs/src/loadThread.ts`
@@ -439,6 +444,7 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
 
 ---
 
+<!-- step:implement-2 -->
 ### Step 5 — Implement `saveThread`
 
 **File:** `packages/fs/src/saveThread.ts`
@@ -484,6 +490,7 @@ function determinePathForDoc(doc: any, threadId: string): string {
 
 ---
 
+<!-- step:integrate-with-core-engine -->
 ### Step 6 — Integrate with Core Engine (`runEvent`)
 
 **File:** `packages/fs/src/runEvent.ts`
@@ -504,6 +511,7 @@ export async function runEvent(threadId: string, event: WorkflowEvent): Promise<
 
 ---
 
+<!-- step:test-with-real-thread-folder -->
 ### Step 7 — Test with Real Thread Folder
 
 Create a sample thread in the test loom:

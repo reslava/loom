@@ -27,6 +27,8 @@ import { blockedCommand } from './commands/blocked';
 import { migratePlanStepsCommand } from './commands/migratePlanSteps';
 import { migrateCommand } from './commands/migrate';
 import { roadmapCommand } from './commands/roadmap';
+import { backfillReleasesCommand } from './commands/backfillReleases';
+import { recordReleaseCommand } from './commands/recordRelease';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -208,9 +210,23 @@ program
 
 program
     .command('roadmap')
-    .description('Print the derived cross-weave roadmap: future (pending/blocked), present (active/implementing), history (shipped plans)')
+    .description('Print the derived cross-weave roadmap: future (pending/blocked), present (active/implementing), history (shipped plans), and current release')
     .option('--group-by-thread', 'Group history by thread')
-    .action((options) => roadmapCommand({ groupByThread: options.groupByThread }));
+    .option('--group-by-release', 'Group history by release version')
+    .action((options) => roadmapCommand({ groupByThread: options.groupByThread, groupByRelease: options.groupByRelease }));
+
+program
+    .command('record-release <version>')
+    .description('Stamp <version> onto every done plan not yet assigned a release (the release-pipeline hook — run after tagging). Idempotent.')
+    .option('--overwrite', 'Re-stamp plans that already carry a release')
+    .action((version, options) => recordReleaseCommand(version, { overwrite: options.overwrite }));
+
+program
+    .command('backfill-releases')
+    .description('Backfill plan actual_release from git tag dates (one-time release-history bootstrap). Builds the version→date map from git tags on the caller side and stamps each done plan by its done-date.')
+    .option('--dry-run', 'Show the version→date map without stamping')
+    .option('--overwrite', 'Re-stamp plans that already carry a release')
+    .action((options) => backfillReleasesCommand({ dryRun: options.dryRun, overwrite: options.overwrite }));
 
 program
     .command('mcp')

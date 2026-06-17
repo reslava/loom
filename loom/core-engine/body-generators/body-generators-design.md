@@ -9,8 +9,6 @@ version: 2
 tags: [refactor, architecture, utilities, templates]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDC2GWRSG7TVP5Z5MAN]
-target_release: 0.4.0
-actual_release: null
 ---
 
 # Document Body Generators & Utility Extraction

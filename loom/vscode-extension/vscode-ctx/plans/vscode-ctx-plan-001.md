@@ -3,7 +3,7 @@ type: plan
 id: pl_01KQZ2J17RW4CH45MREYJC499B
 title: Context Sidebar — Implementation Plan
 status: done
-created: "2026-05-06T00:00:00.000Z"
+created: 2026-05-06
 updated: 2026-06-06
 version: 4
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KQZ2HGVC1W2V48A6RMCT3FA5
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 ---
 # Context Sidebar — Implementation Plan
 

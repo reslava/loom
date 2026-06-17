@@ -3,13 +3,14 @@ type: plan
 id: pl_01KQYDFDDCHD6SEJ0QCBAYJ93Y
 title: Staleness Management — MVP Surfacing
 status: done
-created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-05
+updated: 2026-05-08
 version: 2
 design_version: 2
 tags: [staleness, vscode, mcp, mvp]
 parent_id: de_01KQYDFDDC911HGHRQGZV1ZSCA
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
+actual_release: 0.5.0
 steps:
   - id: add-count-to-the-mcp-resource
     order: 1

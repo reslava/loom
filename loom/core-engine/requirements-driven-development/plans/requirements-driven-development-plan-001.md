@@ -3,7 +3,7 @@ type: plan
 id: pl_01KTBAD2HBVYD46HNZ019G1Y89
 title: RDD Phase 1 — req doc-type, lock, and always-load
 status: done
-created: "2026-06-05T00:00:00.000Z"
+created: 2026-06-05
 updated: 2026-06-12
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.0.0
 steps:
   - id: core-entity-wiring
     order: 1

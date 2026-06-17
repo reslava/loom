@@ -9,8 +9,6 @@ version: 2
 tags: [personalization, ux, configuration, vscode, loom]
 parent_id: de_01KQYDFDDEQ81VMM0SPD1P1DBM
 requires_load: []
-target_release: 0.4.0
-actual_release: null
 ---
 
 # User Personalization — REslava Loom

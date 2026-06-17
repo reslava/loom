@@ -3,7 +3,7 @@ type: plan
 id: pl_01KV3GYQ36HM981ACDCMCE3ZYN
 title: Derived Roadmap — Extension Surface
 status: done
-created: "2026-06-14T00:00:00.000Z"
+created: 2026-06-14
 updated: 2026-06-14
 version: 1
 design_version: 1
@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KV3GPTMNXT66C4N73WAFN7ZW
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.8.0
 steps:
   - id: roadmap-toolbar-toggle
     order: 1
