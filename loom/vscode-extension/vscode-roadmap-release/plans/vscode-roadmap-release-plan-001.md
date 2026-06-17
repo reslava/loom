@@ -11,6 +11,7 @@ tags: []
 parent_id: id_01KVADBMKVNECGWH8PMJP4TDHV
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.10.0
 steps:
   - id: show-current-and-per-plan-release
     order: 1

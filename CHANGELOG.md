@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-06-17
+
+### Added
+- **Release tracking on the roadmap.** `loom record-release X.Y.Z` stamps the version each done plan shipped in (`actual_release`), and Loom derives the project's `current_release` (the highest shipped version) — surfaced in the CLI (`loom roadmap`, with a release column and `--group-by-release`), the `loom://roadmap` read-model, and a new `loom_record_release` MCP tool. `loom backfill-releases` seeds historical plans from past git tags.
+- **Roadmap History groups by release in the VS Code extension.** The History band labels the current release (`current vX.Y.Z`) and tags each shipped plan with the version it shipped in. A new `$(tag)` toolbar button opens a Release / Thread / Date grouping picker (replacing the old by-thread toggle) and defaults to grouping by release, newest version first.
+
+### Changed
+- **A plan's `actual_release` is now the single source of truth for what shipped when.** The old `target_release` field and the design-level `actual_release` were removed, and `loom_update_doc` no longer accepts `target_release`; existing plans were backfilled from git tags.
+
 ## [1.9.2] - 2026-06-16
 
 ### Added
@@ -483,7 +492,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.9.2...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.10.0...HEAD
+[1.10.0]: https://github.com/reslava/loom/releases/tag/v1.10.0
 [1.9.2]: https://github.com/reslava/loom/releases/tag/v1.9.2
 [1.9.1]: https://github.com/reslava/loom/releases/tag/v1.9.1
 [1.9.0]: https://github.com/reslava/loom/releases/tag/v1.9.0

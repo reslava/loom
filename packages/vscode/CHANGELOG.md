@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.10.0] - 2026-06-17
+
+### Added
+- **Roadmap History groups by release.** The History band labels the current release (`current vX.Y.Z`) and shows each shipped plan's version. A new `$(tag)` toolbar button opens a Release / Thread / Date grouping picker (replacing the old by-thread toggle); grouping defaults to release, newest version first, with unversioned plans last.
+
+### Changed
+- Release grouping in the weave tree now reads each plan's `actual_release` (the new single source of truth) instead of the removed design-level release fields.
+
+### Notes
+- Lockstep 1.10.0 bump with the CLI and the rest of the monorepo.
+
 ## [1.9.2] - 2026-06-16
 
 ### Fixed

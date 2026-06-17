@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KVA7ABHNH0MC2FZSS1PPT4J7
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.10.0
 steps:
   - id: core-entities
     order: 1
