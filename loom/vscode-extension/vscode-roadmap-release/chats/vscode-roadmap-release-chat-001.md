@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 2
+last_ai_block: 4
 ---
 # vscode-roadmap-release Chat
 
@@ -44,3 +44,10 @@ Extension visual check: WORKING
 mark step 4 done, plan done
 
 commit
+
+
+## AI:
+
+Step 4 ✅ — plan `done` (4/4). Committed: `42ffe73 feat(vscode): surface release versions in the roadmap history view` (12 files). The `roadmap-release-version` idea+design (you flipped them `draft → done`) rode along in the commit — correct, that thread's work has shipped.
+
+That closes the roadmap-release-version line end to end: data spine + CLI + extension all wired, current release derives to v1.9.2, history grouped by release. Remaining open threads from this work: `quick-ship-plan` and `plan-blockedby-id-normalization` (both idea-only, when you want them).
