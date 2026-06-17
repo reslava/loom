@@ -3,6 +3,9 @@ export type GroupingMode = 'type' | 'thread' | 'status' | 'release';
 /** Which band(s) of the roadmap are shown when the Roadmap view is enabled. */
 export type RoadmapBand = 'all' | 'history' | 'roadmap';
 
+/** How the History band groups/sorts shipped plans. */
+export type HistoryGrouping = 'date' | 'thread' | 'release';
+
 export interface ViewState {
     grouping: GroupingMode;
     textFilter?: string;
@@ -14,8 +17,8 @@ export interface ViewState {
     roadmapEnabled: boolean;
     /** Which roadmap band(s) to show (the filter folds to this when roadmap is enabled). */
     roadmapBand: RoadmapBand;
-    /** History band: group shipped plans by thread (opt-in; default flat newest-first). */
-    groupHistoryByThread: boolean;
+    /** History band grouping: by release version (default), by thread, or flat by date. */
+    historyGrouping: HistoryGrouping;
 }
 
 export const defaultViewState: ViewState = {
@@ -26,5 +29,5 @@ export const defaultViewState: ViewState = {
     syncDocToTreeEnabled: true,
     roadmapEnabled: false,
     roadmapBand: 'all',
-    groupHistoryByThread: false,
+    historyGrouping: 'release',
 };

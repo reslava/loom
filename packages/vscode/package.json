@@ -389,16 +389,10 @@
         "icon": "$(list-tree)"
       },
       {
-        "command": "loom.toggleGroupHistory",
-        "title": "Group History by Thread",
+        "command": "loom.selectHistoryGrouping",
+        "title": "Group History By…",
         "category": "Loom",
-        "icon": "$(list-flat)"
-      },
-      {
-        "command": "loom.toggleGroupHistoryOff",
-        "title": "Flatten History",
-        "category": "Loom",
-        "icon": "$(list-tree)"
+        "icon": "$(tag)"
       }
     ],
     "configuration": {
@@ -507,13 +501,8 @@
           "group": "navigation@0"
         },
         {
-          "command": "loom.toggleGroupHistory",
-          "when": "view == loom.threads && loom.roadmapEnabled && !loom.groupHistoryByThread",
-          "group": "navigation@01"
-        },
-        {
-          "command": "loom.toggleGroupHistoryOff",
-          "when": "view == loom.threads && loom.roadmapEnabled && loom.groupHistoryByThread",
+          "command": "loom.selectHistoryGrouping",
+          "when": "view == loom.threads && loom.roadmapEnabled",
           "group": "navigation@01"
         },
         {

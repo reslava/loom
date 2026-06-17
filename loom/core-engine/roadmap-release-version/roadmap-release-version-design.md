@@ -2,9 +2,10 @@
 type: design
 id: de_01KVA7ABHNH0MC2FZSS1PPT4J7
 title: Roadmap carries the release version (actual_release on plans)
-status: draft
+status: done
 created: 2026-06-17
-version: 1
+updated: 2026-06-17
+version: 2
 tags: []
 parent_id: id_01KV98KZVJFEMZBCHMZEEH8ZGZ
 requires_load: []

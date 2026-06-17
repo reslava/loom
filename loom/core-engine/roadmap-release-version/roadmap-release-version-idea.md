@@ -2,9 +2,10 @@
 type: idea
 id: id_01KV98KZVJFEMZBCHMZEEH8ZGZ
 title: Roadmap history carries the release version (actual_release)
-status: draft
+status: done
 created: 2026-06-16
-version: 1
+updated: 2026-06-17
+version: 2
 tags: []
 parent_id: null
 requires_load: []

@@ -11,9 +11,9 @@ import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
 import { getWeaveStatus, getThreadStatus, getReqStaleDocs } from '@reslava-loom/core/dist/derived';
 import { RoadmapView, RoadmapNode, ShippedPlan, RoadmapStatus, DEFAULT_ROADMAP_PRIORITY } from '@reslava-loom/core/dist/derived';
 import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
-import { maxVersion } from '@reslava-loom/core/dist/versionUtils';
+import { maxVersion, compareVersions } from '@reslava-loom/core/dist/versionUtils';
 import { ViewStateManager } from '../view/viewStateManager';
-import { GroupingMode, ViewState } from '../view/viewState';
+import { GroupingMode, HistoryGrouping, ViewState } from '../view/viewState';
 import { Icons, icon, getDocumentIcon, getWeaveIcon, getThreadIcon, getPlanIcon } from '../icons';
 
 export interface TreeNode extends vscode.TreeItem {
@@ -384,7 +384,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             nodes.push(this.createRoadmapBand(roadmap.roadmap, nameOf));
         }
         if (band === 'all' || band === 'history') {
-            nodes.push(this.createHistoryBand(roadmap.history, viewState.groupHistoryByThread));
+            nodes.push(this.createHistoryBand(roadmap.history, viewState.historyGrouping, roadmap.currentRelease));
         }
         return nodes;
     }
@@ -418,12 +418,34 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return { ...node, weaveId: n.weaveId, threadId: n.threadId, roadmap: n, children: [] };
     }
 
-    private createHistoryBand(history: ShippedPlan[], groupByThread: boolean): TreeNode {
+    private createHistoryBand(history: ShippedPlan[], grouping: HistoryGrouping, currentRelease: string | null): TreeNode {
         const day = (d: string) => (d || '').slice(0, 10);
         let children: TreeNode[];
         if (history.length === 0) {
             children = [this.messageNode('(none)')];
-        } else if (groupByThread) {
+        } else if (grouping === 'release') {
+            // Bucket shipped plans by release version, newest version first; the
+            // unversioned bucket (plans not yet stamped) sorts last.
+            const byRelease = new Map<string, ShippedPlan[]>();
+            for (const h of history) {
+                const k = h.release ?? '';
+                if (!byRelease.has(k)) byRelease.set(k, []);
+                byRelease.get(k)!.push(h);
+            }
+            const keys = [...byRelease.keys()].sort((a, b) => {
+                if (!a) return 1;          // unversioned last
+                if (!b) return -1;
+                return compareVersions(b, a); // newest version first
+            });
+            children = keys.map(k => {
+                const items = byRelease.get(k)!;
+                const sec = new vscode.TreeItem(k ? `v${k}` : 'Unversioned', vscode.TreeItemCollapsibleState.Expanded);
+                sec.contextValue = 'roadmap-history-release';
+                sec.iconPath = new vscode.ThemeIcon('tag');
+                sec.description = `${items.length} shipped`;
+                return { ...sec, children: items.map(h => this.createShippedPlanNode(h, day, true, false)) };
+            });
+        } else if (grouping === 'thread') {
             const byThread = new Map<string, ShippedPlan[]>();
             for (const h of history) {
                 const k = `${h.weaveId}/${h.threadId}`;
@@ -435,23 +457,31 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 sec.contextValue = 'roadmap-history-thread';
                 sec.iconPath = new vscode.ThemeIcon('git-commit');
                 sec.description = `${items.length} shipped`;
-                return { ...sec, children: items.map(h => this.createShippedPlanNode(h, day, false)) };
+                return { ...sec, children: items.map(h => this.createShippedPlanNode(h, day, false, true)) };
             });
         } else {
-            children = history.map(h => this.createShippedPlanNode(h, day, true));
+            // 'date' — flat, newest first (history arrives date-sorted).
+            children = history.map(h => this.createShippedPlanNode(h, day, true, true));
         }
         const node = new vscode.TreeItem(`History  (${history.length})`, vscode.TreeItemCollapsibleState.Expanded);
         node.contextValue = 'roadmap-band-history';
         node.iconPath = new vscode.ThemeIcon('history');
+        node.description = currentRelease ? `current v${currentRelease}` : 'no release recorded';
         return { ...node, children };
     }
 
-    private createShippedPlanNode(h: ShippedPlan, day: (d: string) => string, showThread: boolean): TreeNode {
+    private createShippedPlanNode(h: ShippedPlan, day: (d: string) => string, showThread: boolean, showRelease: boolean): TreeNode {
+        const rel = h.release ? `v${h.release}` : 'unversioned';
+        const parts = [
+            ...(showRelease ? [rel] : []),
+            day(h.date),
+            ...(showThread ? [`${h.weaveId}/${h.threadId}`] : []),
+        ];
         const node = new vscode.TreeItem(h.planTitle, vscode.TreeItemCollapsibleState.None);
-        node.description = showThread ? `${day(h.date)} · ${h.weaveId}/${h.threadId}` : day(h.date);
+        node.description = parts.join(' · ');
         node.iconPath = new vscode.ThemeIcon('check-all');
         node.contextValue = 'roadmap-shipped-plan';
-        node.tooltip = `${h.planTitle}\nshipped ${day(h.date)} — ${h.weaveId}/${h.threadId}`;
+        node.tooltip = `${h.planTitle}\nshipped ${rel} on ${day(h.date)} — ${h.weaveId}/${h.threadId}`;
         const planPath = this.resolvePlanPath(h.planId);
         if (planPath) {
             node.command = { command: 'vscode.open', title: 'Open Plan', arguments: [vscode.Uri.file(planPath)] };

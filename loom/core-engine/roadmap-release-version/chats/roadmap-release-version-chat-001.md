@@ -2,13 +2,14 @@
 type: chat
 id: ch_01KVA1KCV4HBKRKS72KBWVWH4B
 title: roadmap-release-version Chat
-status: active
+status: done
 created: 2026-06-17
-version: 1
+updated: 2026-06-17
+version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 20
+last_ai_block: 22
 ---
 # roadmap-release-version Chat
 
@@ -322,3 +323,16 @@ Net asks: (1) 1.9.2 → accept 1.9.1 or add a targeted stamp; (2) design-strip �
 3. spin it up as its own thread `vscode-extension/vscode-roadmap-release` with a short plan
 
 Then would be good to commit before continue? Do it if agree
+
+
+## AI:
+
+All four done and committed:
+
+- **#1 current_release = v1.9.2** ✅ — your `core-purity` edit took; backfill won't clobber it (it's stamped, so a re-run skips it).
+- **#2 stripped 21 design files** ✅ — dead `target_release`/`actual_release` keys gone (incl. 2 in `.archive`), frontmatter otherwise intact. 0 remaining.
+- **#3 `vscode-extension/vscode-roadmap-release`** ✅ — idea + a 4-step plan (`pl_01KVADCEW02VQ3F899TG0Z1N5V`): show current + per-plan release, add a `date|thread|release` history mode (default release), toolbar toggle, build+verify. Extension-only — the data's already on `loom://roadmap`.
+- **Smoke-test bug** ✅ — `RECORD_RELEASE` no longer bumps `updated`; restored + re-backfilled; history sorts correctly again.
+- **Your priority reflow** — committed separately as `chore: roadmap` (18 `thread.md`), feature in `feat:` (137 files). Tests green (17/17 suites). 0 uncommitted.
+
+The vscode plan is `active`, not started. Say `go` and I'll start it and implement step 1 (current + per-plan release in the history band), or `do the whole plan` for all four. Your call.

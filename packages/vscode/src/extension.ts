@@ -18,7 +18,7 @@ import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
 import { completeStepCommand } from './commands/completeStep';
 import { validateCommand } from './commands/validate';
-import { showGroupingSelector } from './commands/grouping';
+import { showGroupingSelector, showHistoryGroupingSelector } from './commands/grouping';
 import { setTextFilter, toggleArchived, setStatusFilter, statusFilterLabel } from './commands/filter';
 import { chatNewCommand } from './commands/chatNew';
 import { chatReplyCommand } from './commands/chatReply';
@@ -62,7 +62,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     vscode.commands.executeCommand('setContext', 'loom.showArchived', viewStateManager.getState().showArchived);
     vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', viewStateManager.getState().syncDocToTreeEnabled);
     vscode.commands.executeCommand('setContext', 'loom.roadmapEnabled', viewStateManager.getState().roadmapEnabled);
-    vscode.commands.executeCommand('setContext', 'loom.groupHistoryByThread', viewStateManager.getState().groupHistoryByThread);
+    vscode.commands.executeCommand('setContext', 'loom.historyGrouping', viewStateManager.getState().historyGrouping);
     const treeProvider = new LoomTreeProvider(viewStateManager);
     const tokenEstimator = new TokenEstimatorService();
     const contextSidebar = new ContextSidebarProvider(treeProvider, tokenEstimator);
@@ -177,17 +177,14 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 updateViewTitle();
                 treeProvider.refresh();
             };
-            const toggleGroupHistory = () => {
-                const on = !viewStateManager.getState().groupHistoryByThread;
-                viewStateManager.update({ groupHistoryByThread: on });
-                vscode.commands.executeCommand('setContext', 'loom.groupHistoryByThread', on);
-                treeProvider.refresh();
+            const selectHistoryGrouping = async () => {
+                await showHistoryGroupingSelector(viewStateManager, treeProvider);
+                vscode.commands.executeCommand('setContext', 'loom.historyGrouping', viewStateManager.getState().historyGrouping);
             };
             return [
                 vscode.commands.registerCommand('loom.toggleRoadmap', toggleRoadmap),
                 vscode.commands.registerCommand('loom.toggleRoadmapOff', toggleRoadmap),
-                vscode.commands.registerCommand('loom.toggleGroupHistory', toggleGroupHistory),
-                vscode.commands.registerCommand('loom.toggleGroupHistoryOff', toggleGroupHistory),
+                vscode.commands.registerCommand('loom.selectHistoryGrouping', selectHistoryGrouping),
             ];
         })(),
         vscode.commands.registerCommand('loom.chatNew', (node?: TreeNode) => chatNewCommand(treeProvider, treeView, node)),

@@ -2,9 +2,10 @@
 type: idea
 id: id_01KVADBMKVNECGWH8PMJP4TDHV
 title: Surface release versions in the extension's roadmap history view
-status: draft
+status: done
 created: 2026-06-17
-version: 1
+updated: 2026-06-17
+version: 2
 tags: []
 parent_id: null
 requires_load: []
