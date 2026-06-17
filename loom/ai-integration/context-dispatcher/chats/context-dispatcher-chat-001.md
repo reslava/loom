@@ -2,9 +2,10 @@
 type: chat
 id: ch_01KTVNYZMH7S6546XSCJ65Y89D
 title: context-dispatcher Chat
-status: active
-created: "2026-06-11T00:00:00.000Z"
-version: 1
+status: done
+created: 2026-06-11
+updated: 2026-06-17
+version: 2
 tags: []
 parent_id: null
 requires_load: []
