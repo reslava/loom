@@ -8,7 +8,7 @@ updated: 2026-05-08
 version: 2
 design_version: 2
 tags: [ai, visibility, claude-md, mvp]
-parent_id: showing-docs-loaded-design
+parent_id: de_01KQYDFDD9VDV3GBT0DBVH15RE
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]
 actual_release: 0.5.0
 steps:

@@ -7,7 +7,7 @@ created: "2026-04-25T00:00:00.000Z"
 updated: 2026-05-14
 version: 2
 tags: []
-parent_id: vscode-extension-fixes-tweaks-chat.md
+parent_id: null
 requires_load: []
 ---
 # MVP plan to publish

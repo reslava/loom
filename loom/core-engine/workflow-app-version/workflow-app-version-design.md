@@ -7,7 +7,7 @@ created: "2026-04-12T00:00:00.000Z"
 updated: "2026-05-06T00:00:00.000Z"
 version: 1.0.01
 tags: [versioning, release, planning, frontmatter]
-parent_id: de_01KQYDFDDF4QG72MKRE0KB2HZ4
+parent_id: null
 requires_load: []
 ---
 

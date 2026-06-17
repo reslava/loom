@@ -7,7 +7,7 @@ created: "2026-04-11T00:00:00.000Z"
 updated: "2026-05-06T00:00:00.000Z"
 version: 2.0.01
 tags: [feature, model, relationships, architecture]
-parent_id: de_01KQYDFDDF4QG72MKRE0KB2HZ4
+parent_id: null
 requires_load: [references/workspace-directory-structure-reference.md]
 ---
 
