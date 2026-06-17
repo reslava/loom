@@ -4,12 +4,12 @@ id: th_01KV98KZVRWMPK29FAVPZDTWH4
 title: Roadmap history carries the release version (actual_release)
 status: active
 created: 2026-06-16
-updated: 2026-06-16
+updated: 2026-06-17
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 10
+priority: 20
 depends_on: []
 ---
 # Roadmap history carries the release version (actual_release)

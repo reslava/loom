@@ -4,12 +4,12 @@ id: th_01KV3MWSAFWAYRT45GZVYKK4TQ
 title: plan-steps-v2
 status: active
 created: 2026-06-14
-updated: 2026-06-16
+updated: 2026-06-17
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 90
+priority: 100
 depends_on: []
 ---
 # plan-steps-v2
