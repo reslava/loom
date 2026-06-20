@@ -405,6 +405,23 @@ release came straight from that dogfooding.
 
 ---
 
+## Used by
+
+Real projects built with Loom — beyond Loom building itself:
+
+- **[ChordFlow](https://github.com/reslava/chord-flow)** — a Rhythm & Progression Trainer for guitar.
+  Its whole music domain — the fretboard interval lattice, the CAGED octave shapes, the chord/scale
+  derivation engine — was **designed in Loom chats before any code was written**, then carried through
+  idea → design → locked `req` → a plan of cited steps → done. Every decision, every brainstorm, every
+  corrected dead-end lives in its `loom/` graph next to the code it produced, so the AI opens each
+  session with the *reasoning*, not just the source. ChordFlow's README carries a reciprocal
+  [**Developed with Loom**](https://github.com/reslava/chord-flow#developed-with-loom) section.
+
+**Building with Loom?** I'd like to list your project here — open an issue or PR on the
+[Loom repository](https://github.com/reslava/loom) and tell me about it.
+
+---
+
 ## An AI's view of Loom
 
 *I'm the AI that helps build Loom, and Rafa asked me to say plainly what it changes for me — not as marketing, but as the other half of the collaboration.*
