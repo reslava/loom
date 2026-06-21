@@ -10,8 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-06-21
+
 ### Changed
 - **Roadmap History (grouped by release) lists the unversioned bucket first** in the VS Code extension — done-but-unstamped plans are the freshest work, ahead of the latest release, matching how `loom roadmap --group-by-release` already orders them.
+
+### Documentation
+- **The READMEs now show the panel in action.** The main and VS Code Marketplace READMEs carry clickable screenshots of the Threads + Context graph and the derived Roadmap — for both Loom itself and [ChordFlow](https://github.com/reslava/chord-flow), a real project built with Loom.
 
 ## [1.10.0] - 2026-06-17
 
@@ -495,7 +500,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.10.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.10.1...HEAD
+[1.10.1]: https://github.com/reslava/loom/releases/tag/v1.10.1
 [1.10.0]: https://github.com/reslava/loom/releases/tag/v1.10.0
 [1.9.2]: https://github.com/reslava/loom/releases/tag/v1.9.2
 [1.9.1]: https://github.com/reslava/loom/releases/tag/v1.9.1

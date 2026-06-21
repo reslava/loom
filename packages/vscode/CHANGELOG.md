@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.10.1] - 2026-06-21
+
+### Changed
+- **Roadmap History lists the unversioned bucket first.** When History is grouped by release, done-but-unstamped plans (the freshest work) now sort ahead of the latest release, matching `loom roadmap --group-by-release`.
+
+### Documentation
+- The README now shows the Threads + Context graph and the derived Roadmap — for both Loom and [ChordFlow](https://github.com/reslava/chord-flow) — as clickable screenshots.
+
+### Notes
+- Lockstep 1.10.1 bump with the CLI and the rest of the monorepo.
+
 ## [1.10.0] - 2026-06-17
 
 ### Added
