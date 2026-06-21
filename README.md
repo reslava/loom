@@ -309,6 +309,19 @@ The **Loom panel** (Activity Bar) has a **Threads** view (weaves → threads →
 
 A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-weave roadmap — one **Roadmap** band (present + future in a single dependency-then-priority order, each showing its status and, when blocked, what it's blocked on) and **History** (shipped plans) — with drag-to-reorder across the whole list writing soft `priority`. No hand-maintained roadmap list; the whole view is computed from the documents.
 
+<table>
+<tr>
+<td width="50%" valign="top"><a href="packages/vscode/media/screenshots/loom/loom-rdd.png"><img src="packages/vscode/media/screenshots/loom/loom-rdd.png" alt="Loom Threads + Context view" width="100%" /></a></td>
+<td width="50%" valign="top"><a href="packages/vscode/media/screenshots/loom/loom-roadmap.png"><img src="packages/vscode/media/screenshots/loom/loom-roadmap.png" alt="Loom Roadmap view" width="100%" /></a></td>
+</tr>
+<tr>
+<td valign="top"><b>Threads + Context</b> — every weave → thread → doc (chat, idea, design, plan, req, reference, done) in one graph, each node carrying its <i>derived</i> state: reqs marked <code>🔒 locked · ✅ covered</code>, plan step counts (<code>3/3 · done</code>), and staleness ⚠. The <b>CONTEXT</b> panel below shows the exact docs — and their token cost — the AI will receive for the selected node, <i>before</i> you launch anything.</td>
+<td valign="top"><b>Roadmap</b> — the same graph re-laid as the derived roadmap: present + future threads in one dependency-then-priority order, each row showing its status, soft priority (<code>p20</code>), and what it's blocked on — over a <b>History</b> band grouped by shipped version, with date and thread. No list to maintain; it's all computed from the documents.</td>
+</tr>
+</table>
+
+<sub>Click either image to view full size.</sub>
+
 | Button | What it does |
 |--------|-------------|
 | *Generate Design (AI)* | Turn an idea into an architecture + decisions doc |
@@ -416,6 +429,19 @@ Real projects built with Loom — beyond Loom building itself:
   corrected dead-end lives in its `loom/` graph next to the code it produced, so the AI opens each
   session with the *reasoning*, not just the source. ChordFlow's README carries a reciprocal
   [**Developed with Loom**](https://github.com/reslava/chord-flow#developed-with-loom) section.
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="packages/vscode/media/screenshots/chord-flow/chord-flow-caged-chords-implementing.png"><img src="packages/vscode/media/screenshots/chord-flow/chord-flow-caged-chords-implementing.png" alt="ChordFlow Threads + Context view" width="100%" /></a></td>
+<td width="50%" valign="top"><a href="packages/vscode/media/screenshots/chord-flow/chord-flow-roadmap.png"><img src="packages/vscode/media/screenshots/chord-flow/chord-flow-roadmap.png" alt="ChordFlow Roadmap view" width="100%" /></a></td>
+</tr>
+<tr>
+<td valign="top"><b>ChordFlow — Threads + Context</b> — a real, unrelated app driven by the same graph: the music-domain weaves (CAGED system, interval lattice, octave shapes), a plan mid-implementation, and a diagnostics banner surfacing <code>1 stale · 3 plan steps blocked · 11 req coverage gaps</code> across the project.</td>
+<td valign="top"><b>ChordFlow — Roadmap</b> — its derived roadmap and shipped-version history, generated from ChordFlow's own documents. The proof the workflow holds on a project that <i>isn't</i> Loom.</td>
+</tr>
+</table>
+
+<sub>Click either image to view full size.</sub>
 
 **Building with Loom?** I'd like to list your project here — open an issue or PR on the
 [Loom repository](https://github.com/reslava/loom) and tell me about it.

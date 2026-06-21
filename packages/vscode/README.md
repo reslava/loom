@@ -98,6 +98,19 @@ Shows your **weaves** (project areas) → **threads** (workstreams) → docs (id
 
 A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave roadmap — one **Roadmap** band (present + future threads in a single dependency-then-priority order, each row showing its status and, when blocked, what it's blocked on) and **History** (shipped plans). In roadmap mode the status filter folds to *all / roadmap / history*, the History band can group by thread, and drag-to-reorder spans the whole Roadmap list, writing soft `priority` (never overriding a hard dependency). It's all computed from the documents — no roadmap list to maintain.
 
+<table>
+<tr>
+<td width="50%" valign="top"><a href="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/loom/loom-rdd.png"><img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/loom/loom-rdd.png" alt="Loom Threads + Context view" width="100%" /></a></td>
+<td width="50%" valign="top"><a href="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/loom/loom-roadmap.png"><img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/loom/loom-roadmap.png" alt="Loom Roadmap view" width="100%" /></a></td>
+</tr>
+<tr>
+<td valign="top"><b>Threads + Context</b> — every weave → thread → doc (chat, idea, design, plan, req, reference, done) in one graph, each node carrying its <i>derived</i> state: reqs marked <code>🔒 locked · ✅ covered</code>, plan step counts (<code>3/3 · done</code>), and staleness ⚠. The <b>CONTEXT</b> panel shows the exact docs — and their token cost — the AI will receive for the selected node, <i>before</i> you launch.</td>
+<td valign="top"><b>Roadmap</b> — the same graph re-laid as the derived roadmap: present + future threads in one dependency-then-priority order (status, soft priority <code>p20</code>, and what each is blocked on), over a <b>History</b> band grouped by shipped version with date and thread.</td>
+</tr>
+</table>
+
+<sub>Click either image to view full size.</sub>
+
 **AI actions** (run the agent):
 
 | Button | What it does |
@@ -146,6 +159,25 @@ Each row is one doc, marked by why it's there:
 | ⚠ / ❌ | Stale / missing |
 
 Click a row to **open the doc**. Use the inline actions to **include / exclude / reset**; choices persist per target in `.loom/context-prefs.json`. Per-doc and total token estimates let you keep launches lean.
+
+---
+
+## A real project in Loom
+
+[ChordFlow](https://github.com/reslava/chord-flow) — a Rhythm & Progression Trainer for guitar — is built with Loom from outside this extension's own repo: the same panel, driving an unrelated app.
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/chord-flow/chord-flow-caged-chords-implementing.png"><img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/chord-flow/chord-flow-caged-chords-implementing.png" alt="ChordFlow Threads + Context view" width="100%" /></a></td>
+<td width="50%" valign="top"><a href="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/chord-flow/chord-flow-roadmap.png"><img src="https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/screenshots/chord-flow/chord-flow-roadmap.png" alt="ChordFlow Roadmap view" width="100%" /></a></td>
+</tr>
+<tr>
+<td valign="top"><b>Threads + Context</b> — ChordFlow's music-domain weaves (CAGED system, interval lattice, octave shapes), a plan mid-implementation, and a diagnostics banner: <code>1 stale · 3 plan steps blocked · 11 req coverage gaps</code>.</td>
+<td valign="top"><b>Roadmap</b> — ChordFlow's derived roadmap and shipped-version history, computed from its own documents.</td>
+</tr>
+</table>
+
+<sub>Click either image to view full size.</sub>
 
 ---
 
