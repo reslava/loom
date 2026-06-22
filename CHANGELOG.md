@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.10.2] - 2026-06-22
+
+### Fixed
+- **Chat replies no longer drift apart.** Repeated `loom_append_to_chat` calls were leaving a widening blank-line gap before each `## AI:` / `## Rafa:` header. The append seam is now normalized to exactly one blank line above and below the header, with both write paths (MCP append and app chat-reply) routed through a single shared core helper.
+
 ## [1.10.1] - 2026-06-21
 
 ### Changed
@@ -500,7 +505,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.10.1...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.10.2...HEAD
+[1.10.2]: https://github.com/reslava/loom/releases/tag/v1.10.2
 [1.10.1]: https://github.com/reslava/loom/releases/tag/v1.10.1
 [1.10.0]: https://github.com/reslava/loom/releases/tag/v1.10.0
 [1.9.2]: https://github.com/reslava/loom/releases/tag/v1.9.2

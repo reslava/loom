@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.10.2] - 2026-06-22
+
+### Notes
+- No functional change to the extension this release. Lockstep 1.10.2 bump with the CLI and the rest of the monorepo (which carries a chat-append seam fix in the core/MCP write path).
+
 ## [1.10.1] - 2026-06-21
 
 ### Changed
