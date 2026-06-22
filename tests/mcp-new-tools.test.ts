@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
-import { parseChatBlocks, lastAiBlockIndex, tailAfterBlock, serializeFrontmatter } from '../packages/core/dist/index.js';
+import { parseChatBlocks, lastAiBlockIndex, tailAfterBlock, appendChatBlock, serializeFrontmatter } from '../packages/core/dist/index.js';
 import { loadWeave, saveDoc, loadDoc } from '../packages/fs/dist/index.js';
 import { weavePlan } from '../packages/app/dist/weavePlan.js';
 import { handle as patchDocHandle } from '../packages/mcp/dist/tools/patchDoc.js';
@@ -91,6 +91,30 @@ async function run() {
         assert(tail.includes('second question') && !tail.includes('first answer'), 'tail = turns after last AI block');
         assert(lastAiBlockIndex(body, 'NOPE:') === -1, 'absent AI header → -1');
         console.log('    ✅ chatUtils correct, header-string driven');
+    }
+
+    // ── C2. appendChatBlock seam: exactly one blank line, no accumulation ──
+    console.log('  • appendChatBlock normalizes the seam (no widening blank-line gap)...');
+    {
+        // Simulate repeated appends where each incoming body carries a trailing newline
+        // and the prior block did too — the old `${existing}\n\n## h\n\n${body}` path
+        // compounded these into widening gaps.
+        let chat = '# Chat\n\n## Rafa:\n\nfirst question\n'; // note trailing newline
+        chat = appendChatBlock(chat, 'AI:', 'first answer\n');
+        chat = appendChatBlock(chat, 'Rafa:', 'second question\n\n');
+        chat = appendChatBlock(chat, 'AI:', 'second answer\n');
+
+        assert(!/\n{3,}/.test(chat), `no run of 3+ newlines (widening gap), got:\n${JSON.stringify(chat)}`);
+        // Every header is preceded by exactly one blank line and followed by one.
+        const headerSeams = chat.match(/[^\n]\n\n## /g) ?? [];
+        assert(headerSeams.length === 4, `4 headers (initial + 3 appended) each with single blank line before, got ${headerSeams.length}`);
+        assert(/## AI:\n\nfirst answer/.test(chat), 'single blank line after header');
+        // First-line code indentation is preserved (only leading newlines stripped).
+        const withCode = appendChatBlock('## Rafa:\n\nq', 'AI:', '\n    indented code line');
+        assert(withCode.endsWith('## AI:\n\n    indented code line'), `leading newline stripped, indent kept, got:\n${JSON.stringify(withCode)}`);
+        // Empty existing body → no leading blank line.
+        assert(appendChatBlock('', 'AI:', 'hi') === '## AI:\n\nhi', 'empty base → bare block');
+        console.log('    ✅ appendChatBlock seam normalized, idempotent across repeats');
     }
 
     // ── D. patch_doc handle (real fs) ──

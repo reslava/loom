@@ -1,5 +1,5 @@
 import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
-import { ChatDoc, lastAiBlockIndex } from '../../../core/dist';
+import { ChatDoc, lastAiBlockIndex, appendChatBlock } from '../../../core/dist';
 import { getUserName, getAiName } from '../../../app/dist/utils/chatNames';
 
 export const toolDef = {
@@ -34,7 +34,9 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const displayName = role === 'ai' ? getAiName(root) : getUserName(root);
     const doc = await loadDoc(filePath) as ChatDoc;
     const existingBody = (doc as any).content ?? '';
-    const appendedBody = `${existingBody}\n\n## ${displayName}\n\n${body}`;
+    // Seam normalization (one blank line before/after the header) lives in
+    // appendChatBlock — shared with the app chatReply path so the two never drift.
+    const appendedBody = appendChatBlock(existingBody, displayName, body);
 
     // When the AI replies, advance the read-cursor to the new last AI block so a later
     // loom_read_chat_tail returns only the human turns that follow it. A user turn never

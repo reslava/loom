@@ -1,5 +1,5 @@
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, Message, ChatDoc } from '../../core/dist';
+import { AIClient, Message, ChatDoc, appendChatBlock } from '../../core/dist';
 import { getAiName } from './utils/chatNames';
 
 export interface ChatReplyInput {
@@ -119,8 +119,9 @@ export async function chatReply(
     const messages = buildMessages(doc.content, turns, buildSystemPrompt(deps.loomRoot));
 
     const reply = await deps.aiClient.complete(messages);
-    const appended = `\n\n## ${getAiName(deps.loomRoot)}\n${reply}`;
-    const updatedContent = doc.content.trimEnd() + appended;
+    // Shared seam normalization (one blank line before/after the header) — same
+    // helper the MCP loom_append_to_chat path uses, so block format never diverges.
+    const updatedContent = appendChatBlock(doc.content, getAiName(deps.loomRoot), reply);
 
     await deps.saveDoc({ ...doc, content: updatedContent }, input.filePath);
 

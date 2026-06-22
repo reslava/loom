@@ -57,3 +57,24 @@ export function tailAfterBlock(body: string, blockIndex: number): string {
     const from = blockIndex < 0 ? 0 : blockIndex + 1;
     return blocks.slice(from).map(b => b.text.trim()).filter(Boolean).join('\n\n');
 }
+
+/**
+ * Append a new `## {header}` block to a chat body, normalizing the seam so the
+ * result always has exactly one blank line before the header and one between the
+ * header and the message — regardless of any trailing whitespace the existing body
+ * or the incoming message already carry.
+ *
+ * This is the single source of truth for chat-block appending (used by both the
+ * MCP `loom_append_to_chat` tool and the app `chatReply` sampling path), so the two
+ * never drift in format and trailing newlines can't compound into widening gaps.
+ *
+ * Trailing whitespace on `body` is always safe to drop; only *leading newlines* are
+ * stripped (not leading spaces) so an opening indented code line survives. `header`
+ * is the full label written after `## ` (e.g. `AI:` or `Rafa:`), caller-configured.
+ */
+export function appendChatBlock(existingBody: string, header: string, body: string): string {
+    const base = existingBody.replace(/\s+$/, '');
+    const text = body.replace(/^\n+/, '').replace(/\s+$/, '');
+    const block = `## ${header}\n\n${text}`;
+    return base ? `${base}\n\n${block}` : block;
+}
