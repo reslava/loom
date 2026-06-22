@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 1
+last_ai_block: 3
 ---
 # Screenshots
 
@@ -69,3 +69,15 @@ do-release 1.10.1
 to ship:
 - fix(vscode): order unversioned bucket first in roadmap history
 - screenshots
+
+## AI:
+
+🚀 **v1.10.1 shipped.** Committed the screenshots (`a9315f6`) + dogfood chat (`1bb8d86`), then ran `/do-release 1.10.1`.
+
+- npm `@reslava/loom`, VS Code Marketplace, Open VSX — all published.
+- GitHub release: https://github.com/reslava/loom/releases/tag/v1.10.1
+- Pipeline `guard → build-test → publish(npm·vsce·ovsx) → release` all green; full local suite passed before tagging.
+
+What shipped: the roadmap-history unversioned-bucket-first fix + the README screenshots (recorded as Changed + Documentation in both changelogs).
+
+On your note — right, no Loom plan backed the fix, so `loom record-release 1.10.1` had nothing to stamp and no-op'd (81 plans already carried releases). Expected, harmless. The marketplace listing now renders the four screenshots over the raw.githubusercontent URLs.

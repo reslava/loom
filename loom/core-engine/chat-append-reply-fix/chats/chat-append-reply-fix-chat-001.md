@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 3
+last_ai_block: 5
 ---
 # chat-append-reply-fix Chat
 
@@ -89,3 +89,13 @@ I reconnected mcp
 2. yes, create a small plan, 1 step done, to be reflected in roadmap
 
 commit
+
+## AI:
+
+All done.
+
+1. Existing chats left as-is. ✅
+2. Created plan **chat-append-reply-fix-plan-001** "Normalize chat append seam" — single step, marked done, plan auto-transitioned to `done`, so it'll surface in the roadmap. Done note recorded in `done/pl_01KVR6JYWQY1F51ZVA22D3FQCE-done.md`. ✅
+3. Committed to `main` as `4034730` — `fix: normalize chat append seam to a single blank line` (9 files: the core helper + both wired paths + test + this thread's docs). Left the unrelated pre-existing `global-chat-006.md` change out of the commit.
+
+Now that you've reconnected MCP, this reply itself runs on the rebuilt server — the seam above should be a single blank line.
