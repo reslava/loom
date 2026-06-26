@@ -22,7 +22,11 @@ Every command in the `loom` CLI. Source of truth: `packages/cli/src/index.ts`.
 ## Workspace & initialization
 
 ### `loom install [--force]`
-Install Loom into the **current** workspace: creates `.loom/`, writes `.loom/CLAUDE.md`, patches the root `CLAUDE.md`, and writes the MCP config. This is the normal per-project initializer.
+Install (or upgrade) Loom in the **current** workspace: creates `.loom/`, writes the Loom-owned `.loom/CLAUDE.md`, writes the MCP config, and ensures the root `CLAUDE.md` imports both `@.loom/CLAUDE.md` and `@CLAUDE-LOCAL.md` (idempotent — never duplicates). The normal per-project initializer, and safe to re-run after a CLI upgrade.
+
+**Two CLAUDE surfaces, distinct ownership:**
+- **`.loom/CLAUDE.md`** is Loom-owned — every `loom install` re-writes it to deliver contract updates. Never hand-edit it.
+- **`CLAUDE-LOCAL.md`** (repo root) is user-owned — created once if absent and **never overwritten, not even with `--force`**. This is where project-local AI rules go, so re-running `loom install` to pick up a new contract never destroys them.
 
 ### `loom init [--force]`
 Initialize a mono-loom workspace in the current directory.

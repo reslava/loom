@@ -15,7 +15,8 @@ export async function installCommand(options: { force?: boolean }): Promise<void
         console.log(`   Workspace: ${result.path}`);
         console.log(`   .loom/        ${result.loomDirCreated ? chalk.green('created') : chalk.gray('already exists')}`);
         console.log(`   .loom/CLAUDE.md  ${result.claudeMdWritten ? chalk.green('written') : chalk.gray('skipped')}`);
-        console.log(`   CLAUDE.md     ${result.rootClaudeMdPatched ? chalk.green('patched (@.loom/CLAUDE.md added)') : chalk.gray('already configured')}`);
+        console.log(`   CLAUDE-LOCAL.md  ${result.claudeLocalMdWritten ? chalk.green('created (your local rules go here)') : chalk.gray('already exists (left untouched)')}`);
+        console.log(`   CLAUDE.md     ${result.rootClaudeMdPatched ? chalk.green('patched (imports @.loom/CLAUDE.md + @CLAUDE-LOCAL.md)') : chalk.gray('already configured')}`);
         console.log(`   .mcp.json     ${result.mcpJsonWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);
         console.log(`   loom/ctx.md   ${result.ctxWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);
         console.log(`   .loom/settings.json  ${result.settingsJsonWritten ? chalk.green('written') : chalk.gray('already exists (use --force to overwrite)')}`);

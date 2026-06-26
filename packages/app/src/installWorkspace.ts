@@ -18,6 +18,7 @@ export interface InstallWorkspaceResult {
     path: string;
     loomDirCreated: boolean;
     claudeMdWritten: boolean;
+    claudeLocalMdWritten: boolean;
     rootClaudeMdPatched: boolean;
     mcpJsonWritten: boolean;
     ctxWritten: boolean;
@@ -32,6 +33,21 @@ const LOOM_CLAUDE_MD = `# Loom Session Contract
 
 **Loom** is a document-driven, event-sourced workflow system for AI-assisted development.
 Markdown files are the database. State is derived. AI collaborates step-by-step with human approval.
+
+---
+
+## File ownership — where your rules go
+
+**\`.loom/CLAUDE.md\` is Loom-owned and regenerated on every \`loom install\`.** Never put project-local rules here and never hand-edit it — the next \`loom install\` overwrites the file to deliver Loom contract updates, and your edits are lost.
+
+**Project-local AI rules go in \`CLAUDE-LOCAL.md\` at the repo root** — a user-owned file Loom creates once and never overwrites (not even with \`--force\`). The root \`CLAUDE.md\` imports both:
+
+\`\`\`
+@.loom/CLAUDE.md
+@CLAUDE-LOCAL.md
+\`\`\`
+
+Loom's contract loads first; your local rules load after and can augment or override it.
 
 ---
 
@@ -255,6 +271,14 @@ load: always
 - After each step, state what was done and what is next, then STOP.
 `;
 
+const CLAUDE_LOCAL_MD = `# Project-Local AI Rules
+
+<!-- This file is YOURS. Loom created it once and will never overwrite it — not even on \`loom install --force\`. -->
+<!-- Put your project-specific AI rules below. They are imported by the root CLAUDE.md AFTER the Loom contract -->
+<!-- (\`.loom/CLAUDE.md\`), so they can augment or override it. -->
+<!-- Do NOT put local rules in \`.loom/CLAUDE.md\` — that file is Loom-owned and regenerated on every \`loom install\`. -->
+`;
+
 
 export async function installWorkspace(
     input: InstallWorkspaceInput,
@@ -264,6 +288,7 @@ export async function installWorkspace(
     const loomDir = path.join(root, '.loom');
     const loomClaudeMdPath = path.join(loomDir, 'CLAUDE.md');
     const rootClaudeMdPath = path.join(root, 'CLAUDE.md');
+    const claudeLocalMdPath = path.join(root, 'CLAUDE-LOCAL.md');
     const mcpJsonPath = path.join(root, '.mcp.json');
     const loomDocsDir = path.join(root, 'loom');
     const ctxPath = path.join(loomDocsDir, 'ctx.md');
@@ -271,10 +296,10 @@ export async function installWorkspace(
     // Step 1: init .loom/ structure (idempotent if exists)
     let loomDirCreated = false;
     if (!deps.fs.existsSync(loomDir)) {
-        await initLocal({ force: input.force }, { fs: deps.fs, registry: deps.registry });
+        await initLocal({ force: input.force }, { fs: deps.fs, registry: deps.registry, cwd: root });
         loomDirCreated = true;
     } else if (input.force) {
-        await initLocal({ force: true }, { fs: deps.fs, registry: deps.registry });
+        await initLocal({ force: true }, { fs: deps.fs, registry: deps.registry, cwd: root });
         loomDirCreated = true;
     }
 
@@ -283,18 +308,34 @@ export async function installWorkspace(
     deps.fs.writeFileSync(loomClaudeMdPath, LOOM_CLAUDE_MD, 'utf8');
     const claudeMdWritten = true;
 
-    // Step 3: patch root CLAUDE.md
-    const importLine = '@.loom/CLAUDE.md';
+    // Step 3: patch root CLAUDE.md so it imports BOTH the Loom-owned contract and the
+    // user-owned local-rules file. Each import is guarded independently, so a re-run
+    // never duplicates a line and a file that already has one import gains only the
+    // other. Loom's contract is listed first so local rules load after it and can
+    // augment/override.
+    const loomImport = '@.loom/CLAUDE.md';
+    const localImport = '@CLAUDE-LOCAL.md';
     let rootClaudeMdPatched = false;
     if (deps.fs.existsSync(rootClaudeMdPath)) {
         const existing = deps.fs.readFileSync(rootClaudeMdPath, 'utf8');
-        if (!existing.includes(importLine)) {
-            deps.fs.writeFileSync(rootClaudeMdPath, `${importLine}\n\n${existing}`, 'utf8');
+        const missing = [loomImport, localImport].filter((line) => !existing.includes(line));
+        if (missing.length > 0) {
+            deps.fs.writeFileSync(rootClaudeMdPath, `${missing.join('\n')}\n\n${existing}`, 'utf8');
             rootClaudeMdPatched = true;
         }
     } else {
-        deps.fs.writeFileSync(rootClaudeMdPath, `${importLine}\n`, 'utf8');
+        deps.fs.writeFileSync(rootClaudeMdPath, `${loomImport}\n${localImport}\n`, 'utf8');
         rootClaudeMdPatched = true;
+    }
+
+    // Step 3b: write the user-owned CLAUDE-LOCAL.md ONCE. Never overwrite it — not even
+    // on --force — because it holds the user's own project rules. Loom owns
+    // .loom/CLAUDE.md (regenerated every install); this file is the user's surface and
+    // is therefore deliberately excluded from the --force reinstall set.
+    let claudeLocalMdWritten = false;
+    if (!deps.fs.existsSync(claudeLocalMdPath)) {
+        deps.fs.writeFileSync(claudeLocalMdPath, CLAUDE_LOCAL_MD, 'utf8');
+        claudeLocalMdWritten = true;
     }
 
     // Step 4: write .mcp.json at project root with the real workspace path (skip if exists and not --force)
@@ -364,5 +405,5 @@ export async function installWorkspace(
         settingsLocalJsonWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten };
+    return { path: root, loomDirCreated, claudeMdWritten, claudeLocalMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten };
 }

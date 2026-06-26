@@ -41,7 +41,12 @@ npm install -g @reslava/loom
 loom install
 ```
 
-This creates `.loom/` (config), `loom/` (your document workspace), patches a root `CLAUDE.md` session contract, and writes the MCP config. You only do this once per project.
+This creates `.loom/` (config) and `loom/` (your document workspace), writes the MCP config, and sets up **two** CLAUDE files with distinct ownership:
+
+- **`.loom/CLAUDE.md`** — the Loom session contract. **Loom-owned**: every `loom install` re-writes it to deliver contract updates, so never edit it by hand.
+- **`CLAUDE-LOCAL.md`** (repo root) — **yours**: created once if absent and never overwritten, *not even with `--force`*. Put your project-specific AI rules here.
+
+Your root `CLAUDE.md` imports both (`@.loom/CLAUDE.md` then `@CLAUDE-LOCAL.md`, so your local rules load after and can override the contract). Because your rules live in `CLAUDE-LOCAL.md`, you can safely re-run `loom install` after upgrading the CLI to pick up a newer contract — your own rules are never touched.
 
 ---
 
@@ -124,7 +129,7 @@ Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent —
 
 | Command | Description |
 |---------|-------------|
-| `loom install [--force]` | Install Loom into the current workspace (`.loom/`, `CLAUDE.md`, MCP config). |
+| `loom install [--force]` | Install/upgrade Loom in the current workspace: `.loom/` config, the Loom-owned `.loom/CLAUDE.md`, a user-owned `CLAUDE-LOCAL.md` (created once, never overwritten), the root `CLAUDE.md` imports, and MCP config. Safe to re-run. |
 | `loom init [--force]` | Initialize a mono-loom workspace in the current directory. |
 | `loom setup <name> [--path <p>] [--no-switch]` | Create a new named loom workspace. |
 | `loom switch <name>` | Switch the active loom. |

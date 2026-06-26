@@ -14,13 +14,19 @@ export interface InitMultiInput {
 export interface InitDeps {
     fs: typeof fs;
     registry: ConfigRegistry;
+    /**
+     * Target project root for a local install. Injected so the use-case is pure
+     * with respect to the process working directory. Defaults to process.cwd()
+     * for the standalone `init` command; installWorkspace passes its own cwd.
+     */
+    cwd?: string;
 }
 
 export async function initLocal(
     input: InitLocalInput,
     deps: InitDeps
 ): Promise<{ path: string }> {
-    const localPath = process.cwd();
+    const localPath = deps.cwd ?? process.cwd();
     const loomDir = path.join(localPath, '.loom');
 
     if (deps.fs.existsSync(loomDir)) {
