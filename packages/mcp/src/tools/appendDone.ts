@@ -7,15 +7,27 @@ import { PlanDoc } from '../../../core/dist/entities/plan';
 
 export const toolDef = {
     name: 'loom_append_done',
-    description: 'Append an implementation note for a plan step to {thread}/done/{plan-id}-done.md. Creates the done doc with proper Loom frontmatter on first call. Idempotent on the same step number — replaces the existing section rather than duplicating.',
+    description: 'Record implementation notes in {thread}/done/{plan-id}-done.md. Two shapes: pass a single { stepNumber, notes } to record one step (incremental, during a DoStep loop), OR pass a `steps` array [{ stepNumber, notes }, …] to author the WHOLE done doc (all steps) in a single call. Either way each step becomes a "## Step N — …" section; calls are idempotent on step number — re-recording a step replaces its section rather than duplicating. Creates the done doc with proper Loom frontmatter on first call. This is the home for done-doc authoring; loom_close_plan only finalizes the plan.',
     inputSchema: {
         type: 'object' as const,
         properties: {
             planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
-            stepNumber: { type: 'number', description: 'Step number (1-based)' },
-            notes: { type: 'string', description: 'Markdown notes describing what was implemented (files created/edited, decisions, etc.)' },
+            stepNumber: { type: 'number', description: 'Single-step form: step number (1-based). Omit when using `steps`.' },
+            notes: { type: 'string', description: 'Single-step form: markdown notes for that step (files created/edited, decisions, etc.). Omit when using `steps`.' },
+            steps: {
+                type: 'array',
+                description: 'Batch form: record/replace multiple step sections in one call (use this to write the whole done doc at once).',
+                items: {
+                    type: 'object',
+                    properties: {
+                        stepNumber: { type: 'number', description: 'Step number (1-based)' },
+                        notes: { type: 'string', description: 'Markdown notes for this step' },
+                    },
+                    required: ['stepNumber', 'notes'],
+                },
+            },
         },
-        required: ['planId', 'stepNumber', 'notes'],
+        required: ['planId'],
     },
 };
 
@@ -54,10 +66,39 @@ function rebuildContent(preamble: string[], sections: Section[]): string {
     return [trimmedPreamble, ...sectionTexts].filter(Boolean).join('\n\n') + '\n';
 }
 
+/** Upsert a step section by step number, keeping sections ordered by step number. */
+function upsertSection(sections: Section[], stepNumber: number, newSection: Section): void {
+    const targetIdx = sections.findIndex(s => {
+        const m = s.header.match(/^## Step (\d+) — /);
+        return m !== null && parseInt(m[1], 10) === stepNumber;
+    });
+    if (targetIdx >= 0) {
+        sections[targetIdx] = newSection;
+        return;
+    }
+    let insertIdx = sections.findIndex(s => {
+        const m = s.header.match(/^## Step (\d+) — /);
+        return m !== null && parseInt(m[1], 10) > stepNumber;
+    });
+    if (insertIdx === -1) insertIdx = sections.length;
+    sections.splice(insertIdx, 0, newSection);
+}
+
 export async function handle(root: string, args: Record<string, unknown>) {
     const planId = args['planId'] as string;
-    const stepNumber = args['stepNumber'] as number;
-    const notes = args['notes'] as string;
+
+    // Normalize single | batch input into one ordered list of entries.
+    const rawSteps = args['steps'];
+    const isBatch = Array.isArray(rawSteps) && rawSteps.length > 0;
+    const entries: Array<{ stepNumber: number; notes: string }> = isBatch
+        ? (rawSteps as any[]).map(s => ({ stepNumber: s?.stepNumber, notes: s?.notes }))
+        : [{ stepNumber: args['stepNumber'] as number, notes: args['notes'] as string }];
+
+    for (const e of entries) {
+        if (typeof e.stepNumber !== 'number' || typeof e.notes !== 'string') {
+            throw new Error('loom_append_done requires either a single { stepNumber, notes } or a non-empty `steps` array of { stepNumber, notes }.');
+        }
+    }
 
     // Primary (agent-supplied) id → suggest-on-miss.
     const { filePath: planFilePath } = await resolveDocIdOrThrow(root, planId);
@@ -65,8 +106,13 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const planDoc = await loadDoc(planFilePath) as PlanDoc;
     if (planDoc.type !== 'plan') throw new Error(`Document ${planId} is not a plan`);
 
-    const step = (planDoc.steps ?? []).find(s => s.order === stepNumber);
-    if (!step) throw new Error(`Step ${stepNumber} not found in plan ${planId}`);
+    // Validate every referenced step exists before writing anything (atomic / fail-loud).
+    const planSteps = planDoc.steps ?? [];
+    const resolved = entries.map(e => {
+        const step = planSteps.find(s => s.order === e.stepNumber);
+        if (!step) throw new Error(`Step ${e.stepNumber} not found in plan ${planId}`);
+        return { stepNumber: e.stepNumber, description: step.description, notes: e.notes };
+    });
 
     // Path layout: loom/{weaveId}/{threadId}/plans/{planId}.md → write to .../done/{planId}-done.md
     const plansDir = path.dirname(planFilePath);
@@ -78,53 +124,43 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const doneFilePath = path.join(doneDir, `${doneId}.md`);
     const exists = await fs.pathExists(doneFilePath);
 
-    const newSection: Section = {
-        header: `## Step ${stepNumber} — ${step.description}`,
-        body: notes.split('\n'),
-    };
+    let preamble: string[] = [];
+    let sections: Section[] = [];
+    let existingDoc: DoneDoc | null = null;
+    if (exists) {
+        existingDoc = await loadDoc(doneFilePath) as DoneDoc;
+        const parsed = parseSections(existingDoc.content || '');
+        preamble = parsed.preamble;
+        sections = parsed.sections;
+    }
+
+    for (const r of resolved) {
+        upsertSection(sections, r.stepNumber, {
+            header: `## Step ${r.stepNumber} — ${r.description}`,
+            body: r.notes.split('\n'),
+        });
+    }
+
+    const stepNumbers = resolved.map(r => r.stepNumber);
 
     if (!exists) {
         const fm = createBaseFrontmatter('done', doneId, `Done — ${planDoc.title}`, planId);
-        const content = '\n' + rebuildContent([], [newSection]);
-        const doc = {
-            ...fm,
-            type: 'done' as const,
-            status: 'done' as const,
-            content,
-        } as DoneDoc;
+        const content = '\n' + rebuildContent(preamble, sections);
+        const doc = { ...fm, type: 'done' as const, status: 'done' as const, content } as DoneDoc;
         await saveDoc(doc, doneFilePath);
         return {
-            content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumber, filePath: doneFilePath, created: true }) }],
+            content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumbers, filePath: doneFilePath, created: true }) }],
         };
     }
 
-    const existingDoc = await loadDoc(doneFilePath) as DoneDoc;
-    const { preamble, sections } = parseSections(existingDoc.content || '');
-
-    const targetIdx = sections.findIndex(s => {
-        const m = s.header.match(/^## Step (\d+) — /);
-        return m !== null && parseInt(m[1], 10) === stepNumber;
-    });
-
-    if (targetIdx >= 0) {
-        sections[targetIdx] = newSection;
-    } else {
-        let insertIdx = sections.findIndex(s => {
-            const m = s.header.match(/^## Step (\d+) — /);
-            return m !== null && parseInt(m[1], 10) > stepNumber;
-        });
-        if (insertIdx === -1) insertIdx = sections.length;
-        sections.splice(insertIdx, 0, newSection);
-    }
-
     const updatedDoc: DoneDoc = {
-        ...existingDoc,
+        ...(existingDoc as DoneDoc),
         content: rebuildContent(preamble, sections),
-        version: existingDoc.version + 1,
+        version: (existingDoc as DoneDoc).version + 1,
     };
     await saveDoc(updatedDoc, doneFilePath);
 
     return {
-        content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumber, filePath: doneFilePath, created: false }) }],
+        content: [{ type: 'text' as const, text: JSON.stringify({ planId, doneId, stepNumbers, filePath: doneFilePath, created: false }) }],
     };
 }

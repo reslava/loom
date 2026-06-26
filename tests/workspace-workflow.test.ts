@@ -75,12 +75,11 @@ async function testWorkspaceWorkflow() {
         const { threadPath, planId } = await seedWeaveWithThread(loomRoot, 'ww-weave3', 'feature-c', { planStatus: 'done' });
 
         await closePlan(
-            { planId },
+            { planId, notes: 'Workspace closing note.' },
             {
                 loadWeave: makeLoadWeave(loomRoot),
                 saveDoc,
                 fs: fsDeps,
-                aiClient: mockAIClient('## What was built\nWorkspace test.') as any,
                 loomRoot,
             }
         );
@@ -94,7 +93,7 @@ async function testWorkspaceWorkflow() {
         const doneContent = readFile(doneDoneDoc);
         assert(doneContent.includes('type: done'), 'done doc must have type: done');
         assert(doneContent.includes(`parent_id: ${planId}`), 'done doc must link to plan');
-        assert(doneContent.includes('What was built'), 'AI body must appear in done doc');
+        assert(doneContent.includes('Workspace closing note.'), 'verbatim notes must appear in done doc');
 
         const planContent = readFile(planInPlace);
         assert(planContent.includes('status: done'), 'plan must have status: done');
@@ -143,8 +142,8 @@ async function testWorkspaceWorkflow() {
         );
 
         await closePlan(
-            { planId },
-            { loadWeave: loadW, saveDoc, fs: fsDeps, aiClient: mockAIClient('Done summary.') as any, loomRoot }
+            { planId, notes: 'Done summary.' },
+            { loadWeave: loadW, saveDoc, fs: fsDeps, loomRoot }
         );
 
         const weave = await loadWeave(loomRoot, 'ww-weave5');

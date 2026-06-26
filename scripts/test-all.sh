@@ -71,6 +71,10 @@ run_test tests/close-plan.test.ts
 # Step 6: doStep use-case (mock AI)
 run_test tests/do-step.test.ts
 
+# loom_append_done MCP tool: single-step + batch (whole-done in one call) authoring,
+# step-ordered upsert, idempotent replace + version bump, atomic fail-loud on unknown step
+run_test tests/append-done.test.ts
+
 # Context pipeline: pure assembler + serialiser (no IO)
 run_test tests/context-assembler.test.ts
 

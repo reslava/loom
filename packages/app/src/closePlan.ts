@@ -1,11 +1,10 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { saveDoc, resolveWeaveIdForPlan } from '../../fs/dist';
-import { AIClient, Message, today } from '../../core/dist';
+import { saveDoc, loadDoc, resolveWeaveIdForPlan } from '../../fs/dist';
+import { today } from '../../core/dist';
 import { DoneDoc } from '../../core/dist/entities/done';
 import { PlanDoc } from '../../core/dist/entities/plan';
 import { planReducer } from '../../core/dist/reducers/planReducer';
-import { serializeFrontmatter } from '../../core/dist/frontmatterUtils';
 
 export interface ClosePlanInput {
     planId: string;
@@ -16,34 +15,20 @@ export interface ClosePlanDeps {
     loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     fs: typeof fs;
-    aiClient: AIClient;
     loomRoot: string;
 }
 
-const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, generating a post-plan implementation record (done doc).
-
-You will be given a completed plan with its steps. Generate a structured implementation record with EXACTLY these sections in this order:
-
-## What was built
-<narrative — what the implementation actually delivered, in plain language>
-
-## Steps completed
-| # | Step | Notes |
-|---|------|-------|
-| 1 | description | any deviation from the plan |
-
-## Decisions made
-- <decision locked in during implementation that wasn't in the plan>
-
-## Files touched
-- \`path/to/file.ts\` — what changed and why
-
-## Open items
-- <new ideas, tech debt, or unresolved items surfaced during implementation>
-
-For special implementations (large refactors, migrations, security changes), add extra sections AFTER the standard ones.
-Be specific and detailed — this is the permanent implementation record. Do not include frontmatter.`;
-
+/**
+ * Finalize a completed plan. This use-case does NOT generate the done-doc body via
+ * inference — the agent (Claude itself, on the primary path) authors the implementation
+ * record via `loom_append_done` per step. closePlan only:
+ *   1. Optionally writes `notes` verbatim into the done doc (closing summary), and
+ *   2. Runs the FINISH_PLAN reducer and persists the plan (in-place for a thread plan,
+ *      moved to done/ for a flat/loose plan).
+ *
+ * If neither `notes` nor an existing done doc is present, it throws rather than writing
+ * a placeholder stub — a missing done record is a loud failure, never a silent one.
+ */
 export async function closePlan(
     input: ClosePlanInput,
     deps: ClosePlanDeps
@@ -55,47 +40,55 @@ export async function closePlan(
 
     const thread = weave.threads.find((t: any) => t.plans.some((p: any) => p.id === input.planId)) as any;
 
-    const stepLines = (plan.steps ?? [])
-        .map(s => `${s.status === 'done' ? '✅' : '⬜'} Step ${s.order}: ${s.description}`)
-        .join('\n');
-
-    const userMessage = [
-        `Plan: ${plan.title} (${input.planId})`,
-        `Status: ${plan.status}`,
-        '',
-        '=== Steps ===',
-        stepLines || '(no steps)',
-        ...(input.notes ? ['', '=== User notes ===', input.notes] : []),
-    ].join('\n');
-
-    const messages: Message[] = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: userMessage },
-    ];
-
-    const aiBody = await deps.aiClient.complete(messages);
-
     const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
     const threadPath = thread ? path.join(weavePath, thread.id) : null;
     const doneDirPath = threadPath ? path.join(threadPath, 'done') : path.join(weavePath, 'done');
-    await deps.fs.ensureDir(doneDirPath);
 
     const doneId = `${input.planId}-done`;
-    const doneDoc: DoneDoc = {
-        type: 'done',
-        id: doneId,
-        title: `Done — ${plan.title}`,
-        status: 'done',
-        created: today(),
-        version: 1,
-        tags: [],
-        parent_id: input.planId,
-        requires_load: [],
-        content: aiBody.trim(),
-    };
-
     const donePath = path.join(doneDirPath, `${doneId}.md`);
-    await deps.saveDoc(doneDoc, donePath);
+    const doneExists = await deps.fs.pathExists(donePath);
+
+    const notes = input.notes?.trim();
+
+    // No done content and nothing to write — fail loud instead of stubbing.
+    if (!notes && !doneExists) {
+        throw new Error(
+            `No done content for plan '${input.planId}': the done doc does not exist and no notes were provided. ` +
+            `Author it with loom_append_done per step, or pass notes to loom_close_plan.`
+        );
+    }
+
+    await deps.fs.ensureDir(doneDirPath);
+
+    if (notes) {
+        if (doneExists) {
+            // Done doc already authored per-step — append the notes as a closing section.
+            const existing = await loadDoc(donePath) as DoneDoc;
+            const body = (existing.content ?? '').replace(/\n+$/, '');
+            const updated: DoneDoc = {
+                ...existing,
+                content: `${body}\n\n## Closing notes\n\n${notes}\n`,
+                version: existing.version + 1,
+            };
+            await deps.saveDoc(updated, donePath);
+        } else {
+            // No per-step record — the notes become the done doc body verbatim.
+            const doneDoc: DoneDoc = {
+                type: 'done',
+                id: doneId,
+                title: `Done — ${plan.title}`,
+                status: 'done',
+                created: today(),
+                version: 1,
+                tags: [],
+                parent_id: input.planId,
+                requires_load: [],
+                content: `\n${notes}\n`,
+            };
+            await deps.saveDoc(doneDoc, donePath);
+        }
+    }
+    // else: notes absent but done doc exists → leave the per-step record untouched.
 
     let updatedPlan = plan;
     if (plan.status === 'implementing') {
@@ -103,11 +96,11 @@ export async function closePlan(
     }
 
     if (threadPath) {
-        // Thread plan: update in place; done doc is the separate record
+        // Thread plan: update in place; done doc is the separate record.
         const planPath = (plan as any)._path ?? path.join(threadPath, 'plans', `${input.planId}.md`);
         await deps.saveDoc(updatedPlan, planPath);
     } else {
-        // Flat/loose plan: move to done/
+        // Flat/loose plan: move to done/.
         const newPlanPath = path.join(doneDirPath, `${input.planId}.md`);
         await deps.saveDoc(updatedPlan, newPlanPath);
         const oldPlanPath = (plan as any)._path as string | undefined;

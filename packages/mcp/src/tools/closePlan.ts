@@ -1,16 +1,15 @@
 import * as fs from 'fs-extra';
 import { loadWeave, saveDoc } from '../../../fs/dist';
 import { closePlan as closePlanUseCase } from '../../../app/dist/closePlan';
-import { makeAiClient } from '../deepseekClient';
 
 export const toolDef = {
     name: 'loom_close_plan',
-    description: 'Close a completed plan and create a done doc. Optionally provide a notes string to use as the done doc body (otherwise a placeholder is generated). Use this tool to close plans — do not edit plan files directly.',
+    description: 'Finalize a completed plan: run the FINISH_PLAN transition and persist it. The done-doc body is authored per step via loom_append_done — this tool does NOT generate it. Optionally pass a notes string, written VERBATIM into the done doc (appended as a closing section if a done doc already exists, or used as the body if none does). Closing a plan that has neither notes nor an existing done doc throws — it never writes a placeholder stub. Use this tool to close plans — do not edit plan files directly.',
     inputSchema: {
         type: 'object' as const,
         properties: {
             planId: { type: 'string', description: 'Plan id to close' },
-            notes: { type: 'string', description: 'Optional implementation notes for the done doc body' },
+            notes: { type: 'string', description: 'Optional closing notes, written verbatim into the done doc' },
         },
         required: ['planId'],
     },
@@ -24,7 +23,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loadWeave,
         saveDoc,
         fs,
-        aiClient: makeAiClient(),
         loomRoot: root,
     });
 
