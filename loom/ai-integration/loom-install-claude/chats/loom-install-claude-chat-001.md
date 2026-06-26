@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 10
+last_ai_block: 11
 ---
 # loom-install-claude Chat
 
@@ -241,3 +241,18 @@ So it's **1 feat + 1 fix + 1 docs**, not two fixes. The CLAUDE-LOCAL.md commit i
 Recommendation: `/do-release 1.11.0`.
 
 (I can't run the release myself — it goes through your `/do-release` command. Fire it whenever you're ready.)
+
+## AI:
+
+🚀 **v1.11.0 is live.** Release commit `a86595b`, annotated tag `v1.11.0` pushed; the workflow ran green end-to-end (`guard → build-test → publish-npm · vsce · ovsx → release`), and the GitHub release is published (not a draft).
+
+- **npm** `@reslava/loom@1.11.0` ✅
+- **VS Code Marketplace** `loom-vscode@1.11.0` ✅
+- **Open VSX** `reslava.loom-vscode@1.11.0` ✅
+- **GitHub release** v1.11.0 ✅
+
+`loom record-release 1.11.0` stamped 2 done plans with `actual_release`: this thread's `loom-install-claude` plan and `core-engine/done-doc-review` (the `loom_close_plan` verbatim-done fix) — so the roadmap now shows both as shipped in v1.11.0, and `current_release` advances to v1.11.0.
+
+You can now upgrade chord-flow's CLI (`npm i -g @reslava/loom`), drop the extracted `CLAUDE-LOCAL.md` in, set its root `CLAUDE.md` to the two-import block, and re-run `loom install` safely — your local rules will survive from here on.
+
+Next: nothing pending — the install thread's work is shipped. Say `close` if you want to close this chat.
