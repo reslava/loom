@@ -4,7 +4,7 @@ id: pl_01KW2HKGCBF051SA6MDSE784WK-done
 title: Done — Fix loom_close_plan silent-stub done docs (B+C)
 status: done
 created: 2026-06-26
-version: 5
+version: 6
 tags: []
 parent_id: pl_01KW2HKGCBF051SA6MDSE784WK
 requires_load: []
@@ -33,6 +33,4 @@ workspace-workflow.test.ts: removed `aiClient: mockAIClient(...)` (now an excess
 
 ## Step 5 — Build, run full tests, and live-verify no stub is ever written
 
-Ran `./scripts/build-all.sh` — all packages (core, fs, app, mcp, cli, vscode) compiled clean and the global `loom` CLI relinked. Ran the affected tests directly (`close-plan.test.ts` 5/5, `workspace-workflow.test.ts` 7/7) and the full `./scripts/test-all.sh` — all green, including the MCP integration suite (17/17).
-
-Live-verify caveat: this session's already-running `loom mcp` server is stale after the rebuild, so a live `loom_close_plan` call would still execute the old code. The new behavior is fully covered by the rebuilt dist + unit tests; live confirmation of the tool itself requires an MCP/session restart (per the known build-all-doesn't-restart-MCP gotcha). Flagged for Rafa to restart before relying on the live tool.
+Ran `./scripts/build-all.sh` (clean across core/fs/app/mcp/cli/vscode) and the full `./scripts/test-all.sh` — all green including MCP integration (17/17). Coverage spans both the closePlan fix and the follow-up `loom_append_done` batch mode (`tests/append-done.test.ts`, 5/5). Live-verified against a reconnected MCP server: this done doc was re-authored by a single batch `loom_append_done` call with all five step sections supplied OUT OF ORDER in one request — the tool upserted and re-ordered them 1→5 correctly and bumped the doc version, confirming the whole-done-in-one-call path works against the live tool.

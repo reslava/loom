@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 17
+last_ai_block: 19
 ---
 # done-doc-review Chat
 
@@ -176,3 +176,20 @@ Added `tests/append-done.test.ts` (single create, batch whole-doc + ordering, id
 Heads-up: this rebuild made the running MCP server stale again — reconnect MCP before the live `loom_append_done` batch form is picked up.
 
 Committing now.
+
+## Rafa:
+
+I pushed
+I reconnected mcp, live-verify the batch form
+
+## AI:
+
+Live-verified the batch form against the reconnected MCP server — using this work's own done doc as the target.
+
+One `loom_append_done` call, all five step sections supplied **out of order** (`[5,2,4,1,3]`):
+- Returned `created:false`, `stepNumbers:[5,2,4,1,3]` (echoes input order).
+- The saved doc has sections **ordered 1→5** — the tool sorts by step number, ignoring input order.
+- **No duplicates** — every step upserted into its existing section.
+- **version 5 → 6**: exactly one bump for the one call (vs. five separate calls + five bumps the old way).
+
+So the whole-done-in-one-call path is confirmed working live. This re-authoring left the done doc with an uncommitted diff on top of what you pushed (version bump + step-5 text now records the verification + append_done batch coverage). Want me to commit that as `docs: record append_done batch live-verify` (directly to main), or discard it back to the pushed state?
