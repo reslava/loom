@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.11.0] - 2026-06-26
+
+### Notes
+- No functional change to the extension this release. Lockstep 1.11.0 bump with the CLI and the rest of the monorepo (which adds the user-owned `CLAUDE-LOCAL.md` install surface and a `loom_close_plan` verbatim-done-doc fix in the core/MCP write path).
+
 ## [1.10.2] - 2026-06-22
 
 ### Notes

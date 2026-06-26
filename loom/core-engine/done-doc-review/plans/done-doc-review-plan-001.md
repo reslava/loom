@@ -11,6 +11,7 @@ tags: []
 parent_id: ch_01KW2GNXP8MDZW467MGBDPK0KG
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.11.0
 steps:
   - id: closeplan-use-case
     order: 1

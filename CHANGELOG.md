@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-06-26
+
+### Added
+- **`loom install` now gives every project a user-owned `CLAUDE-LOCAL.md`.** Re-running `loom install` to pick up a newer Loom contract used to overwrite `.loom/CLAUDE.md` and destroy any project-local AI rules kept there. Install now creates a separate root `CLAUDE-LOCAL.md` — once, if absent, and **never overwritten, not even with `--force`** — and makes the root `CLAUDE.md` import both `@.loom/CLAUDE.md` (Loom-owned, regenerated every install) and `@CLAUDE-LOCAL.md` (yours). Put your project-specific AI rules in `CLAUDE-LOCAL.md` and they now survive every contract upgrade. The installed contract template gained a "File ownership" section spelling this out.
+- **`loom_append_done` accepts a batch `steps` array** to author a whole done doc in one call (step-ordered upsert, atomic fail-loud on an unknown step). The single `{ stepNumber, notes }` form is unchanged.
+
+### Fixed
+- **`loom_close_plan` no longer writes a stub done doc.** It had been delegating the done-doc body to an AI client that returned a fixed `TODO` placeholder whenever no API key was set — i.e. in every Claude Code session — silently writing a stub and marking the plan done regardless of the notes you passed. It now writes your notes verbatim (or appends a `## Closing notes` section to an existing per-step done doc) and fails loudly when there is nothing to write, instead of stubbing.
+
 ## [1.10.2] - 2026-06-22
 
 ### Fixed
@@ -505,7 +514,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.10.2...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/reslava/loom/releases/tag/v1.11.0
 [1.10.2]: https://github.com/reslava/loom/releases/tag/v1.10.2
 [1.10.1]: https://github.com/reslava/loom/releases/tag/v1.10.1
 [1.10.0]: https://github.com/reslava/loom/releases/tag/v1.10.0

@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 6
+last_ai_block: 10
 ---
 # loom-install-claude Chat
 
@@ -204,3 +204,40 @@ loom/refs/cli-commands-reference.md
 
 fold in the fix for `cwd`, do it now
 then commit
+
+## AI:
+
+All three follow-ups done and committed to `main` as `5cd6f79` (11 files, build clean, full suite green).
+
+**Docs updated:**
+- `docs/CLI_USER_GUIDE.md` — install section now explains the two-file ownership model + the command table entry.
+- `loom/refs/cli-commands-reference.md` — `loom install` entry rewritten with the Loom-owned vs user-owned split.
+
+**`cwd` fix folded in:** `initLocal` now takes an injected `cwd` (`deps.cwd ?? process.cwd()`); `installWorkspace` passes `cwd: root`. The use-case is `process.cwd()`-pure now — the test dropped its `chdir` workaround and still passes, which is the proof. Standalone `loom init` is unchanged (still defaults to `process.cwd()`).
+
+**On your earlier open question** (whether the chord-flow backups go in the repo): `docs/internal/` is gitignored, so the backups *and* the extracted `docs/internal/chord-flow-claude/CLAUDE-LOCAL.md` stay local — nothing chord-flow-specific got committed here. The extraction is sitting there ready for you to copy to `J:/src/chord-flow/CLAUDE-LOCAL.md`.
+
+This isn't released yet — it ships whenever you next run `/do-release`. Once it's out, your chord-flow recovery sequence is: copy the extracted `CLAUDE-LOCAL.md` over, set chord-flow's root `CLAUDE.md` to the two-import block, upgrade the CLI, then `loom install`.
+
+Next: waiting for direction — nothing pending unless you want me to kick off a release.
+
+## Rafa:
+
+I pushed
+do-release 1.10.3 (last 2 commits was 2 fixes) or tell me if you consider 1.11.0 better
+
+## AI:
+
+**Go with `1.11.0`.** The "2 fixes" framing isn't quite right — here's what's actually in the release since `v1.10.2`:
+
+```
+5cd6f79  feat: loom install gives projects a user-owned CLAUDE-LOCAL.md
+d327c3f  docs: record append_done batch live-verify
+1a83f2b  fix:  loom_close_plan writes verbatim done docs, never a stub
+```
+
+So it's **1 feat + 1 fix + 1 docs**, not two fixes. The CLAUDE-LOCAL.md commit is a genuine new user-facing capability — a new file, new install behavior, a new section in the installed contract. Under semver that's a **MINOR** bump (`1.11.0`). `1.10.3` (PATCH) is reserved for backwards-compatible bug fixes only, and this release adds new behavior, so it would under-state what shipped.
+
+Recommendation: `/do-release 1.11.0`.
+
+(I can't run the release myself — it goes through your `/do-release` command. Fire it whenever you're ready.)
