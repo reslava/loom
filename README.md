@@ -226,7 +226,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `loom_update_doc` | Rewrite doc content, preserve frontmatter |
 | `loom_promote` | idea → design → plan, chat → idea |
 | `loom_refresh_ctx` | Regenerate ctx summary via AI sampling |
-| `loom_get_stale_docs` | List all docs whose parent has been updated since last generation |
+| `loom_get_stale_docs` | List docs stale against an upstream parent's version (`all: true` adds done/historical) |
 
 ### Key prompts (guided workflows)
 
@@ -291,8 +291,11 @@ and when the conversation reaches something concrete, you promote it. The struct
 conversation, not the other way around. No copy-pasting from a chat window into a document — the
 doc *is* the promoted chat.
 
-**Staleness detection:** when a design is updated, linked plans are flagged stale. The agent sees
-the warning and knows to re-read the design before implementing. Context can't silently drift.
+**Staleness detection:** one directional, version-based rule along `idea → design → req → plan` —
+a doc is stale when an upstream parent it was built against has been revised since (and *only* then;
+staleness never flows upstream). Update a design and its req and plans are flagged stale; the agent
+re-reads before implementing. Context can't silently drift. See the
+[staleness model](./loom/refs/staleness-reference.md).
 
 **`requires_load`:** documents declare their own dependencies. Before working on any doc, the agent
 reads everything in its `requires_load` chain. It can't miss context it doesn't know exists.
@@ -491,6 +494,7 @@ that forgets, every time.
 | [MCP Reference](./loom/refs/mcp-reference.md) | The MCP surface: protocol, host landscape, resources, prompts, sampling, and the single-AI model |
 | [Context Pipeline Reference](./loom/refs/loom-context-pipeline-reference.md) | How Loom decides what the AI sees — context assembly, internals |
 | [Requirements Reference](./loom/refs/loom-requirements-reference.md) | The `req` doc-type: include / exclude / constraints, lifecycle, verification |
+| [Staleness Model](./loom/refs/staleness-reference.md) | How Loom decides a doc is stale: the dependency graph, version baselines, the one directional rule |
 | [CLI Commands Reference](./loom/refs/cli-commands-reference.md) | Every `loom` command |
 | [VS Code Commands Reference](./loom/refs/vscode-commands-reference.md) | All VS Code commands and keybindings |
 | [Workspace Structure Reference](./loom/refs/workspace-directory-structure-reference.md) | Directory layout and file naming |

@@ -230,6 +230,7 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 - [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started-reference.md) — install to first idea in five minutes
 - [How Loom works](https://github.com/reslava/loom/blob/main/loom/refs/vision-reference.md) — the chat → design → plan → implement loop
 - [Architecture](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md) — MCP surface, doc types, frontmatter
+- [Staleness Model](https://github.com/reslava/loom/blob/main/loom/refs/staleness-reference.md) — how the tree's staleness ⚠ is decided (one directional, version-based rule)
 
 ---
 

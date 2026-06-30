@@ -119,7 +119,7 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 | `loom context <docId> [--mode <m>]` | Print the assembled context bundle for a doc, or a thread via `thread/<weave>/<thread>`. |
 | `loom next [plan-id]` | Print the next incomplete step + context for a plan (defaults to the active plan). |
 | `loom search <query> [--type <t>] [--weave <id>]` | Search docs by id/title/content; prints id + title + snippet. |
-| `loom stale` | List docs that may be stale (plans behind design, children behind parents) + reason. |
+| `loom stale [--all]` | List docs that may be stale — a child whose upstream parent moved past its stamped baseline (`design` behind idea, `req` behind design, `plan` behind design/req) + reason. Default shows the **actionable** set (matches the extension); `--all` adds done/historical docs. See [the staleness model](../../loom/refs/staleness-reference.md). |
 | `loom blocked` | List blocked steps across implementing plans + their blockers. |
 
 ### Documents (manual CRUD)
@@ -148,6 +148,8 @@ These event/CRUD commands change document **state** only.
 |---------|-------------|
 | `loom migrate [--dry-run]` | Backfill `thread.md` (a fresh `th_` ULID + title + default priority) for every thread folder missing one — needed for the derived roadmap. Idempotent (skips threads that already have a manifest); `--dry-run` prints what it would create and touches nothing. |
 | `loom migrate-plan-steps [plan-id] [--dry-run]` | Migrate legacy plans (steps in the body table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched). |
+| `loom backfill-design-versions [--dry-run]` | Repair plan `design_version` baselines stamped before create/promote read the live design version. Idempotent. |
+| `loom backfill-staleness-baselines [--dry-run]` | Migrate onto the [directional staleness model](../../loom/refs/staleness-reference.md): stamp `idea_version` on designs and `design_version` on reqs, repoint each req parent idea→design (and strip the dead `req_version`). Idempotent. |
 
 ---
 
