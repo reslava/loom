@@ -6,6 +6,7 @@ status: done
 created: 2026-04-18
 updated: 2026-05-08
 version: 4
+design_version: 3
 tags: [validation, link-index, archive, ux]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW, de_01KQYDFDDCQ0DBXVNCSCK57P7M]

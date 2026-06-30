@@ -5,7 +5,7 @@ title: Loom MCP Server — Implementation Plan
 status: done
 created: 2026-04-25
 version: 1
-design_version: 1
+design_version: 3
 tags: [ai, mcp, integration, agent, loom]
 parent_id: de_01KQYDFDD9PRVJT4JBAQ0JHRG6
 requires_load: [de_01KQYDFDD9PRVJT4JBAQ0JHRG6]

@@ -5,7 +5,7 @@ title: Core + App Use-Case Tests
 status: done
 created: 2026-04-23
 version: 1
-design_version: 1
+design_version: 4
 tags: [tests, core, app, fs, weaveRepository, closePlan, doStep, completeStep]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]

@@ -6,7 +6,7 @@ status: done
 created: 2026-05-05
 updated: 2026-05-24
 version: 3
-design_version: 2
+design_version: 4
 tags: [ai, context, mcp, claude-md, mvp]
 parent_id: de_01KQYDFDD8B5XJDQBP4P429R61
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]

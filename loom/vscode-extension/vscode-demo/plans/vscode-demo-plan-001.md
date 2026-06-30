@@ -3,10 +3,10 @@ type: plan
 id: pl_01KT4NKFH0TD8RSDJ674XPV71H
 title: Demo deliverables — workflow GIF (D1+D4+D2)
 status: implementing
-created: "2026-06-02T00:00:00.000Z"
-updated: "2026-06-03T00:00:00.000Z"
+created: 2026-06-02
+updated: 2026-06-03
 version: 4
-design_version: 1
+design_version: 2
 tags: []
 parent_id: de_01KT4MRDAM5R9Q2N7WTM3VJDCA
 requires_load: [demo-script-reference]

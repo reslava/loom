@@ -5,7 +5,7 @@ title: AI Command Palette — Implementation
 status: done
 created: 2026-04-22
 version: 1
-design_version: 1
+design_version: 2
 tags: [ai, commands, promote, refine, summarize, vscode]
 parent_id: de_01KQYDFDD7Z9B0CK146K75XTRZ
 requires_load: [de_01KQYDFDD7Z9B0CK146K75XTRZ, de_01KQYDFDD88BTYTQ61S0Q9W02V]

@@ -5,7 +5,7 @@ title: AI Chat Reply — Core Loop
 status: done
 created: 2026-04-22
 version: 1
-design_version: 3
+design_version: 4
 tags: [ai, chat, vscode, core]
 parent_id: de_01KQYDFDD88BTYTQ61S0Q9W02V
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]

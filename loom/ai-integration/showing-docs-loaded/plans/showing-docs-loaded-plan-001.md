@@ -6,7 +6,7 @@ status: done
 created: 2026-05-05
 updated: 2026-05-08
 version: 2
-design_version: 2
+design_version: 3
 tags: [ai, visibility, claude-md, mvp]
 parent_id: de_01KQYDFDD9VDV3GBT0DBVH15RE
 requires_load: [rf_01KQYDFDDDYZC0R4XNNX2RASC9]

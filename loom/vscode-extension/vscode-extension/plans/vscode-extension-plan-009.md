@@ -6,6 +6,7 @@ status: done
 created: 2026-05-07
 updated: 2026-06-06
 version: 3
+design_version: 1
 tags: []
 parent_id: ch_01KR0EWEQMBSK5HJ1D0YGJ0R0K
 requires_load: []

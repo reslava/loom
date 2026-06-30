@@ -5,6 +5,7 @@ title: Organize Loom Docs — Frontmatter Repair & Thread Assignment
 status: done
 created: 2026-04-24
 version: 2
+design_version: 3
 tags: [migration, docs-infra, threads, frontmatter]
 parent_id: null
 requires_load: [migration-reference]

@@ -5,6 +5,7 @@ title: Move Thread and Derived Types to entities/thread.ts
 status: done
 created: 2026-04-18
 version: 1
+design_version: 4
 tags: [core, entities, refactor]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]

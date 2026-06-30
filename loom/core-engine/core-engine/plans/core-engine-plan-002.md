@@ -6,7 +6,7 @@ status: done
 created: 2026-04-10
 updated: 2026-04-14
 version: 1
-design_version: 3
+design_version: 4
 tags: [loom, core, filesystem, markdown, io]
 parent_id: de_01KQYDFDDB802XEJM0S329T9WW
 requires_load: [de_01KQYDFDDB802XEJM0S329T9WW]

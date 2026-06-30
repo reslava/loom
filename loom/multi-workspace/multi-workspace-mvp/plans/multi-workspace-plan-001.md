@@ -6,7 +6,7 @@ status: done
 created: 2026-04-14
 updated: 2026-04-14
 version: 2
-design_version: 1
+design_version: 2
 tags: [loom, workspace, cli]
 parent_id: de_01KQYDFDDDP2DYGM8GJMCWYWEP
 requires_load: [de_01KQYDFDDDP2DYGM8GJMCWYWEP]
