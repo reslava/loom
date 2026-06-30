@@ -55,6 +55,8 @@ export { planReducer } from './reducers/planReducer';
 export { applyEvent, ApplyResult } from './applyEvent';
 export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, staleEntries } from './derived';
 export type { StaleEntry, StaleReasonKind } from './derived';
+export { toStateSummary } from './stateSummary';
+export type { StateSummary, WeaveSummary, ThreadSummary } from './stateSummary';
 export {
     buildRoadmap,
     RoadmapView,

@@ -339,11 +339,13 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 1. **Load global ctx** — read [loom/ctx.md](loom/ctx.md). Emit `📘 loom-ctx loaded — global context ready` (or the failure variant if the read fails).
 2. **Load vision and workflow** — read [loom/refs/vision-reference.md](loom/refs/vision-reference.md) (north star — what Loom is for, what manual steps it replaces; ground for the vision-check rule under Collaboration style) and [loom/refs/workflow-reference.md](loom/refs/workflow-reference.md) (canonical loop, phase definitions, and transitions). Emit `🌟 vision + workflow loaded` on success.
 3. **Load the tool catalog** — read the `loom://catalog` resource so the grouped `loom_*` tool index is in context *before* any tool is needed. Emit `📡 MCP: loom://catalog` then `🗂️ loom-catalog loaded — tool index ready`. This is mandatory and unconditional: it removes the "first `ToolSearch` runs blind" moment that causes the index to be skipped. Once loaded here, never `ToolSearch` for a `loom_*` tool without first consulting this index — go straight from catalog → `ToolSearch select:<exact name>`.
-4. **Read active work from MCP** — `loom://state?status=active,implementing`. Emit `🧵 Active: <list of thread IDs>`. This replaces any hand-written "active work" pointer; MCP is the only source of truth.
-5. **Call `do-next-step` prompt with the active planId.** This bundles:
+4. **Load the project map** — read `loom://state?shape=summary`: the cheap weave/thread skeleton + status (a few KB), **not** the full state graph (~2 MB — every plan's every step). Emit `📡 MCP: loom://state?shape=summary` then `🧵 Active: <list of active/implementing thread IDs>`. This is the always-loaded orientation read; it replaces the old full-state read and any hand-written "active work" pointer. The map is enough to know what threads exist, their status, and where the active work is — never read the full `loom://state` at session start.
+5. **Load only the pointed thread deeply.** When Rafa pointed you at a chat/doc/thread, the pointer *is* the active-thread signal — scope the deep load to it: call the `do-next-step` prompt with that thread's active planId (or read `loom://context/thread/{weave}/{thread}`). This bundles:
    - Thread context (idea, design, current plan, requires_load docs)
    - Next incomplete step with instructions
    - Pre-filled `loom_complete_step` call ready to execute
+
+   Do **not** load other threads' content. With no pointer, use the step-4 map to pick what to work on, then load that thread.
 
 After the `do-next-step` call, if context is loaded, output this block and **STOP**:
 

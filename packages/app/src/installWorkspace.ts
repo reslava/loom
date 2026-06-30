@@ -203,8 +203,8 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
    \`\`\`
    (or \`⚠️ loom-ctx not loaded — proceeding without global context\` on failure).
 2. **Load the tool catalog** — read the \`loom://catalog\` resource so the grouped \`loom_*\` tool index is in context *before* any tool is needed. Emit \`📡 MCP: loom://catalog\` then \`🗂️ loom-catalog loaded — tool index ready\`. Mandatory and unconditional: it removes the "first \`ToolSearch\` runs blind" moment that causes the index to be skipped. Once loaded, never \`ToolSearch\` for a \`loom_*\` tool without first consulting this index — go straight from catalog → \`ToolSearch select:<exact name>\`.
-3. **Read active work from MCP** — \`loom://state?status=active,implementing\`. Emit \`🧵 Active: <thread IDs>\`. MCP is the only source of truth — do not maintain a hand-written active-work pointer.
-4. **Call \`do-next-step\` prompt** with the active planId. Bundles thread context (idea, design, current plan, requires_load docs), the next incomplete step, and a pre-filled \`loom_complete_step\` call.
+3. **Load the project map** — read \`loom://state?shape=summary\`: the cheap weave/thread skeleton + status (a few KB), **not** the full state graph (every plan's every step). Emit \`📡 MCP: loom://state?shape=summary\` then \`🧵 Active: <active/implementing thread IDs>\`. This always-loaded orientation read replaces both the old full-state read and any hand-written active-work pointer — never read the full \`loom://state\` at session start.
+4. **Load only the pointed thread deeply.** When the user pointed you at a chat/doc/thread, that pointer is the active-thread signal — scope the deep load to it: call the \`do-next-step\` prompt with that thread's active planId (or read \`loom://context/thread/{weave}/{thread}\`). Bundles thread context (idea, design, current plan, requires_load docs), the next incomplete step, and a pre-filled \`loom_complete_step\` call. Do not load other threads' content; with no pointer, use the step-3 map to pick.
 
 After the reads, output this block and **STOP**:
 

@@ -188,6 +188,23 @@ async function run(): Promise<void> {
         assert(Array.isArray(state.weaves), 'state.weaves should be an array');
     });
 
+    // (b1) read loom://state?shape=summary — the cheap session-start map: weave/thread
+    // skeleton + status only, no step bodies/doc content, smaller than the full payload.
+    await test('read loom://state?shape=summary returns a small skeleton map', async () => {
+        const full = (await client.readResource({ uri: 'loom://state' })).contents[0].text as string;
+        const summaryText = (await client.readResource({ uri: 'loom://state?shape=summary' })).contents[0].text as string;
+        const summary = JSON.parse(summaryText);
+        assert(Array.isArray(summary.weaves), 'summary.weaves should be an array');
+        assert(summary.summary && typeof summary.summary.totalPlans === 'number', 'summary carries the counts block');
+        const t = summary.weaves.flatMap((w: any) => w.threads)[0];
+        if (t) {
+            assert('activePlanId' in t && 'pendingStepCount' in t && 'status' in t, 'thread summary has status/activePlanId/pendingStepCount');
+            assert(!('steps' in t) && !('plans' in t) && !('allDocs' in t), 'thread summary omits the heavy doc graph');
+        }
+        assert(!summaryText.includes('files_touched'), 'summary leaks no step fields');
+        assert(summaryText.length < full.length, 'summary is smaller than the full state payload');
+    });
+
     // (b2) read loom://context for the plan (mode=implementing) — unified pipeline
     await test('read loom://context returns serialised bundle with provenance headers', async () => {
         const result = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });

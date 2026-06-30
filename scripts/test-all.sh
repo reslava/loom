@@ -31,6 +31,10 @@ run_test tests/dates.test.ts
 # topo+priority order, done-plan history, and cycle/dangling/missing-manifest diagnostics
 run_test tests/roadmap.test.ts
 
+# State summary: pure toStateSummary projection — the cheap session-start map (weave/thread
+# skeleton + status, active plan + pending-step count, stale flag, carried counts; no body leak)
+run_test tests/state-summary.test.ts
+
 # Version utils: pure semver parse/compare/max (release ordering, current_release derivation)
 run_test tests/version-utils.test.ts
 

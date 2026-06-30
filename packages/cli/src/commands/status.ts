@@ -4,7 +4,7 @@ import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
 import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 import { Weave } from '../../../core/dist';
-import { getWeaveStatus, getWeavePhase } from '../../../core/dist';
+import { getWeaveStatus, getWeavePhase, toStateSummary } from '../../../core/dist';
 import { PlanDoc } from '../../../core/dist';
 import { LinkIndex } from '../../../core/dist';
 import { buildLinkIndex as buildIndex } from '../../../fs/dist';
@@ -179,9 +179,19 @@ export async function statusCommand(
             return;
         }
 
-        for (const w of state.weaves) {
-            const weaveStatus = getWeaveStatus(w);
-            console.log(`  ${w.id.padEnd(25)} ${colorStatus(weaveStatus)}`);
+        // Render the session-start map: the human view of the same toStateSummary
+        // projection loom://state?shape=summary serves — weave + its threads, each
+        // with status, active-plan pending-step count, and a stale flag.
+        const summary = toStateSummary(state);
+        for (const w of summary.weaves) {
+            console.log(`  ${chalk.bold(w.id.padEnd(25))} ${colorStatus(w.status)}`);
+            for (const t of w.threads) {
+                const bits: string[] = [];
+                if (t.activePlanId) bits.push(`▶ ${t.pendingStepCount} pending`);
+                if (t.stale) bits.push(chalk.yellow('stale'));
+                const suffix = bits.length > 0 ? chalk.gray(`  (${bits.join(', ')})`) : '';
+                console.log(`     ${t.id.padEnd(28)} ${chalk.gray(t.status)}${suffix}`);
+            }
         }
     } catch (e: any) {
         console.error(chalk.red(`❌ ${e.message}`));
