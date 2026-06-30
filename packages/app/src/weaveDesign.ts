@@ -9,7 +9,6 @@ import { today } from '../../core/dist';
 import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
-import { lockedReqVersion } from './req';
 import { ensureThreadManifest } from './thread';
 
 export interface WeaveDesignInput {
@@ -103,18 +102,19 @@ export async function weaveDesign(
         const ideaPath = path.join(threadPath, `${input.threadId}-idea.md`);
         let parentId: string | null = null;
         let designTitle = input.title || input.threadId;
+        let ideaVersion: number | undefined;
         if (await deps.fs.pathExists(ideaPath)) {
             const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
             parentId = idea.id;
             designTitle = input.title || idea.title;
+            ideaVersion = idea.version;
         }
         const id = generateDocId('design');
         const filename = `${input.threadId}-design`;
         const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
         const content = input.content ?? generateDesignBody(designTitle, getUserName(loomRoot));
-        // Stamp the locked req version this design was built against (req-staleness baseline).
-        const reqV = await lockedReqVersion(loomRoot, input.weaveId, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
-        const doc: DesignDoc = { ...frontmatter, content, ...(reqV !== undefined ? { req_version: reqV } : {}) } as DesignDoc;
+        // Stamp the idea version this design was built against (its staleness baseline).
+        const doc: DesignDoc = { ...frontmatter, content, ...(ideaVersion !== undefined ? { idea_version: ideaVersion } : {}) } as DesignDoc;
         const filePath = path.join(threadPath, `${filename}.md`);
         await deps.saveDoc(doc, filePath);
         // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.

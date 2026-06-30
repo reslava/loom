@@ -6,6 +6,7 @@ export interface DesignDoc extends BaseDoc<DesignStatus> {
     type: 'design';
     status: DesignStatus;
     refined?: boolean;
-    /** Locked req version this doc was last built against (req-staleness baseline). */
-    req_version?: number;
+    /** Idea version this design was last built/refined against — its staleness
+     *  baseline. Stale when `idea_version < idea.version`. See loom/refs/staleness-reference.md. */
+    idea_version?: number;
 }

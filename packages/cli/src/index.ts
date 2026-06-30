@@ -29,6 +29,7 @@ import { migrateCommand } from './commands/migrate';
 import { roadmapCommand } from './commands/roadmap';
 import { backfillReleasesCommand } from './commands/backfillReleases';
 import { backfillDesignVersionsCommand } from './commands/backfillDesignVersions';
+import { backfillStalenessBaselinesCommand } from './commands/backfillStalenessBaselines';
 import { recordReleaseCommand } from './commands/recordRelease';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
@@ -235,6 +236,12 @@ program
     .description('Repair plan design_version baselines: re-stamp every plan to its parent thread design\'s current version (one-time fix for plans born with a hardcoded/omitted baseline). Idempotent.')
     .option('--dry-run', 'Show which plans would be re-baselined without writing')
     .action((options) => backfillDesignVersionsCommand({ dryRun: options.dryRun }));
+
+program
+    .command('backfill-staleness-baselines')
+    .description('Migrate onto the directional staleness model: stamp idea_version on designs, design_version on reqs, and repoint each req parent from idea to design. Idempotent.')
+    .option('--dry-run', 'Show what would change without writing')
+    .action((options) => backfillStalenessBaselinesCommand({ dryRun: options.dryRun }));
 
 program
     .command('mcp')

@@ -106,9 +106,17 @@ run_test tests/refine-plan.test.ts
 # undefined), refine re-baselines to clear staleness, and backfill repairs on-disk plans (dry-run safe)
 run_test tests/design-version-baseline.test.ts
 
-# stale parity: one canonical staleEntries predicate drives every surface — all four reasons fire,
-# actionable excludes done docs, --all includes them, and the extension set == the `loom stale` set
+# stale parity: one canonical staleEntries predicate drives every surface — the four directional
+# reasons fire, ideas are never stale, actionable excludes done docs, extension set == `loom stale` set
 run_test tests/stale-parity.test.ts
+
+# version-on-content: loom_update_doc bumps version/updated ONLY on a content edit (status-only
+# and identical-content updates do not bump) — so marking a parent done never cascades staleness
+run_test tests/version-on-content.test.ts
+
+# staleness baselines: a design stamps idea_version from the live idea; a req parents to the
+# design and stamps design_version (the design-first dependency direction)
+run_test tests/staleness-baselines.test.ts
 
 # Event save scope: a single event persists only the doc it changed (no blast radius)
 run_test tests/event-save-scope.test.ts

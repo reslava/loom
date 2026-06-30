@@ -260,19 +260,19 @@ async function run() {
         console.log('    ✅ req injected before idea; not double-added when it is the target');
     }
 
-    // ── req-staleness surfaced in the bundle (design built against an older locked req) ──
-    console.log('  • a design built against an older locked req is flagged stale...');
+    // ── staleness surfaced in the bundle (design built against an older idea) ──
+    console.log('  • a design built against an older idea is flagged stale...');
     {
-        const req = doc({ id: 'rq_s', type: 'req', status: 'locked', version: 2, content: 'REQ' });
-        const design = doc({ id: 'd-s', type: 'design', version: 1, req_version: 1, content: 'DESIGN' });
+        const idea = doc({ id: 'i-s', type: 'idea', version: 2, content: 'IDEA' });
+        const design = doc({ id: 'd-s', type: 'design', version: 1, idea_version: 1, content: 'DESIGN' });
         const chat = doc({ id: 'c-s', type: 'chat', content: 'CHAT' });
         const thread = {
-            id: 'ts', weaveId: 'ws', idea: undefined, design, req,
-            plans: [], dones: [], chats: [chat], refDocs: [], allDocs: [design, req, chat],
+            id: 'ts', weaveId: 'ws', idea, design, req: undefined,
+            plans: [], dones: [], chats: [chat], refDocs: [], allDocs: [idea, design, chat],
         };
-        const weave = { id: 'ws', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [design, req, chat] };
+        const weave = { id: 'ws', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [idea, design, chat] };
         const index = createEmptyIndex();
-        for (const d of [req, design, chat]) index.byId.set(d.id, `/fake/${d.id}.md`);
+        for (const d of [idea, design, chat]) index.byId.set(d.id, `/fake/${d.id}.md`);
         const sState: any = {
             loomRoot: '/fake', mode: 'mono', loomName: '(local)',
             globalDocs: [], globalChats: [], weaves: [weave],
@@ -281,8 +281,8 @@ async function run() {
         };
         const b = assembleContext('c-s', 'chat', { include: [], exclude: [] }, sState);
         const designDoc = b.docs.find((d: any) => d.id === 'd-s');
-        assert(designDoc && designDoc.stale && /req v2/.test(designDoc.stale.reason), `design should be req-stale, got ${JSON.stringify(designDoc?.stale)}`);
-        console.log('    ✅ req-stale design flagged in the bundle');
+        assert(designDoc && designDoc.stale && /idea v2/.test(designDoc.stale.reason), `design should be stale vs idea, got ${JSON.stringify(designDoc?.stale)}`);
+        console.log('    ✅ stale design flagged in the bundle');
     }
 
     console.log('\n✅ assembleContext + serializeBundle tests passed\n');

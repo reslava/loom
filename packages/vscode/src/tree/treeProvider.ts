@@ -162,9 +162,12 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const normalWeaves = filtered.filter(w => w.id !== 'refs');
             const nodes = this.groupWeaves(normalWeaves, viewState.grouping);
 
-            // Summary warning row — shown only when there are stale plans or blocked steps
-            const { stalePlans, staleIdeas, staleDesigns, blockedSteps, reqCoverageGaps } = this.state.summary;
-            const staleDocs = (stalePlans ?? 0) + (staleIdeas ?? 0) + (staleDesigns ?? 0);
+            // Summary warning row — shown only when there are stale docs or blocked steps.
+            // The stale count is the total actionable set the server attached per thread
+            // (canonical staleEntries) — axis-agnostic, so it includes stale reqs too.
+            const { blockedSteps, reqCoverageGaps } = this.state.summary;
+            const staleDocs = (this.state.weaves ?? []).reduce(
+                (n, w) => n + (w.threads ?? []).reduce((m, t) => m + (t.stale?.length ?? 0), 0), 0);
             const coverageGaps = reqCoverageGaps ?? 0;
             if (staleDocs > 0 || blockedSteps > 0 || coverageGaps > 0) {
                 const parts: string[] = [];

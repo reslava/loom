@@ -62,33 +62,24 @@ export function isReqStale(doc: { req_version?: number }, req?: ReqDoc): boolean
     return doc.req_version < req.version;
 }
 
-/** idea/design/plan in a thread that are req-stale (excluding done/cancelled). */
-export function getReqStaleDocs(thread: Thread): Document[] {
-    const req = thread.req;
-    if (!req || req.status !== 'locked') return [];
-    const candidates = [thread.idea, thread.design, ...thread.plans].filter(Boolean) as Document[];
-    return candidates.filter(
-        d => isReqStale(d as { req_version?: number }, req) && d.status !== 'done' && d.status !== 'cancelled',
-    );
-}
-
 // ---------------------------------------------------------------------------
 // Canonical staleness predicate — the SINGLE source every surface consumes.
 //
-// Loom historically computed "stale" in three places (the getState summary, the
-// VS Code treeProvider, and getStaleDocs) with divergent axes, direction, and
-// done-handling, so the extension and `loom stale` disagreed. staleEntries
-// replaces all three: one pass evaluates every staleness axis per doc and tags
-// each hit with whether it is `actionable` (not on a done/cancelled/closed doc).
-// Callers pick the view — the actionable subset (default surfaces) or all (incl.
-// shipped/historical drift, e.g. `loom stale --all`).
+// ONE rule, applied along the dependency chain idea -> design -> req -> plan:
+// a child is stale when an upstream dependency's version moved past the
+// version the child stamped when it was last built/refined against it —
+// `child.<parent>_version < parent.version`. Directional (downstream only,
+// never upstream) and version-based (no date drift). Each hit is tagged with
+// whether it is `actionable` (not on a done/cancelled/closed doc) so the
+// unfiltered view (`loom stale --all`) and the default actionable surfaces
+// stay in lockstep. Canonical spec: loom/refs/staleness-reference.md.
 // ---------------------------------------------------------------------------
 
 export type StaleReasonKind =
-    | 'design_version'      // a plan's design_version is behind its thread design
-    | 'req_version'         // a doc's req_version is behind the thread's locked req
-    | 'idea_behind_design'  // the design was updated after the idea (idea lags)
-    | 'design_behind_idea'; // the idea was updated after the design (design lags)
+    | 'design_stale'        // design.idea_version < idea.version
+    | 'req_stale'           // req.design_version < design.version
+    | 'plan_design_stale'   // plan.design_version < design.version
+    | 'plan_req_stale';     // plan.req_version < locked req.version
 
 export interface StaleEntry {
     docId: string;
@@ -109,62 +100,60 @@ function isInactiveStatus(status: string): boolean {
 }
 
 /**
- * Every staleness hit in a weave, across all axes, in one pass. Pure. The
- * `actionable` flag is carried (never pre-filtered) so the unfiltered view sees
- * exactly the same entries the actionable surfaces hide — the two can never drift.
+ * Every staleness hit in a weave, in one pass. Pure, directional, version-based.
+ * The `actionable` flag is carried (never pre-filtered) so the unfiltered view
+ * sees exactly the same entries the actionable surfaces hide — the two can't drift.
  */
 export function staleEntries(weave: Weave): StaleEntry[] {
     const out: StaleEntry[] = [];
     for (const thread of weave.threads) {
-        // design_version: plans behind their thread design
-        if (thread.design) {
-            for (const plan of thread.plans) {
-                if (isPlanStale(plan, thread.design)) {
+        const { idea, design, req, plans } = thread;
+
+        // design <- idea
+        if (design && idea && typeof design.idea_version === 'number' && design.idea_version < idea.version) {
+            out.push({
+                docId: design.id, type: 'design', weaveId: weave.id, threadId: thread.id,
+                reason: 'design_stale',
+                detail: `idea v${idea.version} > design baseline v${design.idea_version}`,
+                actionable: !isInactiveStatus(design.status) && design.status !== 'closed',
+            });
+        }
+
+        // req <- design
+        if (req && design && typeof req.design_version === 'number' && req.design_version < design.version) {
+            out.push({
+                docId: req.id, type: 'req', weaveId: weave.id, threadId: thread.id,
+                reason: 'req_stale',
+                detail: `design v${design.version} > req baseline v${req.design_version}`,
+                actionable: true, // a req is never done/cancelled
+            });
+        }
+
+        // plan <- design
+        if (design) {
+            for (const plan of plans) {
+                if (plan.design_version < design.version) {
                     out.push({
                         docId: plan.id, type: 'plan', weaveId: weave.id, threadId: thread.id,
-                        reason: 'design_version',
-                        detail: `design v${thread.design.version} > plan baseline v${plan.design_version}`,
+                        reason: 'plan_design_stale',
+                        detail: `design v${design.version} > plan baseline v${plan.design_version}`,
                         actionable: !isInactiveStatus(plan.status),
                     });
                 }
             }
         }
 
-        // req_version: idea/design/plans behind the thread's locked req
-        const req = thread.req;
-        if (req && req.status === 'locked') {
-            const candidates = [thread.idea, thread.design, ...thread.plans].filter(Boolean) as Document[];
-            for (const doc of candidates) {
-                if (isReqStale(doc as { req_version?: number }, req)) {
+        // plan <- req (only a locked req is a stable spec; isReqStale gates on that)
+        if (req) {
+            for (const plan of plans) {
+                if (isReqStale(plan as { req_version?: number }, req)) {
                     out.push({
-                        docId: doc.id, type: doc.type, weaveId: weave.id, threadId: thread.id,
-                        reason: 'req_version',
-                        detail: `req v${req.version} > doc baseline v${(doc as { req_version?: number }).req_version}`,
-                        actionable: !isInactiveStatus(doc.status),
+                        docId: plan.id, type: 'plan', weaveId: weave.id, threadId: thread.id,
+                        reason: 'plan_req_stale',
+                        detail: `req v${req.version} > plan baseline v${(plan as { req_version?: number }).req_version}`,
+                        actionable: !isInactiveStatus(plan.status),
                     });
                 }
-            }
-        }
-
-        // idea <-> design date drift, both directions (epoch-tolerant compare)
-        if (thread.idea && thread.design) {
-            const ideaWhen = thread.idea.updated ?? thread.idea.created ?? '';
-            const designWhen = thread.design.updated ?? thread.design.created ?? '';
-            const cmp = compareDates(designWhen, ideaWhen);
-            if (cmp > 0) {
-                out.push({
-                    docId: thread.idea.id, type: 'idea', weaveId: weave.id, threadId: thread.id,
-                    reason: 'idea_behind_design',
-                    detail: `design updated ${designWhen} after idea ${ideaWhen}`,
-                    actionable: !isInactiveStatus(thread.idea.status),
-                });
-            } else if (cmp < 0) {
-                out.push({
-                    docId: thread.design.id, type: 'design', weaveId: weave.id, threadId: thread.id,
-                    reason: 'design_behind_idea',
-                    detail: `idea updated ${ideaWhen} after design ${designWhen}`,
-                    actionable: !isInactiveStatus(thread.design.status) && thread.design.status !== 'closed',
-                });
             }
         }
     }

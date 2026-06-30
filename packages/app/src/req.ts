@@ -1,8 +1,9 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
-import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, parseReq, diffReqHandles, today } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, DesignDoc, parseReq, diffReqHandles, today } from '../../core/dist';
 import { ensureThreadManifest } from './thread';
+import { parentDesignVersion } from './weavePlan';
 
 /**
  * Use-cases for the per-thread `req` doc — the authoritative include/exclude/
@@ -77,12 +78,20 @@ export async function createReq(
         );
     }
 
-    // Parent = the thread's idea, when present (graph linkage; req is born first
-    // in the chain but links up to the idea once one exists).
+    // Parent = the thread's DESIGN when present — a req is authored after a complete
+    // design, so req depends on design and stamps the design version as its staleness
+    // baseline. Fall back to the idea (req created before a design exists), then null.
     let parentId: string | null = null;
     let title = input.title ?? `${input.threadId} Requirements`;
+    let designVersion: number | undefined;
+    const designPath = path.join(threadPath, `${input.threadId}-design.md`);
     const ideaPath = path.join(threadPath, `${input.threadId}-idea.md`);
-    if (await deps.fs.pathExists(ideaPath)) {
+    if (await deps.fs.pathExists(designPath)) {
+        const design = (await deps.loadDoc(designPath)) as DesignDoc;
+        parentId = design.id;
+        designVersion = design.version;
+        if (!input.title) title = `${design.title} — Requirements`;
+    } else if (await deps.fs.pathExists(ideaPath)) {
         const idea = (await deps.loadDoc(ideaPath)) as IdeaDoc;
         parentId = idea.id;
         if (!input.title) title = `${idea.title} — Requirements`;
@@ -94,6 +103,7 @@ export async function createReq(
         ...frontmatter,
         status: 'draft',
         content: input.content ?? DEFAULT_REQ_BODY,
+        ...(designVersion !== undefined ? { design_version: designVersion } : {}),
     } as ReqDoc;
 
     await deps.saveDoc(doc, filePath);
@@ -143,12 +153,18 @@ export async function amendReq(
         }
     }
 
+    // An amend reconciles the req against the (possibly updated) design, so re-stamp
+    // the design_version baseline — this clears the req's own design-staleness.
+    const threadPath = path.join(loomRoot, 'loom', input.weaveId, input.threadId);
+    const design = await parentDesignVersion(threadPath, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+
     const updated: ReqDoc = {
         ...req,
         content: input.content ?? req.content,
         status: 'draft', // re-open for curation; a locked req drops back to draft
         version: req.version + 1, // bump → marks downstream stale
         updated: today(),
+        ...(design ? { design_version: design.version } : {}),
     };
 
     await deps.saveDoc(updated, filePath);

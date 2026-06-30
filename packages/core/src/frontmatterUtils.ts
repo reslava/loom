@@ -116,6 +116,7 @@ const ORDERED_KEYS = [
     'created',
     'updated',
     'version',
+    'idea_version',
     'design_version',
     'req_version',
     'tags',

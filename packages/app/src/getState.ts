@@ -143,19 +143,20 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     // summary counts here AND the per-thread set the VS Code tree reads, so the
     // extension never recomputes staleness locally and can't drift from `loom stale`.
     let stalePlans = 0;
-    let staleIdeas = 0;
+    const staleIdeas = 0; // ideas are the root of the chain — never stale
     let staleDesigns = 0;
     for (const weave of filteredWeaves) {
         const entries = staleEntries(weave);
         for (const thread of weave.threads) {
             thread.stale = entries.filter(e => e.threadId === thread.id && e.actionable);
         }
+        const stalePlanIds = new Set<string>();
         for (const e of entries) {
             if (!e.actionable) continue;
-            if (e.reason === 'design_version') stalePlans++;
-            else if (e.reason === 'idea_behind_design') staleIdeas++;
-            else if (e.reason === 'design_behind_idea') staleDesigns++;
+            if (e.reason === 'plan_design_stale' || e.reason === 'plan_req_stale') stalePlanIds.add(e.docId);
+            else if (e.reason === 'design_stale') staleDesigns++;
         }
+        stalePlans += stalePlanIds.size;
     }
 
     let blockedSteps = 0;

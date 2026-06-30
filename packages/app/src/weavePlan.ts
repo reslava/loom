@@ -4,7 +4,7 @@ import { loadWeave } from '../../fs/dist';
 import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
-import { PlanDoc, DesignDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
+import { PlanDoc, DesignDoc, IdeaDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
 import { lockedReqVersion } from './req';
 import { ensureThreadManifest } from './thread';
 
@@ -57,6 +57,22 @@ export async function parentDesignVersion(
     if (!(await deps.fs.pathExists(designPath).catch(() => false))) return undefined;
     const design = (await deps.loadDoc(designPath)) as DesignDoc;
     return { version: design.version, id: design.id };
+}
+
+/**
+ * The current version (and id) of a thread's idea doc — a design's `idea_version`
+ * staleness baseline. Returns undefined when the thread has no idea. Sibling of
+ * {@link parentDesignVersion}, one level up the chain (design <- idea).
+ */
+export async function parentIdeaVersion(
+    threadPath: string,
+    threadId: string,
+    deps: { loadDoc: typeof loadDoc; fs: typeof fs },
+): Promise<{ version: number; id: string } | undefined> {
+    const ideaPath = path.join(threadPath, `${threadId}-idea.md`);
+    if (!(await deps.fs.pathExists(ideaPath).catch(() => false))) return undefined;
+    const idea = (await deps.loadDoc(ideaPath)) as IdeaDoc;
+    return { version: idea.version, id: idea.id };
 }
 
 /**

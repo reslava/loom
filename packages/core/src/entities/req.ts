@@ -41,6 +41,10 @@ export interface ParsedReq {
 export interface ReqDoc extends BaseDoc<ReqStatus> {
     type: 'req';
     status: ReqStatus;
+    /** Design version this req was last built/amended against — its staleness
+     *  baseline. Stale when `design_version < design.version` (req depends on design;
+     *  req is authored after a complete design). See loom/refs/staleness-reference.md. */
+    design_version?: number;
 }
 
 /** Matches a requirement handle: IN<n>, EX<n>, or C<n>. */

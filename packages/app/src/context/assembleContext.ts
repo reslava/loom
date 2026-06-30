@@ -3,6 +3,7 @@ import {
     Document,
     PlanDoc,
     DesignDoc,
+    ReqDoc,
     ReferenceDoc,
     ContextBundle,
     BundledDoc,
@@ -294,20 +295,31 @@ export function assembleContext(
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {
     const weave = state.weaves.find(w => w.id === targetEntry.weaveId);
     const thread = weave?.threads.find(t => t.id === targetEntry.threadId);
+    if (!thread) return null;
 
-    // req-staleness applies to idea/design/plan: the locked req moved past the
-    // version this doc was built against.
-    if (thread?.req && (doc.type === 'idea' || doc.type === 'design' || doc.type === 'plan')) {
-        if (isReqStale(doc as { req_version?: number }, thread.req)) {
-            return `req v${thread.req.version} is newer than this doc's req_version`;
+    // Directional, version-based staleness (loom/refs/staleness-reference.md):
+    // a child is stale when an upstream parent's version moved past its baseline.
+    if (doc.type === 'design' && thread.idea) {
+        const iv = (doc as DesignDoc).idea_version;
+        return typeof iv === 'number' && iv < thread.idea.version
+            ? `idea v${thread.idea.version} is newer than this design's idea_version`
+            : null;
+    }
+    if (doc.type === 'req' && thread.design) {
+        const dv = (doc as ReqDoc).design_version;
+        return typeof dv === 'number' && dv < thread.design.version
+            ? `design v${thread.design.version} is newer than this req's design_version`
+            : null;
+    }
+    if (doc.type === 'plan') {
+        if (thread.design && isPlanStale(doc as PlanDoc, thread.design as DesignDoc)) {
+            return `design v${(thread.design as DesignDoc).version} is newer than this plan's design_version`;
+        }
+        if (thread.req && isReqStale(doc as { req_version?: number }, thread.req)) {
+            return `req v${thread.req.version} is newer than this plan's req_version`;
         }
     }
-
-    if (doc.type !== 'plan') return null;
-    if (!thread?.design) return null;
-    return isPlanStale(doc as PlanDoc, thread.design as DesignDoc)
-        ? `design v${(thread.design as DesignDoc).version} is newer than this plan's design_version`
-        : null;
+    return null;
 }
 
 function resolveRequiresLoad(

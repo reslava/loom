@@ -5,6 +5,6 @@ export type IdeaStatus = 'draft' | 'active' | 'done' | 'cancelled';
 export interface IdeaDoc extends BaseDoc<IdeaStatus> {
     type: 'idea';
     status: IdeaStatus;
-    /** Locked req version this doc was last built against (req-staleness baseline). */
-    req_version?: number;
+    // The idea is the root of the dependency chain — it has no upstream parent and
+    // is never stale. See loom/refs/staleness-reference.md.
 }

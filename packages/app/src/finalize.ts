@@ -1,4 +1,4 @@
-import { Document, today } from '../../core/dist';
+import { Document } from '../../core/dist';
 import { loadDoc, saveDoc, getActiveLoomRoot, findDocumentById } from '../../fs/dist';
 
 export interface FinalizeInput {
@@ -38,10 +38,11 @@ export async function finalize(
         throw new Error(`Only draft documents can be finalized. Current status: ${doc.status}`);
     }
 
+    // Finalize is a pure status transition (draft -> active): no content change, so
+    // it touches neither version nor `updated` (see loom/refs/staleness-reference.md).
     const updatedDoc = {
         ...doc,
         status: 'active' as const,
-        updated: today(),
     } as Document;
 
     await deps.saveDoc(updatedDoc, docPath);

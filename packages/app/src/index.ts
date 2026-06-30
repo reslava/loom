@@ -38,6 +38,9 @@ export { getStaleDocs, GetStaleDocsDeps, StaleDoc } from './getStaleDocs';
 export {
     backfillDesignVersions, BackfillDesignVersionsDeps, BackfillDesignVersionsResult,
 } from './backfillDesignVersions';
+export {
+    backfillStalenessBaselines, BackfillStalenessBaselinesDeps, BackfillStalenessBaselinesResult,
+} from './backfillStalenessBaselines';
 export { getBlockedSteps, GetBlockedStepsDeps, BlockedStep } from './getBlockedSteps';
 
 // ============================================================================

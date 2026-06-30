@@ -1,6 +1,9 @@
+import * as path from 'path';
+import * as fsExtra from 'fs-extra';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, DesignDoc, designReducer } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
+import { parentIdeaVersion } from './weavePlan';
 
 export interface RefineDesignInput {
     filePath: string;
@@ -11,6 +14,7 @@ export interface RefineDesignDeps {
     loadDoc: typeof loadDoc;
     saveDoc: typeof saveDoc;
     aiClient: AIClient;
+    fs: typeof fsExtra;
 }
 
 const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system.
@@ -53,11 +57,18 @@ export async function refineDesign(
     const reply = await deps.aiClient.complete(messages);
     const { title, body } = parseTitleAndBody(reply);
 
+    // Re-baseline the staleness marker: a refine brings the design up to the current
+    // idea, so re-stamp idea_version to the live idea version (else it stays "stale").
+    const threadDir = path.dirname(input.filePath);
+    const threadId = path.basename(threadDir);
+    const idea = await parentIdeaVersion(threadDir, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+
     const refined = designReducer(doc, { type: 'REFINE_DESIGN' });
     const updated: DesignDoc = {
         ...refined,
         title,
         content: `# ${title}\n\n${body}`,
+        ...(idea ? { idea_version: idea.version } : {}),
     };
 
     await deps.saveDoc(updated, input.filePath);

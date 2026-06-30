@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 6
+last_ai_block: 23
 ---
 # align-stale-surfaces Chat
 
@@ -126,3 +126,158 @@ we need a clear simple way to detect real stale docs and loom CLI commands and m
 create a table or schemma or whatever you consider to describe the process, how it should be and how is currently?
 
 this is main feature of loom and now I do not trust it
+
+## AI:
+
+Committed: `db1f1f3` (unification) + `ce151ed` (thread docs). Now the model — and you've found a real bug, so let me be blunt about what's right, what's wrong, and the one rule that fixes it.
+
+## The one principle staleness should obey
+
+**Staleness flows downstream only: a child is stale when an upstream doc it depends on was revised *after* the child last reconciled to it.** A parent is *never* stale because a child changed. Today we partly violate this — that's the trust problem.
+
+## The dependency graph
+
+```
+idea ──▶ design ──▶ plan ──▶ done
+  │                   ▲
+  └────▶ req ─────────┘
+```
+- **design** depends on **idea**
+- **req** depends on **idea**
+- **plan** depends on **design** AND **req**
+- **done** records a plan (terminal — never actionable-stale)
+
+## Per-edge: current vs intended
+
+| Child ← Parent | Reason | Detected NOW | Should be | Verdict |
+|---|---|---|---|---|
+| design ← idea | `design_behind_idea` | date: idea.updated > design.updated | version: `design.idea_version < idea.version` | keep, **upgrade to version** |
+| **idea ← design** | `idea_behind_design` | date: design.updated > idea.updated | **never** | **❌ REMOVE — backwards** |
+| plan ← design | `design_version` | `plan.design_version < design.version` | same | ✅ correct |
+| plan ← req | `req_version` | `plan.req_version < req.version` | same | ✅ correct |
+| req ← idea | — | (not checked) | version: `req.idea_version < idea.version` | ➕ gap |
+
+## Your three cases
+
+1. **`design_behind_idea`** (Token Optimization) — idea revised after design → design stale, refine it. ✅ **Correct, keep.**
+2. **`idea_behind_design`** (Doc IDs) — design revised after idea → flags the *idea*. ❌ **This is the bug you smelled.** The idea is upstream; the design changing doesn't invalidate it. "Updating the design should update the idea" is exactly backwards — Loom's whole model is idea-as-source-of-truth, design conforms to idea. We should **never** push staleness upstream. *I shipped this (decision C "surface both date directions") — that was wrong; reversing it.*
+3. **`req_version`** (Roadmap plan v1 < req v2) — req revised after plan → plan stale. ✅ **Correct.** You don't "avoid" it; the spec moved, so live plans must reconcile. Multi-plan answer: refine each **active** plan (re-stamps its req_version); **done** plans are excluded as history. The actionable filter already means only live plans nag you.
+
+## Who changes state (creates / clears staleness)
+
+| Operation | Version effect | Creates stale | Clears stale |
+|---|---|---|---|
+| edit idea content | idea.version++ | design, req | — |
+| refine design | design.version++ + re-stamp idea_version | plans | its own (idea_version) |
+| amend req | req.version++ + re-stamp idea_version | plans | its own |
+| refine plan | re-stamp design_version + req_version | — | its own (both) |
+| **mark done / finalize (status only)** | **version++ TODAY** | **spurious cascade ❌** | — |
+
+The last row is the other half of the distrust — a lifecycle change masquerading as a spec change. That's the `version-on-content-only` decision (A).
+
+## What makes it trustworthy (two fixes, one rule)
+
+After both, **every** staleness check becomes the *same* rule — `child.<parent>_version < parent.version`, directional, version-based, no dates:
+
+1. **Directional + version-based**: remove `idea_behind_design`; give `design` and `req` an `idea_version` baseline (replacing the fragile date check); keep design_version/req_version.
+2. **Version-on-content-only**: status/lifecycle changes don't bump version/updated, so baselines stay meaningful.
+
+## Proposal
+
+These two are interdependent (version-based baselines only work if versions bump on content only), so I'd **merge them into one thread** — rename/refit `version-on-content-only` into **`staleness-model`** (directional + version-based + version-on-content) and, once you agree on the model above, **formalize it as `loom/refs/staleness-reference.md`** (this table becomes the canonical spec), then implement.
+
+**STOP — this is the core of Loom, so I want your sign-off before building.** Specifically:
+- (a) Agree staleness is downstream-only → kill `idea_behind_design`?
+- (b) Move design←idea (and add req←idea) to a version baseline (`idea_version`), retiring date-based drift?
+- (c) Merge into one `staleness-model` thread + write the reference doc?
+
+## Rafa:
+
+Yes, this is the way
+- (a) yes, of course I agree
+- (b) yes, version baseline
+- (c)
+
+I only have 1 doubt, in the other project I am always creating req after design, because usually idea is not too much descriptive, so as I told you this is the workflow I am using:
+chat -> idea -> design -> req -> plan -> done
+
+req is created after we have a complete design
+
+but currently req.md has: 
+parent_id: {id_...} // parent is an idea
+
+Why I am telling you this? because I think req should have a design as parent, this dependency:
+chat -> idea -> design -> req -> plan -> done
+
+This way, if I have already created thread idea, design, req, plan and then I update design:
+req and plan becomes stale
+But with req parent being the idea this stale case is missing
+
+What do you think?
+
+## AI:
+
+You're right, and it's a real improvement — **req should depend on design, not idea.** Your workflow (req crystallizes scope *after* a complete design) means the true edge is `design → req`. Today `req.parent_id = idea`, so the `design → req` edge is missing and updating the design leaves req silently un-stale. That's a genuine gap.
+
+And it exposes that the **current code has this backwards**: `weaveDesign` stamps `req_version` on the *design* and `getReqStaleDocs` includes the design as a req-stale candidate — i.e. today the code thinks **design depends on req** (req-first / RDD ordering). Your workflow is design-first, so that edge points the wrong way.
+
+## Corrected graph (your model)
+
+```
+idea ──▶ design ──▶ req ──▶ plan ──▶ done
+            └──────────────▶ plan
+```
+A clean chain, with plan depending on **both** design and req (a plan implements the design *and* honours the req scope).
+
+## The version baselines (each child stamps its parent's version)
+
+| Child | Parent(s) | Baseline field | Stale when |
+|---|---|---|---|
+| design | idea | `idea_version` (new) | `design.idea_version < idea.version` |
+| req | **design** (was idea) | `design_version` (new on req) | `req.design_version < design.version` |
+| plan | design + req | `design_version` + `req_version` (exist) | either baseline behind |
+
+## What changes from today
+
+1. `req.parent_id`: **idea → design** (when a design exists; fall back to idea if req is created before any design).
+2. req gains a `design_version` baseline → req goes stale when the design moves.
+3. **Remove the reverse edge**: design no longer carries/uses `req_version`; design and idea are never "req-stale" (they're upstream of req). Req-staleness applies to **plans only**.
+4. `design` gains `idea_version`; the date-based `design_behind_idea` retires (your agreed (b)).
+5. `idea_behind_design` deleted (your agreed (a)).
+6. **plan is unchanged** — it keeps `design_version` (still needed: req is optional, so a req-less thread's plan must depend on the design directly) and `req_version`. When a req exists the plan has both; design changes flag the plan directly *and* flag the req.
+
+Net result: one rule everywhere — `child.<parent>_version < parent.version` — directional, version-based, no dates. The whole chain reconciles in order: edit idea → design stale → refine design → req stale → refine req → plans stale → refine plans. Each hop is explicit and trustworthy.
+
+## (c) confirmed
+
+Merge into one **`staleness-model`** thread (folding `version-on-content-only` in), formalize the corrected table as **`loom/refs/staleness-reference.md`**, then implement.
+
+**One last confirm before I formalize + write the design/plan:** good with the corrected graph above — specifically reversing `design ↔ req` so **req depends on design** (req gets `design_version`, design drops `req_version`)? If yes, I'll write the reference doc + the `staleness-model` design and plan. STOP — your go.
+
+## Rafa:
+
+Yes, agree all, now I am happy, loom stale detection will be clear, simple and trustworthy.
+And creating this ref doc `loom/refs/staleness-reference.md` is a very good idea, thanks!
+go
+
+## AI:
+
+Formalized and spun the thread. Created:
+
+- **`loom/refs/staleness-reference.md`** (`rf_01KWCR6TQVMBM47SZAACPZFPJ7`) — the canonical spec: the one rule, the graph, the baseline table, reasons, the create/clear state-transition table, and the explicitly-rejected anti-patterns. This is now the source of truth `staleEntries` must match.
+- **`core-engine/staleness-model`** thread (new):
+  - idea `id_01KWCR77B6N0EKJR6S0XTMPP1S` — directional, version-based, folds in version-on-content.
+  - design `de_01KWCR8E1NC37G0GW05A14X9C9` — the implementation architecture.
+  - plan `pl_01KWCR98RNKR9ACQ5GNJYAE152` — 6 steps:
+    1. version & `updated` bump only on content edits (updateDoc; audit finalize/closePlan).
+    2. `design` gets `idea_version` (weaveDesign/refineDesign + `parentIdeaVersion` helper).
+    3. reverse design↔req — req.parent→design, req gets `design_version`, design drops `req_version`, req-staleness→plans only.
+    4. rewrite `staleEntries` to the 4 directional reasons; delete idea_behind_design + date drift.
+    5. backfill/migrate existing docs (idea_version on designs, design_version on reqs, req.parent idea→design).
+    6. tests (directional + chain-reconciliation + version-on-content) + keep the reference in sync.
+
+Dogfood win: this plan was born `design_version: 1` against its v1 design — **correct on creation**, no backfill, confirming the create_plan fix is now live since you reconnected MCP.
+
+`version-on-content-only` is fully folded in — all yours to delete. These five docs (reference + thread) are uncommitted.
+
+Plan is draft/active, nothing built. STOP — say `start plan` (or `go`) when you want me to implement, or review the reference doc / design first.

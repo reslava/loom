@@ -1,7 +1,7 @@
 ---
 type: thread
-id: th_01KWCF3W7M9822K78GSXGC71CK
-title: Version & updated bump only on content edits
+id: th_01KWCR77BC5NGNNZ89948FWSDV
+title: Trustworthy staleness — directional, version-based model
 status: active
 created: 2026-06-30
 version: 1
@@ -11,6 +11,6 @@ requires_load: []
 priority: 1000
 depends_on: []
 ---
-# Version & updated bump only on content edits
+# Trustworthy staleness — directional, version-based model
 
 Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). The thread's roadmap status and history are *derived* (`buildRoadmap`), never stored here.

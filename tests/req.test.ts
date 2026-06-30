@@ -1,5 +1,5 @@
 import { assert } from './test-utils.ts';
-import { parseReq, getThreadStatus, isReqStale, getReqStaleDocs } from '../packages/core/dist/index.js';
+import { parseReq, getThreadStatus, isReqStale, staleEntries } from '../packages/core/dist/index.js';
 
 async function run() {
     console.log('🔁 Running req tests...\n');
@@ -86,7 +86,7 @@ async function run() {
     }
 
     // ── req-staleness: a locked req newer than a doc's req_version ──
-    console.log('  • isReqStale + getReqStaleDocs flag docs built against an older locked req...');
+    console.log('  • isReqStale + plan_req_stale flag plans built against an older locked req...');
     {
         const lockedReqV2: any = { type: 'req', status: 'locked', version: 2 };
         const draftReqV2: any = { type: 'req', status: 'draft', version: 2 };
@@ -95,18 +95,26 @@ async function run() {
         assert(isReqStale({}, lockedReqV2) === false, 'no baseline → not stale');
         assert(isReqStale({ req_version: 1 }, draftReqV2) === false, 'a draft req never makes anything stale');
 
-        const idea: any = { type: 'idea', id: 'i', status: 'active', req_version: 1, version: 1 };
-        const design: any = { type: 'design', id: 'd', status: 'active', req_version: 2, version: 1 };
-        const donePlan: any = { type: 'plan', id: 'p', status: 'done', req_version: 1, version: 1 };
-        const thread: any = {
-            id: 't', weaveId: 'w', idea, design, req: lockedReqV2,
-            plans: [donePlan], dones: [], chats: [], refDocs: [], allDocs: [idea, design, donePlan],
+        // Directional model: req-staleness applies to PLANS only (idea/design are
+        // upstream of the req and are never req-stale). A done plan is not actionable.
+        const idea: any = { type: 'idea', id: 'i', status: 'active', version: 1 };
+        const design: any = { type: 'design', id: 'd', status: 'active', version: 1 };
+        const activePlan: any = { type: 'plan', id: 'pa', status: 'active', req_version: 1, design_version: 1, version: 1 };
+        const donePlan: any = { type: 'plan', id: 'pd', status: 'done', req_version: 1, design_version: 1, version: 1 };
+        const weave: any = {
+            id: 'w', threads: [{
+                id: 't', weaveId: 'w', idea, design, req: lockedReqV2,
+                plans: [activePlan, donePlan], dones: [], chats: [], refDocs: [], allDocs: [idea, design, activePlan, donePlan],
+            }],
         };
-        const stale = getReqStaleDocs(thread).map((d: any) => d.id);
-        assert(stale.includes('i'), 'the v1 idea must be req-stale');
-        assert(!stale.includes('d'), 'the v2 design must not be req-stale');
-        assert(!stale.includes('p'), 'a done plan is never flagged stale (even with an old req_version)');
-        console.log('    ✅ isReqStale + getReqStaleDocs correct');
+        const reqStale = staleEntries(weave).filter((e: any) => e.reason === 'plan_req_stale');
+        const reqStaleIds = reqStale.map((e: any) => e.docId);
+        assert(reqStaleIds.includes('pa'), 'the active v1 plan must be req-stale');
+        assert(reqStaleIds.includes('pd'), 'the done plan is req-stale but not actionable');
+        assert(reqStale.find((e: any) => e.docId === 'pa')!.actionable === true, 'active plan req-stale is actionable');
+        assert(reqStale.find((e: any) => e.docId === 'pd')!.actionable === false, 'done plan req-stale is not actionable');
+        assert(!reqStaleIds.includes('i') && !reqStaleIds.includes('d'), 'idea/design are upstream of the req — never req-stale');
+        console.log('    ✅ req-staleness is plan-only and directional');
     }
 
     console.log('\n✅ req tests passed\n');

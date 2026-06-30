@@ -53,7 +53,7 @@ export { planReducer } from './reducers/planReducer';
 // Core Utilities
 // ============================================================================
 export { applyEvent, ApplyResult } from './applyEvent';
-export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, getReqStaleDocs, staleEntries } from './derived';
+export { getWeaveStatus, getWeavePhase, isPlanStale, getStalePlans, getThreadStatus, isReqStale, staleEntries } from './derived';
 export type { StaleEntry, StaleReasonKind } from './derived';
 export {
     buildRoadmap,

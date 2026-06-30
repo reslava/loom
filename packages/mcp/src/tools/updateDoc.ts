@@ -29,18 +29,27 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const { id: resolvedId, filePath } = await resolveDocIdOrThrow(root, id);
 
     const doc = await loadDoc(filePath) as Document;
-    const content = newContent ?? (doc as any).content ?? '';
+    const currentContent = (doc as any).content ?? '';
+    const content = newContent ?? currentContent;
     // For a frontmatter-native plan, steps live in frontmatter and the body table is a
     // generated view — a body edit must NOT silently re-derive steps. Only a legacy
     // (body-backed) plan still parses its steps from the body table.
     const isLegacyPlan = doc.type === 'plan' && (doc as any)._stepsFromFrontmatter !== true;
 
+    // version + updated track SPEC revisions, which is what staleness reads. Bump them
+    // only when the caller supplies new `content` (a content edit). A status-only or
+    // requires_load-only update is a lifecycle change, not a spec change, and must NOT
+    // bump either — else marking a parent done would cascade false staleness to its
+    // children. (We can't reliably diff against the stored body — titled docs get an
+    // injected H1 on save — so "content provided" is the signal.) See
+    // loom/refs/staleness-reference.md.
+    const contentChanged = newContent !== undefined;
+
     const updated: Document = {
         ...doc,
         ...(newStatus ? { status: newStatus as any } : {}),
         ...(newRequiresLoad !== undefined ? { requires_load: newRequiresLoad } : {}),
-        version: doc.version + 1,
-        updated: today(),
+        ...(contentChanged ? { version: doc.version + 1, updated: today() } : {}),
         content,
         ...(isLegacyPlan ? { steps: parseStepsTable(content) } : {}),
     } as Document;
