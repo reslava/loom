@@ -371,6 +371,19 @@ STOP — waiting for go
 
 ---
 
+<!-- rule:commit-last -->
+## Commit last — don't dirty the chat you just committed
+
+When a chat turn asks you to commit, the chat reply is **part of the work**, so it must land *before* the commit, not after. Otherwise `loom_append_to_chat` re-dirties the very doc the commit just captured, and the action meant to clean the tree is the one that leaves it modified. This is the most common source of nonsense "doc changed again" churn in Loom-built repos.
+
+1. Append your reply to the active chat first (`loom_append_to_chat`).
+2. Then stage everything — including the chat doc — and commit as the **last** action of the turn.
+3. **Never reference the commit hash in the reply.** Doing so forces the reply to come after the commit (chicken-and-egg) and re-dirties the doc. Describe *what changed*, not the commit object — the hash is always recoverable from `git log`.
+
+This guarantees a clean tree only at the end of *that* turn; the next chat turn legitimately re-dirties the doc (a living conversation log is always ahead of the last commit). That's expected — the rule only stops a commit from leaving its own trigger doc modified.
+
+---
+
 <!-- rule:collaboration-style -->
 ## Collaboration style
 
