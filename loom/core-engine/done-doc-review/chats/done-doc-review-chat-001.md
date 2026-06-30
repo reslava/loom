@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KW2GNXP8MDZW467MGBDPK0KG
 title: done-doc-review Chat
-status: active
+status: done
 created: 2026-06-26
 version: 1
 tags: []

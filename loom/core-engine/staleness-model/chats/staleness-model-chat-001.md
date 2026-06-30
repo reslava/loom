@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 5
+last_ai_block: 6
 ---
 # staleness-model Chat
 
@@ -92,3 +92,22 @@ Sequence running — steps 1–4 done, all on `main`:
 - `b6f199c docs:` staleness model + new CLI surface documented in all three READMEs, linking `staleness-reference.md`.
 
 Now firing **`/do-release 1.12.0`** (it runs changelog → bump → build/test → tag → push → monitors publish). Will report the outcome.
+
+## AI:
+
+🚀 **v1.12.0 shipped.** The whole sequence is done:
+1. ✅ `feat:` staleness model
+2. ✅ `loom backfill-staleness-baselines` (41 docs)
+3. ✅ `chore:` data
+4. ✅ `docs:` READMEs + reference links
+5. ✅ `/do-release 1.12.0`
+
+Release outcome — all green:
+- Workflow run `28466664726`: **success** (guard → build-test → publish npm·vsce·ovsx → release).
+- **npm** `@reslava/loom@1.12.0` ✓ · **VS Code Marketplace** ✓ · **Open VSX** ✓
+- **GitHub release** `v1.12.0` published (not draft).
+- `record-release` stamped this release's 3 done plans (`create-plan-parent-version`, `align-stale-surfaces`, `staleness-model`) with `actual_release: 1.12.0`.
+
+That closes the staleness arc: created the bug-fix thread, unified the surfaces, made the model directional + version-based + trustworthy, wrote the reference, and shipped it.
+
+Your Chord Flow plan is the right follow-up: reconnect MCP + update extension, then `loom backfill-design-versions`, then `loom backfill-staleness-baselines` (both idempotent, `--dry-run` first if you want to eyeball). Want me to do anything else here, or are we done for now?

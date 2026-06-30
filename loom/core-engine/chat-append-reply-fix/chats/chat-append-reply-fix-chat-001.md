@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KVR5CR14302Q4ZNF4RNKSBB7
 title: chat-append-reply-fix Chat
-status: active
+status: done
 created: 2026-06-22
 version: 1
 tags: []

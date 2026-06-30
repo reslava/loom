@@ -2,8 +2,8 @@
 type: chat
 id: ch_01KRQVJ9G5CG08S96Y4GCT7N1J
 title: vscode-mcp-timeout Chat
-status: active
-created: "2026-05-16T00:00:00.000Z"
+status: done
+created: 2026-05-16
 version: 1
 tags: []
 parent_id: null

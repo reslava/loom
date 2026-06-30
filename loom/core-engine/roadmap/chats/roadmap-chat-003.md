@@ -2,8 +2,8 @@
 type: chat
 id: ch_01KV3YGHMT3VMFR5VEMNW17BDT
 title: group pending active
-status: active
-created: "2026-06-14T00:00:00.000Z"
+status: done
+created: 2026-06-14
 version: 1
 tags: []
 parent_id: null

@@ -2,9 +2,9 @@
 type: idea
 id: id_01KRT2KXX9D5QW6GDCRBFSA6HS
 title: Diagnose MCP timeout root cause via instrumentation
-status: draft
-created: "2026-05-17T00:00:00.000Z"
-updated: "2026-05-17T00:00:00.000Z"
+status: done
+created: 2026-05-17
+updated: 2026-05-17
 version: 2
 tags: []
 parent_id: null

@@ -2,8 +2,8 @@
 type: chat
 id: ch_01KV4SQTV54S46FAG210S912E8
 title: roadmap mcp resource
-status: active
-created: "2026-06-15T00:00:00.000Z"
+status: done
+created: 2026-06-15
 version: 1
 tags: []
 parent_id: null

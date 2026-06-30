@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KV8K2VRFTB0N1P9Y2Q7RW9SG
 title: new-thread-fix
-status: active
+status: done
 created: 2026-06-16
 version: 1
 tags: []

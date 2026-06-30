@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KV8NMWERXE6R360WTXJY15ZC
 title: Close the vscode-fs layer gap
-status: active
+status: done
 created: 2026-06-16
 version: 1
 tags: []
