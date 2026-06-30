@@ -3,9 +3,10 @@ type: design
 id: de_01KT4MRDAM5R9Q2N7WTM3VJDCA
 title: Loom Demo Deliverables
 status: done
-created: "2026-06-02T00:00:00.000Z"
+created: 2026-06-02
 updated: 2026-06-02
 version: 2
+idea_version: 2
 tags: []
 parent_id: id_01KT4MA3Z7SX80DNYAJSTH3YYV
 requires_load: []

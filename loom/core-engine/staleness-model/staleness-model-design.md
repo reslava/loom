@@ -5,6 +5,7 @@ title: Trustworthy staleness — directional, version-based model
 status: done
 created: 2026-06-30
 version: 1
+idea_version: 1
 tags: []
 parent_id: id_01KWCR77B6N0EKJR6S0XTMPP1S
 requires_load: []

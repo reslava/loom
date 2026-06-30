@@ -3,11 +3,12 @@ type: req
 id: rq_01KTCWA9S049W8ZXMJ7VFRJ99R
 title: Requirements-Driven Development — Requirements
 status: locked
-created: "2026-06-05T00:00:00.000Z"
+created: 2026-06-05
 updated: 2026-06-12
 version: 2
+design_version: 2
 tags: []
-parent_id: id_01KT77TXDA9H80GMW62NY0GD7B
+parent_id: de_01KTBA3MSAGGDWC5G55A49JN4T
 requires_load: []
 ---
 # Requirements-Driven Development — Requirements

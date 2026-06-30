@@ -3,8 +3,9 @@ type: design
 id: de_01KQYDFDD86RBSXN3X643NQGPB
 title: Token Optimization & Cost Management Strategy
 status: deferred
-created: "2026-04-14T00:00:00.000Z"
+created: 2026-04-14
 version: 1
+idea_version: 1
 tags: [ai, tokens, cost, optimization, context]
 parent_id: id_01KQYDFDD83WRDGYDY6GS16YH2
 requires_load: [de_01KQYDFDD88BTYTQ61S0Q9W02V]

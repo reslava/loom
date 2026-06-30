@@ -3,9 +3,10 @@ type: design
 id: de_01KTJS4ME8XT191QZ53HVC9WKW
 title: CLI Commands — Design
 status: done
-created: "2026-06-08T00:00:00.000Z"
+created: 2026-06-08
 updated: 2026-06-08
 version: 2
+idea_version: 2
 tags: []
 parent_id: id_01KTJS3W536XCQB7ZSANF161DT
 requires_load: []

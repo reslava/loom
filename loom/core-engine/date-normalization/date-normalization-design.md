@@ -3,9 +3,10 @@ type: design
 id: de_01KV7K8QRWASFRVD0RECSB96D2
 title: Canonical Date Handling
 status: done
-created: "2026-06-16T00:00:00.000Z"
+created: 2026-06-16
 updated: 2026-06-16
 version: 2
+idea_version: 2
 tags: []
 parent_id: id_01KV7K7BT499TMH7ZDQN9Q7ZV4
 requires_load: []

@@ -3,9 +3,10 @@ type: design
 id: de_01KQYDFDD9XW7XNAC8VES80FTN
 title: MCP doc resolver scope and ID disambiguation
 status: done
-created: "2026-05-05T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-05
+updated: 2026-05-08
 version: 3
+idea_version: 3
 tags: []
 parent_id: id_01KQYDFDD9W0YYAC3FPN2PAVH0
 requires_load: []

@@ -3,9 +3,10 @@ type: design
 id: de_01KTTM79FTN3R728DZGTXZCSJE
 title: MCP friction-reduction tools
 status: done
-created: "2026-06-11T00:00:00.000Z"
+created: 2026-06-11
 updated: 2026-06-11
 version: 5
+idea_version: 2
 tags: []
 parent_id: id_01KTTM64G1B2XZMDS739CDABYF
 requires_load: []

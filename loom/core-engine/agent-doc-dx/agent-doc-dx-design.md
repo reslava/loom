@@ -3,9 +3,10 @@ type: design
 id: de_01KT3FG3M865N54WBT3Z95T20Y
 title: "Agent doc-tooling DX: id/path transparency + create-doc-with-body"
 status: done
-created: "2026-06-02T00:00:00.000Z"
+created: 2026-06-02
 updated: 2026-06-02
 version: 4
+idea_version: 4
 tags: []
 parent_id: id_01KT2M4HTWB9Q66V82A6P790E8
 requires_load: []

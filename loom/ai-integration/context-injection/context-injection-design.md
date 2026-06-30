@@ -3,9 +3,10 @@ type: design
 id: de_01KQYDFDD8B5XJDQBP4P429R61
 title: Context Injection for Chats
 status: done
-created: "2026-05-04T00:00:00.000Z"
-updated: "2026-05-24T00:00:00.000Z"
+created: 2026-05-04
+updated: 2026-05-24
 version: 4
+idea_version: 4
 tags: []
 parent_id: id_01KQYDFDD8QAB8TD0JXC8D31J4
 requires_load: []

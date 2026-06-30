@@ -3,9 +3,10 @@ type: design
 id: de_01KR3HCJF2C79JFQHVX87S9WYD
 title: MCP State Cache + Connection Resilience
 status: done
-created: "2026-05-08T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-08
+updated: 2026-05-08
 version: 3
+idea_version: 3
 tags: []
 parent_id: id_01KR1QRCXTATTTXKHRQSRG4CC2
 requires_load: []

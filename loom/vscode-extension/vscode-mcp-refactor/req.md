@@ -3,11 +3,12 @@ type: req
 id: rq_01KTE5GHS6J048DJMS0CZJ568C
 title: Refactor VS Code Extension to Use MCP — Requirements
 status: locked
-created: "2026-06-06T00:00:00.000Z"
+created: 2026-06-06
 updated: 2026-06-06
 version: 4
+design_version: 1
 tags: []
-parent_id: id_01KQYDFDDFT9EE8KH1TWJ7G0B2
+parent_id: de_01KQYDFDDFZT3CVEBS43EJHVWT
 requires_load: []
 ---
 # Refactor VS Code Extension to Use MCP — Requirements

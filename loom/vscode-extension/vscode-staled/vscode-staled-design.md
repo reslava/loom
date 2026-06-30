@@ -3,9 +3,10 @@ type: design
 id: de_01KR1QJGJV3V1J44JQX1FEVNSA
 title: Stale doc detection and visualization in the VS Code tree
 status: done
-created: "2026-05-07T00:00:00.000Z"
-updated: "2026-05-08T00:00:00.000Z"
+created: 2026-05-07
+updated: 2026-05-08
 version: 3
+idea_version: 3
 tags: []
 parent_id: id_01KR1PS5JDB6P8WC93CZKDGAM8
 requires_load: []

@@ -3,9 +3,10 @@ type: design
 id: de_01KSG5XTNGXB2KPE448CA5B586
 title: Unified Context Pipeline
 status: done
-created: "2026-05-25T00:00:00.000Z"
+created: 2026-05-25
 updated: 2026-05-31
 version: 5
+idea_version: 4
 tags: []
 parent_id: id_01KSDJ2C59Z1XY11W336B0W9YS
 requires_load: []

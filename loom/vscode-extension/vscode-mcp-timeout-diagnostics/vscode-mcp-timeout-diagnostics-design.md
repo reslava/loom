@@ -3,9 +3,10 @@ type: design
 id: de_01KRT2RZGM09CBDB9B9BZF1GH1
 title: MCP timeout diagnostics — bi-directional instrumentation
 status: draft
-created: "2026-05-17T00:00:00.000Z"
-updated: "2026-05-17T00:00:00.000Z"
+created: 2026-05-17
+updated: 2026-05-17
 version: 2
+idea_version: 2
 tags: []
 parent_id: id_01KRT2KXX9D5QW6GDCRBFSA6HS
 requires_load: []

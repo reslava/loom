@@ -3,9 +3,10 @@ type: design
 id: de_01KSYEC48HS5VPGRDK5FFDPDFH
 title: Consolidate ctx generators into one (global + weave)
 status: done
-created: "2026-05-31T00:00:00.000Z"
+created: 2026-05-31
 updated: 2026-05-31
 version: 3
+idea_version: 3
 tags: []
 parent_id: id_01KSYE3WFEGBZ39SB9XDMX7X99
 requires_load: []

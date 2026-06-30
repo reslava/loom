@@ -3,9 +3,10 @@ type: design
 id: de_01KT2G8X11XP9Z11D2QKK9E5NK
 title: Publish job bodies — npm, Marketplace, Open VSX
 status: done
-created: "2026-06-01T00:00:00.000Z"
+created: 2026-06-01
 updated: 2026-06-01
 version: 3
+idea_version: 3
 tags: []
 parent_id: id_01KT2FN4D7V6J3TK7G07CXDJTE
 requires_load: []

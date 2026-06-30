@@ -3,9 +3,10 @@ type: design
 id: de_01KT20ZZ6ZYW01G09F4WDXMT88
 title: Release pipeline — the tag-driven GitHub Actions spine
 status: done
-created: "2026-06-01T00:00:00.000Z"
+created: 2026-06-01
 updated: 2026-06-01
 version: 4
+idea_version: 3
 tags: []
 parent_id: id_01KT1ZQN9P0J3JNFPRPPMSXVP3
 requires_load: []

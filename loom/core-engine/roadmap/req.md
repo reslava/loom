@@ -3,11 +3,12 @@ type: req
 id: rq_01KV3HH7DNC60WN07ZMC8JZM4M
 title: Derived Roadmap — Requirements
 status: locked
-created: "2026-06-14T00:00:00.000Z"
+created: 2026-06-14
 updated: 2026-06-14
 version: 2
+design_version: 10
 tags: []
-parent_id: id_01KV3GC10MFGWMKQ84JEGYQEQW
+parent_id: de_01KV3GPTMNXT66C4N73WAFN7ZW
 requires_load: []
 ---
 # Derived Roadmap — Requirements

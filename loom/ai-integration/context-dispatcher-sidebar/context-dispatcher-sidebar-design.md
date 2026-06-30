@@ -5,6 +5,7 @@ title: Context Dispatcher Sidebar — design
 status: draft
 created: 2026-06-11
 version: 1
+idea_version: 1
 tags: []
 parent_id: id_01KTVQ1XF2F8W8X8K067SY8RE8
 requires_load: []

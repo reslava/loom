@@ -3,9 +3,10 @@ type: design
 id: de_01KTJ128Q435GJRJQTDR20B8WJ
 title: "MCP Tool Surface — phased: catalog + global injection first, measured consolidation second"
 status: done
-created: "2026-06-07T00:00:00.000Z"
+created: 2026-06-07
 updated: 2026-06-07
 version: 4
+idea_version: 2
 tags: []
 parent_id: id_01KTJ110FHDK116G0NJN77FQVS
 requires_load: []

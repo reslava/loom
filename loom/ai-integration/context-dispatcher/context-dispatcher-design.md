@@ -3,9 +3,10 @@ type: design
 id: de_01KTVACXRTR1P4AB2PN7P1REXY
 title: Context Dispatcher — design
 status: done
-created: "2026-06-11T00:00:00.000Z"
+created: 2026-06-11
 updated: 2026-06-11
 version: 2
+idea_version: 2
 tags: []
 parent_id: id_01KTVAC0FWPVY2EATC8VDM3EZP
 requires_load: []
