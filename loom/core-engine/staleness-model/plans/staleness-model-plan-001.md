@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWCR8E1NC37G0GW05A14X9C9
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.12.0
 steps:
   - id: version-updated-bump-only-on-content
     order: 1

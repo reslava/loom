@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.12.0] - 2026-06-30
+
+### Changed
+- **The tree's staleness ⚠ now reflects the unified, directional staleness model.** The badge, the *Stale* filter, and per-doc markers read the staleness set computed by the server instead of the extension recomputing it locally — so they always match `loom stale`. The summary badge count is now axis-agnostic (it includes stale `req` docs), and staleness is directional and version-based (a doc is flagged only when an upstream parent it was built against has changed — an idea is never flagged because its design moved).
+
 ## [1.11.0] - 2026-06-26
 
 ### Notes

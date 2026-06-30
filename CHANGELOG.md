@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-06-30
+
+### Added
+- **`loom stale --all`.** `loom stale` now defaults to the *actionable* set (stale docs that aren't done/cancelled) — matching the VS Code tree — and `--all` adds the done/historical docs.
+- **`loom backfill-design-versions` and `loom backfill-staleness-baselines`** — one-time, idempotent, `--dry-run`-capable migrations that repair staleness baselines on existing docs. Run them once per project after upgrading (see *Upgrading* below).
+- **A canonical staleness spec, [`loom/refs/staleness-reference.md`](loom/refs/staleness-reference.md)** — the dependency graph, the version baselines, and the single rule — linked from all three READMEs.
+
+### Changed
+- **Staleness detection is now one trustworthy rule.** A doc is stale when an upstream dependency it was built against has been revised since — and *only* then. It is **directional** (downstream only: an idea is never "stale" because its design changed) and **version-based** (no fragile `updated`-date comparisons), applied along `idea → design → req → plan`. `loom stale`, the `loom_get_stale_docs` MCP tool, and the VS Code tree now all read **one** predicate, so they can never disagree — the extension no longer computes staleness on its own.
+- **`req` now depends on the design, not the idea.** A requirements doc is authored after a complete design, so it parents to the design and is flagged stale when the design moves (previously this edge pointed the wrong way and a design change left the req silently un-stale).
+- **Marking a doc done no longer cascades false staleness.** `version` (and `updated`) change only on a real content edit; a status-only transition (finalize, mark done) is lifecycle, not a spec change, so it leaves child docs untouched.
+
+### Fixed
+- **Plans were born "stale" project-wide.** `loom_create_plan` stamped a constant `design_version: 1` and `promote → plan` omitted the baseline entirely, so `loom stale` / `loom_get_stale_plans` false-positived across the whole project (while promoted plans were never flagged at all). Create, promote, and refine now stamp / re-baseline the parent design's live version.
+
+### Upgrading
+- Run **`loom backfill-design-versions`** (repairs plan baselines) and **`loom backfill-staleness-baselines`** (stamps design/req baselines, repoints req parents) once in each project. Both are idempotent and support `--dry-run`.
+
 ## [1.11.0] - 2026-06-26
 
 ### Added
@@ -514,7 +532,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.11.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.12.0...HEAD
+[1.12.0]: https://github.com/reslava/loom/releases/tag/v1.12.0
 [1.11.0]: https://github.com/reslava/loom/releases/tag/v1.11.0
 [1.10.2]: https://github.com/reslava/loom/releases/tag/v1.10.2
 [1.10.1]: https://github.com/reslava/loom/releases/tag/v1.10.1

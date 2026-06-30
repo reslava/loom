@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWC4K9YJ2R4GJJR7VS6X1ADX
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.12.0
 steps:
   - id: core-canonical-predicate
     order: 1

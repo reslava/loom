@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 3
+last_ai_block: 5
 ---
 # staleness-model Chat
 
@@ -83,3 +83,12 @@ Give me the go (and a yes/no on #1) and I'll run it through. STOP.
 
 1. Yes
 go
+
+## AI:
+
+Sequence running — steps 1–4 done, all on `main`:
+- `276b643 feat:` directional, version-based staleness model (incl. the `req_version` strip you ok'd).
+- `0a40690 chore:` ran `loom backfill-staleness-baselines` — 41 docs (designs' `idea_version`, reqs' `design_version` + parent repoint). Diff verified clean.
+- `b6f199c docs:` staleness model + new CLI surface documented in all three READMEs, linking `staleness-reference.md`.
+
+Now firing **`/do-release 1.12.0`** (it runs changelog → bump → build/test → tag → push → monitors publish). Will report the outcome.
