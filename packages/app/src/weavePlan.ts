@@ -40,6 +40,26 @@ export interface WeavePlanDeps {
 }
 
 /**
+ * The current version (and id) of a thread's design doc — a plan's `design_version`
+ * staleness baseline. Returns undefined when the thread has no design (a weave-root
+ * plan, or a plan minted before a design exists), so callers fall back to the floor.
+ *
+ * Mirrors {@link lockedReqVersion}: a downstream creator reads the LIVE parent version
+ * at write time instead of hardcoding a constant. Stamping a constant `1` is the bug
+ * this exists to prevent — every plan would be born "stale" against a design long past v1.
+ */
+export async function parentDesignVersion(
+    threadPath: string,
+    threadId: string,
+    deps: { loadDoc: typeof loadDoc; fs: typeof fs },
+): Promise<{ version: number; id: string } | undefined> {
+    const designPath = path.join(threadPath, `${threadId}-design.md`);
+    if (!(await deps.fs.pathExists(designPath).catch(() => false))) return undefined;
+    const design = (await deps.loadDoc(designPath)) as DesignDoc;
+    return { version: design.version, id: design.id };
+}
+
+/**
  * Tool-call wire markers that must never appear in a plan's `goal`/`title`.
  * When an agent emits a malformed tool call, the harness can shove the raw
  * function-call XML (e.g. `</goal>`, `<parameter name="steps">…`) into a string
@@ -147,15 +167,12 @@ export async function weavePlan(
         const planFilename = generatePlanId(input.threadId, existingPlanIds);
         const planId = generateDocId('plan');
 
-        // Resolve parent from the design's actual frontmatter id (not a convention string).
-        let parentId: string | null = input.parentId ?? null;
-        if (!parentId) {
-            const designPath = path.join(threadPath, `${input.threadId}-design.md`);
-            if (await deps.fs.pathExists(designPath).catch(() => false)) {
-                const design = await deps.loadDoc(designPath) as DesignDoc;
-                parentId = design.id;
-            }
-        }
+        // Read the thread design once: it supplies both the parent link (when not
+        // given explicitly) and the design_version staleness baseline. Reading the
+        // LIVE version here is the fix — a plan must be born current against its design,
+        // never stamped a constant 1 (which made every plan a false-positive stale).
+        const design = await parentDesignVersion(threadPath, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+        const parentId: string | null = input.parentId ?? design?.id ?? null;
 
         const planSteps: PlanStep[] = buildStructuredSteps(steps);
         const body = serializePlanBody(planSteps, { goal: input.goal });
@@ -166,7 +183,7 @@ export async function weavePlan(
             ...baseFrontmatter,
             type: 'plan',
             status: 'active',
-            design_version: 1,
+            design_version: design?.version ?? 1,
             target_version: '0.1.0',
             steps: planSteps,
             content: body,
@@ -204,6 +221,9 @@ export async function weavePlan(
         ...baseFrontmatter,
         type: 'plan',
         status: 'draft',
+        // Weave-root (loose) plan: no thread design to baseline against, so the floor (1)
+        // stands. getStalePlans only ever evaluates plans under a thread with a design,
+        // so this value is never compared — unlike the thread path above, which must be live.
         design_version: 1,
         target_version: '0.1.0',
         steps: planSteps,

@@ -35,6 +35,9 @@ export {
 } from './recordRelease';
 export { searchDocs, SearchDocsInput, SearchDocsDeps, SearchResult } from './searchDocs';
 export { getStaleDocs, GetStaleDocsDeps, StaleDoc } from './getStaleDocs';
+export {
+    backfillDesignVersions, BackfillDesignVersionsDeps, BackfillDesignVersionsResult,
+} from './backfillDesignVersions';
 export { getBlockedSteps, GetBlockedStepsDeps, BlockedStep } from './getBlockedSteps';
 
 // ============================================================================

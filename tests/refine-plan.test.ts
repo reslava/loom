@@ -56,7 +56,7 @@ async function run() {
             '## Notes',
             '- n',
         ].join('\n');
-        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply) });
+        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply), fs });
         const plan: any = await loadDoc(fp);
         const s1 = plan.steps.find((s: any) => s.order === 1);
         const s2 = plan.steps.find((s: any) => s.order === 2);
@@ -88,7 +88,7 @@ async function run() {
             '## Notes',
             '- n',
         ].join('\n');
-        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply) });
+        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply), fs });
         const plan: any = await loadDoc(fp);
         const s2 = plan.steps.find((s: any) => s.order === 2);
         assert(JSON.stringify(s2.satisfies) === '["IN3"]', `step 2 re-cited to IN3, got ${JSON.stringify(s2.satisfies)}`);
@@ -100,7 +100,7 @@ async function run() {
     {
         const fp = await makePlan(loomRoot, 'safe');
         const reply = 'TITLE: P\n\n## Goal\ng\n\n## Notes\n- no table here';
-        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply) });
+        await refinePlan({ filePath: fp }, { loadDoc, saveDoc, aiClient: stubClient(reply), fs });
         const plan: any = await loadDoc(fp);
         assert(plan.steps.length === 2, `steps preserved, got ${plan.steps.length}`);
         assert(JSON.stringify(plan.steps[0].satisfies) === '["IN1"]', 'step 1 still IN1');

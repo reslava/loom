@@ -1,6 +1,9 @@
+import * as path from 'path';
+import * as fsExtra from 'fs-extra';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, PlanDoc, PlanStep, parseStepsTable, today } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
+import { parentDesignVersion } from './weavePlan';
 
 export interface RefinePlanInput {
     filePath: string;
@@ -11,6 +14,7 @@ export interface RefinePlanDeps {
     loadDoc: typeof loadDoc;
     saveDoc: typeof saveDoc;
     aiClient: AIClient;
+    fs: typeof fsExtra;
 }
 
 const SYSTEM_PROMPT = `You are an AI assistant embedded in REslava Loom, a document-driven workflow system.
@@ -72,11 +76,20 @@ export async function refinePlan(
         })
         : (doc.steps ?? []); // malformed/empty AI table → keep existing steps, never wipe
 
+    // Re-baseline the staleness marker: a refine brings the plan up to the current
+    // design, so stamp design_version = the live design version. Without this, refine
+    // bumps the plan's own version but leaves the stale baseline behind, so the plan
+    // stays flagged "stale" forever — the very operation meant to clear it never could.
+    const threadDir = path.dirname(path.dirname(input.filePath));
+    const threadId = path.basename(threadDir);
+    const design = await parentDesignVersion(threadDir, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+
     const updated: PlanDoc = {
         ...doc,
         title,
         version: doc.version + 1,
         updated: today(),
+        ...(design ? { design_version: design.version } : {}),
         steps: mergedSteps,
         content: `# ${title}\n\n${body}`,
     } as PlanDoc;

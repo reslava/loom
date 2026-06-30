@@ -1,4 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import * as fs from 'fs-extra';
 import { loadDoc, saveDoc, resolveDocIdOrThrow } from '../../../fs/dist';
 import { refinePlan } from '../../../app/dist/refinePlan';
 import { samplingAiClient } from '../samplingAiClient';
@@ -32,7 +33,7 @@ export function createRefinePlanTool(server: Server) {
 
             const result = await refinePlan(
                 { filePath, extraContext },
-                { loadDoc, saveDoc, aiClient: samplingAiClient(server) }
+                { loadDoc, saveDoc, aiClient: samplingAiClient(server), fs }
             );
             return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
         },

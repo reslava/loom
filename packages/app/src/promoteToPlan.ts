@@ -3,6 +3,7 @@ import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId, parseStepsTable, slugifyStepId } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
+import { parentDesignVersion } from './weavePlan';
 
 export interface PromoteToPlanInput {
     filePath: string;
@@ -94,11 +95,25 @@ export async function promoteToPlan(
     const planFilename = generatePlanId(idScope, existingPlanIds);
     const planId = generateDocId('plan');
 
+    // Stamp the parent design's LIVE version as the staleness baseline. Omitting it
+    // (the prior behaviour) left promoted plans with design_version undefined, so
+    // `isPlanStale` (undefined < version → false) never flagged them — the inverse of
+    // the create_plan constant-1 bug. Falls back to the floor when promoting outside a
+    // thread or before a design exists.
+    let designVersion = 1;
+    if (threadId) {
+        const threadPath = path.join(deps.loomRoot, 'loom', weaveId, threadId);
+        const design = await parentDesignVersion(threadPath, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+        if (design) designVersion = design.version;
+    }
+
     const frontmatter = createBaseFrontmatter('plan', planId, title, doc.id);
     const planDoc: PlanDoc = {
         ...frontmatter,
         type: 'plan',
         status: 'active',
+        design_version: designVersion,
+        target_version: '0.1.0',
         steps: parsedSteps,
         content: input.body !== undefined ? body : `# ${title}\n\n${body}`,
     } as unknown as PlanDoc;

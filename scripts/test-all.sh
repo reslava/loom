@@ -102,6 +102,10 @@ run_test tests/migrate-plan-steps.test.ts
 # refinePlan req-aware: a refine never strips Satisfies citations or flips done; 6-col replies emit new ids
 run_test tests/refine-plan.test.ts
 
+# design_version baseline: create/promote stamp the LIVE design version (not constant 1 / not
+# undefined), refine re-baselines to clear staleness, and backfill repairs on-disk plans (dry-run safe)
+run_test tests/design-version-baseline.test.ts
+
 # Event save scope: a single event persists only the doc it changed (no blast radius)
 run_test tests/event-save-scope.test.ts
 
