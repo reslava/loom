@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 5
+last_ai_block: 11
 ---
 # create-plan-parent-version Chat
 
@@ -113,3 +113,82 @@ showing 3 instead of 63 has been dangerous, letting the bug survive
 
 I tested `loom backfill-design-versions --dry-run` it looks correct, it will fix 58 plans
 I think we could ran it and commit, agree?
+
+## AI:
+
+Done — two commits on `main`:
+- `3622a34 fix:` the generator fix (create/promote/refine) + backfill command + tests.
+- `060f063 chore:` ran `loom backfill-design-versions` — 58 plans re-baselined (plus a few incidental full-ISO→YYYY-MM-DD date canonicalizations from saveDoc's round-trip, the same hygiene `loom migrate` does).
+
+End-to-end check: `loom stale` went **63 → 25**, and **0** are now `design_version`-behind. The false positives are gone.
+
+### Why the extension showed 3 but `loom stale` showed 63
+
+They use **different staleness predicates** — and the gap is entirely a *status filter*:
+
+- **Extension** root badge reads `summary.stalePlans` (`getState.ts:142`), which counts stale plans **excluding `done`/`cancelled`**. Its per-plan tree badge (`treeProvider.ts:842`) does the same (`plan.status !== 'done' && …`). So it only ever shows *actionable* stale plans → **3**.
+- **`loom stale`** → `getStaleDocs` → `getStalePlans` (`derived.ts:46`) applies **no status filter at all**, so it also counts stale *done* plans (shipped work that can't be re-implemented), plus date-based parent-updated-after staleness on done docs → **63**.
+
+So neither was "lying" — but they disagreed, and the extension's lower number is the *more* meaningful one (a done plan being behind a later design isn't actionable). The danger you hit is real though: the two surfaces should **agree**, and the noisy CLI number is the one that actually exposed the create_plan bug (via Chord Flow), while the extension's quiet "3" hid it.
+
+### Recommended follow-up (not done — your call)
+
+The clean fix is to make `getStaleDocs`/`getStalePlans` **exclude `done`/`cancelled`** too, matching the extension everywhere. That alone would collapse `loom stale` close to the extension's count and make the two consistent. The remaining 25 are now *all* date-based (parent updated after doc), and most are done docs/designs — i.e. the same done-doc noise, just via the date path rather than design_version.
+
+Want me to spin a small thread for "align stale surfaces (exclude done/cancelled in getStaleDocs)"? It's a ~3-line change in `derived.ts` plus a test, and it's the thing that makes the dashboard trustworthy going forward.
+
+## Rafa:
+
+VSCode extension now shows 1 stale, if I filter by `Stale` shows thread:`core-engine/event-save-scope`
+If I run `loom stale` shows 25 stale docs but I can not find anything from `core-engine/event-save-scope`
+
+Could you check this?
+
+### TODO
+
+spin a small thread for "align stale surfaces (exclude done/cancelled in getStaleDocs)"
+but loom stale should produce same stale results, filtered same way than extension but with a option param like `all` to show unfiltered results, agree?
+
+## AI:
+
+Checked it — `event-save-scope` exposes that the surfaces use **different staleness models**, not just different filters.
+
+That thread has: idea `draft` (updated 05-25), design `draft` v3 (updated 05-27), plan `done` (design_version 3 = design v3 → *not* design_version-stale), and **no req**. So:
+- **Extension flags it** via `threadHasStale` → the "design updated after idea, idea not done" branch (`treeProvider.ts:295`): the idea is "behind" its design. Same signal feeds the root "1 stale" badge (a `staleIdea`).
+- **`loom stale` misses it** because `getStaleDocs` only walks `parent_id → child` date drift (a child is stale when its parent moved). The idea is **not** a child of the design (the design's parent is the idea, not vice-versa), so this *reverse-direction* "idea behind design" signal is structurally invisible to it. `getStaleDocs` also ignores **req-staleness** entirely — another axis the extension filter checks via `getReqStaleDocs`.
+
+So there are effectively three staleness implementations that don't agree:
+1. `getState` summary — design_version (non-done) + bidirectional idea↔design date.
+2. extension Stale filter — req-staleness + design_version (non-done) + bidirectional idea↔design date.
+3. `loom stale`/`getStaleDocs` — design_version (NO done filter) + `parent_id`-directed date only; no req, no reverse-direction idea drift.
+
+**Agreed on your `--all` design** — and I'd widen the thread's goal from "exclude done in getStaleDocs" to **"one canonical staleness predicate in `core`, consumed by every surface"**, because the event-save-scope case proves a done-filter alone won't make them agree (different axes + direction). `loom stale` defaults to the actionable/filtered set (matching the extension) and gains `--all` for the unfiltered set.
+
+Spun the thread: **`core-engine/align-stale-surfaces`** with an idea capturing this. It's the real fix; "small" undersells it slightly (it's a unification, ~one core function + rewiring three call sites + a test), but it's the thing that makes the dashboard trustworthy. Idea's in draft for your review — not designing or building it yet.
+
+## Rafa:
+
+I marked `event-save-scope` idea and design `done` now extension shows 0 stale. 
+All loom docs in a thread done should be marked done, that was the mistake.
+
+About synchronising `loom stale` and extension, both should call same `app` use case so they get same result, correct?
+
+Refine the idea
+Write design
+
+## AI:
+
+Correct on both counts.
+
+**Yes — one shared computation is the whole design.** Staleness is a pure derivation over loaded state, so it belongs in `core` (one predicate), with `app` exposing it and both surfaces as thin consumers. Per the layering rule the extension can't call `app` directly — it reads the computed set off `loom://state` (attached in `getState`, the way `reqCoverage` already is) and **stops recomputing** `threadHasStale` locally. The CLI calls the same `getStaleDocs` use case. Same core function → identical results by construction.
+
+**And your done-marking observation is the symptom behind the noise:** a chunk of what showed as "stale" was just finished docs left in `draft`. Excluding `done`/`cancelled` from the *actionable* set fixes that without relying on manual hygiene — though marking finished docs done stays good practice. I captured it as a footnote, not a system requirement.
+
+Refined the idea (now spells out the shared-computation mechanism + the workflow footnote) and wrote the design — `align-stale-surfaces-design.md`, draft. It lays out:
+- **core** — one `staleEntries(weave)` predicate with a typed `reason` union (design_version / req_version / idea↔design both directions) + an `actionable` flag.
+- **app** — `getStaleDocs` becomes a thin wrapper; `getState` attaches the set like `reqCoverage`.
+- **extension** — delete `threadHasStale` + the `staleIds` recompute; read the attached set (zero local staleness logic).
+- **cli** — `loom stale [--all]`.
+- plus a parity test.
+
+I flagged **three open decisions** in the design for you (A: one predicate + `actionable` flag vs two funcs — I recommend one; B: attach-to-state vs a dedicated `loom://stale` resource — I recommend attach-to-state; C: surface both date directions — recommend yes). Design is draft, nothing built. Want to settle A/B/C, or promote straight to a plan?

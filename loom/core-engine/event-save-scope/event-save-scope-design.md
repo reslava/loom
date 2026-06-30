@@ -2,10 +2,10 @@
 type: design
 id: de_01KSNACN3T97M7HVG3K0W3WBQB
 title: Scope runEvent saves to the changed doc set
-status: draft
-created: "2026-05-27T00:00:00.000Z"
-updated: 2026-05-27
-version: 3
+status: done
+created: 2026-05-27
+updated: 2026-06-30
+version: 4
 tags: []
 parent_id: id_01KSGJSN9N8DHX4G7M2P281BMS
 requires_load: []

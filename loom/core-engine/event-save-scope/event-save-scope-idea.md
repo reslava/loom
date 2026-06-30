@@ -2,10 +2,10 @@
 type: idea
 id: id_01KSGJSN9N8DHX4G7M2P281BMS
 title: Scope runEvent saves to the changed doc/thread
-status: draft
-created: "2026-05-25T00:00:00.000Z"
-updated: 2026-05-25
-version: 2
+status: done
+created: 2026-05-25
+updated: 2026-06-30
+version: 3
 tags: []
 parent_id: null
 requires_load: []
