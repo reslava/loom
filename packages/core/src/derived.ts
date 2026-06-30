@@ -72,6 +72,105 @@ export function getReqStaleDocs(thread: Thread): Document[] {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Canonical staleness predicate — the SINGLE source every surface consumes.
+//
+// Loom historically computed "stale" in three places (the getState summary, the
+// VS Code treeProvider, and getStaleDocs) with divergent axes, direction, and
+// done-handling, so the extension and `loom stale` disagreed. staleEntries
+// replaces all three: one pass evaluates every staleness axis per doc and tags
+// each hit with whether it is `actionable` (not on a done/cancelled/closed doc).
+// Callers pick the view — the actionable subset (default surfaces) or all (incl.
+// shipped/historical drift, e.g. `loom stale --all`).
+// ---------------------------------------------------------------------------
+
+export type StaleReasonKind =
+    | 'design_version'      // a plan's design_version is behind its thread design
+    | 'req_version'         // a doc's req_version is behind the thread's locked req
+    | 'idea_behind_design'  // the design was updated after the idea (idea lags)
+    | 'design_behind_idea'; // the idea was updated after the design (design lags)
+
+export interface StaleEntry {
+    docId: string;
+    type: Document['type'];
+    weaveId: string;
+    threadId: string;
+    reason: StaleReasonKind;
+    /** Human-readable explanation for a surface to render. */
+    detail: string;
+    /** False when the flagged doc is done/cancelled (a design also when closed) —
+     *  historical drift no longer needing action. Surfaces default to actionable. */
+    actionable: boolean;
+}
+
+/** Stale work that no longer needs action because the doc itself is finished. */
+function isInactiveStatus(status: string): boolean {
+    return status === 'done' || status === 'cancelled';
+}
+
+/**
+ * Every staleness hit in a weave, across all axes, in one pass. Pure. The
+ * `actionable` flag is carried (never pre-filtered) so the unfiltered view sees
+ * exactly the same entries the actionable surfaces hide — the two can never drift.
+ */
+export function staleEntries(weave: Weave): StaleEntry[] {
+    const out: StaleEntry[] = [];
+    for (const thread of weave.threads) {
+        // design_version: plans behind their thread design
+        if (thread.design) {
+            for (const plan of thread.plans) {
+                if (isPlanStale(plan, thread.design)) {
+                    out.push({
+                        docId: plan.id, type: 'plan', weaveId: weave.id, threadId: thread.id,
+                        reason: 'design_version',
+                        detail: `design v${thread.design.version} > plan baseline v${plan.design_version}`,
+                        actionable: !isInactiveStatus(plan.status),
+                    });
+                }
+            }
+        }
+
+        // req_version: idea/design/plans behind the thread's locked req
+        const req = thread.req;
+        if (req && req.status === 'locked') {
+            const candidates = [thread.idea, thread.design, ...thread.plans].filter(Boolean) as Document[];
+            for (const doc of candidates) {
+                if (isReqStale(doc as { req_version?: number }, req)) {
+                    out.push({
+                        docId: doc.id, type: doc.type, weaveId: weave.id, threadId: thread.id,
+                        reason: 'req_version',
+                        detail: `req v${req.version} > doc baseline v${(doc as { req_version?: number }).req_version}`,
+                        actionable: !isInactiveStatus(doc.status),
+                    });
+                }
+            }
+        }
+
+        // idea <-> design date drift, both directions (epoch-tolerant compare)
+        if (thread.idea && thread.design) {
+            const ideaWhen = thread.idea.updated ?? thread.idea.created ?? '';
+            const designWhen = thread.design.updated ?? thread.design.created ?? '';
+            const cmp = compareDates(designWhen, ideaWhen);
+            if (cmp > 0) {
+                out.push({
+                    docId: thread.idea.id, type: 'idea', weaveId: weave.id, threadId: thread.id,
+                    reason: 'idea_behind_design',
+                    detail: `design updated ${designWhen} after idea ${ideaWhen}`,
+                    actionable: !isInactiveStatus(thread.idea.status),
+                });
+            } else if (cmp < 0) {
+                out.push({
+                    docId: thread.design.id, type: 'design', weaveId: weave.id, threadId: thread.id,
+                    reason: 'design_behind_idea',
+                    detail: `idea updated ${ideaWhen} after design ${designWhen}`,
+                    actionable: !isInactiveStatus(thread.design.status) && thread.design.status !== 'closed',
+                });
+            }
+        }
+    }
+    return out;
+}
+
 export function getThreadStatus(thread: Thread): ThreadStatus {
     const plans = thread.plans;
     const deliverables = thread.allDocs.filter(isDeliverable);

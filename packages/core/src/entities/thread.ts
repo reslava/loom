@@ -7,6 +7,7 @@ import { ReqDoc } from './req';
 import { Document } from './document';
 import { BaseDoc } from './base';
 import { ReqCoverage } from '../reqCoverage';
+import { StaleEntry } from '../derived';
 
 export type ThreadStatus = 'CANCELLED' | 'IMPLEMENTING' | 'ACTIVE' | 'DONE' | 'BLOCKED';
 
@@ -57,4 +58,11 @@ export interface Thread {
      * tree render a per-thread coverage badge without recomputing.
      */
     reqCoverage?: ReqCoverage;
+    /**
+     * Derived (not persisted): the thread's **actionable** stale entries, computed
+     * by getState via the canonical `staleEntries` predicate and serialised on
+     * `loom://state`. The VS Code tree reads this instead of recomputing staleness
+     * locally — so the extension and `loom stale` can never diverge.
+     */
+    stale?: StaleEntry[];
 }

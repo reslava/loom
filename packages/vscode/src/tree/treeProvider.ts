@@ -8,7 +8,7 @@ import { PlanDoc } from '@reslava-loom/core/dist/entities/plan';
 import { DesignDoc } from '@reslava-loom/core/dist/entities/design';
 import { ChatDoc } from '@reslava-loom/core/dist/entities/chat';
 import { DoneDoc } from '@reslava-loom/core/dist/entities/done';
-import { getWeaveStatus, getThreadStatus, getReqStaleDocs } from '@reslava-loom/core/dist/derived';
+import { getWeaveStatus, getThreadStatus } from '@reslava-loom/core/dist/derived';
 import { RoadmapView, RoadmapNode, ShippedPlan, RoadmapStatus, DEFAULT_ROADMAP_PRIORITY } from '@reslava-loom/core/dist/derived';
 import { isStepBlocked } from '@reslava-loom/core/dist/planUtils';
 import { maxVersion, compareVersions } from '@reslava-loom/core/dist/versionUtils';
@@ -281,21 +281,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private threadHasStale(t: Thread): boolean {
-        if (getReqStaleDocs(t).length > 0) return true;
-        if (t.design) {
-            for (const plan of t.plans) {
-                if (plan.status !== 'done' && plan.status !== 'cancelled' && plan.design_version < t.design.version) {
-                    return true;
-                }
-            }
-        }
-        if (t.idea && t.design) {
-            const designUpdated = t.design.updated ?? '';
-            const ideaUpdated = t.idea.updated ?? '';
-            if (designUpdated > ideaUpdated && t.idea.status !== 'done') return true;
-            if (ideaUpdated > designUpdated && t.design.status !== 'done' && t.design.status !== 'closed') return true;
-        }
-        return false;
+        // Read the server-computed actionable stale set (canonical `staleEntries`,
+        // attached by getState). The extension carries no staleness logic of its own.
+        return (t.stale?.length ?? 0) > 0;
     }
 
     private filterWeaves(weaves: Weave[], viewState: ViewState): Weave[] {
@@ -614,20 +602,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private getWeaveChildren(weave: Weave): TreeNode[] {
+        // Per-doc stale ids come straight from the server-computed actionable set
+        // (canonical `staleEntries`, attached per thread by getState) — no local recompute.
         const staleIds = new Set<string>();
         for (const thread of weave.threads) {
-            if (thread.idea && thread.design) {
-                const designUpdated = thread.design.updated ?? '';
-                const ideaUpdated = thread.idea.updated ?? '';
-                if (designUpdated > ideaUpdated && thread.idea.status !== 'done') staleIds.add(thread.idea.id);
-                if (ideaUpdated > designUpdated && thread.design.status !== 'done' && thread.design.status !== 'closed') staleIds.add(thread.design.id);
-            }
-            if (thread.design) {
-                for (const plan of thread.plans) {
-                    if (plan.design_version < thread.design.version) staleIds.add(plan.id);
-                }
-            }
-            for (const d of getReqStaleDocs(thread)) staleIds.add(d.id);
+            for (const e of thread.stale ?? []) staleIds.add(e.docId);
         }
 
         const children: TreeNode[] = [];

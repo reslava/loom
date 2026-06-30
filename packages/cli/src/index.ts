@@ -189,8 +189,9 @@ program
 
 program
     .command('stale')
-    .description('List docs that may be stale (plans behind design, children behind parents) + reason')
-    .action(staleCommand);
+    .description('List docs that may be stale (plans behind design, docs behind req, idea↔design drift) + reason. Default = actionable (matches the extension); --all adds historical (done) docs.')
+    .option('--all', 'Include done/cancelled (historical) stale docs too')
+    .action((options) => staleCommand({ all: options.all }));
 
 program
     .command('blocked')

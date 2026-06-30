@@ -7,7 +7,7 @@ import { LoomState, LoomMode } from '../../core/dist/entities/state';
 import { Document } from '../../core/dist/entities/document';
 import { ChatDoc } from '../../core/dist/entities/chat';
 import { Weave, WeaveStatus } from '../../core/dist/entities/weave';
-import { getWeaveStatus } from '../../core/dist/derived';
+import { getWeaveStatus, staleEntries } from '../../core/dist/derived';
 import { nowIso } from '../../core/dist/dates';
 import { filterWeavesByStatus, filterWeavesByPhase, filterWeavesById } from '../../core/dist/filters/weaveFilters';
 import { sortWeavesById } from '../../core/dist/filters/sorting';
@@ -139,25 +139,22 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     const doneWeaves = filteredWeaves.filter(w => getWeaveStatus(w) === 'DONE').length;
     const totalPlans = filteredWeaves.reduce((sum, w) =>
         sum + w.threads.reduce((s, t) => s + t.plans.length, 0), 0);
-    const stalePlans = filteredWeaves.reduce((sum, w) => {
-        return sum + w.threads.reduce((ts, thread) => {
-            if (!thread.design) return ts;
-            return ts + thread.plans.filter(p =>
-                p.status !== 'done' && p.status !== 'cancelled' &&
-                p.design_version < thread.design!.version
-            ).length;
-        }, 0);
-    }, 0);
-
+    // Canonical staleness — ONE predicate (core `staleEntries`) feeds both the
+    // summary counts here AND the per-thread set the VS Code tree reads, so the
+    // extension never recomputes staleness locally and can't drift from `loom stale`.
+    let stalePlans = 0;
     let staleIdeas = 0;
     let staleDesigns = 0;
     for (const weave of filteredWeaves) {
+        const entries = staleEntries(weave);
         for (const thread of weave.threads) {
-            if (!thread.idea || !thread.design) continue;
-            const designUpdated = thread.design.updated ?? '';
-            const ideaUpdated = thread.idea.updated ?? '';
-            if (designUpdated > ideaUpdated && thread.idea.status !== 'done') staleIdeas++;
-            if (ideaUpdated > designUpdated && thread.design.status !== 'done' && thread.design.status !== 'closed') staleDesigns++;
+            thread.stale = entries.filter(e => e.threadId === thread.id && e.actionable);
+        }
+        for (const e of entries) {
+            if (!e.actionable) continue;
+            if (e.reason === 'design_version') stalePlans++;
+            else if (e.reason === 'idea_behind_design') staleIdeas++;
+            else if (e.reason === 'design_behind_idea') staleDesigns++;
         }
     }
 
