@@ -4,7 +4,8 @@ id: id_01KWFV8SFG5EC7RYZARGHCYAQY
 title: Run migrate-layout — flatten to canonical filenames
 status: done
 created: 2026-07-01
-version: 1
+updated: 2026-07-01
+version: 3
 tags: []
 parent_id: null
 requires_load: []
@@ -20,7 +21,7 @@ Execute `loom migrate-layout` on a Loom repo to rename every doc to the canonica
 - `{thread}-chat-NNN.md` / `{thread}.md` → `chat-NNN.md`
 - `loom/refs/*` unchanged
 
-Rename-only (zero content rewrites), idempotent, collision-safe.
+Rename-only (zero content rewrites), idempotent, and **collision-aware**: when a thread holds several legacy docs sharing an ordinal (e.g. multiple `{slug}-plan-001.md`, common before per-thread ordinals), each is auto-renumbered to a unique thread-local ordinal — distinct ordinals and gaps are preserved, only the colliding extras move, and done docs mirror their parent plan's new ordinal — so nothing is ever overwritten or aborted. Every renumber is recorded in an audit log at `.loom/cache/migrate-layout.log` (gitignored).
 
 ## Why
 
@@ -40,5 +41,6 @@ Two hard rules:
 - All docs on the new canonical names; `loom/refs` untouched.
 - `git diff` shows **only renames, zero content deltas**.
 - The count of `.md` files under `loom/` is **unchanged** (nothing lost or duplicated).
-- `loom validate` is **clean** (the ULID cross-reference graph survived — this is the real safety net).
-- `./scripts/test-all.sh` green (where the repo has it).
+- `loom validate` introduces **no new issues**: capture the issue count before and after and confirm it is unchanged. A real repo carries pre-existing legacy noise (`blockedBy`-prose, stale plans) that will *not* be clean — what matters is that the migration adds nothing. Specifically: no broken `parent_id`, no dangling `child_id`, no missing Steps table — the ULID cross-reference graph survived, which is the real safety net. (A rename can flip an already-broken filename-slug blocker's error category — e.g. `unknown blocker format` → `blocked by missing plan` — with no net count change; that is expected, not new breakage.)
+- Any auto-renumbered collisions in the audit log look correct — distinct ordinals preserved, only true duplicates moved, done docs matched to their plan.
+- `./scripts/test-all.sh` green (where the repo has it); `loom status` loads clean.
