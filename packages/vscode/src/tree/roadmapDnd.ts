@@ -5,6 +5,11 @@ import { getMCP } from '../mcp-client';
 import { RoadmapNode } from '@reslava-loom/core/dist/derived';
 
 const ROADMAP_MIME = 'application/vnd.loom.roadmap-thread';
+const TREE_MIME = 'application/vnd.loom.tree-node';
+
+type TreeDragPayload =
+    | { kind: 'thread'; weaveId: string; threadId: string }
+    | { kind: 'doc'; id: string };
 
 /** Spacing between renumbered priorities — leaves room and keeps writes small. */
 const PRIORITY_SPACING = 10;
@@ -22,8 +27,8 @@ const PRIORITY_SPACING = 10;
  * leave free and can never override a `depends_on` edge.
  */
 export class RoadmapDragAndDropController implements vscode.TreeDragAndDropController<TreeNode> {
-    readonly dropMimeTypes = [ROADMAP_MIME];
-    readonly dragMimeTypes = [ROADMAP_MIME];
+    readonly dropMimeTypes = [ROADMAP_MIME, TREE_MIME];
+    readonly dragMimeTypes = [ROADMAP_MIME, TREE_MIME];
 
     constructor(
         private treeProvider: LoomTreeProvider,
@@ -31,16 +36,31 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
     ) {}
 
     handleDrag(source: readonly TreeNode[], dataTransfer: vscode.DataTransfer): void {
-        if (!this.viewStateManager.getState().roadmapEnabled) return;
         const node = source[0];
-        if (!node?.roadmap?.ulid) return;
-        dataTransfer.set(
-            ROADMAP_MIME,
-            new vscode.DataTransferItem({ ulid: node.roadmap.ulid }),
-        );
+        if (!node) return;
+
+        // Roadmap view: drag a thread to reorder by priority (existing behaviour).
+        if (this.viewStateManager.getState().roadmapEnabled) {
+            if (!node.roadmap?.ulid) return;
+            dataTransfer.set(ROADMAP_MIME, new vscode.DataTransferItem({ ulid: node.roadmap.ulid }));
+            return;
+        }
+
+        // Normal tree: drag a thread (→ another weave) or a loose-fiber doc (→ a thread).
+        const ctx = (node.contextValue as string | undefined) ?? '';
+        let payload: TreeDragPayload | undefined;
+        if (ctx.startsWith('thread') && node.weaveId && node.threadId) {
+            payload = { kind: 'thread', weaveId: node.weaveId, threadId: node.threadId };
+        } else if (node.doc?.id) {
+            payload = { kind: 'doc', id: node.doc.id };
+        }
+        if (payload) dataTransfer.set(TREE_MIME, new vscode.DataTransferItem(payload));
     }
 
     async handleDrop(target: TreeNode | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
+        const treeItem = dataTransfer.get(TREE_MIME);
+        if (treeItem) { await this.handleTreeDrop(target, treeItem.value as TreeDragPayload); return; }
+
         const item = dataTransfer.get(ROADMAP_MIME);
         if (!item) return;
         const dragged = item.value as { ulid: string };
@@ -104,6 +124,46 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
             return;
         }
         if (wrote > 0) this.treeProvider.refresh();
+    }
+
+    /**
+     * Normal-tree moves: a thread dropped onto a weave → loom_move_thread; a
+     * loose-fiber doc dropped onto a thread → loom_move_doc. The move tools own
+     * the invariants (loose-fiber guard, singleton slots, ULID preservation) and
+     * surface a clear error we relay when a drop isn't allowed.
+     */
+    private async handleTreeDrop(target: TreeNode | undefined, payload: TreeDragPayload): Promise<void> {
+        const root = this.treeProvider.getLoomRoot();
+        if (!root || !target) return;
+        const ctx = (target.contextValue as string | undefined) ?? '';
+
+        try {
+            if (payload.kind === 'thread') {
+                // Drop onto a weave → move the thread there.
+                if (ctx !== 'weave' || !target.weaveId) {
+                    vscode.window.showWarningMessage('Drop a thread onto a weave to move it.');
+                    return;
+                }
+                if (target.weaveId === payload.weaveId) return;
+                const res = await getMCP(root).callTool('loom_move_thread', {
+                    fromWeaveId: payload.weaveId, threadId: payload.threadId, toWeaveId: target.weaveId,
+                }) as any;
+                vscode.window.showInformationMessage(`🧵 Moved thread → ${res.to}`);
+            } else {
+                // Drop a loose fiber onto a thread → move the doc there.
+                if (!ctx.startsWith('thread') || !target.weaveId || !target.threadId) {
+                    vscode.window.showWarningMessage('Drop a loose fiber (idea/design/chat with no parent or children) onto a thread to move it.');
+                    return;
+                }
+                const res = await getMCP(root).callTool('loom_move_doc', {
+                    id: payload.id, toWeaveId: target.weaveId, toThreadId: target.threadId,
+                }) as any;
+                vscode.window.showInformationMessage(`📄 Moved → ${res.to}`);
+            }
+            this.treeProvider.refresh();
+        } catch (e: any) {
+            vscode.window.showWarningMessage(`Move refused: ${e.message}`);
+        }
     }
 
     private labelFor(nodes: RoadmapNode[], ulid: string): string {

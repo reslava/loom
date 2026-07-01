@@ -41,9 +41,9 @@ export async function rename(
 
     const doc = await deps.loadDoc(docPath) as Document;
 
-    if (doc.status === 'draft') {
-        throw new Error(`Draft documents cannot be renamed. Use 'loom finalize' first.`);
-    }
+    // (Draft docs are renamable: identity is the permanent ULID and the filename is
+    // decoupled from the title, so there's nothing provisional to protect — the old
+    // "finalize first" restriction predated stable ids and is gone.)
 
     const updatedDoc = {
         ...doc,

@@ -74,15 +74,17 @@ async function testIdManagement() {
     assert(updatedDesign.includes(`parent_id: ${tempId}`), 'Backlink should still point at the unchanged id');
     console.log('    ✅ Rename changed title + H1, left id/filename/backlinks intact');
 
-    console.log('  • Testing draft rejection...');
+    console.log('  • Testing draft docs are renamable (id + filename stable, title mutable)...');
     result = runLoom('weave idea "Draft Test" --weave id-test', loomRoot);
     const draftIdMatch = result.stdout.match(/id_[0-9A-Z]{26}/);
     const draftId = draftIdMatch![0];
-    
-    result = runLoom(`rename ${draftId} "Should Fail"`, loomRoot);
-    assert(result.exitCode !== 0, 'Should not allow renaming draft');
-    assert(result.stderr.includes('Draft documents cannot be renamed'), 'Wrong error message');
-    console.log('    ✅ Draft documents rejected');
+
+    // Draft title rename is allowed now: identity is the permanent ULID and the filename
+    // is decoupled from the title, so there's nothing provisional to protect.
+    result = runLoom(`rename ${draftId} "Renamed Draft"`, loomRoot);
+    assert(result.exitCode === 0, `renaming a draft should succeed: ${result.stderr}`);
+    assert(result.stdout.includes(`ID (unchanged): ${draftId}`), 'draft rename must keep the id');
+    console.log('    ✅ Draft documents renamable, id preserved');
 
     await fs.remove(loomRoot);
     console.log('\n✨ All ID management tests passed!\n');

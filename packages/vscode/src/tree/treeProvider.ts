@@ -776,7 +776,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private createDocumentNode(doc: Document, baseContextValue: string, weaveId?: string, threadId?: string, staleIds?: Set<string>): TreeNode {
         const isDraft = doc.status === 'draft';
         const contextValue = isDraft ? `${baseContextValue}-temp` : baseContextValue;
-        const node = new vscode.TreeItem(doc.title || doc.id, vscode.TreeItemCollapsibleState.None);
+        const node = new vscode.TreeItem(String(doc.title || doc.id), vscode.TreeItemCollapsibleState.None);
         const isStale = staleIds?.has(doc.id) ?? false;
         node.description = isStale ? `${doc.status} ⚠️ stale` : doc.status;
         node.iconPath = getDocumentIcon(doc.type);
@@ -796,7 +796,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private createChatNode(chat: ChatDoc, weaveId?: string, threadId?: string): TreeNode {
-        const node = new vscode.TreeItem(chat.title || chat.id, vscode.TreeItemCollapsibleState.None);
+        const node = new vscode.TreeItem(String(chat.title || chat.id), vscode.TreeItemCollapsibleState.None);
         node.description = chat.status;
         node.iconPath = icon(Icons.chat);
         node.contextValue = (weaveId === 'refs' && !threadId) ? 'chat-refs' : 'chat';
@@ -816,7 +816,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private createPlanNode(plan: PlanDoc, weaveId?: string, doneDoc?: DoneDoc, threadId?: string, design?: DesignDoc): TreeNode {
         const hasDone = !!doneDoc;
-        const node = new vscode.TreeItem(plan.title || plan.id, hasDone ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+        const node = new vscode.TreeItem(String(plan.title || plan.id), hasDone ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
         const doneSteps = plan.steps?.filter(s => s.status === 'done').length ?? 0;
         const totalSteps = plan.steps?.length ?? 0;
         const nextStep = plan.steps?.find(s => s.status !== 'done' && s.status !== 'cancelled');
@@ -873,7 +873,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private createDoneDocNode(done: DoneDoc, weaveId?: string, threadId?: string): TreeNode {
-        const node = new vscode.TreeItem(done.title || done.id, vscode.TreeItemCollapsibleState.None);
+        const node = new vscode.TreeItem(String(done.title || done.id), vscode.TreeItemCollapsibleState.None);
         node.description = 'done';
         node.iconPath = new vscode.ThemeIcon('check-all');
         node.contextValue = 'done';

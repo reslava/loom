@@ -61,6 +61,24 @@ async function run() {
         console.log('    ✅ docNaming correct');
     }
 
+    // ── serializer: coercible-looking titles round-trip as strings ───────────
+    console.log('  • serializer: numeric/bool/null titles round-trip as strings (tree-item safety)...');
+    {
+        const root = await freshRoot();
+        for (const title of ['123', '1.5', 'true', 'false', 'null', '007', '-42', '1e3']) {
+            const p = path.join(root, 'loom', 'wv', 'th', 'chats', 'c.md');
+            await saveDoc({
+                type: 'chat', id: 'ch_x', title, status: 'active',
+                created: '2026-07-01', version: 1, tags: [], parent_id: null, requires_load: [],
+                content: '## User\n',
+            } as any, p);
+            const back = await loadDoc(p) as any;
+            assert(typeof back.title === 'string', `title "${title}" must round-trip as a string, got ${typeof back.title}`);
+            assert(back.title === title, `title "${title}" value must be preserved, got "${back.title}"`);
+        }
+        console.log('    ✅ coercible titles preserved as strings');
+    }
+
     // ── renameWeave / renameThread / moveThread ──────────────────────────────
     console.log('  • folder ops: renameWeave, renameThread (flattens legacy), moveThread...');
     {

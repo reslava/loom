@@ -149,8 +149,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.finalizeReq', (node?: TreeNode) => finalizeReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.amendReq', (node?: TreeNode) => amendReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.verifyReq', (node?: TreeNode) => verifyReqCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.rename', (node?: TreeNode) => renameCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.renameFile', (node?: TreeNode) => renameFileCommand(treeProvider, node)),
+        // Fall back to the tree selection when invoked via keybinding (F2), which passes no node arg.
+        vscode.commands.registerCommand('loom.rename', (node?: TreeNode) => renameCommand(treeProvider, node ?? treeView.selection[0])),
+        vscode.commands.registerCommand('loom.renameFile', (node?: TreeNode) => renameFileCommand(treeProvider, node ?? treeView.selection[0])),
         vscode.commands.registerCommand('loom.refineDesign', (node?: TreeNode) => refineCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.startPlan', (node?: TreeNode) => startPlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.completeStep', (node?: TreeNode) => completeStepCommand(treeProvider, node)),

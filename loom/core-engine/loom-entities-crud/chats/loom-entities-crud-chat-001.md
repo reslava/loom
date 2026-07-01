@@ -2,13 +2,13 @@
 type: chat
 id: ch_01KWEBK75MMT5QAFJGNPFNER0Z
 title: Loom entities CRUD Chat
-status: active
+status: done
 created: 2026-07-01
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 23
+last_ai_block: 29
 ---
 # Loom entities CRUD Chat
 
@@ -497,3 +497,71 @@ Your call: leave off (my rec) / re-enable anyway / or spin a follow-up for a shi
 **Plan status: 8/9 steps done.** After you decide on Step 8, remaining tail: (a) live-verify the extension + do drag-and-drop in a Reload Window, (b) run `migrate-layout` on this repo in a fresh session, (c) spin the `Migration, clean legacy read` thread (drop dual-read + rename the `weave.looseFibers` field). I'll commit Phase 3 as the last action of this turn.
 
 Next: committing Phase 3; stopped for your Step 8 call (recommend: leave the gate off).
+
+## Rafa:
+
+Leave the gate off (I prefer it, no more extra useless friction)
+
+I tested extension in a new workspace, somes issues I found:
+
+- F2 fires old doc rename doc bad wire asking for doc id first
+- on selected weave, thread, idea, design, chat, using right mouse `Rename (Title / Folder) F2` works OK
+- idea, design fails when renamed if they draft state, need to be active or done
+- DnD didn't work at all
+- chat docs need sufix ` chat` if not the doc is not showed in the extension tree
+
+## Rafa:
+
+I reviews the chat issue, it is not only with chat, ita affects all docs types and it has nothhing to do with the sufix.
+
+If I renamed to a new title that no contain any letter, just numbers for examples, it has no guard but fails:
+`Extension reslava.loom-vscode has provided an invalid tree item`
+
+And the tree is broken, doc not showed.
+
+## AI:
+
+That's a much better diagnosis than my chat/suffix red-herring — thank you. I found the root cause, and it's a serializer bug that affects **every** doc type (nothing to do with chats or suffixes).
+
+### Root cause: numeric/boolean/null-looking titles round-trip as the wrong YAML type
+
+The canonical frontmatter serializer (`packages/core/src/frontmatterUtils.ts`) only quotes a string when it contains structural characters. `needsBlockQuote("123")` is **false** (no `:`/`#`/newline, no leading indicator), so a title `"123"` is written **unquoted**:
+
+```yaml
+title: 123
+```
+
+When that's read back (gray-matter/js-yaml), `123` parses as the **number** `123`, not the string `"123"`. So `doc.title` becomes a number. The tree then does `new vscode.TreeItem(123, …)` — and VS Code rejects a non-string label with exactly *"Extension … has provided an invalid tree item"*, and the node vanishes.
+
+It's general: any field value that YAML would coerce breaks the same way — `123`, `1.5`, `true`/`false`/`yes`/`no`, `null`/`~`, etc. Titles just made it visible because they're the tree label.
+
+### The fix (root cause, in the serializer)
+
+Quote a string whenever YAML would otherwise parse it back as a *non-string* scalar. I'll extend `needsBlockQuote` (which also feeds `needsFlowQuote`, so array items are covered too) to also quote when the value matches:
+- a number — `/^[-+]?(\d[\d_]*\.?\d*|\.\d+)([eE][-+]?\d+)?$/`
+- a YAML boolean — `/^(true|false|yes|no|on|off)$/i`
+- null — `/^(null|~)$/i`
+
+Result: `title: "123"` stays a string on the round-trip; the tree gets a proper string label. This corrects the *data* for every consumer (CLI, MCP, extension), not just the tree.
+
+I'll also add a **defensive `String(...)`** on the tree-item label (createDocumentNode/createChatNode/etc.) so a bad value can never again crash the whole tree — belt-and-suspenders, but the serializer is the real fix.
+
+Plus a serializer unit test: round-trip a doc whose title is `"123"` / `"true"` / `"null"` and assert `typeof title === 'string'` and value preserved.
+
+This is separate from the CRUD plan (it's a pre-existing serializer bug the F2 flow exposed) — I'd fix it as its own small commit. Want me to go? (I'd also fold the other live-test fixes already made — draft-rename unblock, F2 selection fallback, and the drag-and-drop implementation — into the same round.)
+
+Next: awaiting go on the serializer fix (numeric/bool/null title quoting) + folding in the draft/F2/DnD fixes.
+
+## AI:
+
+Fixed — all from your live testing, built + full `test-all` green + vscode typecheck clean:
+
+1. **Serializer (root cause of the "invalid tree item" / vanishing doc).** `needsBlockQuote` now also quotes strings that YAML would coerce to a non-string (numbers incl. hex/octal/float/scientific, `true`/`false` any case, `null`/`~`). So `title: "123"` round-trips as the string `"123"`, not the number `123`. Fixes it for every consumer, every doc type. Added a round-trip test (`123`/`1.5`/`true`/`false`/`null`/`007`/`-42`/`1e3` all preserved as strings).
+2. **Defensive tree labels.** Wrapped all four doc-node label sites (`createDocumentNode`/`createChatNode`/`createDoneDocNode`/`createPlanNode`) in `String(...)` — belt-and-suspenders so a bad value can never crash the whole tree again.
+3. **F2 fired the old doc-rename.** The keybinding passed no node → fell to the doc branch → asked for an id. Now the `loom.rename`/`loom.renameFile` registrations fall back to `treeView.selection[0]`, so F2 dispatches by the selected node's kind (folder vs title) like the right-click.
+4. **Draft idea/design couldn't be renamed.** Removed the obsolete "Draft documents cannot be renamed" guard (identity is the ULID, filename is fixed — nothing provisional to protect). Draft title rename now works; test updated.
+5. **Drag-and-drop implemented** (was deferred). Extended the controller: in the normal tree, drag a thread onto a weave → `loom_move_thread`; drag a loose-fiber doc onto a thread → `loom_move_doc`. The move tools own the guards and surface a clear "Move refused: …" on an illegal drop. (Roadmap reorder unchanged.) Needs your Reload-Window pass to confirm the gestures.
+
+Committing these now as one "live-test fixes" commit.
+
+Next: commit; then please Reload Window + retest (F2 rename incl. a numeric title, draft rename, drag-and-drop thread→weave and loose-fiber→thread).

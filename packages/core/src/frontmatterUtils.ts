@@ -60,12 +60,21 @@ function quoteYaml(value: string): string {
 // reserved indicators — a value like "`app/foo` use-case" must be quoted).
 const YAML_INDICATOR_START = /^[-?:,[\]{}#&*!|>'"%@`]/;
 
+// A plain scalar that YAML would parse back as a NON-string (number, boolean, null).
+// Such a string must be quoted so it round-trips as a string — e.g. a title "123"
+// written unquoted (`title: 123`) reparses as the number 123, which then crashes the
+// VS Code tree ("invalid tree item", label must be a string). Matches js-yaml's
+// default schema: decimal/hex/octal/float/scientific numbers, true/false (any case),
+// and null / ~.
+const YAML_COERCIBLE_SCALAR = /^(?:[-+]?(?:0x[0-9a-f]+|0o[0-7]+|\d[\d_]*\.?\d*|\.\d+)(?:[eE][-+]?\d+)?|true|false|null|~)$/i;
+
 /**
  * Block-scalar context (`key: value`): quote on structural chars, surrounding
- * whitespace, or a leading indicator. Commas/brackets mid-value are safe here.
+ * whitespace, a leading indicator, or when the value would otherwise round-trip as
+ * a non-string scalar. Commas/brackets mid-value are safe here.
  */
 function needsBlockQuote(v: string): boolean {
-    return v === '' || /[:#\n]/.test(v) || v.trim() !== v || YAML_INDICATOR_START.test(v);
+    return v === '' || /[:#\n]/.test(v) || v.trim() !== v || YAML_INDICATOR_START.test(v) || YAML_COERCIBLE_SCALAR.test(v);
 }
 
 /**
