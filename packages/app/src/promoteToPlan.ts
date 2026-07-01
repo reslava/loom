@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, generatePlanId, parseStepsTable, slugifyStepId } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, parseStepsTable, slugifyStepId, nextOrdinal, planFileName } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 import { parentDesignVersion } from './weavePlan';
 
@@ -87,12 +87,8 @@ export async function promoteToPlan(
         : path.join(deps.loomRoot, 'loom', weaveId, 'plans');
     await deps.fs.ensureDir(plansDir);
 
-    const idScope = threadId ?? weaveId;
     const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);
-    const existingPlanIds = existingFiles
-        .filter(f => f.endsWith('.md'))
-        .map(f => f.replace(/\.md$/, ''));
-    const planFilename = generatePlanId(idScope, existingPlanIds);
+    const planFilename = planFileName(nextOrdinal(existingFiles, 'plan'));
     const planId = generateDocId('plan');
 
     // Stamp the parent design's LIVE version as the staleness baseline. Omitting it
@@ -121,7 +117,7 @@ export async function promoteToPlan(
     // a generated view (the saver canonicalizes whatever table/list the promote source had).
     (planDoc as any)._stepsFromFrontmatter = true;
 
-    const filePath = path.join(plansDir, `${planFilename}.md`);
+    const filePath = path.join(plansDir, planFilename);
     await deps.saveDoc(planDoc, filePath);
 
     return { filePath, title };

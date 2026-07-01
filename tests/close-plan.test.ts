@@ -72,7 +72,9 @@ async function testClosePlan() {
 
         const threadId = planId.split('-plan-')[0];
         const threadPath = path.join(weavePath, threadId);
-        const donePath = path.join(threadPath, 'done', `${planId}-done.md`);
+        // New scheme: done filename humanises to plan-NNN-done.md (mirrors the plan's ordinal),
+        // regardless of the plan's id. (Done doc id stays {planId}-done — see parent_id assertion.)
+        const donePath = path.join(threadPath, 'done', `plan-001-done.md`);
         assert(await fs.pathExists(donePath), `done doc must exist at ${donePath}`);
         const doneContent = fsNative.readFileSync(donePath, 'utf8');
         assert(doneContent.includes('type: done'), 'done doc must have type: done');
@@ -155,7 +157,7 @@ async function testClosePlan() {
         }
         assert(threw, 'closePlan with no notes and no done doc must throw');
 
-        const donePath = path.join(weavePath, planId.split('-plan-')[0], 'done', `${planId}-done.md`);
+        const donePath = path.join(weavePath, planId.split('-plan-')[0], 'done', `plan-001-done.md`);
         assert(!(await fs.pathExists(donePath)), 'no stub done doc must be written on the error path');
         console.log('    ✅ throws with no content, writes no stub');
     }

@@ -84,14 +84,17 @@ export async function createReq(
     let parentId: string | null = null;
     let title = input.title ?? `${input.threadId} Requirements`;
     let designVersion: number | undefined;
-    const designPath = path.join(threadPath, `${input.threadId}-design.md`);
-    const ideaPath = path.join(threadPath, `${input.threadId}-idea.md`);
-    if (await deps.fs.pathExists(designPath)) {
+    // Dual-read design/idea: canonical flat name first, legacy prefixed name second.
+    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${input.threadId}-design.md`)]
+        .find(p => fsExtra.existsSync(p));
+    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${input.threadId}-idea.md`)]
+        .find(p => fsExtra.existsSync(p));
+    if (designPath) {
         const design = (await deps.loadDoc(designPath)) as DesignDoc;
         parentId = design.id;
         designVersion = design.version;
         if (!input.title) title = `${design.title} — Requirements`;
-    } else if (await deps.fs.pathExists(ideaPath)) {
+    } else if (ideaPath) {
         const idea = (await deps.loadDoc(ideaPath)) as IdeaDoc;
         parentId = idea.id;
         if (!input.title) title = `${idea.title} — Requirements`;

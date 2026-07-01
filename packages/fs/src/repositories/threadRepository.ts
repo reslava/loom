@@ -16,6 +16,7 @@ import {
     validateParentExists,
     getDanglingChildIds,
 } from '../../../core/dist/validation';
+import { isIdeaFile, isDesignFile } from '../../../core/dist/docNaming';
 
 async function loadMdFiles<T extends Document>(dir: string, typeName?: string): Promise<T[]> {
     if (!await fs.pathExists(dir)) return [];
@@ -43,15 +44,20 @@ export async function loadThread(
 ): Promise<Thread> {
     const threadPath = overrideThreadPath ?? path.join(loomRoot, 'loom', weaveId, threadId);
 
+    // idea/design are per-thread singletons. Dual-read: prefer the canonical flat
+    // name (idea.md/design.md), fall back to the legacy thread-prefixed name so a
+    // repo reads correctly before `loom migrate-layout` runs.
     let idea: IdeaDoc | undefined;
-    const ideaPath = path.join(threadPath, `${threadId}-idea.md`);
-    if (await fs.pathExists(ideaPath)) {
+    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadId}-idea.md`)]
+        .find(p => fs.existsSync(p));
+    if (ideaPath) {
         idea = await loadDoc(ideaPath) as IdeaDoc;
     }
 
     let design: DesignDoc | undefined;
-    const designPath = path.join(threadPath, `${threadId}-design.md`);
-    if (await fs.pathExists(designPath)) {
+    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadId}-design.md`)]
+        .find(p => fs.existsSync(p));
+    if (designPath) {
         design = await loadDoc(designPath) as DesignDoc;
     }
 
@@ -78,10 +84,10 @@ export async function loadThread(
 
     // Constraint warnings
     const rootFiles = await fs.readdir(threadPath).catch(() => [] as string[]);
-    if (rootFiles.filter(f => f.endsWith('-idea.md')).length > 1) {
+    if (rootFiles.filter(isIdeaFile).length > 1) {
         console.warn(`⚠️  [${weaveId}/${threadId}] Multiple idea docs — only one expected.`);
     }
-    if (rootFiles.filter(f => f.endsWith('-design.md')).length > 1) {
+    if (rootFiles.filter(isDesignFile).length > 1) {
         console.warn(`⚠️  [${weaveId}/${threadId}] Multiple design docs — only one expected.`);
     }
 
@@ -113,8 +119,8 @@ export async function loadThread(
 
 export function docPathInThread(doc: Document, threadPath: string, threadId: string): string {
     switch (doc.type) {
-        case 'idea':   return path.join(threadPath, `${threadId}-idea.md`);
-        case 'design': return path.join(threadPath, `${threadId}-design.md`);
+        case 'idea':   return path.join(threadPath, 'idea.md');
+        case 'design': return path.join(threadPath, 'design.md');
         case 'req':    return path.join(threadPath, 'req.md');
         case 'thread': return path.join(threadPath, 'thread.md');
         case 'plan':   return path.join(threadPath, 'plans', `${doc.id}.md`);

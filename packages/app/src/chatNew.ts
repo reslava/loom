@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { saveDoc } from '../../fs/dist';
-import { generateChatId, generateDocId, createBaseFrontmatter } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, nextOrdinal, chatFileName } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
 
@@ -29,12 +29,10 @@ export async function chatNew(
     await deps.fs.ensureDir(chatsDir);
 
     const existingFiles = await deps.fs.readdir(chatsDir).catch(() => [] as string[]);
-    const existingChatIds = existingFiles
-        .filter(f => f.match(/-chat-\d+\.md$/))
-        .map(f => f.replace(/\.md$/, ''));
 
     const scopeId = input.threadId ?? input.weaveId ?? 'global';
-    const chatFilename = generateChatId(scopeId, existingChatIds);
+    // Canonical flat chat filename: chat-NNN.md (ordinal recognises legacy names too).
+    const chatFilename = chatFileName(nextOrdinal(existingFiles, 'chat'));
     const chatId = generateDocId('chat');
     const title = input.title || `${scopeId} Chat`;
 
@@ -46,7 +44,7 @@ export async function chatNew(
         content: `## ${getUserName(deps.loomRoot)}\n`,
     };
 
-    const filePath = path.join(chatsDir, `${chatFilename}.md`);
+    const filePath = path.join(chatsDir, chatFilename);
     await deps.saveDoc(doc, filePath);
 
     return { id: chatId, filePath };

@@ -47,7 +47,7 @@ export async function backfillStalenessBaselines(
             // removed from the model). The design is re-saved either way, so it's free.
             if (thread.design && thread.idea) {
                 scanned++;
-                const designPath = path.join(threadPath, `${thread.id}-design.md`);
+                const designPath = (thread.design as { _path?: string })._path ?? path.join(threadPath, 'design.md');
                 const needsIdeaVersion = thread.design.idea_version !== thread.idea.version;
                 const staleReqVersion = (thread.design as { req_version?: number }).req_version;
                 const hasDeadReqVersion = staleReqVersion !== undefined;

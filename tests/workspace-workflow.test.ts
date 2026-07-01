@@ -84,10 +84,12 @@ async function testWorkspaceWorkflow() {
             }
         );
 
-        const doneDoneDoc = path.join(threadPath, 'done', `${planId}-done.md`);
+        // New scheme: done filename humanises to plan-NNN-done.md (mirrors the plan's ordinal).
+        const doneOrd = planId.match(/-plan-(\d+)$/)?.[1] ?? '001';
+        const doneDoneDoc = path.join(threadPath, 'done', `plan-${doneOrd}-done.md`);
         const planInPlace = path.join(threadPath, 'plans', `${planId}.md`);
 
-        assert(fileExists(doneDoneDoc), 'done doc must exist at thread/done/{planId}-done.md');
+        assert(fileExists(doneDoneDoc), 'done doc must exist at thread/done/plan-NNN-done.md');
         assert(fileExists(planInPlace), 'plan must remain at thread/plans/{planId}.md');
 
         const doneContent = readFile(doneDoneDoc);

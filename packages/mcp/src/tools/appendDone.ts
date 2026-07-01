@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
-import { createBaseFrontmatter } from '../../../core/dist';
+import { createBaseFrontmatter, doneFileName, planOrdinalFromFile } from '../../../core/dist';
 import { DoneDoc } from '../../../core/dist/entities/done';
 import { PlanDoc } from '../../../core/dist/entities/plan';
 
@@ -120,8 +120,20 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const doneDir = path.join(threadDir, 'done');
     await fs.ensureDir(doneDir);
 
+    // Done id stays ULID-derived (stable); the FILENAME humanises to plan-NNN-done.md,
+    // mirroring the plan's ordinal. Dual-read: keep using a legacy {planId}-done.md if
+    // one already exists, so pre-migration repos append to the same file.
     const doneId = `${planId}-done`;
-    const doneFilePath = path.join(doneDir, `${doneId}.md`);
+    const planOrd = planOrdinalFromFile(path.basename(planFilePath));
+    const canonicalDoneFile = planOrd !== null ? doneFileName(planOrd) : `${doneId}.md`;
+    const legacyDoneFile = `${doneId}.md`;
+    let doneBasename = canonicalDoneFile;
+    if (canonicalDoneFile !== legacyDoneFile
+        && !(await fs.pathExists(path.join(doneDir, canonicalDoneFile)))
+        && (await fs.pathExists(path.join(doneDir, legacyDoneFile)))) {
+        doneBasename = legacyDoneFile;
+    }
+    const doneFilePath = path.join(doneDir, doneBasename);
     const exists = await fs.pathExists(doneFilePath);
 
     let preamble: string[] = [];

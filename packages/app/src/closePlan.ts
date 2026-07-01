@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { saveDoc, loadDoc, resolveWeaveIdForPlan } from '../../fs/dist';
-import { today } from '../../core/dist';
+import { today, doneFileName, planOrdinalFromFile } from '../../core/dist';
 import { DoneDoc } from '../../core/dist/entities/done';
 import { PlanDoc } from '../../core/dist/entities/plan';
 import { planReducer } from '../../core/dist/reducers/planReducer';
@@ -44,8 +44,19 @@ export async function closePlan(
     const threadPath = thread ? path.join(weavePath, thread.id) : null;
     const doneDirPath = threadPath ? path.join(threadPath, 'done') : path.join(weavePath, 'done');
 
+    // Done id stays ULID-derived (stable); filename humanises to plan-NNN-done.md.
+    // Dual-read: keep a pre-existing legacy {planId}-done.md so we append to the same file.
     const doneId = `${input.planId}-done`;
-    const donePath = path.join(doneDirPath, `${doneId}.md`);
+    const planOrd = (plan as any)._path ? planOrdinalFromFile(path.basename((plan as any)._path)) : null;
+    const canonicalDoneFile = planOrd !== null ? doneFileName(planOrd) : `${doneId}.md`;
+    const legacyDoneFile = `${doneId}.md`;
+    let doneBasename = canonicalDoneFile;
+    if (canonicalDoneFile !== legacyDoneFile
+        && !(await deps.fs.pathExists(path.join(doneDirPath, canonicalDoneFile)))
+        && (await deps.fs.pathExists(path.join(doneDirPath, legacyDoneFile)))) {
+        doneBasename = legacyDoneFile;
+    }
+    const donePath = path.join(doneDirPath, doneBasename);
     const doneExists = await deps.fs.pathExists(donePath);
 
     const notes = input.notes?.trim();

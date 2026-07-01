@@ -20,7 +20,9 @@ function parseResult(res: any) {
 
 async function donePathFor(weavePath: string, planId: string) {
     const threadId = planId.split('-plan-')[0];
-    return path.join(weavePath, threadId, 'done', `${planId}-done.md`);
+    // New scheme: done filename humanises to plan-NNN-done.md (mirrors the plan's ordinal).
+    const ord = planId.match(/-plan-(\d+)$/)?.[1] ?? '001';
+    return path.join(weavePath, threadId, 'done', `plan-${ord}-done.md`);
 }
 
 async function run() {

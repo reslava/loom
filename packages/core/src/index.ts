@@ -72,6 +72,12 @@ export { createBaseFrontmatter, serializeFrontmatter, serializeStepsBlock, parse
 export { LoomDate, today, nowIso, toEpoch, compareDates, toCanonical } from './dates';
 export { SemVer, parseVersion, compareVersions, maxVersion } from './versionUtils';
 export { generateDocId, parseDocId, isUlidId, toKebabCaseId, stripTrailingTypeWord, ensureUniqueId, generatePermanentId, generatePlanId, generateChatId } from './idUtils';
+export {
+    OrdinalDocType, formatOrdinal, nextOrdinal,
+    planFileName, doneFileName, chatFileName, singletonFileName,
+    isPlanFile, isDoneFile, isChatFile, isIdeaFile, isDesignFile,
+    planOrdinalFromFile, chatOrdinalFromFile,
+} from './docNaming';
 export { AIClient, Message } from './ai';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';

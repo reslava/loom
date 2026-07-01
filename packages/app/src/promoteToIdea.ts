@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, createBaseFrontmatter, generateDocId } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, createBaseFrontmatter, generateDocId, singletonFileName } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToIdeaInput {
@@ -76,10 +76,11 @@ export async function promoteToIdea(
     let ideaFilename: string;
     let filePath: string;
     if (threadId) {
-        // Thread-level: canonical filename is {threadId}-idea.md (one per thread)
-        ideaFilename = `${threadId}-idea`;
-        filePath = path.join(targetDir, `${ideaFilename}.md`);
-        if (await deps.fs.pathExists(filePath)) {
+        // Thread-level: canonical filename is the flat singleton idea.md (one per thread).
+        filePath = path.join(targetDir, singletonFileName('idea'));
+        // Dual-read the singleton guard: refuse if either the flat or legacy idea exists.
+        const legacyIdea = path.join(targetDir, `${threadId}-idea.md`);
+        if ((await deps.fs.pathExists(filePath)) || (await deps.fs.pathExists(legacyIdea))) {
             throw new Error(`Thread '${threadId}' already has an idea. Refine the existing one instead.`);
         }
     } else {

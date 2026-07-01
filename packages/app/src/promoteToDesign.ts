@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
-import { AIClient, ChatDoc, IdeaDoc, DesignDoc, createBaseFrontmatter, generateDocId } from '../../core/dist';
+import { AIClient, ChatDoc, IdeaDoc, DesignDoc, createBaseFrontmatter, generateDocId, singletonFileName } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
 
 export interface PromoteToDesignInput {
@@ -78,10 +78,11 @@ export async function promoteToDesign(
     let designFilename: string;
     let filePath: string;
     if (threadId) {
-        // Thread-level: canonical filename is {threadId}-design.md (one per thread)
-        designFilename = `${threadId}-design`;
-        filePath = path.join(targetDir, `${designFilename}.md`);
-        if (await deps.fs.pathExists(filePath)) {
+        // Thread-level: canonical filename is the flat singleton design.md (one per thread).
+        filePath = path.join(targetDir, singletonFileName('design'));
+        // Dual-read the singleton guard: refuse if either the flat or legacy design exists.
+        const legacyDesign = path.join(targetDir, `${threadId}-design.md`);
+        if ((await deps.fs.pathExists(filePath)) || (await deps.fs.pathExists(legacyDesign))) {
             throw new Error(`Thread '${threadId}' already has a design. Refine the existing one instead.`);
         }
     } else {

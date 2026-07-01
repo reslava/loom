@@ -3,6 +3,7 @@ import * as path from 'path';
 import { loadWeave } from '../../fs/dist';
 import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
+import { nextOrdinal, planFileName } from '../../core/dist/docNaming';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
 import { PlanDoc, DesignDoc, IdeaDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
 import { lockedReqVersion } from './req';
@@ -53,8 +54,10 @@ export async function parentDesignVersion(
     threadId: string,
     deps: { loadDoc: typeof loadDoc; fs: typeof fs },
 ): Promise<{ version: number; id: string } | undefined> {
-    const designPath = path.join(threadPath, `${threadId}-design.md`);
-    if (!(await deps.fs.pathExists(designPath).catch(() => false))) return undefined;
+    // Dual-read: canonical design.md first, legacy {threadId}-design.md second.
+    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadId}-design.md`)]
+        .find(p => fs.existsSync(p));
+    if (!designPath) return undefined;
     const design = (await deps.loadDoc(designPath)) as DesignDoc;
     return { version: design.version, id: design.id };
 }
@@ -69,8 +72,10 @@ export async function parentIdeaVersion(
     threadId: string,
     deps: { loadDoc: typeof loadDoc; fs: typeof fs },
 ): Promise<{ version: number; id: string } | undefined> {
-    const ideaPath = path.join(threadPath, `${threadId}-idea.md`);
-    if (!(await deps.fs.pathExists(ideaPath).catch(() => false))) return undefined;
+    // Dual-read: canonical idea.md first, legacy {threadId}-idea.md second.
+    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadId}-idea.md`)]
+        .find(p => fs.existsSync(p));
+    if (!ideaPath) return undefined;
     const idea = (await deps.loadDoc(ideaPath)) as IdeaDoc;
     return { version: idea.version, id: idea.id };
 }
@@ -173,14 +178,12 @@ export async function weavePlan(
         const plansDir = path.join(threadPath, 'plans');
         await deps.fs.ensureDir(plansDir);
 
-        // Filename uses thread-scoped counter: {threadId}-plan-NNN
+        // Canonical flat plan filename: plan-NNN.md (thread-local ordinal, gaps preserved).
+        // nextOrdinal recognises both new (plan-NNN.md) and legacy ({threadId}-plan-NNN.md) names.
         const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);
-        const existingPlanIds = existingFiles
-            .filter(f => f.endsWith('.md'))
-            .map(f => f.replace(/\.md$/, ''));
 
         const planTitle = input.title || `${input.threadId} Plan`;
-        const planFilename = generatePlanId(input.threadId, existingPlanIds);
+        const planFilename = planFileName(nextOrdinal(existingFiles, 'plan'));
         const planId = generateDocId('plan');
 
         // Read the thread design once: it supplies both the parent link (when not
@@ -208,7 +211,7 @@ export async function weavePlan(
         // Plans are born frontmatter-native so the saver persists the steps block.
         (doc as any)._stepsFromFrontmatter = true;
 
-        const filePath = path.join(plansDir, `${planFilename}.md`);
+        const filePath = path.join(plansDir, planFilename);
         await deps.saveDoc(doc, filePath);
         // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
         await ensureThreadManifest(input.weaveId, input.threadId, planTitle, {
