@@ -348,11 +348,9 @@ export function buildRoadmap(state: LoomState): RoadmapView {
     const baseByUlid = new Map<string, RoadmapStatus>();
 
     // Archived threads are closed work — their manifests satisfy dependencies.
-    for (const weave of state.archivedWeaves ?? []) {
-        for (const thread of weave.threads ?? []) {
-            const ulid = thread.manifest?.id;
-            if (ulid) baseByUlid.set(ulid, 'done');
-        }
+    for (const thread of state.archivedThreads ?? []) {
+        const ulid = thread.manifest?.id;
+        if (ulid) baseByUlid.set(ulid, 'done');
     }
 
     for (const weave of state.weaves ?? []) {

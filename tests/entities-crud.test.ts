@@ -145,17 +145,7 @@ async function run() {
         let threw = false;
         try { await removeItem({ weaveId: 'ghost' }, rmDeps); } catch { threw = true; }
         assert(threw, 'removeItem throws when neither live nor archived exists');
-
-        // archivedRelPath: delete an archived doc by its path under .archive/ (mirror of restore).
-        await writeDoc(path.join(root, 'loom', '.archive', 'refs', 'x-reference.md'),
-            { type: 'reference', id: 'rf_a', title: 'X', slug: 'x' });
-        await removeItem({ archivedRelPath: 'refs/x-reference.md' }, rmDeps);
-        assert(!(await exists(root, 'loom/.archive/refs/x-reference.md')), 'archived doc deleted by relPath');
-        // path-escape guard
-        threw = false;
-        try { await removeItem({ archivedRelPath: '../../etc/passwd' }, rmDeps); } catch { threw = true; }
-        assert(threw, 'removeItem refuses an archivedRelPath escaping .archive');
-        console.log('    ✅ archived delete (folder + relPath) works, guards hold');
+        console.log('    ✅ archived-thread delete works, absent target still throws');
     }
 
     await fs.remove(TMP);

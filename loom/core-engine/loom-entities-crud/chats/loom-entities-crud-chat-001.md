@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 35
+last_ai_block: 38
 ---
 # Loom entities CRUD Chat
 
@@ -656,3 +656,49 @@ All three refined — build + full `test-all` green + vscode typecheck clean.
 Committing now.
 
 Next: commit; then Reload-Window retest of these three. After that, the only tail left is the fresh-session `migrate-layout` run + the `Migration, clean legacy read` thread.
+
+## Rafa:
+
+This is taking so long...
+- I detected some little issues with archived stuff. For example:
+  - `restore from archive` right mouse option is showed at `weave` node level instead of `thread`
+  - Now we allow archive a single doc, for example, a chat, when it is archived the weave/thread/chats/ path is mirrored, this is correct, but loom also leave that structure under `looom/`, this way when I try to restore it fails becuase folders duplicated I guess.
+- I think these rare behaviours will dissapears also if we archive and restore at `thread` level, they are atomic, indivisible also to be archived. Arhive a thread is move the whole thread unit to `loom/.archive/` and restoit is move it back to `loom`, easy, isn't it? Agree?
+
+## AI:
+
+Agree — and this is the clean root fix, not another patch. Same principle as move: **a thread is the atomic, indivisible unit, so it's also the unit of archiving.** Every one of these archive bugs is a symptom of allowing sub-thread archiving.
+
+**The model:** archive = move the whole `loom/{weave}/{thread}` folder to `loom/.archive/{weave}/{thread}`; restore = move it back. That's it. (Weaves too — a weave is just a folder of threads — so archiving/restoring a weave is the same whole-folder move. Both are atomic folder moves.)
+
+**Drop single-doc archive entirely.** No archiving an idea/design/plan/chat/reference on its own — that's what mirrors a partial path and leaves the empty `loom/{w}/{t}/chats/` behind (your restore-fails-on-duplicate-folders bug). Docs live and die with their thread.
+
+**What this removes (net *less* code):**
+- the `archivedLooseDocs` concept + the flatten logic + `archivedRelPath` doc-delete I just added — all gone, no longer needed.
+- the "restore shows at weave instead of thread" confusion — the archived unit *is* the thread (or weave), shown directly with Restore + Delete.
+- the leftover-empty-folders mess — a whole-folder move leaves nothing behind.
+
+**Plan (tight):**
+1. `loom_archive` / `loom_delete` / `loom_restore` accept only `{ weaveId, threadId? }` — reject `{ id }` (single-doc). 
+2. Tree archive section lists archived **threads** (and weaves) as the restorable units — no doc-level archive nodes; restore/delete act on the folder.
+3. Remove the `loom.archive` menu entry from doc nodes (only weave/thread nodes get Archive).
+4. Rip out `archivedLooseDocs` handling + the flatten/relPath code.
+
+Net: archive becomes "move a thread (or weave) folder in/out of `.archive/`," and all four archive bugs vanish by construction.
+
+If you agree, **go** and I'll do it in one pass (and it shrinks the code).
+
+Next: your go to make archive thread/weave-atomic (drop single-doc archive).
+
+## AI:
+
+Done — archive is now thread/weave-atomic. Build + full `test-all` green + vscode typecheck clean. And it's net *less* code.
+
+- **Archive/restore/delete operate on whole thread (or weave) folders only.** `loom_archive`/`loom_restore` take `{ weaveId, threadId? }`; single-doc archive is rejected ("only whole threads or weaves can be archived"). A whole-folder move leaves nothing behind → your empty-`chats/`-folder + restore-fails bug is gone by construction.
+- **`getState` now yields `archivedThreads`** (scanned from `loom/.archive/{weave}/{thread}/`) instead of `archivedWeaves` + `archivedLooseDocs`. The tree's Archive section lists each archived thread as `{weave}/{thread}` — one restorable/deletable unit, tagged so **only Restore + Delete** show. This fixes "restore appeared at weave level" (the unit is the thread) and the earlier "restore showed on live threads" bug.
+- **Removed the now-unneeded complexity:** `archivedLooseDocs`, the container-weave flatten logic, and the `archivedRelPath` doc-delete path I'd added — all gone. `derived.ts` reads `archivedThreads` for dependency-satisfaction. `Archive` menu shows only on weave/thread nodes.
+- Deleting a *live* single doc (a chat, a stale plan) by id still works — that's ordinary CRUD, not archiving.
+
+Design doc updated with the archive-atomicity decision. Committing.
+
+Next: commit; Reload-Window retest of archive→thread / restore / delete. Then the fresh-session tail (`migrate-layout` on this repo + `Migration, clean legacy read`).

@@ -18,29 +18,13 @@ export interface RemoveDeps {
 
 export type RemoveInput =
     | { id: string }
-    | { weaveId: string; threadId?: string }
-    | { archivedRelPath: string };
+    | { weaveId: string; threadId?: string };
 
 export async function removeItem(
     input: RemoveInput,
     deps: RemoveDeps,
 ): Promise<{ removed: string }> {
     const loomRoot = deps.getActiveLoomRoot();
-
-    // Archived docs aren't in the live index, so they're deleted by their path under
-    // loom/.archive/ (mirror of loom_restore's archivedRelPath). Guarded to .archive/.
-    if ('archivedRelPath' in input && input.archivedRelPath) {
-        const archiveRoot = path.join(loomRoot, 'loom', '.archive');
-        const target = path.resolve(archiveRoot, input.archivedRelPath);
-        if (target !== archiveRoot && !target.startsWith(archiveRoot + path.sep)) {
-            throw new Error(`Refused: '${input.archivedRelPath}' is outside loom/.archive/.`);
-        }
-        if (!(await deps.fs.pathExists(target))) {
-            throw new Error(`Nothing to delete at .archive/${input.archivedRelPath}.`);
-        }
-        await deps.fs.remove(target);
-        return { removed: target };
-    }
 
     if ('id' in input && input.id) {
         const { filePath } = await deps.resolveDocIdOrThrow(loomRoot, input.id);

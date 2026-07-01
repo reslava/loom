@@ -1,5 +1,6 @@
 import { getActiveLoomRoot } from '../../fs/dist';
 import { loadWeave } from '../../fs/dist';
+import { loadThread } from '../../fs/dist';
 import { buildLinkIndex } from '../../fs/dist';
 import { loadDoc } from '../../fs/dist';
 import { ConfigRegistry } from '../../fs/dist';
@@ -7,6 +8,7 @@ import { LoomState, LoomMode } from '../../core/dist/entities/state';
 import { Document } from '../../core/dist/entities/document';
 import { ChatDoc } from '../../core/dist/entities/chat';
 import { Weave, WeaveStatus } from '../../core/dist/entities/weave';
+import { Thread } from '../../core/dist/entities/thread';
 import { getWeaveStatus, staleEntries } from '../../core/dist/derived';
 import { nowIso } from '../../core/dist/dates';
 import { filterWeavesByStatus, filterWeavesByPhase, filterWeavesById } from '../../core/dist/filters/weaveFilters';
@@ -46,8 +48,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     
     const weavesDir = path.join(loomRoot, 'loom');
     const allWeaves: Weave[] = [];
-    const archivedWeaves: Weave[] = [];
-    const archivedLooseDocs: Document[] = [];
+    const archivedThreads: Thread[] = [];
     const globalDocs: Document[] = [];
     const globalChats: ChatDoc[] = [];
 
@@ -90,26 +91,25 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         }
     }
     
-    // Scan loom/.archive/ for archived weaves/thread containers and loose docs
+    // Scan loom/.archive/{weave}/{thread}/ for archived threads — the atomic archive
+    // unit (a whole thread folder). Archiving is thread-granular; there are no
+    // individually-archived docs, so nothing else is scanned here.
     const archiveDir = path.join(weavesDir, '.archive');
     if (deps.fs.existsSync(archiveDir)) {
-        const archiveEntries = await deps.fs.readdir(archiveDir).catch(() => [] as string[]);
-        for (const entry of archiveEntries) {
-            const archiveWeavePath = path.join(archiveDir, entry);
-            const stat = await deps.fs.stat(archiveWeavePath).catch(() => null);
-            if (!stat) continue;
-            if (stat.isDirectory()) {
+        const archWeaves = await deps.fs.readdir(archiveDir).catch(() => [] as string[]);
+        for (const w of archWeaves) {
+            const wPath = path.join(archiveDir, w);
+            const wStat = await deps.fs.stat(wPath).catch(() => null);
+            if (!wStat?.isDirectory()) continue;
+            const threadDirs = await deps.fs.readdir(wPath).catch(() => [] as string[]);
+            for (const t of threadDirs) {
+                const tPath = path.join(wPath, t);
+                const tStat = await deps.fs.stat(tPath).catch(() => null);
+                if (!tStat?.isDirectory()) continue;
                 try {
-                    const weave = await deps.loadWeave(loomRoot, entry, index, archiveWeavePath);
-                    if (weave) archivedWeaves.push(weave);
+                    archivedThreads.push(await loadThread(loomRoot, w, t, index, tPath));
                 } catch (e) {
-                    // Skip invalid archive entries
-                }
-            } else if (stat.isFile() && entry.endsWith('.md')) {
-                try {
-                    archivedLooseDocs.push(await loadDoc(path.join(archiveDir, entry)));
-                } catch (e) {
-                    // Skip docs with invalid frontmatter
+                    // Skip invalid archived thread
                 }
             }
         }
@@ -197,8 +197,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         globalDocs,
         globalChats,
         weaves: filteredWeaves,
-        archivedWeaves,
-        archivedLooseDocs,
+        archivedThreads,
         index,
         generatedAt: nowIso(),
         summary: {

@@ -6,7 +6,7 @@ status: implementing
 created: 2026-07-01
 updated: 2026-07-01
 version: 2
-design_version: 4
+design_version: 6
 tags: []
 parent_id: de_01KWEGNABRHPMVY50E6DGRX4WQ
 requires_load: []

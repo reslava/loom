@@ -180,23 +180,17 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 nodes.unshift(warningNode);
             }
 
-            // Archive section — shown when showArchived is toggled on
-            const archivedWeaves = (this.state as any).archivedWeaves as Weave[] | undefined;
-            const archivedLooseDocs = (this.state as any).archivedLooseDocs as Document[] | undefined;
+            // Archive section — shown when showArchived is toggled on. The archive unit
+            // is the whole thread (loom/.archive/{weave}/{thread}); each is one restorable/
+            // deletable item labelled {weave}/{thread}. No doc-level archive nodes.
+            const archivedThreads = (this.state as any).archivedThreads as Thread[] | undefined;
             if (viewState.showArchived) {
-                const archiveChildren: TreeNode[] = [
-                    // A container-only archived weave (no real threads — e.g. an archived
-                    // ref lands in .archive/refs/) is flattened to its docs so each is an
-                    // individually restorable/deletable archived item, not a weave wrapper.
-                    ...[...(archivedWeaves ?? [])].sort((a, b) => a.id.localeCompare(b.id)).flatMap(w =>
-                        w.threads.length === 0
-                            ? [...w.looseFibers, ...(w.refDocs ?? []), ...w.chats]
-                                .map(d => this.tagArchived(this.createDocumentNode(d, `loose-${d.type}`, undefined), true))
-                            : [this.tagArchived(this.createWeaveNode(w, true), true)]
-                    ),
-                    ...[...(archivedLooseDocs ?? [])].sort((a, b) => (a.title ?? a.id).localeCompare(b.title ?? b.id))
-                        .map(d => this.tagArchived(this.createDocumentNode(d, `loose-${d.type}`, undefined), true)),
-                ];
+                const archiveChildren: TreeNode[] = [...(archivedThreads ?? [])]
+                    .sort((a, b) => `${a.weaveId}/${a.id}`.localeCompare(`${b.weaveId}/${b.id}`))
+                    .map(t => this.tagArchived(
+                        { ...this.createThreadNode(t, t.weaveId), label: `${t.weaveId}/${t.id}` },
+                        true,
+                    ));
                 const archiveSection = this.createSectionNode(
                     archiveChildren.length > 0 ? 'Archive' : 'Archive (empty)',
                     archiveChildren

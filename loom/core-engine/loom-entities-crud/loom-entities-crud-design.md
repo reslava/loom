@@ -5,7 +5,7 @@ title: Loom entities CRUD
 status: done
 created: 2026-07-01
 updated: 2026-07-01
-version: 6
+version: 7
 tags: []
 parent_id: null
 requires_load: []
@@ -68,6 +68,7 @@ Enforced invariants:
 
 - **Move a thread between weaves** — the only cross-container move. The folder moves as a unit; the `th_` ULID travels with it, so `depends_on` edges survive and the whole chain stays intact by construction.
 - **Docs are never moved across threads.** To relocate work, move the whole thread.
+- **Archiving is thread/weave-atomic too.** Archive/restore/delete operate on a whole thread (or weave) folder — `loom/{weave}/{thread}` ⇄ `loom/.archive/{weave}/{thread}`. Individual docs are **not** archivable (sub-thread archiving mirrored partial paths and left empty folders, breaking restore). `loom_archive`/`loom_restore` take `{ weaveId, threadId? }` only; the archive view lists archived threads as the restorable/deletable units. (Deleting a *live* single doc by `{ id }` is still allowed — that's ordinary CRUD, not archiving.)
 
 The **loose fiber** term is retained only as vocabulary — a doc with **no parent and no children** (a graph position, not a location) — but there is no operation that moves one between threads.
 

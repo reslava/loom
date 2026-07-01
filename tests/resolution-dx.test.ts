@@ -8,7 +8,6 @@ import { handleLinkIndexResource } from '../packages/mcp/dist/resources/linkInde
 import { handle as findDocHandle } from '../packages/mcp/dist/tools/findDoc.js';
 import { handle as updateDocHandle } from '../packages/mcp/dist/tools/updateDoc.js';
 import { handle as startPlanHandle } from '../packages/mcp/dist/tools/startPlan.js';
-import { handle as archiveHandle } from '../packages/mcp/dist/tools/archive.js';
 import { handlePlanResource } from '../packages/mcp/dist/resources/plan.js';
 import { handleDocsResource } from '../packages/mcp/dist/resources/docs.js';
 
@@ -98,9 +97,8 @@ async function run() {
         ['did you mean', PLAN_ULID]);
     await expectThrow(() => handleDocsResource(root, 'loom://docs/demo-plan-001'),
         ['did you mean', PLAN_ULID]);
-    await expectThrow(() => archiveHandle(root, { id: 'demo-plan-001' }),
-        ['did you mean', PLAN_ULID]);
-    console.log('  ✓ rollout: plan/docs resources + archive tool surface the suggestion');
+    // (loom_archive no longer resolves doc ids — archiving is thread/weave-only.)
+    console.log('  ✓ rollout: plan/docs resources surface the suggestion');
 
     await fs.remove(TMP);
     console.log('✅ resolution-dx tests passed');

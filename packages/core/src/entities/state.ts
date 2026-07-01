@@ -1,4 +1,5 @@
 import { Weave } from './weave';
+import { Thread } from './thread';
 import { LinkIndex } from '../linkIndex';
 import { Document } from './document';
 import { ChatDoc } from './chat';
@@ -24,12 +25,13 @@ export interface LoomState {
     /** All weaves in the active loom. */
     weaves: Weave[];
 
-    /** Weaves (and partial containers for archived threads) under loom/.archive/. */
-    archivedWeaves: Weave[];
+    /**
+     * Archived threads — the atomic archive unit. Each is a whole thread folder moved
+     * to loom/.archive/{weave}/{thread}/ (a Thread carries its weaveId + id). Archiving
+     * is thread-granular: individual docs are never archived on their own.
+     */
+    archivedThreads: Thread[];
 
-    /** Loose .md files sitting directly in loom/.archive/ (individual archived docs). */
-    archivedLooseDocs: Document[];
-    
     /** The link index built during state generation. */
     index: LinkIndex;
     
