@@ -111,6 +111,50 @@ async function run() {
         console.log('    ✅ collision-safe (no overwrite)');
     }
 
+    // ── test 4: collision-aware renumber — legacy plans/dones sharing an ordinal ─
+    console.log('  • migrate-layout: auto-renumbers collisions, loses nothing...');
+    {
+        const root = TMP;
+        await fs.remove(root);
+        const t = path.join(root, 'loom', 'wv', 'multi');
+        // Three plans: two legacy @001 (collision) + one distinct @002 that must be preserved.
+        await writeDoc(path.join(t, 'plans', 'a-plan-001.md'), { type: 'plan', id: 'pl_A', title: 'A', version: 1, created: '2026-07-01' }, '# A');
+        await writeDoc(path.join(t, 'plans', 'b-plan-001.md'), { type: 'plan', id: 'pl_B', title: 'B', version: 1, created: '2026-07-02' }, '# B');
+        await writeDoc(path.join(t, 'plans', 'c-plan-002.md'), { type: 'plan', id: 'pl_C', title: 'C', version: 1, created: '2026-07-03' }, '# C');
+        // Dones: one mirrors pl_A (hard @its-new-ordinal), one legacy @001 with a dead parent (soft) — they contend.
+        await writeDoc(path.join(t, 'done', 'pl_A-done.md'), { type: 'done', id: 'pl_A-done', title: 'DA', version: 1, parent_id: 'pl_A' }, '## Step');
+        await writeDoc(path.join(t, 'done', 'legacy-x-plan-001.md'), { type: 'done', id: 'dn_x', title: 'DX', version: 1, parent_id: 'pl_GONE' }, '## Step');
+
+        const res = await migrateLayout({ dryRun: false }, deps(root));
+
+        // plans: distinct @002 preserved (c→plan-002); the two @001 renumbered to 001 + first free (003).
+        const planFiles = (await fs.readdir(path.join(root, 'loom/wv/multi/plans'))).sort();
+        assert(planFiles.length === 3, `3 plans survive, got ${planFiles.length}: ${planFiles.join(',')}`);
+        assert(planFiles.includes('plan-002.md'), 'distinct plan-002 preserved');
+        assert(new Set(planFiles).size === 3, 'no two plans collapsed onto one name');
+        // every plan id still resolvable (nothing lost) — collect ids across the 3 files
+        const ids = new Set<string>();
+        for (const f of planFiles) ids.add(((await loadDoc(path.join(root, 'loom/wv/multi/plans', f))) as any).id);
+        assert(ids.has('pl_A') && ids.has('pl_B') && ids.has('pl_C'), `all plan ids preserved, got ${[...ids].join(',')}`);
+
+        // dones: mirror keeps pl_A's ordinal (001); the legacy soft done renumbered away — 2 distinct files.
+        const doneFiles = (await fs.readdir(path.join(root, 'loom/wv/multi/done'))).sort();
+        assert(doneFiles.length === 2 && new Set(doneFiles).size === 2, `2 distinct dones survive, got ${doneFiles.join(',')}`);
+        assert(doneFiles.includes('plan-001-done.md'), 'done mirrors its plan (pl_A → plan-001-done)');
+        const mirror = (await loadDoc(path.join(root, 'loom/wv/multi/done/plan-001-done.md'))) as any;
+        assert(mirror.id === 'pl_A-done', 'the mirror done is pl_A-done (hard claim honoured)');
+
+        // collisions surfaced for the audit log: one plans contest + one done contest, all @ordinal 1.
+        assert(res.collisions.length === 2, `expected 2 collisions, got ${res.collisions.length}`);
+        assert(res.collisions.every(c => c.contested === 1), 'both collisions contended for ordinal 1');
+        assert(res.collisions.some(c => c.kind === 'plan') && res.collisions.some(c => c.kind === 'done'), 'a plan and a done collision reported');
+
+        // idempotent after renumber: second run is a no-op.
+        const again = await migrateLayout({ dryRun: false }, deps(root));
+        assert(again.renames.length === 0, `second run no-op, got ${again.renames.length}`);
+        console.log('    ✅ collisions renumbered, ids preserved, mirror honoured, idempotent');
+    }
+
     await fs.remove(TMP);
     console.log('\n✨ All migrate-layout tests passed!');
 }
