@@ -12,6 +12,8 @@ import { renameWeave } from '../packages/app/dist/weave.js';
 import { renameThread, moveThread } from '../packages/app/dist/thread.js';
 import { renameDocFile } from '../packages/app/dist/renameDocFile.js';
 import { removeItem } from '../packages/app/dist/remove.js';
+import { archiveItem } from '../packages/app/dist/archive.js';
+import { restoreItem } from '../packages/app/dist/restore.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-entities-crud-tests');
 
@@ -146,6 +148,37 @@ async function run() {
         try { await removeItem({ weaveId: 'ghost' }, rmDeps); } catch { threw = true; }
         assert(threw, 'removeItem throws when neither live nor archived exists');
         console.log('    ✅ archived-thread delete works, absent target still throws');
+    }
+
+    // ── archive: references (loom/refs) are individually archivable; thread docs aren't ─
+    console.log('  • archive: references archive individually (loom/refs), thread docs rejected...');
+    {
+        const root = await freshRoot();
+        await writeDoc(path.join(root, 'loom', 'refs', 'api-reference.md'), { type: 'reference', id: 'rf_1', title: 'API', slug: 'api' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'th', 'idea.md'), { type: 'idea', id: 'id_1', title: 'I' });
+        const aDeps = { getActiveLoomRoot: () => root, resolveDocIdOrThrow, fs };
+        const rDeps = { getActiveLoomRoot: () => root, fs };
+
+        // ref → archived under .archive/refs/
+        await archiveItem({ id: 'rf_1' }, aDeps);
+        assert(await exists(root, 'loom/.archive/refs/api-reference.md'), 'ref archived to .archive/refs');
+        assert(!(await exists(root, 'loom/refs/api-reference.md')), 'ref moved out of loom/refs');
+
+        // a thread doc by id → refused (archive the whole thread)
+        let threw = false;
+        try { await archiveItem({ id: 'id_1' }, aDeps); } catch { threw = true; }
+        assert(threw, 'archiving a thread doc by id is refused');
+
+        // restore the ref back to loom/refs
+        await restoreItem({ archivedRelPath: 'refs/api-reference.md' }, rDeps);
+        assert(await exists(root, 'loom/refs/api-reference.md'), 'ref restored to loom/refs');
+        assert(!(await exists(root, 'loom/.archive/refs/api-reference.md')), 'archive copy gone after restore');
+
+        // delete an archived ref by relPath
+        await archiveItem({ id: 'rf_1' }, aDeps);
+        await removeItem({ archivedRelPath: 'refs/api-reference.md' }, aDeps);
+        assert(!(await exists(root, 'loom/.archive/refs/api-reference.md')), 'archived ref deleted by relPath');
+        console.log('    ✅ reference archive/restore/delete works, thread docs refused');
     }
 
     await fs.remove(TMP);

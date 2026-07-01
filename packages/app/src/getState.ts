@@ -49,6 +49,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     const weavesDir = path.join(loomRoot, 'loom');
     const allWeaves: Weave[] = [];
     const archivedThreads: Thread[] = [];
+    const archivedRefDocs: Document[] = [];
     const globalDocs: Document[] = [];
     const globalChats: ChatDoc[] = [];
 
@@ -101,6 +102,22 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
             const wPath = path.join(archiveDir, w);
             const wStat = await deps.fs.stat(wPath).catch(() => null);
             if (!wStat?.isDirectory()) continue;
+            // loom/refs is the one non-thread area — archived references (and refs chats)
+            // are individual docs, collected below rather than as threads.
+            if (w === 'refs') {
+                const collectMd = async (dir: string) => {
+                    for (const e of await deps.fs.readdir(dir).catch(() => [] as string[])) {
+                        const p = path.join(dir, e);
+                        const s = await deps.fs.stat(p).catch(() => null);
+                        if (s?.isDirectory()) await collectMd(p);
+                        else if (s?.isFile() && e.endsWith('.md')) {
+                            try { archivedRefDocs.push(await loadDoc(p)); } catch { /* skip */ }
+                        }
+                    }
+                };
+                await collectMd(wPath);
+                continue;
+            }
             const threadDirs = await deps.fs.readdir(wPath).catch(() => [] as string[]);
             for (const t of threadDirs) {
                 const tPath = path.join(wPath, t);
@@ -198,6 +215,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         globalChats,
         weaves: filteredWeaves,
         archivedThreads,
+        archivedRefDocs,
         index,
         generatedAt: nowIso(),
         summary: {

@@ -32,6 +32,13 @@ export interface LoomState {
      */
     archivedThreads: Thread[];
 
+    /**
+     * Archived references (and refs chats) from loom/.archive/refs/. References live in
+     * loom/refs/ with no thread, so they're their own atomic archive unit — archived
+     * individually, unlike thread docs which archive with their whole thread.
+     */
+    archivedRefDocs: Document[];
+
     /** The link index built during state generation. */
     index: LinkIndex;
     

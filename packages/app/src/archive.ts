@@ -19,10 +19,13 @@ export interface ArchiveDeps {
     fs: typeof fsExtra;
 }
 
-// A thread is the atomic archive unit — you archive a whole thread (or weave) folder,
-// never an individual doc. (Sub-thread archiving mirrored partial paths and left empty
-// folders behind, breaking restore; a whole-folder move is clean and reversible.)
-export type ArchiveInput = { weaveId: string; threadId?: string };
+// A thread is the atomic archive unit — thread docs archive with their whole thread
+// folder, never individually (sub-thread archiving mirrored partial paths and left
+// empty folders behind). The ONE exception is loom/refs/ — references and refs/chats
+// have no thread, so they ARE their own atomic unit and archive individually by id.
+export type ArchiveInput =
+    | { weaveId: string; threadId?: string }
+    | { id: string };
 
 export async function archiveItem(
     input: ArchiveInput,
@@ -32,15 +35,21 @@ export async function archiveItem(
     const loomDir = path.join(loomRoot, 'loom');
     const prefix = loomDir + path.sep;
 
-    if ((input as { id?: string }).id) {
-        throw new Error('Only whole threads or weaves can be archived, not individual docs — pass { weaveId, threadId? }.');
+    let source: string;
+    if ('id' in input && input.id) {
+        const { filePath } = await deps.resolveDocIdOrThrow(loomRoot, input.id);
+        const refsPrefix = path.join(loomDir, 'refs') + path.sep;
+        if (!filePath.startsWith(refsPrefix)) {
+            throw new Error('Only references (loom/refs) archive individually — everything else archives with its whole thread: pass { weaveId, threadId? }.');
+        }
+        source = filePath;
+    } else if ('weaveId' in input && input.weaveId) {
+        source = input.threadId
+            ? path.join(loomDir, input.weaveId, input.threadId)
+            : path.join(loomDir, input.weaveId);
+    } else {
+        throw new Error('archiveItem requires { weaveId, threadId? } or a reference { id }.');
     }
-    if (!input.weaveId) {
-        throw new Error('archiveItem requires { weaveId, threadId? }.');
-    }
-    const source = input.threadId
-        ? path.join(loomDir, input.weaveId, input.threadId)
-        : path.join(loomDir, input.weaveId);
 
     if (!source.startsWith(prefix)) {
         throw new Error(`Cannot archive: ${source} is not inside loom/.`);

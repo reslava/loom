@@ -184,13 +184,20 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             // is the whole thread (loom/.archive/{weave}/{thread}); each is one restorable/
             // deletable item labelled {weave}/{thread}. No doc-level archive nodes.
             const archivedThreads = (this.state as any).archivedThreads as Thread[] | undefined;
+            const archivedRefDocs = (this.state as any).archivedRefDocs as Document[] | undefined;
             if (viewState.showArchived) {
-                const archiveChildren: TreeNode[] = [...(archivedThreads ?? [])]
-                    .sort((a, b) => `${a.weaveId}/${a.id}`.localeCompare(`${b.weaveId}/${b.id}`))
-                    .map(t => this.tagArchived(
-                        { ...this.createThreadNode(t, t.weaveId), label: `${t.weaveId}/${t.id}` },
-                        true,
-                    ));
+                const archiveChildren: TreeNode[] = [
+                    ...[...(archivedThreads ?? [])]
+                        .sort((a, b) => `${a.weaveId}/${a.id}`.localeCompare(`${b.weaveId}/${b.id}`))
+                        .map(t => this.tagArchived(
+                            { ...this.createThreadNode(t, t.weaveId), label: `${t.weaveId}/${t.id}` },
+                            true,
+                        )),
+                    // Archived references (loom/.archive/refs) — each its own atomic unit.
+                    ...[...(archivedRefDocs ?? [])]
+                        .sort((a, b) => (a.title ?? a.id).localeCompare(b.title ?? b.id))
+                        .map(d => this.tagArchived(this.createDocumentNode(d, `loose-${d.type}`, undefined), true)),
+                ];
                 const archiveSection = this.createSectionNode(
                     archiveChildren.length > 0 ? 'Archive' : 'Archive (empty)',
                     archiveChildren

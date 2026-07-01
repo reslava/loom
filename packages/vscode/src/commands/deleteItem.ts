@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
@@ -10,10 +11,15 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
 
     const label = (node.label as string) || node.doc?.id || node.threadId || node.weaveId || 'item';
 
-    // Live docs delete by id; folders (a live or archived weave/thread) by weave/thread
-    // — removeItem targets loom/.archive/ automatically when the live path is absent.
+    // An archived doc (a reference under .archive/) isn't in the live index — delete it
+    // by its path under loom/.archive/. Live docs delete by id; folders (live or archived
+    // weave/thread) by weave/thread — removeItem targets .archive/ when the live path is gone.
     let args: Record<string, unknown>;
-    if (node.doc?.id) {
+    const filePath = (node.doc as any)?._path as string | undefined;
+    const archivePrefix = path.join(root, 'loom', '.archive') + path.sep;
+    if (node.doc?.id && filePath?.startsWith(archivePrefix)) {
+        args = { archivedRelPath: filePath.slice(archivePrefix.length) };
+    } else if (node.doc?.id) {
         args = { id: node.doc.id };
     } else if (node.weaveId && node.threadId) {
         args = { weaveId: node.weaveId, threadId: node.threadId };

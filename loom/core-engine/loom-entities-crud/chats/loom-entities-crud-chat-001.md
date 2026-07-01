@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 38
+last_ai_block: 40
 ---
 # Loom entities CRUD Chat
 
@@ -702,3 +702,34 @@ Done — archive is now thread/weave-atomic. Build + full `test-all` green + vsc
 Design doc updated with the archive-atomicity decision. Committing.
 
 Next: commit; Reload-Window retest of archive→thread / restore / delete. Then the fresh-session tail (`migrate-layout` on this repo + `Migration, clean legacy read`).
+
+## Rafa:
+
+hahaha this is even funny, looks like we will never ends
+- now there is no option to archive (restore) special case of `reference` docs
+- there are also special independent chats in `refs/chats`, this special chats folder was created to have a place to talk about reference docs, extension wired special `Promote to Reference` command. We never used it because I lean to use CLI insteand of extensio wired commands. Should we include an option to archive them also?
+
+I lean to:
+- re-include archive/restore for reference docs:
+  archive: move them to loom/.archive/refs
+  restore: move them back to loom/refs
+- include archive/restore for refs/chats chats:
+  archive: move them to loom/.archive/refs/chats
+  restore: move them back to loom/refs/chats
+
+Agree?  
+If so do it, if not tell me
+
+## AI:
+
+Done — references (and refs chats) are archivable again, as their own atomic unit. Build + full `test-all` green + vscode typecheck clean. And yes, refs chats are covered by the same path (they live under `loom/refs/`).
+
+- **`loom/refs` is the one exception to thread-atomic archiving** — references have no thread, so they *are* their own unit. `archiveItem` accepts `{ id }` **only when the doc resolves under `loom/refs/`** (references + `refs/chats/`); any thread doc by id is refused ("archive the whole thread"). Archive mirrors to `loom/.archive/refs/…`; restore/delete go by `archivedRelPath`.
+- **`getState`** collects `archivedRefDocs` by scanning `loom/.archive/refs/` recursively (covers both refs and refs/chats), skipping it in the thread scan. The tree's Archive section lists archived refs alongside archived threads — each tagged so only **Restore + Delete** apply.
+- **Archive menu** now shows on `reference` + `chat-refs` nodes too (you confirmed there are only global refs, so no thread-local-ref ambiguity to worry about).
+- Delete of an archived ref: by `archivedRelPath` (re-added to `removeItem`/`loom_delete`), guarded to `.archive/`.
+- Test added: ref archive → `.archive/refs`, thread-doc-by-id refused, restore → `loom/refs`, delete by relPath. Design doc updated with the exception.
+
+Committing. This should be the last archive gap.
+
+Next: commit; Reload-Window retest (archive a reference + a refs chat, restore, delete). Then the fresh-session tail (`migrate-layout` + `Migration, clean legacy read`).

@@ -5,7 +5,7 @@ title: Loom entities CRUD
 status: done
 created: 2026-07-01
 updated: 2026-07-01
-version: 7
+version: 8
 tags: []
 parent_id: null
 requires_load: []
@@ -68,7 +68,8 @@ Enforced invariants:
 
 - **Move a thread between weaves** — the only cross-container move. The folder moves as a unit; the `th_` ULID travels with it, so `depends_on` edges survive and the whole chain stays intact by construction.
 - **Docs are never moved across threads.** To relocate work, move the whole thread.
-- **Archiving is thread/weave-atomic too.** Archive/restore/delete operate on a whole thread (or weave) folder — `loom/{weave}/{thread}` ⇄ `loom/.archive/{weave}/{thread}`. Individual docs are **not** archivable (sub-thread archiving mirrored partial paths and left empty folders, breaking restore). `loom_archive`/`loom_restore` take `{ weaveId, threadId? }` only; the archive view lists archived threads as the restorable/deletable units. (Deleting a *live* single doc by `{ id }` is still allowed — that's ordinary CRUD, not archiving.)
+- **Archiving is thread/weave-atomic too.** Archive/restore/delete operate on a whole thread (or weave) folder — `loom/{weave}/{thread}` ⇄ `loom/.archive/{weave}/{thread}`. Thread docs are **not** archivable individually (sub-thread archiving mirrored partial paths and left empty folders, breaking restore). The archive view lists archived threads as the restorable/deletable units. (Deleting a *live* single doc by `{ id }` is still allowed — that's ordinary CRUD, not archiving.)
+- **The one exception — `loom/refs`.** References (and refs chats) have no thread, so *they* are their own atomic unit and archive individually by `{ id }`: `loom/refs/x-reference.md` ⇄ `loom/.archive/refs/x-reference.md` (restore/delete by `archivedRelPath`, since archived docs aren't in the live index). `archiveItem` accepts `{ id }` only when the doc resolves under `loom/refs/`; anything else must archive with its whole thread. The archive view lists archived refs alongside archived threads.
 
 The **loose fiber** term is retained only as vocabulary — a doc with **no parent and no children** (a graph position, not a location) — but there is no operation that moves one between threads.
 
