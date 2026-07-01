@@ -24,7 +24,9 @@ export async function loadWeave(loomRoot: string, weaveId: string, index?: LinkI
         threads.push(await loadThread(loomRoot, weaveId, threadId, index, threadPath));
     }
 
-    // Load loose fibers: .md files directly at weave root
+    // Load weave-root docs: .md files directly at weave root.
+    // (NB: a "loose fiber" is a graph position — a doc with no parent and no children —
+    // NOT a location. This field holds weave-root docs; the two are unrelated concepts.)
     const looseFibers: Document[] = [];
     const rootEntries = await fs.readdir(weavePath, { withFileTypes: true });
     for (const entry of rootEntries) {

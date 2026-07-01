@@ -21,28 +21,28 @@ steps:
     satisfies: []
   - id: loom-migrate-layout-command
     order: 2
-    status: pending
+    status: done
     description: "Add loom migrate-layout (its own CLI command, not folded into migrate-to-threads.ts): a one-pass, rename-only sweep of existing docs to the new scheme sharing the naming module, with --dry-run."
     files_touched: [packages/app/src/migrateLayout.ts, packages/cli/src/commands/migrate-layout.ts, packages/cli/src/index.ts]
     blocked_by: [canonical-filename-module]
     satisfies: []
   - id: enforce-weave-only-threads
     order: 3
-    status: pending
+    status: done
     description: "Remove the dead weave-root document-creation code paths so every doc must live in a thread: strip the no-threadId branch from weaveIdea/weaveDesign/weavePlan and require a thread for weave-root chat creation."
     files_touched: [packages/app/src/weaveIdea.ts, packages/app/src/weaveDesign.ts, packages/app/src/weavePlan.ts]
     blocked_by: []
     satisfies: []
   - id: app-weave-thread-folder-crud
     order: 4
-    status: pending
+    status: done
     description: Add app use-cases renameWeave (rename weave folder), renameThread (rename thread folder slug; thread.md ULID and docs untouched), and moveThread (move a thread folder to another weave; th_ ULID and depends_on survive).
     files_touched: [packages/app/src/weave.ts, packages/app/src/thread.ts, packages/app/src/index.ts]
     blocked_by: [canonical-filename-module]
     satisfies: []
   - id: app-movedoc-reference-renamedocfile
     order: 5
-    status: pending
+    status: done
     description: "Add moveDoc(id, toWeaveId, toThreadId) that hard-refuses when the doc has a parent_id or children, or when the destination singleton slot (idea/design) is occupied; and renameDocFile(id, newSlug) guarded to type:reference."
     files_touched: [packages/app/src/moveDoc.ts, packages/app/src/renameDocFile.ts, packages/app/src/index.ts]
     blocked_by: [canonical-filename-module]
@@ -89,10 +89,10 @@ Implement container-aware CRUD for Loom entities per the design. Weaves and thre
 | Done | # | Step | Files touched | Blocked by | Satisfies |
 |---|---|---|---|---|---|
 | ✅ | 1 | Add a canonical doc-filename derivation module + per-thread ordinal allocator (gaps allowed, by created order) and unify ALL filename-derivation sites onto it — docPathInThread's fallback switch AND the per-type MCP create tools, which currently disagree — producing idea.md, design.md, plan-NNN.md, plan-NNN-done.md, chat-NNN.md; req/thread/reference unchanged. | packages/fs/src/repositories/docNaming.ts, packages/fs/src/repositories/threadRepository.ts | — | — |
-| 🔳 | 2 | Add loom migrate-layout (its own CLI command, not folded into migrate-to-threads.ts): a one-pass, rename-only sweep of existing docs to the new scheme sharing the naming module, with --dry-run. | packages/app/src/migrateLayout.ts, packages/cli/src/commands/migrate-layout.ts, packages/cli/src/index.ts | canonical-filename-module | — |
-| 🔳 | 3 | Remove the dead weave-root document-creation code paths so every doc must live in a thread: strip the no-threadId branch from weaveIdea/weaveDesign/weavePlan and require a thread for weave-root chat creation. | packages/app/src/weaveIdea.ts, packages/app/src/weaveDesign.ts, packages/app/src/weavePlan.ts | — | — |
-| 🔳 | 4 | Add app use-cases renameWeave (rename weave folder), renameThread (rename thread folder slug; thread.md ULID and docs untouched), and moveThread (move a thread folder to another weave; th_ ULID and depends_on survive). | packages/app/src/weave.ts, packages/app/src/thread.ts, packages/app/src/index.ts | canonical-filename-module | — |
-| 🔳 | 5 | Add moveDoc(id, toWeaveId, toThreadId) that hard-refuses when the doc has a parent_id or children, or when the destination singleton slot (idea/design) is occupied; and renameDocFile(id, newSlug) guarded to type:reference. | packages/app/src/moveDoc.ts, packages/app/src/renameDocFile.ts, packages/app/src/index.ts | canonical-filename-module | — |
+| ✅ | 2 | Add loom migrate-layout (its own CLI command, not folded into migrate-to-threads.ts): a one-pass, rename-only sweep of existing docs to the new scheme sharing the naming module, with --dry-run. | packages/app/src/migrateLayout.ts, packages/cli/src/commands/migrate-layout.ts, packages/cli/src/index.ts | canonical-filename-module | — |
+| ✅ | 3 | Remove the dead weave-root document-creation code paths so every doc must live in a thread: strip the no-threadId branch from weaveIdea/weaveDesign/weavePlan and require a thread for weave-root chat creation. | packages/app/src/weaveIdea.ts, packages/app/src/weaveDesign.ts, packages/app/src/weavePlan.ts | — | — |
+| ✅ | 4 | Add app use-cases renameWeave (rename weave folder), renameThread (rename thread folder slug; thread.md ULID and docs untouched), and moveThread (move a thread folder to another weave; th_ ULID and depends_on survive). | packages/app/src/weave.ts, packages/app/src/thread.ts, packages/app/src/index.ts | canonical-filename-module | — |
+| ✅ | 5 | Add moveDoc(id, toWeaveId, toThreadId) that hard-refuses when the doc has a parent_id or children, or when the destination singleton slot (idea/design) is occupied; and renameDocFile(id, newSlug) guarded to type:reference. | packages/app/src/moveDoc.ts, packages/app/src/renameDocFile.ts, packages/app/src/index.ts | canonical-filename-module | — |
 | 🔳 | 6 | Expose the new app use-cases as thin MCP tools: loom_rename_weave, loom_rename_thread, loom_move_thread, loom_move_doc, loom_rename_doc_file; register them so the auto-generated loom://catalog picks them up. loom_rename stays title-only. | packages/mcp/src/tools/renameWeave.ts, packages/mcp/src/tools/renameThread.ts, packages/mcp/src/tools/moveThread.ts, packages/mcp/src/tools/moveDoc.ts, packages/mcp/src/tools/renameDocFile.ts, packages/mcp/src/tools/index.ts | app-weave-thread-folder-crud, app-movedoc-reference-renamedocfile | — |
 | 🔳 | 7 | Fix the mis-wired rename: F2 renames doc title vs weave/thread folder by node kind; add a reference-only 'Rename file' action; add drag-and-drop (thread→weave = loom_move_thread, loose-fiber doc→thread = loom_move_doc with rejection message); make the destructive tree action archive-first with a separate confirmed delete; fix package.json when-clauses. | packages/vscode/src/commands/rename.ts, packages/vscode/package.json, packages/vscode/src/tree/treeProvider.ts | mcp-tools-for-entity-crud | — |
 | 🔳 | 8 | Confirm why the gate was disabled (fix the offending path if it was firing legitimately), then re-enable it by renaming .claude/settings.jsonDISABLED → .claude/settings.json. The loom-mcp-gate.ps1 script is intact. | .claude/settings.json | — | — |

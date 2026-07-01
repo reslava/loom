@@ -30,6 +30,103 @@ export interface ScaffoldDeps {
     fs: typeof fsExtra;
 }
 
+/** Deps for the folder-shaped thread ops (rename/move) — just root + fs. */
+export interface ThreadFolderDeps {
+    getActiveLoomRoot: typeof getActiveLoomRoot;
+    fs: typeof fsExtra;
+}
+
+const RESERVED_THREAD_IDS = new Set(['plans', 'done', 'chats', 'refs', '.archive']);
+
+function assertValidThreadId(id: string, label: string): void {
+    if (!id || id.includes('/') || id.includes('\\') || id.includes('..')) {
+        throw new Error(`Invalid ${label} thread id '${id}'.`);
+    }
+    if (RESERVED_THREAD_IDS.has(id)) {
+        throw new Error(`'${id}' is a reserved thread subfolder name, not a thread id.`);
+    }
+}
+
+/**
+ * Flatten any legacy {oldThreadId}-idea.md / -design.md singletons to idea.md /
+ * design.md inside a thread folder. Called after a thread rename so an un-migrated
+ * repo doesn't end up with a thread-prefixed singleton that no longer matches the
+ * new folder name (loadThread would otherwise fail to find it). No-op post-migration.
+ */
+async function flattenLegacySingletons(threadDir: string, oldThreadId: string, fs: typeof fsExtra): Promise<void> {
+    for (const type of ['idea', 'design'] as const) {
+        const legacy = path.join(threadDir, `${oldThreadId}-${type}.md`);
+        const flat = path.join(threadDir, `${type}.md`);
+        if ((await fs.pathExists(legacy)) && !(await fs.pathExists(flat))) {
+            await fs.move(legacy, flat, { overwrite: false });
+        }
+    }
+}
+
+export interface RenameThreadInput {
+    weaveId: string;
+    threadId: string;
+    newThreadId: string;
+}
+
+/**
+ * Rename a thread = rename its `loom/{weave}/{threadId}` folder (the slug). The
+ * thread's stable identity (`th_` ULID in thread.md) and all docs are untouched —
+ * so `depends_on` edges and every backlink survive. Legacy thread-prefixed idea/
+ * design singletons are flattened to idea.md/design.md so the rename holds on an
+ * un-migrated repo.
+ */
+export async function renameThread(
+    input: RenameThreadInput,
+    deps: ThreadFolderDeps,
+): Promise<{ from: string; to: string }> {
+    assertValidThreadId(input.threadId, 'source');
+    assertValidThreadId(input.newThreadId, 'target');
+    if (input.threadId === input.newThreadId) {
+        return { from: input.threadId, to: input.newThreadId };
+    }
+    const loomRoot = deps.getActiveLoomRoot();
+    const weaveDir = path.join(loomRoot, 'loom', input.weaveId);
+    const from = path.join(weaveDir, input.threadId);
+    const to = path.join(weaveDir, input.newThreadId);
+    if (!(await deps.fs.pathExists(from))) throw new Error(`Thread '${input.weaveId}/${input.threadId}' not found.`);
+    if (await deps.fs.pathExists(to)) throw new Error(`A thread '${input.weaveId}/${input.newThreadId}' already exists.`);
+    await deps.fs.move(from, to, { overwrite: false });
+    await flattenLegacySingletons(to, input.threadId, deps.fs);
+    return { from: input.threadId, to: input.newThreadId };
+}
+
+export interface MoveThreadInput {
+    fromWeaveId: string;
+    threadId: string;
+    toWeaveId: string;
+}
+
+/**
+ * Move a thread folder to another weave. The thread's `th_` ULID travels with it, so
+ * `depends_on` edges survive; docs keep their ULIDs. The threadId (folder name) is
+ * unchanged, so no singleton flattening is needed. Refuses if the destination weave
+ * is missing or already has a thread with this id.
+ */
+export async function moveThread(
+    input: MoveThreadInput,
+    deps: ThreadFolderDeps,
+): Promise<{ from: string; to: string }> {
+    assertValidThreadId(input.threadId, 'source');
+    if (input.fromWeaveId === input.toWeaveId) {
+        return { from: `${input.fromWeaveId}/${input.threadId}`, to: `${input.toWeaveId}/${input.threadId}` };
+    }
+    const loomRoot = deps.getActiveLoomRoot();
+    const toWeaveDir = path.join(loomRoot, 'loom', input.toWeaveId);
+    const from = path.join(loomRoot, 'loom', input.fromWeaveId, input.threadId);
+    const to = path.join(toWeaveDir, input.threadId);
+    if (!(await deps.fs.pathExists(from))) throw new Error(`Thread '${input.fromWeaveId}/${input.threadId}' not found.`);
+    if (!(await deps.fs.pathExists(toWeaveDir))) throw new Error(`Destination weave '${input.toWeaveId}' does not exist.`);
+    if (await deps.fs.pathExists(to)) throw new Error(`Destination already has a thread '${input.toWeaveId}/${input.threadId}'.`);
+    await deps.fs.move(from, to, { overwrite: false });
+    return { from: `${input.fromWeaveId}/${input.threadId}`, to: `${input.toWeaveId}/${input.threadId}` };
+}
+
 /** Authored baseline priority for a new manifest — mid-range, leaving slack to drag either way. */
 export const NEW_THREAD_PRIORITY = 1000;
 

@@ -173,7 +173,13 @@ export async function weavePlan(
 
     const weavePath = path.join(deps.loomRoot, 'loom', input.weaveId);
 
-    if (input.threadId) {
+    // Invariant: every doc lives in a thread; a weave folder contains only threads.
+    // Weave-root plan creation is retired — a threadId is required.
+    if (!input.threadId) {
+        throw new Error('Cannot create a plan at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
+    }
+
+    {
         const threadPath = path.join(weavePath, input.threadId);
         const plansDir = path.join(threadPath, 'plans');
         await deps.fs.ensureDir(plansDir);
@@ -221,38 +227,4 @@ export async function weavePlan(
         });
         return { id: planId, filePath };
     }
-
-    await deps.fs.ensureDir(weavePath);
-    let weave = await deps.loadWeave(deps.loomRoot, input.weaveId);
-    if (!weave) {
-        weave = { id: input.weaveId, threads: [], looseFibers: [], chats: [], allDocs: [] };
-    }
-
-    const planTitle = input.title || `${input.weaveId} Plan`;
-    const existingPlanIds = weave.threads.flatMap((t: any) => t.plans.map((p: any) => p.id));
-    const planFilename = generatePlanId(input.weaveId, existingPlanIds);
-    const planId = generateDocId('plan');
-
-    const planSteps: PlanStep[] = buildStructuredSteps(steps);
-    const body = serializePlanBody(planSteps, { goal: input.goal });
-    const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, input.parentId ?? null);
-    const doc: PlanDoc = {
-        ...baseFrontmatter,
-        type: 'plan',
-        status: 'draft',
-        // Weave-root (loose) plan: no thread design to baseline against, so the floor (1)
-        // stands. getStalePlans only ever evaluates plans under a thread with a design,
-        // so this value is never compared — unlike the thread path above, which must be live.
-        design_version: 1,
-        target_version: '0.1.0',
-        steps: planSteps,
-        content: body,
-    } as PlanDoc;
-    (doc as any)._stepsFromFrontmatter = true;
-
-    const plansDir = path.join(weavePath, 'plans');
-    await deps.fs.ensureDir(plansDir);
-    const filePath = path.join(plansDir, `${planFilename}.md`);
-    await deps.saveDoc(doc, filePath);
-    return { id: planId, filePath };
 }

@@ -26,6 +26,7 @@ import { staleCommand } from './commands/stale';
 import { blockedCommand } from './commands/blocked';
 import { migratePlanStepsCommand } from './commands/migratePlanSteps';
 import { migrateCommand } from './commands/migrate';
+import { migrateLayoutCommand } from './commands/migrateLayout';
 import { roadmapCommand } from './commands/roadmap';
 import { backfillReleasesCommand } from './commands/backfillReleases';
 import { backfillDesignVersionsCommand } from './commands/backfillDesignVersions';
@@ -126,8 +127,7 @@ weaveCmd
     .command('idea <title>')
     .description('Create a new idea document (default: creates a thread named after the title)')
     .option('--weave <name>', 'Place the idea in a specific weave folder')
-    .option('--thread <id>', 'Explicit thread ID (overrides auto-name from title)')
-    .option('--loose', 'Create as a loose fiber at weave root instead of in a thread')
+    .option('--thread <id>', 'Thread ID (defaults to a kebab-case of the title — a new idea starts a new thread)')
     .action(weaveIdeaCommand);
 
 weaveCmd
@@ -210,6 +210,12 @@ program
     .description('Run Loom migrations (v1: backfill a thread.md manifest for every thread missing one). Idempotent.')
     .option('--dry-run', 'Preview what would be created without writing')
     .action((options) => migrateCommand({ dryRun: options.dryRun }));
+
+program
+    .command('migrate-layout')
+    .description('Normalise on-disk filenames to the canonical flat scheme (idea.md, design.md, plan-NNN.md, plan-NNN-done.md, chat-NNN.md). Rename-only, idempotent, collision-safe.')
+    .option('--dry-run', 'Preview the renames without moving any files')
+    .action((options) => migrateLayoutCommand({ dryRun: options.dryRun }));
 
 program
     .command('roadmap')

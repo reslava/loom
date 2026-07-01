@@ -31,27 +31,21 @@ export async function weaveIdea(
     const weaveName = input.weave || toKebabCaseId(input.title);
     const weavePath = path.join(weavesDir, weaveName);
 
-    if (input.threadId) {
-        const threadPath = path.join(weavePath, input.threadId);
-        await deps.fs.ensureDir(threadPath);
-        const id = generateDocId('idea');
-        const frontmatter = createBaseFrontmatter('idea', id, input.title);
-        const content = input.content ?? generateIdeaBody(input.title);
-        const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
-        const filePath = path.join(threadPath, singletonFileName('idea'));
-        await deps.saveDoc(doc, filePath);
-        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-        await ensureThreadManifest(weaveName, input.threadId, input.title, deps);
-        return { id, filePath };
+    // Invariant: every doc lives in a thread; a weave folder contains only threads.
+    // Weave-root idea creation is retired — a threadId is required.
+    if (!input.threadId) {
+        throw new Error('Cannot create an idea at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
     }
 
-    await deps.fs.ensureDir(weavePath);
+    const threadPath = path.join(weavePath, input.threadId);
+    await deps.fs.ensureDir(threadPath);
     const id = generateDocId('idea');
-    const filename = toKebabCaseId(input.title) + '-idea';
     const frontmatter = createBaseFrontmatter('idea', id, input.title);
     const content = input.content ?? generateIdeaBody(input.title);
     const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
-    const filePath = path.join(weavePath, `${filename}.md`);
+    const filePath = path.join(threadPath, singletonFileName('idea'));
     await deps.saveDoc(doc, filePath);
+    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+    await ensureThreadManifest(weaveName, input.threadId, input.title, deps);
     return { id, filePath };
 }

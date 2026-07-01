@@ -39,7 +39,7 @@ async function run() {
     const planDeps = { loadWeave, saveDoc, loadDoc, fs, loomRoot: root };
 
     // 1. create idea with body → born at version 1, status draft, body present.
-    const ideaRes = await weaveIdea({ title: 'Body Idea', weave: 'demo', content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
+    const ideaRes = await weaveIdea({ title: 'Body Idea', weave: 'demo', threadId: 'demo', content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
     const idea: any = await loadDoc(ideaRes.filePath);
     assert(idea.content.includes('Hand-written body.'), 'idea has the provided body');
     assert(idea.version === 1, `idea born at version 1 (got ${idea.version})`);

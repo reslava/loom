@@ -11,7 +11,7 @@ async function testIdManagement() {
     await fs.ensureDir(weavePath);
 
     console.log('  • Testing `loom weave idea` generates ULID...');
-    let result = runLoom('weave idea "Temporary Test" --weave id-test --loose', loomRoot);
+    let result = runLoom('weave idea "Temporary Test" --weave id-test', loomRoot);
     assert(result.exitCode === 0, `weave idea failed: ${result.stderr}`);
 
     const tempIdMatch = result.stdout.match(/id_[0-9A-Z]{26}/);
@@ -22,8 +22,9 @@ async function testIdManagement() {
     console.log('  • Testing `loom finalize` flips status to active, keeps the ULID id...');
     // The draft is created with its final slug filename + a permanent ULID id;
     // finalize only flips draft -> active. Identity (id) and filename are preserved.
-    const draftPath = path.join(weavePath, 'temporary-test-idea.md');
-    assert(fsNative.existsSync(draftPath), `Draft file not at expected slug path ${draftPath}`);
+    // New scheme: the idea lives in a thread (auto-named from the title) as the flat idea.md.
+    const draftPath = path.join(weavePath, 'temporary-test', 'idea.md');
+    assert(fsNative.existsSync(draftPath), `Draft file not at expected thread path ${draftPath}`);
 
     result = runLoom(`finalize ${tempId}`, loomRoot);
     assert(result.exitCode === 0, `finalize failed: ${result.stderr}`);
@@ -74,7 +75,7 @@ async function testIdManagement() {
     console.log('    ✅ Rename changed title + H1, left id/filename/backlinks intact');
 
     console.log('  • Testing draft rejection...');
-    result = runLoom('weave idea "Draft Test" --weave id-test --loose', loomRoot);
+    result = runLoom('weave idea "Draft Test" --weave id-test', loomRoot);
     const draftIdMatch = result.stdout.match(/id_[0-9A-Z]{26}/);
     const draftId = draftIdMatch![0];
     

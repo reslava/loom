@@ -96,80 +96,35 @@ export async function weaveDesign(
     const loomRoot = deps.getActiveLoomRoot();
     const weavePath = path.join(loomRoot, 'loom', input.weaveId);
 
-    if (input.threadId) {
-        const threadPath = path.join(weavePath, input.threadId);
-        await deps.fs.ensureDir(threadPath);
-        // Dual-read the parent idea: canonical flat name first, legacy prefixed name second.
-        const ideaCandidates = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${input.threadId}-idea.md`)];
-        let ideaPath: string | undefined;
-        for (const c of ideaCandidates) { if (await deps.fs.pathExists(c)) { ideaPath = c; break; } }
-        let parentId: string | null = null;
-        let designTitle = input.title || input.threadId;
-        let ideaVersion: number | undefined;
-        if (ideaPath) {
-            const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
-            parentId = idea.id;
-            designTitle = input.title || idea.title;
-            ideaVersion = idea.version;
-        }
-        const id = generateDocId('design');
-        const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
-        const content = input.content ?? generateDesignBody(designTitle, getUserName(loomRoot));
-        // Stamp the idea version this design was built against (its staleness baseline).
-        const doc: DesignDoc = { ...frontmatter, content, ...(ideaVersion !== undefined ? { idea_version: ideaVersion } : {}) } as DesignDoc;
-        const filePath = path.join(threadPath, singletonFileName('design'));
-        await deps.saveDoc(doc, filePath);
-        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-        await ensureThreadManifest(input.weaveId, input.threadId, designTitle, deps);
-        return { id, filePath, autoFinalized: false };
+    // Invariant: every doc lives in a thread; a weave folder contains only threads.
+    // Weave-root design creation is retired — a threadId is required.
+    if (!input.threadId) {
+        throw new Error('Cannot create a design at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
     }
 
-    await deps.fs.ensureDir(weavePath);
-    
-    // Look for an existing idea
-    const idea = await findIdeaFile(weavePath, deps);
-    
+    const threadPath = path.join(weavePath, input.threadId);
+    await deps.fs.ensureDir(threadPath);
+    // Dual-read the parent idea: canonical flat name first, legacy prefixed name second.
+    const ideaCandidates = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${input.threadId}-idea.md`)];
+    let ideaPath: string | undefined;
+    for (const c of ideaCandidates) { if (await deps.fs.pathExists(c)) { ideaPath = c; break; } }
     let parentId: string | null = null;
-    let designTitle = input.title || input.weaveId;
-    let autoFinalized = false;
-    
-    if (idea) {
-        let ideaId = idea.id;
-        let ideaTitle = idea.title;
-        
-        // Auto‑finalize the parent idea if it's still a draft
-        if (idea.status === 'draft') {
-            const finalized = await finalizeIdea(idea.filePath, deps);
-            ideaId = finalized.newId;
-            ideaTitle = finalized.title;
-            autoFinalized = true;
-        }
-        
-        parentId = ideaId;
-        designTitle = input.title || ideaTitle;
+    let designTitle = input.title || input.threadId;
+    let ideaVersion: number | undefined;
+    if (ideaPath) {
+        const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
+        parentId = idea.id;
+        designTitle = input.title || idea.title;
+        ideaVersion = idea.version;
     }
-    // If no idea exists, parentId remains null (standalone design)
-    
-    const existingIds = new Set<string>();
-    const entries = await deps.fs.readdir(weavePath);
-    for (const entry of entries) {
-        if (entry.endsWith('.md')) {
-            existingIds.add(entry.replace('.md', ''));
-        }
-    }
-    
     const id = generateDocId('design');
-    const filename = generatePermanentId(designTitle, 'design', existingIds);
     const frontmatter = createBaseFrontmatter('design', id, designTitle, parentId);
-    const content = input.content ?? generateDesignBody(designTitle, 'User');
-
-    const doc: DesignDoc = {
-        ...frontmatter,
-        content,
-    } as DesignDoc;
-
-    const filePath = path.join(weavePath, `${filename}.md`);
+    const content = input.content ?? generateDesignBody(designTitle, getUserName(loomRoot));
+    // Stamp the idea version this design was built against (its staleness baseline).
+    const doc: DesignDoc = { ...frontmatter, content, ...(ideaVersion !== undefined ? { idea_version: ideaVersion } : {}) } as DesignDoc;
+    const filePath = path.join(threadPath, singletonFileName('design'));
     await deps.saveDoc(doc, filePath);
-
-    return { id, filePath, autoFinalized };
+    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
+    await ensureThreadManifest(input.weaveId, input.threadId, designTitle, deps);
+    return { id, filePath, autoFinalized: false };
 }

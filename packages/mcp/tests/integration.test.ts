@@ -255,7 +255,7 @@ async function run(): Promise<void> {
     await test('loom_create_idea creates an idea doc', async () => {
         const result = await client.callTool({
             name: 'loom_create_idea',
-            arguments: { weaveId: 'tw', title: 'Integration Test Idea' },
+            arguments: { weaveId: 'tw', threadId: 'integration-test-idea', title: 'Integration Test Idea' },
         });
         const content = result.content[0] as { type: string; text: string };
         const data = JSON.parse(content.text);

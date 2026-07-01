@@ -4,7 +4,7 @@ import { createWeave } from '../../../app/dist/weave';
 export const toolDef = {
     name: 'loom_create_weave',
     description:
-        "Create an empty weave folder (`loom/{weaveId}`). A weave has no manifest doc — this just materialises the directory so it appears in the tree and can hold threads/loose fibers. Refuses if the weave already exists. Use this tool — do not create weave folders directly.",
+        "Create an empty weave folder (`loom/{weaveId}`). A weave has no manifest doc — this just materialises the directory so it appears in the tree and can hold threads (a weave contains only threads). Refuses if the weave already exists. Use this tool — do not create weave folders directly.",
     inputSchema: {
         type: 'object' as const,
         properties: {

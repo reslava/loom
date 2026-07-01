@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 18
+last_ai_block: 19
 ---
 # Loom entities CRUD Chat
 
@@ -431,3 +431,18 @@ Everything else — new thread at conclusion, run migration in a fresh session, 
 Proceeding now: committing Phase 1, then starting Step 2 (`loom migrate-layout`, fixture-tested only — not run on this repo).
 
 Next: committing Phase 1 (Step 1 foundation), then Step 2.
+
+## AI:
+
+✅ **Phase 2 (Steps 2–5) done — build + full test-all green.**
+
+- **Step 2** — `loom migrate-layout` (rename-only, dry-run, idempotent, collision-safe). Fixture-tested; **not run on this repo**.
+- **Step 3** — weave-only-threads enforced for idea/design/plan (weave-root creation throws; CLI `--loose` retired, `--thread` defaults to kebab-of-title). Left weave-root *chats* intact (vision says chats live at any level) and left `promoteTo*` weave-root branches as a noted follow-up.
+- **Step 4** — `renameWeave` / `renameThread` / `moveThread` app use-cases (fs behind app). renameThread also flattens legacy `{thread}-idea/design.md` so it holds pre-migration; moveThread carries the `th_` ULID so depends_on survives.
+- **Step 5** — `moveDoc` (loose-fiber-only: hard-refuse on parent/children, idea/design/chat only, dest singleton slot guarded) + `renameDocFile` (references only, updates filename + slug frontmatter in lockstep).
+
+**Your comment note applied:** reconciled code comments so "loose fiber" = *no parent, no children* everywhere (fixed the ones that conflated it with weave-root in weaveRepository/promoteTo*/create_weave). Flagged: the `weave.looseFibers` **field** still encodes the old weave-root meaning across core/fs/vscode — renaming that field is a broader cleanup I've queued for the `Migration, clean legacy read` thread.
+
+Committing Phase 2 now. Then, per our plan, **please reconnect the MCP server** (Step 6 registers the new `loom_*` tools + the create_weave desc change; they won't be live until you reconnect) — I'll ping you right before Step 7 needs them. Next up after commit: Step 6 (MCP tools) → build → your reconnect → Steps 7–9.
+
+Next: commit Phase 2, then Step 6 (register loom_rename_weave / loom_rename_thread / loom_move_thread / loom_move_doc / loom_rename_doc_file).

@@ -84,7 +84,7 @@ export async function promoteToIdea(
             throw new Error(`Thread '${threadId}' already has an idea. Refine the existing one instead.`);
         }
     } else {
-        // Weave-level loose fiber: use kebab-of-title to allow multiple
+        // Weave-root doc: use kebab-of-title to allow multiple
         const existingFiles = await deps.fs.readdir(targetDir).catch(() => [] as string[]);
         const ideaFiles = existingFiles.filter(f => f.endsWith('-idea.md'));
         ideaFilename = generateIdeaId(title, weaveId, ideaFiles);
@@ -115,7 +115,7 @@ function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; 
     if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
     // loom/{weave}/{thread}/chats/file or loom/{weave}/{thread}/{anything}
     if (parts.length >= 3) return { weaveId, threadId: parts[1] };
-    // loom/{weave}/file (loose fiber at weave root)
+    // loom/{weave}/file (weave-root doc)
     return { weaveId };
 }
 

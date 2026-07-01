@@ -86,7 +86,7 @@ export async function promoteToDesign(
             throw new Error(`Thread '${threadId}' already has a design. Refine the existing one instead.`);
         }
     } else {
-        // Weave-level loose fiber: kebab-of-title
+        // Weave-root doc: kebab-of-title
         const existingFiles = await deps.fs.readdir(targetDir).catch(() => [] as string[]);
         designFilename = generateDesignId(title, weaveId, existingFiles);
         filePath = path.join(targetDir, `${designFilename}.md`);
