@@ -4,7 +4,7 @@ id: pl_01KWEHB46B8AKB9WNRZCFYZ4RV-done
 title: Done — Loom entities CRUD
 status: done
 created: 2026-07-01
-version: 4
+version: 7
 tags: []
 parent_id: pl_01KWEHB46B8AKB9WNRZCFYZ4RV
 requires_load: []
@@ -71,3 +71,39 @@ Added the loose-fiber doc move + reference filename-slug rename.
 **Terminology cleanup (per Rafa's note):** reconciled code comments so "loose fiber" consistently means "a doc with no parent and no children," NOT a weave-root location. Fixed the conflating comments in weaveRepository.ts, promoteToIdea/Design.ts, and the loom_create_weave description. Flagged: the `weave.looseFibers` FIELD still encodes the old weave-root meaning across core/fs/vscode/app — renaming that field (e.g. → weaveRootDocs) is a broader cleanup deferred to the `Migration, clean legacy read` thread.
 
 Build green; full test-all green (dedicated moveDoc guard tests in Step 9).
+
+## Step 6 — Expose the new app use-cases as thin MCP tools: loom_rename_weave, loom_rename_thread, loom_move_thread, loom_move_doc, loom_rename_doc_file; register them so the auto-generated loom://catalog picks them up. loom_rename stays title-only.
+
+Exposed the folder/doc CRUD use-cases as thin MCP tools and registered them so the auto-generated `loom://catalog` picks them up.
+
+- New tool modules (each = toolDef + handle → the app use-case with fs deps): `renameWeave.ts` (`loom_rename_weave`), `renameThread.ts` (`loom_rename_thread`), `moveThread.ts` (`loom_move_thread`), `moveDoc.ts` (`loom_move_doc`), `renameDocFile.ts` (`loom_rename_doc_file`).
+- Registered in `server.ts`: `loom_move_doc` + `loom_rename_doc_file` under group **doc**; `loom_rename_thread` + `loom_move_thread` under **thread**; `loom_rename_weave` under a new **weave** group. `loom_rename` stays title-only.
+- Verified via a fresh `loom catalog` process: all five appear, correctly grouped (doc / thread / weave). MCP integration test still 18/18. build-all green.
+
+Note: the session's live MCP server is stale until reconnected — these tools won't be callable in-session until Rafa reconnects (requested next).
+
+## Step 7 — Fix the mis-wired rename: F2 renames doc title vs weave/thread folder by node kind; add a reference-only 'Rename file' action; add drag-and-drop (thread→weave = loom_move_thread, loose-fiber doc→thread = loom_move_doc with rejection message); make the destructive tree action archive-first with a separate confirmed delete; fix package.json when-clauses.
+
+Extension wiring — the build-verifiable parts (built + typechecked clean; live behaviour needs a VS Code Reload Window).
+
+**Done:**
+- **Fixed the mis-wired rename (the confirmed bug #3).** `commands/rename.ts` `renameCommand` now DISPATCHES by node kind: weave node → `loom_rename_weave` (folder), thread node → `loom_rename_thread` (folder slug), doc node → `loom_rename` (title). No more "Document ID to rename" prompt on a weave/thread folder. Node kind read from `contextValue` (`weave` / `thread*`) + `weaveId`/`threadId`.
+- **Reference file rename**: new `renameFileCommand` → `loom_rename_doc_file`; registered in `extension.ts`; `loom.renameFile` command + a `viewItem =~ /^reference/` context-menu entry in package.json.
+- **F2 keybinding** → `loom.rename` (`when: focusedView == loom.threads`), so F2 renames title on a doc and folder on a weave/thread.
+- **Archive-first delete**: `deleteItem.ts` modal now leads with "Archive instead" (recoverable → `loom_archive`) alongside "Delete permanently" (→ `loom_delete`).
+- package.json: rename command title → "Rename (title / folder)"; new keybindings section.
+
+**Deferred (carved out for the live-verification pass): drag-and-drop** (thread→weave = `loom_move_thread`, loose-fiber→thread = `loom_move_doc`). The current `RoadmapDragAndDropController` is tightly coupled to roadmap thread-reordering (priority via a dedicated MIME); adding tree moves means extending it, and DnD is only meaningfully testable live (Reload Window), not headless. Rather than ship unverifiable DnD that could regress the roadmap reorder, I'm leaving it for the live pass — the F2 + context-menu path already gives full move/rename coverage without DnD. Flagging for Rafa: do drag-and-drop in the live-test session, or split it into its own follow-up step/thread.
+
+Verified: build-all green; `tsc -p ./ --noEmit` on the extension clean.
+
+## Step 9 — Add tests for filename/ordinal derivation, migrate-layout --dry-run, and the moveDoc loose-fiber/slot guards; then run build-all and test-all and fix fallout.
+
+Tests + build + live verification.
+
+- **`tests/entities-crud.test.ts`** (registered in `scripts/test-all.sh`): docNaming writers/ordinals/recognisers (incl. dual-read legacy+new, gap-preserving nextOrdinal, done-excluded-from-plan check); renameWeave/renameThread (asserts legacy idea flattened + thread.md ULID untouched)/moveThread (+ missing-dest guard); moveDoc loose-fiber guards (refuses child-having, parent-having, occupied-slot; moves a loose idea and a chat with fresh ordinal); renameDocFile (reference slug + frontmatter lockstep, refuses non-reference). All green.
+- migrate-layout test (Step 2) already in the suite.
+- **Full `test-all` green; `build-all` green.**
+- **Live smoke test through the reconnected MCP server:** `loom_move_doc` on the design (de_…, which has the plan as a child) correctly refused with "it has 1 child doc(s)… move the whole thread" — the new tool is wired and the guard fires end-to-end (no mutation on the refusal path).
+
+Not covered by automated tests (needs a live VS Code Reload Window): the extension F2/menu/drag-drop UX from Step 7 — to be exercised in the live-verification session, along with the deferred drag-and-drop.

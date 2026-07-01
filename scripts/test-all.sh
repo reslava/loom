@@ -106,6 +106,9 @@ run_test tests/migrate-plan-steps.test.ts
 # Migrate layout: legacy filenames → canonical flat scheme; rename-only, dry-run, idempotent, collision-safe
 run_test tests/migrate-layout.test.ts
 
+# Entities CRUD: docNaming (writers/ordinals/recognisers), rename/move weave·thread·doc, loose-fiber guard, reference file rename
+run_test tests/entities-crud.test.ts
+
 # refinePlan req-aware: a refine never strips Satisfies citations or flips done; 6-col replies emit new ids
 run_test tests/refine-plan.test.ts
 

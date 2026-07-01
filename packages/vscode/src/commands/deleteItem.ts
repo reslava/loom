@@ -9,12 +9,6 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
     if (!root) return;
 
     const label = (node.label as string) || node.doc?.id || node.threadId || node.weaveId || 'item';
-    const confirmed = await vscode.window.showWarningMessage(
-        `Delete '${label}'? This cannot be undone.`,
-        { modal: true },
-        'Delete'
-    );
-    if (confirmed !== 'Delete') return;
 
     // loom.delete is wired (package.json when-clause) to live items only, so a
     // doc id / weave / thread is always a live target.
@@ -30,10 +24,21 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
         return;
     }
 
+    // Archive-first: the recoverable option leads; permanent delete is the explicit,
+    // second choice on a modal dialog.
+    const choice = await vscode.window.showWarningMessage(
+        `Delete '${label}' permanently? This cannot be undone — Archive keeps it recoverable in loom/.archive/.`,
+        { modal: true },
+        'Archive instead',
+        'Delete permanently'
+    );
+    if (choice !== 'Archive instead' && choice !== 'Delete permanently') return;
+
     try {
-        await getMCP(root).callTool('loom_delete', args);
+        const tool = choice === 'Archive instead' ? 'loom_archive' : 'loom_delete';
+        await getMCP(root).callTool(tool, args);
         treeProvider.refresh();
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Delete failed: ${e.message}`);
+        vscode.window.showErrorMessage(`${choice === 'Archive instead' ? 'Archive' : 'Delete'} failed: ${e.message}`);
     }
 }

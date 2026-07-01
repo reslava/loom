@@ -154,9 +154,14 @@
       },
       {
         "command": "loom.rename",
-        "title": "Rename Document",
+        "title": "Rename (title / folder)",
         "category": "Loom",
         "icon": "$(edit)"
+      },
+      {
+        "command": "loom.renameFile",
+        "title": "Rename File…",
+        "category": "Loom"
       },
       {
         "command": "loom.refineDesign",
@@ -488,6 +493,13 @@
         ]
       }
     ],
+    "keybindings": [
+      {
+        "command": "loom.rename",
+        "key": "f2",
+        "when": "focusedView == loom.threads"
+      }
+    ],
     "menus": {
       "view/title": [
         {
@@ -765,6 +777,11 @@
         {
           "command": "loom.rename",
           "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|plan|chat|done|ctx|loose|reference)/",
+          "group": "edit@3"
+        },
+        {
+          "command": "loom.renameFile",
+          "when": "view == loom.threads && viewItem =~ /^reference/",
           "group": "edit@3"
         },
         {

@@ -1,0 +1,156 @@
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import * as os from 'os';
+import { assert } from './test-utils.ts';
+import {
+    planFileName, doneFileName, chatFileName, singletonFileName,
+    nextOrdinal, planOrdinalFromFile, chatOrdinalFromFile,
+    isPlanFile, isDoneFile, isChatFile, isIdeaFile, isDesignFile,
+} from '../packages/core/dist/index.js';
+import { loadDoc, saveDoc, buildLinkIndex, resolveDocIdOrThrow } from '../packages/fs/dist/index.js';
+import { renameWeave } from '../packages/app/dist/weave.js';
+import { renameThread, moveThread } from '../packages/app/dist/thread.js';
+import { moveDoc } from '../packages/app/dist/moveDoc.js';
+import { renameDocFile } from '../packages/app/dist/renameDocFile.js';
+
+const TMP = path.join(os.tmpdir(), 'loom-entities-crud-tests');
+
+async function writeDoc(file: string, fm: Record<string, unknown>, body = '# x') {
+    const full: Record<string, unknown> = {
+        created: '2026-07-01', status: 'active', tags: [], parent_id: null, requires_load: [], version: 1,
+        ...fm,
+    };
+    const lines = ['---'];
+    for (const [k, v] of Object.entries(full)) lines.push(`${k}: ${typeof v === 'string' ? v : JSON.stringify(v)}`);
+    lines.push('---', '', body, '');
+    await fs.outputFile(file, lines.join('\n'));
+}
+
+async function freshRoot(): Promise<string> {
+    await fs.remove(TMP);
+    await fs.ensureDir(path.join(TMP, '.loom'));
+    await fs.outputFile(path.join(TMP, '.loom', 'workflow.yml'), 'version: 1\n');
+    return TMP;
+}
+
+const deps = (root: string) => ({ getActiveLoomRoot: () => root, fs, loadDoc, saveDoc, buildLinkIndex, resolveDocIdOrThrow });
+const exists = (root: string, rel: string) => fs.pathExists(path.join(root, rel));
+
+async function run() {
+    console.log('🧩 Running entities-crud tests...\n');
+
+    // ── docNaming: writers, ordinals, recognisers ────────────────────────────
+    console.log('  • docNaming: writers, dual-read ordinals + recognisers...');
+    {
+        assert(planFileName(3) === 'plan-003.md', 'planFileName pads');
+        assert(doneFileName(3) === 'plan-003-done.md', 'doneFileName mirrors plan');
+        assert(chatFileName(12) === 'chat-012.md', 'chatFileName pads');
+        assert(singletonFileName('idea') === 'idea.md' && singletonFileName('design') === 'design.md', 'singletons flat');
+        // nextOrdinal recognises legacy AND new; gaps preserved (max+1)
+        assert(nextOrdinal(['t-plan-001.md', 'plan-004.md'], 'plan') === 5, 'nextOrdinal = max+1 across legacy+new');
+        assert(nextOrdinal([], 'plan') === 1, 'nextOrdinal starts at 1');
+        assert(planOrdinalFromFile('some-thread-plan-002.md') === 2, 'ordinal from legacy plan name');
+        assert(planOrdinalFromFile('plan-002.md') === 2, 'ordinal from new plan name');
+        assert(planOrdinalFromFile('plan-002-done.md') === null, 'done name is not a plan ordinal');
+        assert(chatOrdinalFromFile('w-chat-007.md') === 7, 'ordinal from legacy chat name');
+        assert(isPlanFile('plan-001.md') && !isPlanFile('plan-001-done.md'), 'isPlanFile excludes done');
+        assert(isDoneFile('plan-001-done.md') && isDoneFile('pl_X-done.md'), 'isDoneFile matches done variants');
+        assert(isChatFile('chat-001.md') && isChatFile('t-chat.md'), 'isChatFile matches new+legacy');
+        assert(isIdeaFile('idea.md') && isIdeaFile('t-idea.md'), 'isIdeaFile matches new+legacy');
+        assert(isDesignFile('design.md') && isDesignFile('t-design.md'), 'isDesignFile matches new+legacy');
+        console.log('    ✅ docNaming correct');
+    }
+
+    // ── renameWeave / renameThread / moveThread ──────────────────────────────
+    console.log('  • folder ops: renameWeave, renameThread (flattens legacy), moveThread...');
+    {
+        const root = await freshRoot();
+        // Thread with legacy-named idea + a thread.md manifest.
+        await writeDoc(path.join(root, 'loom', 'wv', 'th', 'th-idea.md'), { type: 'idea', id: 'id_1', title: 'I' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'th', 'thread.md'), { type: 'thread', id: 'th_1', title: 'T', priority: 1000, depends_on: [] });
+        await fs.ensureDir(path.join(root, 'loom', 'wv2'));
+
+        await renameThread({ weaveId: 'wv', threadId: 'th', newThreadId: 'renamed' }, deps(root));
+        assert(await exists(root, 'loom/wv/renamed/thread.md'), 'thread folder renamed');
+        assert(await exists(root, 'loom/wv/renamed/idea.md'), 'legacy idea flattened to idea.md on rename');
+        assert(!(await exists(root, 'loom/wv/renamed/th-idea.md')), 'legacy idea name gone');
+        const mani = await loadDoc(path.join(root, 'loom/wv/renamed/thread.md')) as any;
+        assert(mani.id === 'th_1', 'thread.md ULID untouched by rename');
+
+        await moveThread({ fromWeaveId: 'wv', threadId: 'renamed', toWeaveId: 'wv2' }, deps(root));
+        assert(await exists(root, 'loom/wv2/renamed/thread.md'), 'thread moved to wv2');
+        assert(!(await exists(root, 'loom/wv/renamed')), 'source thread gone after move');
+
+        await renameWeave({ weaveId: 'wv2', newWeaveId: 'wv3' }, deps(root));
+        assert(await exists(root, 'loom/wv3/renamed/thread.md'), 'weave folder renamed');
+
+        // guards
+        let threw = false;
+        try { await moveThread({ fromWeaveId: 'wv3', threadId: 'renamed', toWeaveId: 'nope' }, deps(root)); } catch { threw = true; }
+        assert(threw, 'moveThread refuses missing destination weave');
+        console.log('    ✅ folder ops correct + guarded');
+    }
+
+    // ── moveDoc: loose-fiber guard ───────────────────────────────────────────
+    console.log('  • moveDoc: loose-fiber-only, slot + parent/child guards...');
+    {
+        const root = await freshRoot();
+        // Source thread: idea (parent of design), a standalone loose idea in another thread, a chat.
+        await writeDoc(path.join(root, 'loom', 'wv', 'src', 'idea.md'), { type: 'idea', id: 'id_parent', title: 'P' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'src', 'design.md'), { type: 'design', id: 'de_child', title: 'D', parent_id: 'id_parent' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'loose', 'idea.md'), { type: 'idea', id: 'id_loose', title: 'L' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'loose', 'chats', 'chat-001.md'), { type: 'chat', id: 'ch_1', title: 'C' });
+        await fs.ensureDir(path.join(root, 'loom', 'wv', 'dest'));
+
+        // idea with a child → refuse
+        let threw = false;
+        try { await moveDoc({ id: 'id_parent', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
+        assert(threw, 'moveDoc refuses a doc with children');
+
+        // design with a parent → refuse
+        threw = false;
+        try { await moveDoc({ id: 'de_child', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
+        assert(threw, 'moveDoc refuses a doc with a parent');
+
+        // loose idea → moves into dest as idea.md
+        const r1 = await moveDoc({ id: 'id_loose', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root));
+        assert(await exists(root, 'loom/wv/dest/idea.md'), 'loose idea moved to dest/idea.md');
+        assert(r1.to.endsWith('dest/idea.md'), 'reports new path');
+
+        // second loose idea into the now-occupied slot → refuse
+        await writeDoc(path.join(root, 'loom', 'wv', 'loose2', 'idea.md'), { type: 'idea', id: 'id_loose2', title: 'L2' });
+        threw = false;
+        try { await moveDoc({ id: 'id_loose2', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
+        assert(threw, 'moveDoc refuses when destination idea slot is taken');
+
+        // chat → moves into dest/chats with a fresh ordinal
+        await moveDoc({ id: 'ch_1', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root));
+        assert(await exists(root, 'loom/wv/dest/chats/chat-001.md'), 'chat moved into dest/chats with fresh ordinal');
+        console.log('    ✅ moveDoc guards + moves correct');
+    }
+
+    // ── renameDocFile: reference only ────────────────────────────────────────
+    console.log('  • renameDocFile: reference slug rename, refuses non-reference...');
+    {
+        const root = await freshRoot();
+        await writeDoc(path.join(root, 'loom', 'refs', 'old-slug.md'), { type: 'reference', id: 'rf_1', title: 'R', slug: 'old-slug' });
+        await writeDoc(path.join(root, 'loom', 'wv', 'th', 'idea.md'), { type: 'idea', id: 'id_1', title: 'I' });
+
+        await renameDocFile({ id: 'rf_1', newSlug: 'new-slug' }, deps(root));
+        assert(await exists(root, 'loom/refs/new-slug.md'), 'reference renamed to new-slug.md');
+        assert(!(await exists(root, 'loom/refs/old-slug.md')), 'old slug gone');
+        const ref = await loadDoc(path.join(root, 'loom/refs/new-slug.md')) as any;
+        assert(ref.slug === 'new-slug', 'slug frontmatter updated in lockstep');
+        assert(ref.id === 'rf_1', 'ULID id unchanged');
+
+        let threw = false;
+        try { await renameDocFile({ id: 'id_1', newSlug: 'nope' }, deps(root)); } catch { threw = true; }
+        assert(threw, 'renameDocFile refuses a non-reference doc');
+        console.log('    ✅ renameDocFile correct');
+    }
+
+    await fs.remove(TMP);
+    console.log('\n✨ All entities-crud tests passed!');
+}
+
+run().catch(e => { console.error(`❌ entities-crud.test.ts failed: ${e.message}`); process.exit(1); });

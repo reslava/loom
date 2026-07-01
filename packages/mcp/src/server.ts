@@ -51,6 +51,11 @@ import * as archive from './tools/archive';
 import * as deleteItem from './tools/delete';
 import * as restore from './tools/restore';
 import * as rename from './tools/rename';
+import * as renameWeave from './tools/renameWeave';
+import * as renameThread from './tools/renameThread';
+import * as moveThread from './tools/moveThread';
+import * as moveDoc from './tools/moveDoc';
+import * as renameDocFile from './tools/renameDocFile';
 import * as findDoc from './tools/findDoc';
 import * as searchDocs from './tools/searchDocs';
 import * as getBlockedSteps from './tools/getBlockedSteps';
@@ -119,12 +124,13 @@ export function createLoomMcpServer(root: string): Server {
 
     const TOOLS: GroupedTool[] = [
         ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat, createWeave]),
-        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, createPromoteTool(server)]),
+        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, renameDocFile, moveDoc, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, recordRelease, doStep, appendDone, listPlanSteps]),
         ...reg('req', [amendReq, finalizeReq, createVerifyReqTool(server)]),
-        ...reg('thread', [createThread, setPriority, setThreadDeps]),
+        ...reg('thread', [createThread, setPriority, setThreadDeps, renameThread, moveThread]),
+        ...reg('weave', [renameWeave]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
         ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs, validate]),

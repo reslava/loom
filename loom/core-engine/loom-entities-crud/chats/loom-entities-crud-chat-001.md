@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 19
+last_ai_block: 23
 ---
 # Loom entities CRUD Chat
 
@@ -446,3 +446,54 @@ Next: committing Phase 1 (Step 1 foundation), then Step 2.
 Committing Phase 2 now. Then, per our plan, **please reconnect the MCP server** (Step 6 registers the new `loom_*` tools + the create_weave desc change; they won't be live until you reconnect) — I'll ping you right before Step 7 needs them. Next up after commit: Step 6 (MCP tools) → build → your reconnect → Steps 7–9.
 
 Next: commit Phase 2, then Step 6 (register loom_rename_weave / loom_rename_thread / loom_move_thread / loom_move_doc / loom_rename_doc_file).
+
+## AI:
+
+✅ **Step 6 done** — the 5 new tools (`loom_rename_weave`, `loom_rename_thread`, `loom_move_thread`, `loom_move_doc`, `loom_rename_doc_file`) are built and show up correctly grouped in a fresh `loom catalog` (weave / thread / doc). MCP integration 18/18.
+
+**🔌 Please reconnect the MCP server now** (`/mcp` → reconnect) — this is the reconnect point from our plan. After Step 6's build, the session's live server is stale; reconnecting makes the 5 new tools callable in-session so I can actually exercise them in Step 9's verification (and so the create_weave description update is live).
+
+Remaining after reconnect:
+- **Step 7** — extension wiring (F2 = title on docs / folder on weave-thread; reference "Rename file"; drag-drop thread→weave + loose-fiber→thread; archive-first delete; fix package.json `when` clauses). Writing this is just TypeScript — doesn't need the reconnect — but its real test is in a VS Code Reload Window.
+- **Step 8** — re-enable the MCP gate (`settings.jsonDISABLED` → `settings.json`). I'll confirm with you *why* it was disabled before flipping it.
+- **Step 9** — dedicated tests (naming/ordinal, migrate-layout already done, moveDoc loose-fiber/slot guards) + final build/test-all; then I verify the new tools live.
+
+Next: reconnect MCP, then I proceed with Steps 7–9. (Say `go` after reconnecting; or tell me to start Step 7's code meanwhile.)
+
+## Rafa:
+
+mcp reconnected
+do step 7-9
+about step 8, I do not remember now why we deactivated it, but I know we have no issues since then, you never tried to modify any loom doc directly, so we need a strong motive to reactivate it, stop and let me know what you found
+
+## AI:
+
+Reconnected — the 5 new tools are live in-session (I'll exercise them in Step 9). Proceeding with Step 7 (extension) and Step 9 (tests). For Step 8 I'll **investigate and stop with a finding + recommendation rather than flip the gate** — your "need a strong motive" is the right bar, and my initial read is I probably won't find one (the gate guards direct `Edit`/`Write` to loom docs, which hasn't happened, and it doesn't even cover the new folder/move operations). I'll confirm properly and report.
+
+Next: Step 7 — extension wiring.
+
+## AI:
+
+## Step 8 (MCP gate) — finding: no strong motive to re-enable
+
+You asked for a strong motive before reactivating. I looked; I don't find one. Evidence:
+
+1. **Zero incidents while off.** This whole thread wrote a *lot* of loom docs and every write went through `loom_*` MCP tools — the discipline holds without the hook. The gate exists to catch a direct `Edit`/`Write` to `loom/**/*.md`; that simply hasn't happened.
+2. **It doesn't cover this thread's new risk surface.** The gate only intercepts `Edit`/`Write`/`MultiEdit` on `.md` files. The new rename/move operations go through `fs.move` (folders/files), which the hook never sees. So re-enabling wouldn't protect the very operations we just added.
+3. **It's dev-only, not shipped.** Confirmed `loom install` doesn't install the hook or any PreToolUse wiring — downstream users rely on the CLAUDE.md rule + tool descriptions, not this gate. So it's purely a recursive-dogfooding net for *this* repo.
+4. **It has a cost.** Friction (false-positive denies) + a maintenance surface (the excludes list: refs/.archive/CLAUDE.md/packages must stay in sync). Likely why it got disabled in the first place.
+
+**Recommendation: leave it off** — mark Step 8 as won't-do/deferred. The MCP-only discipline is self-enforcing in practice (this session is the proof), and the hook guards a non-occurring failure mode while not covering the new one. If you ever want real enforcement, the higher-value target is a *shipped* guard for downstream (less-disciplined agents on installed repos) — a different mechanism, and a separate thread — not this dev hook.
+
+Your call: leave off (my rec) / re-enable anyway / or spin a follow-up for a shipped guard.
+
+## Phase 3 done (Steps 6, 7, 9) — committing now
+
+- **6** ✅ 5 MCP tools (rename_weave/thread, move_thread, move_doc, rename_doc_file) — live-verified (`loom_move_doc` correctly refused the design: "has 1 child").
+- **7** ✅ extension: rename dispatch by node kind (fixes bug #3), reference "Rename File", F2 keybinding, archive-first delete. **Drag-and-drop deferred** to the live-verification session (roadmap-coupled DnD + only testable in a Reload Window).
+- **9** ✅ `entities-crud.test.ts` (docNaming, folder ops, moveDoc guards, renameDocFile) + full suite green.
+- **8** ⏸ your decision (above).
+
+**Plan status: 8/9 steps done.** After you decide on Step 8, remaining tail: (a) live-verify the extension + do drag-and-drop in a Reload Window, (b) run `migrate-layout` on this repo in a fresh session, (c) spin the `Migration, clean legacy read` thread (drop dual-read + rename the `weave.looseFibers` field). I'll commit Phase 3 as the last action of this turn.
+
+Next: committing Phase 3; stopped for your Step 8 call (recommend: leave the gate off).
