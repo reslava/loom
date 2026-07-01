@@ -761,7 +761,7 @@
         },
         {
           "command": "loom.restoreItem",
-          "when": "view == loom.threads && viewItem =~ /^(weave-archived|thread)/",
+          "when": "view == loom.threads && viewItem == archived",
           "group": "edit@0"
         },
         {
@@ -791,7 +791,7 @@
         },
         {
           "command": "loom.delete",
-          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|plan|chat|done|ctx|loose|reference)/",
+          "when": "view == loom.threads && (viewItem == archived || (viewItem =~ /^(weave|thread|idea|design|plan|chat|done|ctx|loose|reference)/ && !(viewItem =~ /-archived/)))",
           "group": "edit@5"
         }
       ]

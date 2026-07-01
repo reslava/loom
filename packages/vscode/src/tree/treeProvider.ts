@@ -185,8 +185,17 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const archivedLooseDocs = (this.state as any).archivedLooseDocs as Document[] | undefined;
             if (viewState.showArchived) {
                 const archiveChildren: TreeNode[] = [
-                    ...[...(archivedWeaves ?? [])].sort((a, b) => a.id.localeCompare(b.id)).map(w => this.createWeaveNode(w, true)),
-                    ...[...(archivedLooseDocs ?? [])].sort((a, b) => (a.title ?? a.id).localeCompare(b.title ?? b.id)).map(d => this.createDocumentNode(d, `loose-${d.type}`, undefined)),
+                    // A container-only archived weave (no real threads — e.g. an archived
+                    // ref lands in .archive/refs/) is flattened to its docs so each is an
+                    // individually restorable/deletable archived item, not a weave wrapper.
+                    ...[...(archivedWeaves ?? [])].sort((a, b) => a.id.localeCompare(b.id)).flatMap(w =>
+                        w.threads.length === 0
+                            ? [...w.looseFibers, ...(w.refDocs ?? []), ...w.chats]
+                                .map(d => this.tagArchived(this.createDocumentNode(d, `loose-${d.type}`, undefined), true))
+                            : [this.tagArchived(this.createWeaveNode(w, true), true)]
+                    ),
+                    ...[...(archivedLooseDocs ?? [])].sort((a, b) => (a.title ?? a.id).localeCompare(b.title ?? b.id))
+                        .map(d => this.tagArchived(this.createDocumentNode(d, `loose-${d.type}`, undefined), true)),
                 ];
                 const archiveSection = this.createSectionNode(
                     archiveChildren.length > 0 ? 'Archive' : 'Archive (empty)',
@@ -584,6 +593,18 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const node = new vscode.TreeItem(text, vscode.TreeItemCollapsibleState.None);
         node.contextValue = 'message';
         return node;
+    }
+
+    /**
+     * Tag an archived subtree so menus can gate on it: top-level archived items get
+     * contextValue 'archived' (only Restore + Delete apply); every descendant gets
+     * 'archived-child' (no actions — you restore/delete the whole archived unit).
+     * The node's weaveId/threadId/doc are left intact so the commands can act.
+     */
+    private tagArchived(node: TreeNode, isTop: boolean): TreeNode {
+        const tagged: TreeNode = { ...node, contextValue: isTop ? 'archived' : 'archived-child' };
+        if (node.children) tagged.children = (node.children as TreeNode[]).map(c => this.tagArchived(c, false));
+        return tagged;
     }
 
     private createWeaveNode(weave: Weave, isArchived = false): TreeNode {

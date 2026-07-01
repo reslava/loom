@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 33
+last_ai_block: 35
 ---
 # Loom entities CRUD Chat
 
@@ -632,3 +632,27 @@ Done — build + full `test-all` green + vscode typecheck clean.
 Remaining surface is exactly what we agreed: rename doc (title) · reference file-slug rename · rename weave/thread (folder) · move thread→weave · archive · delete. Committing now.
 
 Next: commit; then a Reload-Window retest of these four, and the fresh-session tail (run `migrate-layout` on this repo + spin `Migration, clean legacy read`).
+
+## Rafa:
+
+All working!
+
+Some little tweaks to fully refine CRUD:
+1. I can Arhive a reference doc, appears in tree under `Archive/Refs/loose fibers/` (loose fibers is not needed and shouldn' appears) but when it is archived there is no option to restore it.
+2. under `Archive`, extension should only show these 2 options for `threads` nodes, or reference docs:
+  - restore from Archive
+  - delete
+  Currently shows a bunch of options that are confusing. Also renaming and others fails and have no sense. Better simplify archived stuff can only be restored or deleted, agree?
+3. When a reference doc is created its add -reference sufix to the filename. But new `Reename file...` is nt adding the sufix.
+
+## AI:
+
+All three refined — build + full `test-all` green + vscode typecheck clean.
+
+1. **Archived reference: no more "Refs / Loose Fibers" wrapper, and it's restorable + deletable.** Root cause: archiving a `loom/refs/…` ref moves it to `loom/.archive/refs/`, which `getState` was loading as an archived *weave* (hence the nesting). Now the Archive section **flattens a container-only archived weave** (no real threads) into its docs, so each archived ref shows as its own top-level archived item. Delete of an archived doc goes by `archivedRelPath` (archived docs aren't in the live index) — mirror of restore; `removeItem` + `loom_delete` gained that path (guarded to `.archive/`).
+2. **Archived items now show only Restore + Delete.** The archive subtree is tagged: top-level items get `contextValue: archived` (Restore + Delete only), descendants get `archived-child` (no actions). Every other action's `when`-clause simply doesn't match `archived`, so rename/markDone/archive/etc. vanish there — you restore or delete the whole archived unit, as you said. (Also fixed: Restore was wrongly showing on *live* threads — its `when` was `/^(weave-archived|thread)/`; now `viewItem == archived`.)
+3. **`Rename File…` adds the `-reference` suffix** to match creation: `renameDocFile` now produces `{slug}-reference.md` and stores the bare `slug` in frontmatter (trailing "reference" stripped, like `loom_create_reference`). Test updated.
+
+Committing now.
+
+Next: commit; then Reload-Window retest of these three. After that, the only tail left is the fresh-session `migrate-layout` run + the `Migration, clean legacy read` thread.

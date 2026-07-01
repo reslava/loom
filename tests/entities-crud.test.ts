@@ -113,14 +113,15 @@ async function run() {
     console.log('  • renameDocFile: reference slug rename, refuses non-reference...');
     {
         const root = await freshRoot();
-        await writeDoc(path.join(root, 'loom', 'refs', 'old-slug.md'), { type: 'reference', id: 'rf_1', title: 'R', slug: 'old-slug' });
+        await writeDoc(path.join(root, 'loom', 'refs', 'old-slug-reference.md'), { type: 'reference', id: 'rf_1', title: 'R', slug: 'old-slug' });
         await writeDoc(path.join(root, 'loom', 'wv', 'th', 'idea.md'), { type: 'idea', id: 'id_1', title: 'I' });
 
-        await renameDocFile({ id: 'rf_1', newSlug: 'new-slug' }, deps(root));
-        assert(await exists(root, 'loom/refs/new-slug.md'), 'reference renamed to new-slug.md');
-        assert(!(await exists(root, 'loom/refs/old-slug.md')), 'old slug gone');
-        const ref = await loadDoc(path.join(root, 'loom/refs/new-slug.md')) as any;
-        assert(ref.slug === 'new-slug', 'slug frontmatter updated in lockstep');
+        // newSlug carries a trailing "reference" — it must be stripped, and the filename gets the -reference suffix.
+        await renameDocFile({ id: 'rf_1', newSlug: 'new-slug-reference' }, deps(root));
+        assert(await exists(root, 'loom/refs/new-slug-reference.md'), 'reference renamed to new-slug-reference.md');
+        assert(!(await exists(root, 'loom/refs/old-slug-reference.md')), 'old slug gone');
+        const ref = await loadDoc(path.join(root, 'loom/refs/new-slug-reference.md')) as any;
+        assert(ref.slug === 'new-slug', 'slug frontmatter holds the bare slug (no -reference)');
         assert(ref.id === 'rf_1', 'ULID id unchanged');
 
         let threw = false;
@@ -144,7 +145,17 @@ async function run() {
         let threw = false;
         try { await removeItem({ weaveId: 'ghost' }, rmDeps); } catch { threw = true; }
         assert(threw, 'removeItem throws when neither live nor archived exists');
-        console.log('    ✅ archived delete works, absent target still throws');
+
+        // archivedRelPath: delete an archived doc by its path under .archive/ (mirror of restore).
+        await writeDoc(path.join(root, 'loom', '.archive', 'refs', 'x-reference.md'),
+            { type: 'reference', id: 'rf_a', title: 'X', slug: 'x' });
+        await removeItem({ archivedRelPath: 'refs/x-reference.md' }, rmDeps);
+        assert(!(await exists(root, 'loom/.archive/refs/x-reference.md')), 'archived doc deleted by relPath');
+        // path-escape guard
+        threw = false;
+        try { await removeItem({ archivedRelPath: '../../etc/passwd' }, rmDeps); } catch { threw = true; }
+        assert(threw, 'removeItem refuses an archivedRelPath escaping .archive');
+        console.log('    ✅ archived delete (folder + relPath) works, guards hold');
     }
 
     await fs.remove(TMP);

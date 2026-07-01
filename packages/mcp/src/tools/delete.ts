@@ -12,6 +12,7 @@ export const toolDef = {
             id: { type: 'string', description: 'Document id to delete (mutually exclusive with weaveId)' },
             weaveId: { type: 'string', description: 'Weave to delete (whole folder), or the weave of the thread to delete' },
             threadId: { type: 'string', description: 'Thread to delete (requires weaveId)' },
+            archivedRelPath: { type: 'string', description: 'Path (relative to loom/.archive/) of an archived doc to permanently delete' },
         },
         required: [],
     },
@@ -21,8 +22,11 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const id = args['id'] as string | undefined;
     const weaveId = args['weaveId'] as string | undefined;
     const threadId = args['threadId'] as string | undefined;
+    const archivedRelPath = args['archivedRelPath'] as string | undefined;
 
-    const input: RemoveInput = id
+    const input: RemoveInput = archivedRelPath
+        ? { archivedRelPath }
+        : id
         ? { id }
         : { weaveId: weaveId as string, threadId };
 
