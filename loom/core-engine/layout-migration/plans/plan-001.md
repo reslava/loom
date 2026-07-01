@@ -2,8 +2,9 @@
 type: plan
 id: pl_01KWFV9Q23TPHFTAG1FM0AQFPR
 title: Run migrate-layout — flatten to canonical filenames
-status: active
+status: implementing
 created: 2026-07-01
+updated: 2026-07-01
 version: 1
 design_version: 1
 tags: []
