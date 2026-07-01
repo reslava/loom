@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 40
+last_ai_block: 45
 ---
 # Loom entities CRUD Chat
 
@@ -733,3 +733,97 @@ Done — references (and refs chats) are archivable again, as their own atomic u
 Committing. This should be the last archive gap.
 
 Next: commit; Reload-Window retest (archive a reference + a refs chat, restore, delete). Then the fresh-session tail (`migrate-layout` + `Migration, clean legacy read`).
+
+## Rafa:
+
+Test done, working!
+
+Refresh me how are going to do the fresh-session tail (`migrate-layout` + `Migration, clean legacy read`).
+
+## AI:
+
+Here's the tail, refreshed. Two separate pieces — **A** is a one-shot chore, **B** is its own thread of work.
+
+### A. Run `migrate-layout` on this repo — a *fresh* session
+
+**Why fresh:** the migration renames this repo's own docs, including *this* thread's active plan (`…-plan-001.md`) and *this* chat (`…-chat-001.md`). If we run it mid-session it renames the files under our own feet. So: finish/close this chat, start a clean session, then:
+
+1. `git status` clean first (everything committed; ideally this chat closed).
+2. `loom migrate-layout --dry-run` → **review the full rename list** (nothing moves yet).
+3. `loom migrate-layout` → execute. It renames, across every thread:
+   - `{thread}-idea.md`→`idea.md`, `{thread}-design.md`→`design.md`
+   - `{thread}-plan-NNN.md`→`plan-NNN.md`, done docs →`plan-NNN-done.md`
+   - `{thread}-chat-NNN.md` / `{thread}.md`→`chat-NNN.md`
+   - `loom/refs/*` unchanged.
+   Rename-only (zero content rewrites), idempotent, collision-safe.
+4. `./scripts/test-all.sh` → green confirms everything still loads (now via the new canonical names).
+5. Review `git diff --stat` (should be pure renames, no content deltas) and commit: `chore: migrate-layout — flatten to canonical filenames`.
+
+That's it for A — one command, one commit. Dual-read means nothing breaks during or after.
+
+### B. `Migration, clean legacy read` — a new thread (later)
+
+Once repos are on the new names, the dual-read scaffolding (transition strategy A) can go. This is real work, so it gets its own idea→design→plan thread:
+
+1. **Remove the legacy-name branches** from every dual-read site (loadThread idea/design, req + parentDesign/parentIdea lookups, promote guards, done-doc dual-read, and the legacy tolerance in `docNaming`'s recognizers).
+2. **Rename the `weave.looseFibers` field** (its old "weave-root docs" meaning) → an accurate name like `weaveRootDocs`, across core/fs/app/vscode — the terminology collision we noted (loose fiber = graph position, not location).
+3. **The one real decision for that thread:** dropping dual-read is a *breaking change* for any un-migrated repo (chord-flow, loom-flow, installed users). So decide: **(a)** auto-run `migrate-layout` on `loom` upgrade, then drop dual-read; or **(b)** keep dual-read forever as cheap back-compat and only do the field rename. That choice drives the whole thread.
+
+### Housekeeping before A
+This plan is 8/9 (step 8 = re-enable gate = won't-do, your call). I'd mark step 8 cancelled and `loom_close_plan` so the thread reads as done, then close this chat — clean slate for the fresh session.
+
+Want me to do the housekeeping (cancel step 8 + close the plan) now, so you can start the fresh session for A whenever?
+
+Next: on your word, cancel step 8 + close the plan; then A runs in a fresh session, B is a new thread later.
+
+## Rafa:
+
+This is my plan:
+
+Do houskeeping
+
+### A. Run `migrate-layout` on this repo — a *fresh* session
+
+Spin up a thread, idea and plan with instructions for yourself to do the 5 steps
+I prefer you verify migration is done properly, there are a lot of documents to be renamed
+Then I will "copy" the thread to project Chord Flow and ping you there to do the migration and verify it
+
+### B. `Migration, clean legacy read` — a new thread (later)
+
+Spin up a thread, idea  with instructions for yourself
+note: I have no Loom feedback yet, so after after a reasonable period of time we will clean dual-read from legacy-read, no users means no breaking change
+
+commit
+
+then I will start a fresh session and ping you to read thread A. 
+
+### Question
+
+Do you agree with the plan, or have a better approach?
+
+## AI:
+
+Agree — and your version is better than mine: making thread A a **portable runbook I execute + verify** (then reuse verbatim on Chord Flow) is the right shape. Four additive refinements, then I'll set it up:
+
+1. **Thread A written repo-agnostic.** `loom migrate-layout` is a `loom` CLI command available in any installed repo, so the idea/plan avoid loom-repo specifics — copy the thread to Chord Flow and the same steps apply.
+2. **Strong verification (the part you care about), as explicit plan steps.** Not just "test-all green" — for a mass rename I'll assert: `git diff --stat` shows **only renames, zero content deltas**; the count of `.md` files under `loom/` is **unchanged** (nothing lost or duplicated); `loom validate` is **clean** (proves the ULID cross-reference graph survived — the real safety net); then `test-all` green.
+3. **Self-test note baked in:** migrate-layout will rename thread A's *own* plan + chat mid-run — that's expected and is itself a good signal the migration handles live docs. Read the plan first, then run.
+4. **Thread B:** agree — no users = no breaking change, so the plan is settled: after both repos are migrated + a short settling period, we just **remove** dual-read (no auto-migrate-on-upgrade needed). B's idea will carry the full site-map of dual-read branches to delete + the `weave.looseFibers`→`weaveRootDocs` rename, and the trigger condition.
+
+Executing now: housekeeping (cancel step 8 + close this plan) → create thread A (idea + plan) → create thread B (idea) → commit. Then you start a fresh session and ping me on thread A.
+
+Next: setting up threads A & B + closing this plan, then committing.
+
+## AI:
+
+Setup done — ready for the fresh session.
+
+- **Housekeeping:** dropped the won't-do gate step and **closed this plan** (8/8; the gate decision is recorded in the done doc + design). This entities-crud thread is complete.
+- **Thread A — `core-engine/layout-migration`:** idea + `plan-001` (the 5-step runbook: precondition → dry-run+review → execute → **rigorous verify** (git-diff-only-renames, .md-count-unchanged, `loom validate` clean, test-all) → commit). Written repo-agnostic so you can copy it to Chord Flow.
+- **Thread B — `core-engine/clean-legacy-read`:** idea only (plan later). Carries the full map of dual-read sites to strip + the `weave.looseFibers`→`weaveRootDocs` rename + the settled trigger (no users → just remove dual-read after both repos migrate).
+
+Nice dogfood: all three new docs were born on the **new flat scheme** (`idea.md`, `plan-001.md`) — the live tools are already writing canonical names; migrate-layout just brings the *old* docs into line.
+
+Committing now. Then: **start a fresh session and ping me to read `core-engine/layout-migration`**, and I'll run + verify the migration on this repo.
+
+Next: commit; hand off to the fresh session for thread A.

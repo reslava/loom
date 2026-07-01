@@ -4,7 +4,7 @@ id: pl_01KWEHB46B8AKB9WNRZCFYZ4RV-done
 title: Done — Loom entities CRUD
 status: done
 created: 2026-07-01
-version: 7
+version: 8
 tags: []
 parent_id: pl_01KWEHB46B8AKB9WNRZCFYZ4RV
 requires_load: []
@@ -107,3 +107,9 @@ Tests + build + live verification.
 - **Live smoke test through the reconnected MCP server:** `loom_move_doc` on the design (de_…, which has the plan as a child) correctly refused with "it has 1 child doc(s)… move the whole thread" — the new tool is wired and the guard fires end-to-end (no mutation on the refusal path).
 
 Not covered by automated tests (needs a live VS Code Reload Window): the extension F2/menu/drag-drop UX from Step 7 — to be exercised in the live-verification session, along with the deferred drag-and-drop.
+
+## Closing notes
+
+Plan complete. The originally-planned "re-enable the MCP gate" step was intentionally dropped (won't-do): investigation found no strong motive — the gate is dev-only (not shipped by `loom install`), guards a failure mode (direct Edit/Write to loom docs) that hasn't occurred, and doesn't even cover the new folder/move operations. It stays off per Rafa's decision.
+
+The design evolved materially during live testing and is recorded in the design doc: move-doc was dropped (a thread is the atomic, indivisible unit — docs never move between threads); archive/restore/delete became thread/weave-atomic with `loom/refs` as the one individually-archivable exception; plus serializer scalar-title quoting, F2 dispatch, draft-rename, drag-and-drop (thread→weave), and archive-lifecycle fixes. Follow-on work lives in two new threads: `layout-migration` (run migrate-layout on this repo + Chord Flow) and `clean-legacy-read` (drop dual-read + rename weave.looseFibers, after repos migrate).

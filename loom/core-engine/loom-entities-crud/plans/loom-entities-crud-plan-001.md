@@ -2,11 +2,11 @@
 type: plan
 id: pl_01KWEHB46B8AKB9WNRZCFYZ4RV
 title: Loom entities CRUD
-status: implementing
+status: done
 created: 2026-07-01
 updated: 2026-07-01
 version: 2
-design_version: 6
+design_version: 8
 tags: []
 parent_id: de_01KWEGNABRHPMVY50E6DGRX4WQ
 requires_load: []
@@ -61,15 +61,8 @@ steps:
     files_touched: [packages/vscode/src/commands/rename.ts, packages/vscode/package.json, packages/vscode/src/tree/treeProvider.ts]
     blocked_by: [mcp-tools-for-entity-crud]
     satisfies: []
-  - id: re-enable-mcp-gate
-    order: 8
-    status: pending
-    description: Confirm why the gate was disabled (fix the offending path if it was firing legitimately), then re-enable it by renaming .claude/settings.jsonDISABLED → .claude/settings.json. The loom-mcp-gate.ps1 script is intact.
-    files_touched: [.claude/settings.json]
-    blocked_by: []
-    satisfies: []
   - id: tests-build
-    order: 9
+    order: 8
     status: done
     description: Add tests for filename/ordinal derivation, migrate-layout --dry-run, and the moveDoc loose-fiber/slot guards; then run build-all and test-all and fix fallout.
     files_touched: [tests/entities-crud.test.ts, scripts/build-all.sh, scripts/test-all.sh]
@@ -95,8 +88,7 @@ Implement container-aware CRUD for Loom entities per the design. Weaves and thre
 | ✅ | 5 | Add moveDoc(id, toWeaveId, toThreadId) that hard-refuses when the doc has a parent_id or children, or when the destination singleton slot (idea/design) is occupied; and renameDocFile(id, newSlug) guarded to type:reference. | packages/app/src/moveDoc.ts, packages/app/src/renameDocFile.ts, packages/app/src/index.ts | canonical-filename-module | — |
 | ✅ | 6 | Expose the new app use-cases as thin MCP tools: loom_rename_weave, loom_rename_thread, loom_move_thread, loom_move_doc, loom_rename_doc_file; register them so the auto-generated loom://catalog picks them up. loom_rename stays title-only. | packages/mcp/src/tools/renameWeave.ts, packages/mcp/src/tools/renameThread.ts, packages/mcp/src/tools/moveThread.ts, packages/mcp/src/tools/moveDoc.ts, packages/mcp/src/tools/renameDocFile.ts, packages/mcp/src/tools/index.ts | app-weave-thread-folder-crud, app-movedoc-reference-renamedocfile | — |
 | ✅ | 7 | Fix the mis-wired rename: F2 renames doc title vs weave/thread folder by node kind; add a reference-only 'Rename file' action; add drag-and-drop (thread→weave = loom_move_thread, loose-fiber doc→thread = loom_move_doc with rejection message); make the destructive tree action archive-first with a separate confirmed delete; fix package.json when-clauses. | packages/vscode/src/commands/rename.ts, packages/vscode/package.json, packages/vscode/src/tree/treeProvider.ts | mcp-tools-for-entity-crud | — |
-| 🔳 | 8 | Confirm why the gate was disabled (fix the offending path if it was firing legitimately), then re-enable it by renaming .claude/settings.jsonDISABLED → .claude/settings.json. The loom-mcp-gate.ps1 script is intact. | .claude/settings.json | — | — |
-| ✅ | 9 | Add tests for filename/ordinal derivation, migrate-layout --dry-run, and the moveDoc loose-fiber/slot guards; then run build-all and test-all and fix fallout. | tests/entities-crud.test.ts, scripts/build-all.sh, scripts/test-all.sh | canonical-filename-module, loom-migrate-layout-command, app-weave-thread-folder-crud, app-movedoc-reference-renamedocfile, mcp-tools-for-entity-crud | — |
+| ✅ | 8 | Add tests for filename/ordinal derivation, migrate-layout --dry-run, and the moveDoc loose-fiber/slot guards; then run build-all and test-all and fix fallout. | tests/entities-crud.test.ts, scripts/build-all.sh, scripts/test-all.sh | canonical-filename-module, loom-migrate-layout-command, app-weave-thread-folder-crud, app-movedoc-reference-renamedocfile, mcp-tools-for-entity-crud | — |
 ---
 
 ### Legend
