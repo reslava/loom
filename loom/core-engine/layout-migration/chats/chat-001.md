@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 4
+last_ai_block: 5
 ---
 # layout-migration Chat
 
@@ -120,3 +120,22 @@ Migration complete — all 5 plan steps done, both commits landed.
 **One open item:** this plan is still `implementing` with 5 pending steps — functionally all done. Want me to formally mark the 5 steps ✅ and close the plan (a few `loom_complete_step` calls + `loom_close_plan`, one small follow-up commit)? Left it untouched since your last instruction was scoped to committing the renames.
 
 Next: waiting on whether to close out the plan.
+
+## AI:
+
+## Thread summary — layout-migration (closed)
+
+**Outcome:** the whole repo is on the canonical flat filename scheme, and the `migrate-layout` command that got us there is now genuinely collision-safe (reusable verbatim on Chord Flow).
+
+**The detour that mattered:** the plan assumed a safe one-shot run, but step 2's dry-run caught 6 collision groups — legacy threads holding multiple `{slug}-plan-001` docs that would have collapsed onto one canonical name (17 docs → 6 targets; a hard `fs.move` error mid-run leaving a half-migrated tree). So step 3 became "fix the command first": a collision-aware per-thread renumber (distinct ordinals + gaps preserved, only colliding extras bumped; done docs mirror their parent plan's new ordinal), plus an audit log at `.loom/cache/migrate-layout.log`. Fixing the generator instead of hand-renaming around it kept the runbook honest.
+
+**Shipped (3 code + 3 loom commits):**
+- `fix:` collision-aware renumber + audit log (`packages/app`, `packages/cli`, regression test).
+- `chore:` migrate-layout run — **395 renames, 0 insertions / 0 deletions**.
+- close-out: idea done, this chat, plan steps ✅.
+
+**Verification (step 4, all green):** renames-only diff · 582 `.md` count held · ULID graph intact (no broken parent/child/steps-table; `loom validate` total unchanged at 201 pre-existing legacy items) · `test-all` green · `loom status` clean.
+
+**Carried forward:** two already-broken legacy blockers changed error category (`unknown blocker format` → `blocked by missing plan`) as their targets were renamed — noise owned by `plan-blockedby-id-normalization`. And the `clean-legacy-read` thread can now proceed to drop the dual-read scaffolding, since every doc is on the new names.
+
+Plan status: **done**. 🧵
