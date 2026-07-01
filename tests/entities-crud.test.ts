@@ -10,8 +10,8 @@ import {
 import { loadDoc, saveDoc, buildLinkIndex, resolveDocIdOrThrow } from '../packages/fs/dist/index.js';
 import { renameWeave } from '../packages/app/dist/weave.js';
 import { renameThread, moveThread } from '../packages/app/dist/thread.js';
-import { moveDoc } from '../packages/app/dist/moveDoc.js';
 import { renameDocFile } from '../packages/app/dist/renameDocFile.js';
+import { removeItem } from '../packages/app/dist/remove.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-entities-crud-tests');
 
@@ -109,44 +109,6 @@ async function run() {
         console.log('    ✅ folder ops correct + guarded');
     }
 
-    // ── moveDoc: loose-fiber guard ───────────────────────────────────────────
-    console.log('  • moveDoc: loose-fiber-only, slot + parent/child guards...');
-    {
-        const root = await freshRoot();
-        // Source thread: idea (parent of design), a standalone loose idea in another thread, a chat.
-        await writeDoc(path.join(root, 'loom', 'wv', 'src', 'idea.md'), { type: 'idea', id: 'id_parent', title: 'P' });
-        await writeDoc(path.join(root, 'loom', 'wv', 'src', 'design.md'), { type: 'design', id: 'de_child', title: 'D', parent_id: 'id_parent' });
-        await writeDoc(path.join(root, 'loom', 'wv', 'loose', 'idea.md'), { type: 'idea', id: 'id_loose', title: 'L' });
-        await writeDoc(path.join(root, 'loom', 'wv', 'loose', 'chats', 'chat-001.md'), { type: 'chat', id: 'ch_1', title: 'C' });
-        await fs.ensureDir(path.join(root, 'loom', 'wv', 'dest'));
-
-        // idea with a child → refuse
-        let threw = false;
-        try { await moveDoc({ id: 'id_parent', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
-        assert(threw, 'moveDoc refuses a doc with children');
-
-        // design with a parent → refuse
-        threw = false;
-        try { await moveDoc({ id: 'de_child', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
-        assert(threw, 'moveDoc refuses a doc with a parent');
-
-        // loose idea → moves into dest as idea.md
-        const r1 = await moveDoc({ id: 'id_loose', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root));
-        assert(await exists(root, 'loom/wv/dest/idea.md'), 'loose idea moved to dest/idea.md');
-        assert(r1.to.endsWith('dest/idea.md'), 'reports new path');
-
-        // second loose idea into the now-occupied slot → refuse
-        await writeDoc(path.join(root, 'loom', 'wv', 'loose2', 'idea.md'), { type: 'idea', id: 'id_loose2', title: 'L2' });
-        threw = false;
-        try { await moveDoc({ id: 'id_loose2', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root)); } catch { threw = true; }
-        assert(threw, 'moveDoc refuses when destination idea slot is taken');
-
-        // chat → moves into dest/chats with a fresh ordinal
-        await moveDoc({ id: 'ch_1', toWeaveId: 'wv', toThreadId: 'dest' }, deps(root));
-        assert(await exists(root, 'loom/wv/dest/chats/chat-001.md'), 'chat moved into dest/chats with fresh ordinal');
-        console.log('    ✅ moveDoc guards + moves correct');
-    }
-
     // ── renameDocFile: reference only ────────────────────────────────────────
     console.log('  • renameDocFile: reference slug rename, refuses non-reference...');
     {
@@ -165,6 +127,24 @@ async function run() {
         try { await renameDocFile({ id: 'id_1', newSlug: 'nope' }, deps(root)); } catch { threw = true; }
         assert(threw, 'renameDocFile refuses a non-reference doc');
         console.log('    ✅ renameDocFile correct');
+    }
+
+    // ── removeItem: deletes an archived folder via the .archive fallback ─────
+    console.log('  • removeItem: deletes an archived folder (loom/.archive fallback)...');
+    {
+        const root = await freshRoot();
+        // Only the archived mirror exists — no live loom/we2.
+        await writeDoc(path.join(root, 'loom', '.archive', 'we2', 'th', 'thread.md'),
+            { type: 'thread', id: 'th_a', title: 'T', priority: 1000, depends_on: [] });
+        const rmDeps = { getActiveLoomRoot: () => root, resolveDocIdOrThrow, fs };
+        const res = await removeItem({ weaveId: 'we2' }, rmDeps);
+        assert(res.removed.includes('.archive'), 'delete targeted the archived path');
+        assert(!(await exists(root, 'loom/.archive/we2')), 'archived weave folder removed');
+        // A truly-absent target still throws.
+        let threw = false;
+        try { await removeItem({ weaveId: 'ghost' }, rmDeps); } catch { threw = true; }
+        assert(threw, 'removeItem throws when neither live nor archived exists');
+        console.log('    ✅ archived delete works, absent target still throws');
     }
 
     await fs.remove(TMP);

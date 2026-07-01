@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 29
+last_ai_block: 33
 ---
 # Loom entities CRUD Chat
 
@@ -565,3 +565,70 @@ Fixed — all from your live testing, built + full `test-all` green + vscode typ
 Committing these now as one "live-test fixes" commit.
 
 Next: commit; then please Reload Window + retest (F2 rename incl. a numeric title, draft rename, drag-and-drop thread→weave and loose-fiber→thread).
+
+## Rafa:
+
+Looks all working.
+
+Some little issues:
+1. Deleting an archived doc fails:
+  `Delete failed: MCP error -32603: Nothing to delete at loom\we2.` looks in the not archived path
+2. Archive an already archived doc is an allowed option and it shouldn't. Fails same than 1.   
+3. F2 with `Chats` tree node selected still fires old rename command asking first for Doc ID. This command should not be fired more.
+4. If I move a lose-fiber idea and a lose-fiber design to an empty thread loom should assign design.parent_id: idea.id, and this is really weird. 
+
+Maybe,
+- we are over-complicating Loom by allowing too many moving operations? 
+- is enough with renaming and moving threads?
+
+What do you think?
+
+## AI:
+
+You're right, and issue #4 is the tell. Let me answer the design question first, then the bugs.
+
+### Are we over-complicating with move-doc? Yes — I'd drop it.
+
+I agree. `loom_move_doc` (moving a loose fiber between threads) is the one operation that doesn't compose cleanly, and #4 proves it:
+
+- A thread isn't a bag of docs — it's a **chain** (idea → design → plan → done) held by `parent_id`. Moving a loose idea and a loose design into one thread leaves them **unlinked** (both `parent_id: null`). To make the thread coherent you'd have to *auto-write* `design.parent_id = idea.id` on move — which, as you say, is weird: a move silently rewriting the graph. The alternative (leave them unlinked) is an incoherent thread. Either way it's bad.
+- It's also **rare**: since we made weaves contain only threads, every idea/design already lives in a thread. A "loose fiber to relocate" is niche, and the clean way to relocate real work is **move the whole thread** (the chain travels intact by construction — that's the operation that actually composes).
+- It cost the most surface: the loose-fiber-move machinery, parent/child guards, singleton-slot-on-move checks, the doc→thread DnD, and #4.
+
+**Recommendation — the CRUD surface becomes:**
+- **Rename** a doc (title only) · reference file-slug rename · **rename** weave/thread (folder) · **move** thread → weave · archive · delete.
+- **Drop:** `loom_move_doc` (app + MCP tool), the loose-fiber move guards, and the loose-fiber→thread drag-and-drop. Keep the *loose fiber concept* (a childless/parentless doc) as vocabulary — we just don't offer an operation that tries to move one across threads.
+
+That kills #4 entirely and shrinks the model to exactly your "renaming + moving threads is enough." I'd keep thread→weave DnD (it composes) and remove only the doc→thread DnD.
+
+If you agree, I'll remove move-doc in the same pass as the bug fixes.
+
+### The three bugs (real regardless of the above)
+
+1. **Delete/archive of an *archived* item hits the live path** (`Nothing to delete at loom\we2`). The archive/delete resolution builds the `loom/{weave}` path and ignores that the item lives under `loom/.archive/`. Fix: resolve archived targets under `.archive/` (the tool needs to detect/accept the archived location).
+2. **Archive offered on already-archived items** — the `when`-clause for `loom.archive` includes archived viewItems; it should exclude them (and archiving-an-archive should refuse). Restore should be the only lifecycle action on an archived node.
+3. **F2 on a section node** (`Chats`, `Plans`, …) fires the doc-rename → asks for an id. `renameCommand` must **guard to renamable kinds only** (weave / thread / a node with `doc.id`); on a section/summary node it should no-op (and ideally the keybinding/menu `when` excludes sections). This is a clean guard I'll add.
+
+So the plan: **(a)** guard renameCommand to renamable kinds (#3), **(b)** fix archived-path resolution for delete/archive + hide archive on archived nodes (#1, #2), **(c)** remove `loom_move_doc` + doc→thread DnD + loose-fiber move machinery (#4 + simplification) — pending your yes.
+
+Next: your call on dropping move-doc; then I fix #1–#3 and (if yes) remove move-doc, in one pass.
+
+## Rafa:
+
+Glad we agree. Drop move-doc. A `thread` is the minimal atomic unit of information and is not a doc is a chain, so it is indivisible.
+Go
+
+## AI:
+
+Done — build + full `test-all` green + vscode typecheck clean.
+
+**Simplification: move-doc removed.** A thread is the atomic, indivisible unit, so docs never move between threads. Deleted the `loom_move_doc` MCP tool + the `moveDoc` app use-case + its test, and stripped the loose-fiber→thread branch from the DnD controller (thread→weave drag stays). The design doc now records this as a superseding decision ("Move rules — the thread is the atomic unit"). #4 is gone by construction.
+
+**Three bugs fixed:**
+1. **Delete of an archived item hit the live path.** `removeItem` now targets `loom/.archive/{…}` when the live folder is absent (and still throws only when neither exists). Regression test added.
+2. **Archive offered on already-archived nodes.** The `loom.archive` menu `when`-clause now excludes `-archived` viewItems; and `archiveItem` gives a clear "'…' is already archived" error if it's ever reached.
+3. **F2 on a section node (`Chats`, `Plans`, …) fired the doc rename.** `renameCommand` now guards to renamable kinds only (weave / thread / a node with `doc.id`); section/summary nodes no-op with a hint instead of prompting for an id.
+
+Remaining surface is exactly what we agreed: rename doc (title) · reference file-slug rename · rename weave/thread (folder) · move thread→weave · archive · delete. Committing now.
+
+Next: commit; then a Reload-Window retest of these four, and the fresh-session tail (run `migrate-layout` on this repo + spin `Migration, clean legacy read`).

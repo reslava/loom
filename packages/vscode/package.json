@@ -786,7 +786,7 @@
         },
         {
           "command": "loom.archive",
-          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|chat|done|ctx|loose|reference)/",
+          "when": "view == loom.threads && viewItem =~ /^(weave|thread|idea|design|chat|done|ctx|loose|reference)/ && !(viewItem =~ /-archived/)",
           "group": "edit@4"
         },
         {

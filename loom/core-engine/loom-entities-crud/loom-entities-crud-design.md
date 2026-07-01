@@ -5,7 +5,7 @@ title: Loom entities CRUD
 status: done
 created: 2026-07-01
 updated: 2026-07-01
-version: 4
+version: 6
 tags: []
 parent_id: null
 requires_load: []
@@ -62,17 +62,16 @@ Enforced invariants:
 
 **Derivation is currently split across disagreeing sites** — a root cause this design also fixes. `docPathInThread` in `packages/fs/src/repositories/threadRepository.ts` (the `switch`, ~lines 114–126) is only a **fallback**: `saveThread` uses `doc._path ?? docPathInThread(...)`, and the per-type MCP *create* tools compute their own filenames. That's why the switch says `${doc.id}.md` for plan/done/chat while the files on disk are actually `{threadId}-plan-NNN.md`, and why done naming drifted over time (`{planULID}-done.md` vs legacy `{threadId}-plan-NNN.md`). Step 1 **unifies all derivation into one naming module** so there is a single source of truth. The tree infers doc *type* from a filename token (`idea`/`design`/`plan`/`chat`/`done`), so every new name preserves one (`plan-NNN`, `plan-NNN-done`, `chat-NNN`, `idea`, `design`) — the inference keeps working.
 
-## Loose fibers & move rules
+## Move rules — the thread is the atomic unit
 
-A **loose fiber** is redefined as a **graph position, not a location**: a doc with **no parent and no children** — i.e. not yet woven into the thread's `idea → design → plan → done` chain. (The old "doc at weave root" meaning is retired; weave-root docs no longer exist.)
+> **Decision (supersedes the original loose-fiber move design):** a **thread is the minimal, indivisible unit of information** — it is a chain (`idea → design → plan → done`), not a bag of docs. Therefore **docs never move between threads.** Moving individual docs (`loom_move_doc`) was implemented and then **dropped**: it doesn't compose (assembling a chain by moving two loose fibers leaves them unlinked, or forces a move to silently rewrite `parent_id` — both wrong), it's rare (weaves contain only threads, so every doc already lives in one), and it added the most surface for the least value.
 
-Move rules:
-- **Move a thread between weaves** — always allowed. The folder moves as a unit; the `th_` ULID travels with it, so `depends_on` edges survive and the whole chain stays intact by construction.
-- **Move a single doc between threads** — allowed **only if the doc is a loose fiber** (no parent, no children). In practice that is a standalone `idea` or `design` (plans/dones always have a parent; ideas are roots so an idea is movable iff childless; a design is movable iff it has neither an idea-parent nor plan-children). This automatically enforces "if the thread has a req/plan, its idea/design are anchors → not movable".
-- **Destination precondition:** singleton slot must be free — cannot move an `idea` into a thread that already has `idea.md`. (Naturally enforced by flat singleton filenames.)
-- **Developed chains never move piecemeal** — move the thread.
+- **Move a thread between weaves** — the only cross-container move. The folder moves as a unit; the `th_` ULID travels with it, so `depends_on` edges survive and the whole chain stays intact by construction.
+- **Docs are never moved across threads.** To relocate work, move the whole thread.
 
-This keeps the graph honest: no dangling `parent_id`, no dangling `child_ids`, ever.
+The **loose fiber** term is retained only as vocabulary — a doc with **no parent and no children** (a graph position, not a location) — but there is no operation that moves one between threads.
+
+This keeps the graph honest: no dangling `parent_id`, no dangling `child_ids`, ever — because a chain only ever moves whole.
 
 ## MCP tool surface
 
@@ -81,9 +80,10 @@ Existing and reused: `loom_create_weave`, `loom_create_thread`, `loom_archive` (
 New tools (thin, `fs`-shaped, server-side):
 - `loom_rename_weave({ weaveId, newWeaveId })` — rename the weave folder.
 - `loom_rename_thread({ weaveId, threadId, newThreadId })` — rename the thread folder (slug); leaves `thread.md` ULID + docs untouched.
-- `loom_move_thread({ fromWeaveId, threadId, toWeaveId })` — move a thread folder to another weave.
-- `loom_move_doc({ id, toWeaveId, toThreadId })` — move a loose fiber to another thread; **refuses** if the doc has a parent or children, or if the destination singleton slot is occupied.
+- `loom_move_thread({ fromWeaveId, threadId, toWeaveId })` — move a thread folder to another weave (the only cross-container move).
 - `loom_rename_doc_file({ id, newSlug })` — reference-only filename slug rename (guarded to `type: reference`).
+
+(`loom_move_doc` was built then removed — see "Move rules" above.)
 
 `loom_rename` stays title-only (its documented contract). App use-cases mirror the tools (`renameWeave`, `renameThread`, `moveThread`, `moveDoc`) so the "all `loom/` mutation goes through app" seam holds; the tools are thin MCP wrappers.
 

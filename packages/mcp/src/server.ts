@@ -54,7 +54,6 @@ import * as rename from './tools/rename';
 import * as renameWeave from './tools/renameWeave';
 import * as renameThread from './tools/renameThread';
 import * as moveThread from './tools/moveThread';
-import * as moveDoc from './tools/moveDoc';
 import * as renameDocFile from './tools/renameDocFile';
 import * as findDoc from './tools/findDoc';
 import * as searchDocs from './tools/searchDocs';
@@ -124,7 +123,7 @@ export function createLoomMcpServer(root: string): Server {
 
     const TOOLS: GroupedTool[] = [
         ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat, createWeave]),
-        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, renameDocFile, moveDoc, createPromoteTool(server)]),
+        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, renameDocFile, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, recordRelease, doStep, appendDone, listPlanSteps]),

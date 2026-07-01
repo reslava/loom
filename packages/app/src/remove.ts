@@ -33,11 +33,18 @@ export async function removeItem(
     }
 
     if ('weaveId' in input && input.weaveId) {
-        const target = input.threadId
-            ? path.join(loomRoot, 'loom', input.weaveId, input.threadId)
-            : path.join(loomRoot, 'loom', input.weaveId);
-        if (!(await deps.fs.pathExists(target))) {
-            throw new Error(`Nothing to delete at ${path.relative(loomRoot, target)}.`);
+        const rel = input.threadId
+            ? path.join(input.weaveId, input.threadId)
+            : input.weaveId;
+        const live = path.join(loomRoot, 'loom', rel);
+        const archived = path.join(loomRoot, 'loom', '.archive', rel);
+        // Delete wherever the folder actually lives — an archived item is under
+        // loom/.archive/ mirroring its path, not the live tree.
+        const target = (await deps.fs.pathExists(live)) ? live
+            : (await deps.fs.pathExists(archived)) ? archived
+            : null;
+        if (!target) {
+            throw new Error(`Nothing to delete at ${rel} (checked live and .archive).`);
         }
         await deps.fs.remove(target);
         return { removed: target };

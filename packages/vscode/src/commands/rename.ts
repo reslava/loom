@@ -31,13 +31,15 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
             if (!newThreadId || newThreadId === threadId) return;
             const res = await mcp.callTool('loom_rename_thread', { weaveId, threadId, newThreadId }) as any;
             vscode.window.showInformationMessage(`🧵 Thread renamed → ${res.to}`);
-        } else {
-            const oldId = node?.doc?.id ?? await vscode.window.showInputBox({ prompt: 'Document ID to rename' });
-            if (!oldId) return;
-            const newTitle = await vscode.window.showInputBox({ prompt: 'New title', value: node?.doc?.title });
+        } else if (node?.doc?.id) {
+            const newTitle = await vscode.window.showInputBox({ prompt: 'New title', value: node.doc.title });
             if (!newTitle) return;
-            const res = await mcp.callTool('loom_rename', { oldId, newTitle }) as any;
+            const res = await mcp.callTool('loom_rename', { oldId: node.doc.id, newTitle }) as any;
             vscode.window.showInformationMessage(`✏️  Renamed to "${res.title}" (id unchanged: ${res.id})`);
+        } else {
+            // Section/summary/other nodes are not renamable — no-op (F2 lands here otherwise).
+            vscode.window.showInformationMessage('Select a weave, thread, or document to rename.');
+            return;
         }
         treeProvider.refresh();
     } catch (e: any) {

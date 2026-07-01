@@ -47,6 +47,11 @@ export async function archiveItem(
         throw new Error(`Cannot archive: ${source} is not inside loom/.`);
     }
     if (!(await deps.fs.pathExists(source))) {
+        // If the .archive mirror exists, the item is already archived — say so clearly.
+        const rel = source.slice(prefix.length);
+        if (await deps.fs.pathExists(path.join(loomDir, '.archive', rel))) {
+            throw new Error(`'${rel}' is already archived.`);
+        }
         throw new Error(`Nothing to archive at ${path.relative(loomRoot, source)}.`);
     }
 
