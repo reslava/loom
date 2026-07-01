@@ -2,13 +2,13 @@
 type: chat
 id: ch_01KWFVJ9CW7VMJ38HEH09M3B7P
 title: layout-migration Chat
-status: active
+status: done
 created: 2026-07-01
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 3
+last_ai_block: 4
 ---
 # layout-migration Chat
 
@@ -89,3 +89,34 @@ The command fix is a new deliverable, and the next actions are consequential/irr
 (And yeah — replying through a doc mid-task is clunky; noting that as a real dogfooding friction point.)
 
 **STOP — waiting for go.**
+
+## AI:
+
+Migration complete — all 5 plan steps done, both commits landed.
+
+**Two commits:**
+1. `fix:` migrate-layout collision-aware per-thread renumber + audit log (packages/app, packages/cli, tests, + this chat).
+2. `chore:` migrate-layout — flatten to canonical filenames — **395 files changed, 0 insertions / 0 deletions**, every rename 100% similarity.
+
+**Step 4 verification (all explicit results):**
+- **(a) renames only** — 395 renames, zero content hunks. ✓
+- **(b) count invariant** — 582 `.md` under `loom/` before and after. ✓
+- **(c) ULID graph intact** — no broken `parent_id`, no dangling `child_id`, no missing Steps table, no file-not-found. `loom validate` total is **201 both pre- and post-migration** — all pre-existing legacy noise (187 `blockedBy`-prose + ~10 stale plans, owned by `plan-blockedby-id-normalization`). The migration introduced **zero net new issues**; two already-broken legacy blockers (`vscode-extension-plan-008`, `vscode-tests-plan-001`) just changed error category from `unknown blocker format` → `blocked by missing plan` because their target files were renamed. Not new breakage. ✓
+- **(d) test-all** — green. ✓
+- **(e) loom status / state** — load clean. ✓
+
+**Collisions auto-renumbered (6 groups, nothing overwritten):**
+- `ai-integration/ai-integration/plans`: 2 → plan-001/002
+- `core-engine/core-engine/plans`: 3 @1 → plan-001/004/005 (distinct 002/003 preserved)
+- `core-engine/loom-state-entity/plans`: 2 → plan-001/002
+- `core-engine/app-layer-refactor/done`: 3 → plan-001..003-done
+- `core-engine/body-generators/done`: 5 → plan-001..005-done
+- `vscode-extension/vscode-extension/done`: 2 → plan-001/002-done
+
+3 docs skipped (legacy names with no parseable ordinal + dead parents — left untouched, nothing lost): the two `mvp-plan-to-publish-*` docs and `app-use-cases-completion-plan.md`.
+
+**Runbook note for Chord Flow:** the command is now collision-safe for real — same steps apply. Watch for the same auto-renumber on any thread that historically had multiple `{slug}-plan-001` docs; the audit log at `.loom/cache/migrate-layout.log` records exactly what moved.
+
+**One open item:** this plan is still `implementing` with 5 pending steps — functionally all done. Want me to formally mark the 5 steps ✅ and close the plan (a few `loom_complete_step` calls + `loom_close_plan`, one small follow-up commit)? Left it untouched since your last instruction was scoped to committing the renames.
+
+Next: waiting on whether to close out the plan.
