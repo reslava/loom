@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-07-02
+
+### Added
+- **Flat, human-readable document filenames.** Loom documents are now named by type — `idea.md`, `design.md`, `plans/plan-NNN.md`, `done/plan-NNN-done.md`, `chats/chat-NNN.md` (references keep their `{slug}.md`) — instead of thread-slug-prefixed names. Identity lives in the frontmatter ULID, so renaming a weave or thread folder rewrites no document content. A new **`loom migrate-layout`** command flattens an existing repo to the scheme — rename-only, `--dry-run`-capable, idempotent, and collision-safe (unique per-thread ordinals + an audit log when legacy names clash).
+- **Rename and move weaves & threads.** New MCP tools and VS Code actions treat weaves and threads as the folders they are: `loom_rename_weave`, `loom_rename_thread`, `loom_move_thread` (a thread moves whole between weaves — its stable `th_` id and `depends_on` edges travel with it), plus `loom_rename_doc_file` for a reference's filename slug. In the extension, **F2** renames by node kind (document title vs. weave/thread folder), with drag-and-drop (thread → weave) and archive-first delete.
+- **Cheaper session start.** A new lightweight project map — `loom://state?shape=summary` — replaces reading the full state graph just to learn what's active (this repo: 2.04 MB → 16.8 KB). `loom status` renders the same map.
+
+### Changed
+- **Archiving is thread/weave-atomic.** Archive / restore / delete now act on a whole thread (or weave) folder — a thread is an indivisible chain, not a bag of docs — which fixes the sub-thread archive bugs (mirrored partial paths, leftover empty folders, restore failures) by construction. References (which have no thread) remain the one exception and archive individually. Cross-thread `move-doc` was removed; to relocate work, move the whole thread.
+
+### Fixed
+- **Plan step `blockedBy` is stored as a stable step id, not a positional ordinal.** `loom_create_plan` (and the add/update-step paths) used to persist a numeric `blockedBy` (`["1","2"]`) verbatim, so a plan's dependency graph silently mis-pointed the moment a step was inserted, removed, or reordered. Every write path now resolves an ordinal to the target step's slug id through one shared helper (out-of-range → error; existing slug ids and cross-plan plan-ids pass through unchanged).
+- **`migrate-layout` never overwrites colliding legacy names.** When several legacy plan/done docs in a thread each carried ordinal `001`, the rename now assigns each a unique thread-local ordinal (distinct ordinals and gaps preserved) and writes a full audit log, instead of collapsing them onto one file.
+- **Frontmatter titles that look like scalars round-trip as strings.** A title such as `123` was coerced to a number and crashed the VS Code tree ("invalid tree item"), hiding the document; the serializer now quotes any title YAML would otherwise coerce (numbers, `true`/`false`, `null`).
+- **Archive lifecycle polish** — archived items expose only Restore / Delete, restore and delete resolve correctly from `loom/.archive/`, and reference file-rename uses the canonical `{slug}-reference.md` suffix.
+
+### Upgrading
+- Run **`loom migrate-layout`** once per project to flatten existing documents to the new filename scheme (rename-only; use `--dry-run` to preview). Loom reads both the old and new names, so this is safe to defer — but new documents are written with the flat names immediately.
+
 ## [1.12.0] - 2026-06-30
 
 ### Added
@@ -532,7 +551,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.12.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.13.0...HEAD
+[1.13.0]: https://github.com/reslava/loom/releases/tag/v1.13.0
 [1.12.0]: https://github.com/reslava/loom/releases/tag/v1.12.0
 [1.11.0]: https://github.com/reslava/loom/releases/tag/v1.11.0
 [1.10.2]: https://github.com/reslava/loom/releases/tag/v1.10.2

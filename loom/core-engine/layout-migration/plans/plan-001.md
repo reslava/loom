@@ -11,6 +11,7 @@ tags: []
 parent_id: id_01KWFV8SFG5EC7RYZARGHCYAQY
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.13.0
 steps:
   - id: precondition-clean-tree-fresh-session-current
     order: 1

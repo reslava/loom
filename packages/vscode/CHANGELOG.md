@@ -1,5 +1,19 @@
 # Loom VS Code Extension — Changelog
 
+## [1.13.0] - 2026-07-02
+
+### Added
+- **Rename and move weaves & threads from the tree.** F2 now renames by node kind — a document's title vs. a weave/thread **folder** (previously F2 on a folder wrongly prompted "Document ID to rename"). Drag a thread onto another weave to move the whole thread, and references gain a "Rename File" action for their filename slug.
+
+### Changed
+- **Archiving is thread/weave-atomic and delete is archive-first.** The Archive action operates on whole thread/weave folders (references archive individually); archived items expose only Restore / Delete; the destructive tree action archives by default, with a separate confirmed permanent delete.
+
+### Fixed
+- **A numeric-looking document title no longer breaks the tree.** A title such as `123` was coerced to a number and produced an "invalid tree item" that hid the document; titles now round-trip as strings.
+
+### Notes
+- Lockstep 1.13.0 bump with the CLI and the rest of the monorepo — flat document filenames + `loom migrate-layout`, the weave/thread rename & move surface, thread/weave-atomic archiving, the plan `blockedBy` step-id fix, and cheaper session start.
+
 ## [1.12.0] - 2026-06-30
 
 ### Changed

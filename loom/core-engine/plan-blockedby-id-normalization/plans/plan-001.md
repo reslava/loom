@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWGTDV2BKCYGE8THQYVBPXT3
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.13.0
 steps:
   - id: resolve-blockedby-ids-helper
     order: 1

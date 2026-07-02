@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.13.0
 steps:
   - id: add-commit-last-rule-to-both
     order: 1
