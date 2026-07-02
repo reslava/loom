@@ -49,6 +49,68 @@ export function isStepBlocked(
 }
 
 /**
+ * Normalize a step's `blockedBy` entries to stable step-id slugs (write-time).
+ *
+ * The write-path counterpart to {@link isStepBlocked}'s read-time ordinal
+ * tolerance: rather than *tolerating* a stored ordinal on read, this *resolves*
+ * ordinals to ids on write, so a plan never persists a fragile positional
+ * reference that silently mis-points after a reorder.
+ *
+ * - A numeric entry (`"1"`) or `"Step N"` form → the id at that 1-based position
+ *   in `orderedStepIds`.
+ * - Any other (non-numeric) entry — an already-resolved step-id slug, or a plan
+ *   id (`pl_…` / a cross-plan blocker) — passes through unchanged.
+ * - A numeric entry with no step at that position (out of range) throws: a
+ *   positional reference to a step that doesn't exist can only be a mistake.
+ * - The result is de-duplicated (first occurrence wins), so an ordinal and the
+ *   slug it resolves to collapse to one edge. An entry that resolves to `selfId`
+ *   (a step blocking itself) throws.
+ *
+ * @param entries        the raw `blockedBy` list as supplied
+ * @param orderedStepIds the plan's step ids in order (index 0 = step 1)
+ * @param selfId         the owning step's id, when known — to reject self-blocks
+ */
+export function resolveBlockedByIds(
+    entries: string[] | undefined,
+    orderedStepIds: string[],
+    selfId?: string
+): string[] {
+    if (!entries || entries.length === 0) return [];
+
+    const resolved: string[] = [];
+    const seen = new Set<string>();
+
+    for (const raw of entries) {
+        const entry = typeof raw === 'string' ? raw.trim() : '';
+        if (entry === '') continue;
+
+        let id = entry;
+        const ordinal = entry.match(/^(?:Step\s+)?(\d+)$/i);
+        if (ordinal) {
+            const position = parseInt(ordinal[1], 10);
+            if (position < 1 || position > orderedStepIds.length) {
+                throw new Error(
+                    `blockedBy references step ordinal "${entry}", but the plan has ` +
+                    `${orderedStepIds.length} step(s). Use a valid 1-based position or a step id.`
+                );
+            }
+            id = orderedStepIds[position - 1];
+        }
+
+        if (selfId !== undefined && id === selfId) {
+            throw new Error(`A step cannot block itself (blockedBy resolves to its own id "${id}").`);
+        }
+
+        if (!seen.has(id)) {
+            seen.add(id);
+            resolved.push(id);
+        }
+    }
+
+    return resolved;
+}
+
+/**
  * Finds the next unblocked, incomplete step in a plan.
  *
  * @param plan - The plan document to search.

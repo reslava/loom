@@ -157,6 +157,15 @@ run_test tests/mcp-new-tools.test.ts
 # and a real-fs save round-trip proving the saver tracks detail sections by id
 run_test tests/step-crud.test.ts
 
+# resolveBlockedByIds: the single write-time normalizer (create + add/update-step) —
+# numeric/"Step N" blockedBy → stable step-id slug; out-of-range throws; slugs + plan-ids
+# pass through; dedupe; self-block throws
+run_test tests/resolve-blockedby-ids.test.ts
+
+# blockedBy normalization wired end-to-end: weavePlan create + ADD_STEP/UPDATE_STEP reducers
+# persist ordinal blockedBy as slug ids (out-of-range throws; slug/plan-id passthrough; reorder-safe)
+run_test tests/blockedby-normalization.test.ts
+
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
 

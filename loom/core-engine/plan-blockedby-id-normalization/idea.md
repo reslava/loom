@@ -2,7 +2,7 @@
 type: idea
 id: id_01KVA8QBDJHGNRZQFNJ87PAYZ3
 title: loom_create_plan should normalize blockedBy ordinals to step-id slugs
-status: draft
+status: done
 created: 2026-06-17
 version: 1
 tags: []

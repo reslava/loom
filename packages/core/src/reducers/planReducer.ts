@@ -1,6 +1,7 @@
 import { PlanDoc, PlanStep } from '../entities/plan';
 import { PlanEvent } from '../events/planEvents';
 import { slugifyStepId } from '../planTableUtils';
+import { resolveBlockedByIds } from '../planUtils';
 
 /** Count of contiguous done/cancelled steps at the head of the plan — the immutable
  *  leading block. New steps may only be inserted at or after this boundary, keeping
@@ -96,13 +97,16 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
                     `not what was done). Record other corrections forward (a new step or a note).`
                 );
             }
+            // blockedBy is normalized to stable slug ids (same helper as create) so a
+            // numeric ordinal supplied to update is never persisted verbatim.
+            const orderedIds = doc.steps.map(st => st.id);
             const steps = doc.steps.map((s, i) =>
                 i === idx
                     ? {
                           ...s,
                           ...(patch.description !== undefined ? { description: patch.description } : {}),
                           ...(patch.files_touched !== undefined ? { files_touched: patch.files_touched } : {}),
-                          ...(patch.blockedBy !== undefined ? { blockedBy: patch.blockedBy } : {}),
+                          ...(patch.blockedBy !== undefined ? { blockedBy: resolveBlockedByIds(patch.blockedBy, orderedIds, stepId) } : {}),
                           ...(patch.satisfies !== undefined ? { satisfies: patch.satisfies } : {}),
                       }
                     : s
@@ -153,7 +157,16 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
 
             const next = [...doc.steps];
             next.splice(insertAt, 0, newStep);
-            const steps = next.map((s, i) => ({ ...s, order: i + 1 }));
+            // Normalize the new step's blockedBy against the FINAL order (ordinals → the id
+            // at that position; slugs / plan-ids pass through; out-of-range throws; self-block
+            // rejected). Existing steps already carry resolved slug ids, so only the new one
+            // needs resolving.
+            const orderedIds = next.map(s => s.id);
+            const steps = next.map((s, i) => ({
+                ...s,
+                order: i + 1,
+                ...(s.id === id ? { blockedBy: resolveBlockedByIds(s.blockedBy, orderedIds, id) } : {}),
+            }));
             return { ...doc, steps, updated };
         }
 

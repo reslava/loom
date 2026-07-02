@@ -5,7 +5,7 @@ import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, generatePlanId } from '../../core/dist/idUtils';
 import { nextOrdinal, planFileName } from '../../core/dist/docNaming';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
-import { PlanDoc, DesignDoc, IdeaDoc, PlanStep, serializePlanBody, slugifyStepId } from '../../core/dist';
+import { PlanDoc, DesignDoc, IdeaDoc, PlanStep, serializePlanBody, slugifyStepId, resolveBlockedByIds } from '../../core/dist';
 import { lockedReqVersion } from './req';
 import { ensureThreadManifest } from './thread';
 
@@ -143,21 +143,27 @@ function coerceSteps(raw: PlanStepInput[] | string | undefined): PlanStepInput[]
 /** Build canonical PlanSteps from structured create input (born frontmatter-native). */
 function buildStructuredSteps(stepsInput: PlanStepInput[]): PlanStep[] {
     const taken = new Set<string>();
-    return stepsInput.map((s, i) => {
+    // Pass 1: assign every step's stable id by order — blockedBy resolves against these.
+    const withIds = stepsInput.map((s, i) => {
         const description = s.description ?? '';
         const title = (s.title && s.title.trim()) ? s.title.trim() : description;
-        return {
-            id: slugifyStepId(title || description, taken),
-            order: i + 1,
-            status: 'pending' as const,
-            title,
-            description,
-            files_touched: s.files ?? [],
-            blockedBy: s.blockedBy ?? [],
-            satisfies: s.satisfies ?? [],
-            ...(s.detail && s.detail.trim() ? { detail: s.detail } : {}),
-        };
+        return { s, order: i + 1, description, title, id: slugifyStepId(title || description, taken) };
     });
+    const orderedStepIds = withIds.map(w => w.id);
+    // Pass 2: build steps, normalizing each blockedBy to stable slug ids (ordinals → the
+    // id at that position; slugs / plan-ids pass through; out-of-range throws; self-block
+    // rejected). Persisting ids (never ordinals) keeps the graph reorder-safe.
+    return withIds.map(({ s, order, description, title, id }) => ({
+        id,
+        order,
+        status: 'pending' as const,
+        title,
+        description,
+        files_touched: s.files ?? [],
+        blockedBy: resolveBlockedByIds(s.blockedBy, orderedStepIds, id),
+        satisfies: s.satisfies ?? [],
+        ...(s.detail && s.detail.trim() ? { detail: s.detail } : {}),
+    }));
 }
 
 export async function weavePlan(
