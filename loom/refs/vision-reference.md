@@ -35,7 +35,6 @@ Loom is for any developer or team building software with AI — not just the Loo
 
 - Works with Claude Code, Cursor, or any MCP-capable agent.
 - Each project gets its own `loom/` doc workspace and AI session contract.
-- Teams can shape the loop to their needs (a `.loom/workflow.yml` is planned for custom phases).
 
 The Loom project uses Loom to build itself — a useful stress test, but **not the purpose**. The real measure is Loom on someone else's codebase.
 
