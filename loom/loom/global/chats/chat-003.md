@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KTB6ARK05D9EC75KFTRKHH5D
 title: Loom why exists
-status: active
+status: done
 created: 2026-06-05
 version: 1
 tags: []

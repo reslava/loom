@@ -2,7 +2,7 @@
 type: plan
 id: pl_01KRT2TST0TZZG16HERT2KTCW0
 title: Instrument MCP and capture a timeout
-status: implementing
+status: done
 created: 2026-05-17
 updated: 2026-05-17
 version: 1

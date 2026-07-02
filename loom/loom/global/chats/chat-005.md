@@ -2,8 +2,8 @@
 type: chat
 id: ch_01KTWFSG20857CD1G4WXHR8GJW
 title: other-ai-tools
-status: active
-created: "2026-06-11T00:00:00.000Z"
+status: done
+created: 2026-06-11
 version: 1
 tags: []
 parent_id: null

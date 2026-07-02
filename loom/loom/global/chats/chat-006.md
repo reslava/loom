@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KVN1GAW82M9ARQ1QC0NR1SG1
 title: Screenshots
-status: active
+status: done
 created: 2026-06-21
 version: 1
 tags: []

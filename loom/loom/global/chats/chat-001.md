@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KT2JDVFAVC9PB5QA0SKJ96Q6
 title: Loom pros cons for AI
-status: active
+status: done
 created: 2026-06-01
 version: 1
 tags: []

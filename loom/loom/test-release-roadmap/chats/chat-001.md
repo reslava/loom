@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KVAG7WHY1PVT9DVDQFTJ0QXC
 title: test-release-roadmap Chat
-status: active
+status: done
 created: 2026-06-17
 version: 1
 tags: []

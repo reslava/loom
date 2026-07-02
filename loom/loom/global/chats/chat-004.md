@@ -2,8 +2,8 @@
 type: chat
 id: ch_01KTV8371DHD9NH4V779TWP9CH
 title: global Chat
-status: active
-created: "2026-06-11T00:00:00.000Z"
+status: done
+created: 2026-06-11
 version: 1
 tags: []
 parent_id: null
