@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KRT2RZGM09CBDB9B9BZF1GH1
 requires_load: []
 target_version: 0.1.0
+actual_release: 0.6.5
 steps:
   - id: client-instrumentation-in-packages-vscode-src
     order: 1
