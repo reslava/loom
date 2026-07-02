@@ -9,6 +9,7 @@ export { validate, ValidateInput, ValidateDeps, ValidationResult } from './valid
 export { weaveIdea, WeaveIdeaInput, WeaveIdeaDeps } from './weaveIdea';
 export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
 export { weavePlan, WeavePlanInput, WeavePlanDeps } from './weavePlan';
+export { quickShip, QuickShipInput, QuickShipDeps, QuickShipResult } from './quickShip';
 export { refineDesign, RefineDesignInput, RefineDesignDeps } from './refineDesign';
 export {
     createReq, amendReq, finalizeReq, lockedReqVersion,

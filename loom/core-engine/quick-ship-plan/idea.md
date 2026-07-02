@@ -2,7 +2,7 @@
 type: idea
 id: id_01KVACCC86E0B0EKACG6HH0DT4
 title: "Quick-ship: a one-action done plan so fast fixes land in versioned history"
-status: draft
+status: done
 created: 2026-06-17
 version: 1
 tags: []

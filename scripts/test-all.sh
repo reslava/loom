@@ -72,6 +72,9 @@ run_test tests/cli-mcp-client.test.ts
 # Step 5: closePlan use-case (mock AI)
 run_test tests/close-plan.test.ts
 
+# Step 5b: quickShip use-case — one-call done-plan recorder
+run_test tests/quick-ship.test.ts
+
 # Step 6: doStep use-case (mock AI)
 run_test tests/do-step.test.ts
 
