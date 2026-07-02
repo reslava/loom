@@ -2,13 +2,13 @@
 type: chat
 id: ch_01KWH1F11XWTRKMXDRDQJC86P8
 title: roadmap-dnd-reenable-review Chat
-status: active
+status: done
 created: 2026-07-02
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 15
+last_ai_block: 19
 ---
 # roadmap-dnd-reenable-review Chat
 
@@ -196,3 +196,46 @@ open a small thread for it (repro + robust move)
 Great — that confirms the root cause. Committing the fix as `fix(vscode): route roadmap DnD by roadmapEnabled, not MIME presence`.
 
 And opening a small `core-engine/archive-robust-move` thread for the `loom_archive` copy-not-move bug — I'll capture the repro (archiving `plan-steps-v2` left the source folder behind) and the likely cause (`fs.move` copy-then-unlink fallback leaving the source when a file is held open on Windows) so the fix can make the move atomic-or-fail-loud instead of silently duplicating.
+
+## Rafa:
+
+Write small plan for this fix, 1 step, done
+Write design for `core-engine/archive-robust-move`
+
+## AI:
+
+Both written.
+
+**DnD fix — `plan-001` (this thread), marked done.** One step ("Route handleDrop by roadmapEnabled"), auto-completed to `done` on the last step, with `done/plan-001-done.md` recording the root cause, the fix, and that you confirmed it live. The thread now has a proper versioned-history record for the fix instead of only a chat trail.
+
+**`core-engine/archive-robust-move` — `design.md` written** (status draft, for your review). It proposes a single shared `moveTreeOrThrow(source, dest)` helper in `packages/fs` that all three folder-moves (`archive`, `restore`, `moveThread`) call instead of `fs.move` directly, giving them one **atomic-or-fail-loud** contract.
+
+One decision in the design I want you to weigh in on before it's finalized:
+
+- **On a failed move (source survives the copy), roll back the just-made copy so the tree returns to its exact original state (chosen)** — vs. leave the copy and just throw. I picked rollback because it guarantees "either fully moved or nothing changed" — no duplicate ULIDs, no manual cleanup, which is the whole point. The cost is a best-effort `remove(dest)` on the error path. If you'd rather keep the copy and clean up by hand, say so and I'll flip it.
+
+I'm holding the commit on both until you've looked — `plan-001` + its done doc, and the archive `design.md`. Say `commit` and I'll land them (plan/done as `chore`, design with it or separate — your call).
+
+Next: your review of the archive design decision, then I commit.
+
+## Rafa:
+
+commit this fix thread, all done
+
+on `core-engine/archive-robust-move` On a failed move, roll back
+update design, write small plan
+
+## AI:
+
+Done.
+
+**Fix thread** — committing `roadmap-dnd-reenable-review` as complete: `plan-001` (done) + its done doc + this chat.
+
+**`archive-robust-move`** — rollback is now settled in `design.md` (the "vs leave-copy" framing is gone; it reads as the decision). Wrote a small 3-step `plan-001`:
+1. Add `moveTreeOrThrow` helper in `packages/fs` (move → if source survives, roll back the copy + throw).
+2. Route the three `fs.move` folder-move callers through it — `archive.ts`, `restore.ts`, `thread.ts` (I confirmed those are the only ones).
+3. Regression test with an injected `fs` that leaves the source → assert throw + rollback; wire into `test-all.sh`.
+
+Committing the archive `design.md` + `plan-001` alongside.
+
+Next: `archive-robust-move` is ready to implement whenever you want — say `do step 1` (or start the plan) and I'll build the helper.
