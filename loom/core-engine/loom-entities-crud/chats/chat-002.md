@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KWGJG8MWFQ58FQJ30WP0NN4R
 title: loom-entities-crud Chat
-status: active
+status: done
 created: 2026-07-02
 version: 1
 tags: []
