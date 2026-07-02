@@ -3,9 +3,9 @@ type: ctx
 id: loom-ctx
 title: loom — Global Context
 status: active
-created: "2026-04-29T00:00:00.000Z"
-updated: 2026-06-15
-version: 6
+created: 2026-04-29
+updated: 2026-07-02
+version: 9
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -34,7 +34,7 @@ durable, traceable, and resumable.
 **The canonical loop** (see [refs/workflow-reference.md](refs/workflow-reference.md) for phase definitions and transitions):
 
 ```
-chat → {generate|refine} idea/design/plan/ctx → {implement step(s)} → done
+chat → {generate|refine} idea/design/req/plan/ctx → {implement step(s)} → done
 ```
 
 In plain words:
@@ -68,13 +68,14 @@ This is the single source for Loom terminology. Other docs link here instead of 
 
 ### Doc-type terms
 
-- **Idea** (`*-idea.md`) — what we want to build, why it matters, success criteria.
-- **Design** (`*-design.md`) — how we'll build it: architecture, decisions, trade-offs. Contains the design conversation log.
-- **Plan** (`*-plan-NNN.md`) — implementation plan with a steps table. Lives in `{thread}/plans/`.
-- **Done** (`*-done.md`) — post-implementation notes for one step or one plan. Lives in `{thread}/done/`.
-- **Chat** (`*-chat.md`) — User↔AI conversation log; free-form thinking surface. Lives at any level: weave-root `chats/`, thread `chats/`, or attached to a specific design/plan.
-- **Ctx** (`*-ctx.md`) — AI-optimised context summary at global / weave / thread level. Auto-loaded into AI context based on scope. Never appears in `requires_load`.
-- **Reference** (`*-reference.md`) — static or semi-static architectural facts, lives in `loom/refs/` or thread-local refs. Loaded via `requires_load` (citation-loaded), not auto-included.
+- **Idea** (`idea.md`) — what we want to build, why it matters, success criteria.
+- **Design** (`design.md`) — how we'll build it: architecture, decisions, trade-offs. Contains the design conversation log.
+- **Req** (`req.md`) — the thread's locked scope: Included / Excluded / Constraints, authored after the design and always-loaded thereafter (optional).
+- **Plan** (`plan-NNN.md`) — implementation plan with a steps table. Lives in `{thread}/plans/`.
+- **Done** (`plan-NNN-done.md`) — post-implementation notes for a plan. Lives in `{thread}/done/`.
+- **Chat** (`chat-NNN.md`) — User↔AI conversation log; free-form thinking surface. Lives at any level: weave-root `chats/`, thread `chats/`, or attached to a specific design/plan.
+- **Ctx** (`ctx.md`) — AI-optimised context summary at global / weave level. Auto-loaded into AI context based on scope. Never appears in `requires_load`.
+- **Reference** (`{slug}-reference.md`) — static or semi-static architectural facts, lives in `loom/refs/` or thread-local refs. Loaded via `requires_load` (citation-loaded), not auto-included.
 
 The full doc-type table with file locations and frontmatter shape is in
 [refs/architecture-reference.md](refs/architecture-reference.md) section 3.
@@ -89,7 +90,7 @@ The full doc-type table with file locations and frontmatter shape is in
 
 ### Workflow / loop terms
 
-- **{generate}** — User clicks *Generate Idea/Design/Plan/Ctx* button; AI reads context and produces a draft of the new doc. Output starts at `status: draft`.
+- **{generate}** — User clicks *Generate Idea/Design/Req/Plan/Ctx* button; AI reads context and produces a draft of the new doc. Output starts at `status: draft`.
 - **{refine}** — User clicks *Refine* on an existing doc that's gone stale; AI reads updated parents and rewrites or patches the doc. Version bumps.
 - **{implement step(s)} / DoStep** — User clicks *DoStep* on a plan in `status: implementing`; AI reads next pending step + thread context, writes code, records what was done in `{plan-id}-done.md`, marks the step ✅.
 - **Promote** — chat → idea, idea → design, design → plan. Same operation as {generate} but with explicit parent linkage.

@@ -19,7 +19,7 @@ load_when: [design, plan]
 Loom lets a user declare, in a structured and durable way, what a thread's work
 must **include**, **exclude**, and be **constrained** by — and guarantees those
 requirements are carried faithfully through every promotion
-(`chat → req → idea → design → plan → done`). The artifact is the **`req` doc**:
+(`chat → idea → design → req → plan → done`). The artifact is the **`req` doc**:
 one per thread, locked once approved, and auto-loaded into every downstream action
 so the spec frames everything built after it.
 
@@ -131,13 +131,14 @@ that may *reference* `req` but never restates it.
 
 `req` is dual-natured:
 
-- **Born first.** It is the first formal artifact, extracted from the chat opener
-  before the idea, so every later node is built against a locked spec instead of
-  re-deriving it: `chat → req → idea → design → plan → done`.
-- **Cross-cutting always-loaded.** Thereafter it is injected into the context
+- **Authored after the design.** `req` crystallizes scope from a *complete* design
+  — it is written after the idea and design, then locked, so it captures the full
+  picture and every node built after it (plan, implementation) honours the spec
+  instead of silently dropping it: `chat → idea → design → req → plan → done`.
+- **Cross-cutting always-loaded.** Once locked it is injected into the context
   bundle for every doc in its thread, ordered **before** idea / design / plan so
-  the spec frames everything after it (`assembleContext`,
-  `packages/app/src/context/assembleContext.ts`).
+  the spec frames everything (authored late in the chain, injected first)
+  (`assembleContext`, `packages/app/src/context/assembleContext.ts`).
 
 This fills the thread-scope slot that `ctx` intentionally leaves empty — ctx is
 **global + weave only** (a thread's idea/design/plan load in full via the parent

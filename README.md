@@ -14,7 +14,7 @@ as the first, and every decision is traceable.
 > fresh, defined and auditable — as opposed to an ever-expanding, opaque and degraded chat history."*
 > — Rafa Eslava
 
-> 🎬 **See the loop in motion** — one project taken `chat → idea → design → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
+> 🎬 **See the loop in motion** — one project taken `chat → idea → design → req → plan → do-step → done`, with the document graph building node-by-node in the sidebar.
 
 ![Loom workflow demo](packages/vscode/media/loom-demo-workflow.gif)
 
@@ -85,13 +85,14 @@ loom/
     {thread}/                  ← feature thread
       thread.md                ← thread manifest (id + soft priority + depends_on) — powers the roadmap
       req.md                   ← locked requirements (include / exclude / constrain), loaded first
-      {thread}-idea.md         ← raw concept
-      {thread}-design.md       ← design decisions and conversation log
+      idea.md                  ← raw concept
+      design.md                ← design decisions and conversation log
       plans/
-        {plan-id}.md           ← implementation plan (structured steps in frontmatter)
+        plan-NNN.md            ← implementation plan (structured steps in frontmatter)
       done/
-        {done-id}.md           ← post-implementation summary
+        plan-NNN-done.md       ← post-implementation summary
       chats/                   ← AI conversation logs
+        chat-NNN.md
 ```
 
 Every document has typed frontmatter. Status is derived from documents — there is no central state
@@ -121,7 +122,7 @@ docs.
 ## How Loom decides what the AI sees
 
 **This is the part of Loom that matters most — and the part most tools don't have.** The loop
-(`chat → idea → design → plan → done`) is legible, but it isn't unique; every task-decomposition
+(`chat → idea → design → req → plan → done`) is legible, but it isn't unique; every task-decomposition
 tool has some version of it. What's genuinely different is the **context-routing system**: Loom
 treats *what the AI knows before it acts* as a first-class, controllable thing instead of an
 accident of chat history.
@@ -141,10 +142,11 @@ Together they make the AI's memory **structural** rather than conversational, an
 a deterministic order on every action:
 
 ```
-chat → req → idea → design → plan → implement → done
-        │
-        └─ global ctx → weave ctx → thread req → references (filtered by mode)
-                      → parent chain (idea→design→plan) → target doc → requires_load
+chat → idea → design → req → plan → implement → done
+                        │
+                        └─ context each action assembles, in order:
+                           global ctx → weave ctx → thread req → references (filtered by mode)
+                           → parent chain (idea→design→plan) → target doc → requires_load
 ```
 
 > Deep dives: **[How context is assembled](./loom/refs/loom-context-pipeline-reference.md)** ·
@@ -246,12 +248,12 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 
 ```
 0. Chat         → think with the AI, explore the problem space
+   ↓ Promote
+1. Idea         → raw concept, rough scope
+   ↓ Promote
+2. Design       → decisions, trade-offs, rejected alternatives, conversation log
    ↓ Lock scope
-1. Requirements → include / exclude / constraints, locked as the thread's spec (optional)
-   ↓ Promote
-2. Idea         → raw concept, rough scope
-   ↓ Promote
-3. Design       → decisions, trade-offs, rejected alternatives, conversation log
+3. Requirements → include / exclude / constraints, locked as the thread's spec (optional)
    ↓ Promote
 4. Plan         → numbered implementation steps, each reviewable, each citing the req it satisfies
    ↓ DoStep

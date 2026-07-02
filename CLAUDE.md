@@ -35,6 +35,20 @@ This repository owns **two** CLAUDE.md surfaces and they MUST stay in sync:
 
 ---
 
+## Doc-sync contract — when structure changes, these docs change together
+
+Loom's canonical facts (filenames, the workflow loop, the layer diagram) are restated across several human- and agent-facing docs. **When you change one of the three structural axes below, update every doc in that row in the same commit.** Drift here means the docs lie about the tool. (The `CLAUDE.md` ⇄ `LOOM_CLAUDE_MD` pair is *additionally* machine-enforced — see the section above; the rest of this contract is a discipline, not a test.)
+
+| When you change… | Update all of |
+|------------------|---------------|
+| **Filename / layout scheme** (doc filenames, folder layout, ordinals) | `loom/refs/architecture-reference.md` · `loom/refs/workspace-directory-structure-reference.md` · `loom/refs/workflow-reference.md` · `loom/refs/getting-started-reference.md` · `README.md` · `CLAUDE.md` **+ the `LOOM_CLAUDE_MD` template in `packages/app/src/installWorkspace.ts`** · `loom/ctx.md` |
+| **Workflow / phases** (the loop, phase order, a new phase such as `req`) | `loom/refs/workflow-reference.md` · `loom/refs/staleness-reference.md` · `loom/refs/loom-requirements-reference.md` · `loom/refs/architecture-reference.md` · `loom/refs/demo-script-reference.md` · `README.md` · `loom/ctx.md` — *`vision-reference.md` stays deliberately abstract; its loop omits phase detail by design.* |
+| **Package layers / architecture** (dependency rule, MCP surface) | `loom/refs/architecture-reference.md` · `loom/refs/implementation-contract-reference.md` · `loom/ctx.md` · `CLAUDE.md` **+ the `LOOM_CLAUDE_MD` template** |
+
+Also sweep `docs/*.md` (the public user guides) — they carry filename and workflow examples that must not contradict the refs.
+
+---
+
 <!-- rule:what-loom-is -->
 ## What this project is
 
@@ -95,11 +109,11 @@ loom/refs/    Static architectural facts, patterns, API notes.
 | **Thread** | A workstream subfolder inside a Weave (`loom/{weave}/{thread}/`). Contains an idea, a design, plans, done docs, and thread-level chats. The core entity is `Thread`. |
 | **Loose fiber** | A doc at weave root (no thread). Idea or design that hasn't been grouped into a thread yet. |
 | **Loom** | The tool itself (CLI + VS Code extension). Also a workspace instance. |
-| **Plan** | An implementation plan doc (`*-plan-*.md`) with a steps table. Lives in `{thread}/plans/`. |
-| **Design** | A design doc (`*-design.md`). Contains the design conversation log. Lives in `{thread}/`. |
+| **Plan** | An implementation plan doc (`plan-NNN.md`) with a steps table. Lives in `{thread}/plans/`. |
+| **Design** | A design doc (`design.md`). Contains the design conversation log. Lives in `{thread}/`. |
 | **Ctx** | A context summary doc, auto-generated or manually written. |
 
-Thread layout: `loom/{weave-id}/{thread-id}/{thread-id}-idea.md`, `{thread-id}-design.md`, `plans/`, `done/`.
+Thread layout (flat canonical filenames — identity is the frontmatter ULID, so a folder rename rewrites no doc content): `loom/{weave}/{thread}/idea.md`, `design.md`, `req.md`, `thread.md`, `plans/plan-NNN.md`, `done/plan-NNN-done.md`, `chats/chat-NNN.md`.
 
 ---
 
@@ -270,7 +284,7 @@ Verify with `claude mcp list`.
 - **Never propose state changes** (version bumps, status transitions) without being asked.
 - Rafa uses the name `Rafa` in `## Rafa:` headers. Respond under `## AI:`.
 - Keep responses aligned with the ongoing design conversation in the document.
-- **Chat docs are the conversation surface (always reply inside).** Whenever a chat doc (any file matching `*-chat.md` or `*-chat-NNN.md`, i.e. `type: chat` in frontmatter) is the active context of the session — Rafa asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under `## AI:`. This is not optional and does not require Rafa to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until Rafa explicitly says `close` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
+- **Chat docs are the conversation surface (always reply inside).** Whenever a chat doc (`chat-NNN.md`, i.e. `type: chat` in frontmatter) is the active context of the session — Rafa asked you to read it, opened it in the IDE while discussing it, references a line/section inside it, or the previous turn was already written into it — every reply goes inside that doc, appended at the bottom under `## AI:`. This is not optional and does not require Rafa to repeat "reply inside" each turn. Once a chat doc is active, keep replying inside it for all follow-ups until Rafa explicitly says `close` or switches to a different chat doc. The terminal response should be a brief one-liner pointing at the appended reply, not a duplicate of the content.
 - **Why this matters:** Chats are Loom's User↔AI collaboration medium and the durable context database. Replies that live only in the terminal disappear; replies inside the chat doc persist as part of the project's shared memory. Treat the chat doc as the canonical place the conversation lives.
 - **MCP tools for ALL writes to `loom/**/*.md` (hard rule):** Every write to a Loom doc — frontmatter or body, new doc or existing, state mutation or prose edit — goes through a `loom_*` MCP tool. No exceptions for "small" edits, typo fixes, or appending a single line. Direct `Edit`/`Write`/`MultiEdit` to `loom/**/*.md` is **physically blocked** by the `loom-mcp-gate` PreToolUse hook (`.claude/hooks/loom-mcp-gate.ps1`); if you see the gate's deny message, switch to the right MCP tool — don't try to route around it.
   - Chats → `loom_append_to_chat`
@@ -312,9 +326,9 @@ When replying inside a chat doc that lives in a thread (`loom/{weave}/{thread}/c
 - **First reply for this thread in the current conversation** — read the thread context (idea + design + active plan + any `requires_load` docs) before responding. Emit one visibility line per doc:
   ```
   📡 MCP: loom://context/{chat-id}?mode=chat
-  📄 {thread}-idea.md — loaded for context
-  📄 {thread}-design.md — loaded for context
-  📄 {plan-id}.md — loaded for context  (only if an active plan exists)
+  📄 idea.md — loaded for context
+  📄 design.md — loaded for context
+  📄 plan-NNN.md — loaded for context  (only if an active plan exists)
   ```
   (The Unified Context Pipeline assembles global/weave/thread ctx + the chat's parent chain + requires_load; the chat itself is the target.)
 - **Same thread, no `refine` / `generate` since last reply** — context is already in the conversation transcript. Do NOT re-read. Emit only the tool-call visibility line:

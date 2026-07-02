@@ -142,11 +142,11 @@ Button clicked
 |------|--------------|---------|
 | `thread` | `{thread}/thread.md` | Thread manifest — authored-only roadmap metadata: a stable `th_` ULID, a soft `priority`, and hard `depends_on` edges. No `status` (always derived); kept off the done-rollup; no staleness. Powers the derived roadmap (`buildRoadmap`). |
 | `req` | `{thread}/req.md` | The thread's locked scope spec — Included / Excluded / Constraints (`IN`/`EX`/`C` handles), auto-loaded into every action built after it |
-| `idea` | `{thread}/{thread}-idea.md` | Raw concept, pre-design |
-| `design` | `{thread}/{thread}-design.md` | Design conversation + decision log |
-| `plan` | `{thread}/plans/{plan-id}.md` | Implementation plan — structured `steps` in frontmatter (source of truth); the body `## Steps` table is a generated view |
-| `done` | `{thread}/done/{done-id}.md` | Post-implementation summary |
-| `chat` | `{thread}/chats/{chat-id}.md`, `{weave}/chats/{chat-id}.md`, or `loom/refs/chats/{id}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
+| `idea` | `{thread}/idea.md` | Raw concept, pre-design |
+| `design` | `{thread}/design.md` | Design conversation + decision log |
+| `plan` | `{thread}/plans/plan-NNN.md` | Implementation plan — structured `steps` in frontmatter (source of truth); the body `## Steps` table is a generated view |
+| `done` | `{thread}/done/plan-NNN-done.md` | Post-implementation summary (one per plan) |
+| `chat` | `{thread}/chats/chat-NNN.md`, `{weave}/chats/chat-NNN.md`, or `loom/refs/chats/{slug}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
 | `ctx` | `loom/ctx.md` (global) or `{weave}/ctx.md` (weave) | AI-optimised context summary (source of truth for agents). Scope is global + weave only — there is no thread-level ctx; the parent chain loads idea/design/plan in full. |
 | `reference` | `loom/refs/{scope}/{id}.md` | Static/semi-static architectural facts |
 
@@ -183,19 +183,25 @@ load_when: [idea, design, plan, implementing]   # operation modes when this refe
 - A ctx doc is **stale** when it was generated before the last update to its parent thread/weave
 - The MCP tool `loom_get_stale_docs` returns all stale docs across the project
 
-## 4. Canonical Workflow: Idea → Design → Plan → Done
+## 4. Canonical Workflow: Idea → Design → Req → Plan → Done
+
+The authoring loop is `chat → idea → design → req → plan → done`. `req` is **optional**
+and sits between design and plan — a thread with no req goes `design → plan` directly.
+See [workflow-reference.md](workflow-reference.md) for the phase diagram and
+[staleness-reference.md](staleness-reference.md) for the dependency edges.
 
 | Step | Action | State transition | Files |
 |------|--------|-----------------|-------|
-| 1 | Create idea | `status: draft` | `{thread}-idea.md` |
-| 2 | Finalize idea | `draft → active`, temp ID → permanent ID | renamed |
-| 3 | Weave design | `status: draft` | `{thread}-design.md` |
-| 4 | Refine design | `version++`, child plans marked stale | design updated |
-| 5 | Weave plan | `status: draft` | `plans/{plan-id}.md` |
-| 6 | Start plan | `draft → active → implementing` | frontmatter updated |
-| 7 | Complete steps | step `status` updated in frontmatter; body table regenerated | plan updated |
-| 8 | Close plan | `implementing → done`; done doc emitted | done doc created |
-| 9 | Update ctx | ctx summary regenerated | ctx doc updated |
+| 1 | Create idea | `status: draft` | `idea.md` |
+| 2 | Finalize idea | `draft → active` | frontmatter updated |
+| 3 | Weave design | `status: draft` | `design.md` |
+| 4 | Refine design | `version++`, child req/plans marked stale | design updated |
+| 5 | Author & lock req *(optional)* | `draft → locked` | `req.md` |
+| 6 | Weave plan | `status: draft` | `plans/plan-NNN.md` |
+| 7 | Start plan | `draft → active → implementing` | frontmatter updated |
+| 8 | Complete steps | step `status` updated in frontmatter; body table regenerated | plan updated |
+| 9 | Close plan | `implementing → done`; done doc emitted | `done/plan-NNN-done.md` |
+| 10 | Update ctx | ctx summary regenerated | ctx doc updated |
 
 ## 5. Making AI Stateful — the Loom proposition
 
@@ -227,13 +233,14 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
       {thread-id}/
         thread.md           ← thread manifest (th_ ULID + soft priority + depends_on) — powers the roadmap
         req.md              ← locked scope spec (Included / Excluded / Constraints)
-        {thread-id}-idea.md
-        {thread-id}-design.md
+        idea.md
+        design.md
         chats/              ← thread-level AI chat docs (promote to idea/design/plan)
+          chat-NNN.md
         plans/
-          {plan-id}.md
+          plan-NNN.md
         done/
-          {done-id}.md
+          plan-NNN-done.md
         .archive/
   packages/
     core/                   ← domain: entities, reducers, events, validation
@@ -248,16 +255,20 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
 
 ### File naming rules
 
-File suffixes are **enforced** — they are load-bearing for doc-type detection:
+Filenames are **flat and canonical** — a token in the name is load-bearing for
+doc-type detection, and identity lives in frontmatter ULIDs (not the filename), so
+a thread or weave folder rename rewrites zero doc content:
 
-| Suffix | Doc type |
-|--------|----------|
-| `-idea.md` | idea |
-| `-design.md` | design |
-| `-plan-NNN.md` | plan (NNN = zero-padded number) |
-| `-chat-MMM.md` | chat (MMM = zero-padded number or ULID) |
-| `-done.md` | done |
-| `-reference.md` | reference |
+| Filename | Doc type |
+|----------|----------|
+| `idea.md` | idea (per-thread singleton) |
+| `design.md` | design (per-thread singleton) |
+| `plan-NNN.md` | plan (NNN = zero-padded number) |
+| `plan-NNN-done.md` | done (named after its plan) |
+| `chat-NNN.md` | chat (NNN = zero-padded number) |
+| `req.md` | req (per-thread singleton) |
+| `thread.md` | thread manifest (per-thread singleton) |
+| `{slug}.md` in `loom/refs/` | reference (human slug) |
 
 Special forced filenames (exact, no prefix):
 
@@ -268,7 +279,7 @@ Special forced filenames (exact, no prefix):
 
 There is no thread-level ctx file — ctx scope is global + weave only.
 
-Thread constraints define what docs can exist, not what they're named. Location implies the parent thread — no extra metadata needed. Physical file rename is left to the VS Code Explorer; Loom does not manage it.
+Thread constraints define what docs can exist. Location implies the parent thread — no extra metadata needed. Ordinals (`plan-NNN`, `chat-NNN`) are assigned by creation order and never renumbered on delete (gaps allowed). Loom owns these filenames: it derives them on create through one canonical naming module, `loom migrate-layout` normalizes existing docs to the scheme, and folder renames go through `loom_rename_thread` / `loom_rename_weave`.
 
 ### Title — single source of truth
 
@@ -278,4 +289,4 @@ Thread constraints define what docs can exist, not what they're named. Location 
 - VS Code's built-in markdown preview will not display a title heading (acceptable trade-off; the Loom tree view is the primary surface).
 - Future: the Loom extension's preview renderer may inject a synthetic `# {title}` at render time — stored nowhere, display only.
 
-**`loom_rename`** updates `frontmatter.title` only. Physical file rename is out of Loom's scope.
+**`loom_rename`** updates `frontmatter.title` only. Folder-slug renames (weave/thread) go through `loom_rename_weave` / `loom_rename_thread`; reference filename-slug renames through `loom_rename_doc_file`.

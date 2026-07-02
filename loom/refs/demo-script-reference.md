@@ -55,7 +55,7 @@ Durable capture of the demo prompts and seed assets that were refined in `loom/v
 | 9 | Do Step → AI implements all plan steps, each marked ✅ | **"AI implements the plan, step by step — you stay in control"** |
 | 10 | Done doc in tree | **"What was built is recorded. Nothing disappears."** |
 | 11 | Browser: rendered pricing page | **"And the result is live."** |
-| hold (2s) | — | `chat → idea → design → plan → done` |
+| hold (2s) | — | `chat → idea → design → req → plan → done` |
 
 **Scene 3–4 (weave + thread):** a chat must live inside a thread, so the demo creates the `landing-page` weave and `pricing-section` thread *before* the first chat. Use proper, real-looking names (not `test`/`foo`) — the names appear in the tree for the rest of the GIF.
 

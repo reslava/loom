@@ -75,7 +75,7 @@ Save the file.
 
 ## 5. Generate your first idea
 
-Back in the Loom panel, right-click the chat doc and choose **Generate Idea**. Loom sends the chat to your AI agent, which writes a structured `*-idea.md` doc capturing the concept, goals, and success criteria.
+Back in the Loom panel, right-click the chat doc and choose **Generate Idea**. Loom sends the chat to your AI agent, which writes a structured `idea.md` doc capturing the concept, goals, and success criteria.
 
 Review the idea doc. When it looks right, click **Finalize** to promote it from `draft` to `active`.
 

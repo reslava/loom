@@ -53,7 +53,7 @@ load_when: [idea, design, plan, implementing]
     │   └── ...
     │
     ├── chats/                         ← project-level AI conversations
-    │   └── {chat-id}.md
+    │   └── chat-NNN.md
     │
     ├── .archive/                      ← SINGLE archive root for the whole repo;
     │                                     mirrors source paths: loom/.archive/{weave}/{thread}/...
@@ -66,23 +66,25 @@ load_when: [idea, design, plan, implementing]
         ├── refs/                      ← weave-scoped architectural facts
         │
         ├── chats/                     ← weave-level AI conversations
-        │   └── {chat-id}.md
+        │   └── chat-NNN.md
         │
         └── {thread}/                  ← feature thread
             │
-            ├── {thread}-idea.md       ← raw concept
-            ├── {thread}-design.md     ← design decisions and conversation log
+            ├── thread.md              ← thread manifest (th_ ULID + priority + depends_on)
+            ├── req.md                 ← locked scope spec (optional)
+            ├── idea.md                ← raw concept
+            ├── design.md              ← design decisions and conversation log
             │
             ├── refs/                  ← thread-scoped references (e.g. API specs)
             │
             ├── chats/                 ← thread-level AI conversations
-            │   └── {chat-id}.md
+            │   └── chat-NNN.md
             │
             ├── plans/                 ← implementation plans
-            │   └── {plan-id}.md
+            │   └── plan-NNN.md
             │
             └── done/                  ← post-implementation summaries
-                └── {done-id}.md
+                └── plan-NNN-done.md
 ```
 
 ---
@@ -111,13 +113,17 @@ Rules:
 
 | Document type | Pattern | Example |
 |---------------|---------|---------|
-| Idea | `{thread}-idea.md` | `stripe-integration-idea.md` |
-| Design | `{thread}-design.md` | `stripe-integration-design.md` |
-| Plan | `{plan-id}.md` | `stripe-integration-plan-001.md` |
-| Done | `{done-id}.md` | `stripe-integration-done-001.md` |
-| Chat | `{chat-id}.md` | `mcp-chat.md` |
+| Idea | `idea.md` | `idea.md` |
+| Design | `design.md` | `design.md` |
+| Plan | `plan-NNN.md` | `plan-001.md` |
+| Done | `plan-NNN-done.md` | `plan-001-done.md` |
+| Chat | `chat-NNN.md` | `chat-002.md` |
+| Req | `req.md` | `req.md` |
+| Thread manifest | `thread.md` | `thread.md` |
 | Ctx (file) | `ctx.md` | `ctx.md` |
-| Reference | `{id}.md` | `architecture.md` |
+| Reference | `{slug}.md` | `architecture-reference.md` |
+
+Filenames are flat and canonical — identity lives in frontmatter ULIDs, so a thread/weave folder rename rewrites zero doc content. Ordinals (`plan-NNN`, `chat-NNN`) are assigned by creation order and never renumbered on delete (gaps allowed).
 
 ---
 
@@ -125,7 +131,7 @@ Rules:
 
 ```yaml
 ---
-type: idea | design | plan | done | chat | ctx | reference
+type: idea | design | plan | done | chat | ctx | reference | req | thread
 id: kebab-case-id
 title: "Human Readable Title"
 status: draft | active | implementing | done | archived
