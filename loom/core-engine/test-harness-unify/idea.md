@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWGW7S6SRKFZX34ZS0BBDJ04
 title: Remove orphaned jest tests — one test harness
-status: draft
+status: done
 created: 2026-07-02
 version: 1
 tags: []
