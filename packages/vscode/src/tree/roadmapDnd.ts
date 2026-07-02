@@ -55,8 +55,16 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
     }
 
     async handleDrop(target: TreeNode | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
-        const treeItem = dataTransfer.get(TREE_MIME);
-        if (treeItem) { await this.handleTreeDrop(target, treeItem.value as TreeDragPayload); return; }
+        // Route by the same `roadmapEnabled` flag handleDrag uses — the one that also
+        // decides the on-screen layout. Do NOT infer the mode from which MIME is present:
+        // TREE_MIME is a declared dragMimeType, so `dataTransfer.get(TREE_MIME)` can be
+        // truthy even in roadmap mode and let the thread-move branch shadow the priority
+        // reorder (the regression from adding tree-move DnD). Symmetric with handleDrag.
+        if (!this.viewStateManager.getState().roadmapEnabled) {
+            const treeItem = dataTransfer.get(TREE_MIME);
+            if (treeItem) await this.handleTreeDrop(target, treeItem.value as TreeDragPayload);
+            return;
+        }
 
         const item = dataTransfer.get(ROADMAP_MIME);
         if (!item) return;
