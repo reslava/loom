@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 20
 depends_on: []
 ---
 # Remove orphaned jest tests — one test harness

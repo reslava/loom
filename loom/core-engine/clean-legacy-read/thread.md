@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 10
 depends_on: []
 ---
 # Clean legacy-read — drop dual-read + rename weave.looseFibers
