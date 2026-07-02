@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 13
+last_ai_block: 17
 ---
 # quick-ship-plan Chat
 
@@ -240,3 +240,64 @@ Both good questions — I chased them down instead of hand-waving. Answers, with
 Fair critique of me, though: completing via a node/reducer script is a **bypass of the live MCP tool**. I did it because the tool was down and you'd asked to finish + commit; it still runs the real reducers so the write is validated, but it's not the MCP path. If you'd rather I redo any of it through the tools after a full server restart, say so — the on-disk result is already correct either way.
 
 Committing now, as you asked: the quick-ship feature (app + mcp + test + its loom docs) and, separately, the blockedBy-finding thread.
+
+## Rafa:
+
+- So mcp tool is still failing? We need to fix it. Tell me, should I restart VSCode? suggestions?
+
+- On doing blockedBy fix, if you find the root cause and it easy we could dogfood `quick ship`, agree?
+
+These 2 bugs make me lose confidence, we have no users and if they try the app and find rare behaviors they quit fast
+
+## AI:
+
+Let me separate the two "bugs" by how much they should actually cost you confidence — because they're very different animals.
+
+**The MCP tool failure is NOT a code bug, and no user will ever hit it.** Here's the proof: the MCP integration test spawns a *fresh* `loom mcp` subprocess and calls `loom_complete_step` — and it **passed** in this session's full suite run (`✅ loom_complete_step marks step 1 done`). Fresh server: works. The only thing that failed was *this session's* server, which was launched before I rebuilt dist and kept running the old process. That situation — talking to an MCP server while rebuilding that same server — only happens when you use Loom to build Loom (recursive dogfooding). A real user installs `loom` and never rebuilds it mid-session, so they can't reach this state. So: annoying for us, invisible to users. Don't let it dent product confidence.
+
+**What actually clears it:** restart the MCP server for this Claude Code session so a fresh `loom mcp` spawns against the new build (that also makes `loom_quick_ship` appear). Restarting *VSCode* only helps if the server is launched under VSCode; for a Claude Code CLI session the cleaner move is to restart the Claude Code session itself. `/mcp` reconnect *should* have relaunched it and didn't clear the fault — that's a small rough edge worth its own fix: **`build-all` should restart (or at least flag) a running `loom mcp`** so this stops biting us every recursive session. That's the real actionable item here, and it's a dev-loop nicety, not a product bug. (It's a known pain — worth a tiny thread.)
+
+**The blockedBy drop, though — that one IS real and user-facing, and you're right to care.** A user writing `blockedBy: [1]` and silently losing the edge is exactly the quiet-wrong-behavior that makes people quit. But flip it: **dogfooding caught it before any user did.** That's the validation loop doing its job. And it's cheap — I already have the root cause (`resolveBlockedByIds` coerces any non-string to `''` and the empty-guard drops it, so the ordinal regex never sees a JSON number). The fix is ~2 lines: coerce numbers to `String(raw)` before the guard, and make a genuinely unresolvable entry throw instead of vanish. Small + clear + not-yet-done.
+
+**So yes — let's dogfood quick-ship on it. Strongly agree.** It's the textbook quick-ship case ("clear, not yet done → do it, then record"). Sequence:
+1. Fix `resolveBlockedByIds` + extend the test, `build-all`, `test-all`.
+2. You restart the session/MCP (needed anyway to get `loom_quick_ship` live).
+3. `loom_quick_ship` records the fix as a done plan in the `create-plan-blockedby-numeric-ordinals` thread.
+
+Nice symmetry: this fix would have *prevented* finding #1 in the first place, and recording it via quick-ship *exercises* finding #2's solution — two bugs' worth of anxiety converted into two shipped improvements in one loop.
+
+Net honesty: one real, cheap, already-diagnosed bug that dogfooding caught early (good), and one dev-only artifact that isn't a product bug (discount it). That's not a flaky product — that's the validation working. Want me to do step 1 now (I can fix + build + test before you restart), then we quick-ship it once the server's fresh?
+
+## AI:
+
+Done — the blockedBy numeric-ordinal fix is in, built, and verified. Left **uncommitted** so we can dogfood quick-ship to record it once the server's fresh.
+
+**The fix** (`packages/core/src/planUtils.ts`, `resolveBlockedByIds`):
+- Accept an integer ordinal: coerce `number` → `String(raw)` *before* the empty-guard, so `blockedBy: [1]` flows through the same ordinal→slug regex as `"1"`.
+- Widened the param type to `ReadonlyArray<string | number>` — the honest contract (JSON callers do pass numbers).
+- Malformed entries (float, `NaN`, `null`, object) now **throw** instead of silently vanishing — no dependency edge is ever lost quietly. Empty strings still skip (they carry no edge).
+
+**Verified three ways:**
+1. Unit test `tests/resolve-blockedby-ids.test.ts` extended with JS-number ordinals, number+slug mixed, number/slug dedupe, out-of-range number, and the four malformed-throw cases — green.
+2. End-to-end through `loom_create_plan` on a temp root: `blockedBy: [1]` → `["first"]`, `[1, 2]` → `["first","second"]`. The exact bug I hit authoring plan-001 is gone.
+3. Full `test-all` green, no regressions.
+
+**Next — the dogfood.** This is the payoff: when you restart the session/MCP so `loom_quick_ship` is live, I'll:
+1. `loom_quick_ship({ weaveId: "core-engine", threadId: "create-plan-blockedby-numeric-ordinals", description: "Fix resolveBlockedByIds to accept integer ordinals and throw on malformed entries" })` → records the fix as a done plan in that thread (exercises finding #2's tool on finding #1's fix).
+2. Commit the code fix + the quick-shipped loom docs together.
+
+So: **restart when you're ready**, then say `go` and I'll quick-ship + commit. (If quick-ship misbehaves, that's more real dogfooding signal — we'll capture it.)
+
+## AI:
+
+Dogfood worked — first real use of `loom_quick_ship`, and it did exactly what it's for.
+
+One call recorded the blockedBy fix as a done plan in `create-plan-blockedby-numeric-ordinals`: `planStatus: done`, all 3 steps done, done-doc written, `createdThread: false` (existing thread), `stepCount: 3`. No create→start→complete→close ceremony — the fix now has a versioned-history entry it can carry `actual_release` on at the next release.
+
+So both findings closed in one loop:
+- **#1 (real, user-facing):** numeric `blockedBy` silently dropped → fixed at the root in `resolveBlockedByIds` + tests, verified end-to-end.
+- **#2 (dev-loop):** the stale in-session MCP server → cleared by your restart; and the same restart made `loom_quick_ship` live, which we just proved works.
+
+And the nice symmetry held: the fix I just shipped would have *prevented* finding #1, and recording it exercised finding #2's tool. That's the validation loop paying for itself.
+
+Committing now: the fix (`planUtils.ts` + test) together with the quick-shipped done-plan record, as one unit.

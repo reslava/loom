@@ -31,6 +31,12 @@ async function run() {
     console.log('  • numeric ordinals → id at 1-based position');
     assert(eq(resolveBlockedByIds(['1', '3'], ids), ['alpha', 'gamma']), 'numeric ordinals');
 
+    console.log('  • JS-number ordinals (the bug) → resolve exactly like their string form');
+    assert(eq(resolveBlockedByIds([1, 3], ids), ['alpha', 'gamma']), 'number ordinals');
+    assert(eq(resolveBlockedByIds([2, 'gamma'], ids), ['beta', 'gamma']), 'number + slug mixed');
+    assert(eq(resolveBlockedByIds([1, 'alpha'], ids), ['alpha']), 'number/slug dedupe');
+    expectThrows(() => resolveBlockedByIds([4], ids), /ordinal "4"/, 'number too-high');
+
     console.log('  • "Step N" form — case-insensitive, whitespace-tolerant');
     assert(eq(resolveBlockedByIds(['Step 2', 'step 3', ' 1 '], ids), ['beta', 'gamma', 'alpha']), 'Step N form');
 
@@ -53,6 +59,15 @@ async function run() {
 
     console.log('  • a signed number is not an ordinal — passes through');
     assert(eq(resolveBlockedByIds(['-1'], ids), ['-1']), 'signed passthrough');
+
+    console.log('  • empty-string entry carries no edge — skipped, not thrown');
+    assert(eq(resolveBlockedByIds(['', 'alpha', '  '], ids), ['alpha']), 'empty skipped');
+
+    console.log('  • malformed entries throw (never silently dropped)');
+    expectThrows(() => resolveBlockedByIds([1.5] as any, ids), /neither a step id/, 'float');
+    expectThrows(() => resolveBlockedByIds([NaN] as any, ids), /neither a step id/, 'NaN');
+    expectThrows(() => resolveBlockedByIds([null] as any, ids), /neither a step id/, 'null');
+    expectThrows(() => resolveBlockedByIds([{}] as any, ids), /neither a step id/, 'object');
 
     console.log('\n✅ resolveBlockedByIds tests passed\n');
 }

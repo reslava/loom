@@ -71,7 +71,7 @@ export function isStepBlocked(
  * @param selfId         the owning step's id, when known — to reject self-blocks
  */
 export function resolveBlockedByIds(
-    entries: string[] | undefined,
+    entries: ReadonlyArray<string | number> | undefined,
     orderedStepIds: string[],
     selfId?: string
 ): string[] {
@@ -81,7 +81,22 @@ export function resolveBlockedByIds(
     const seen = new Set<string>();
 
     for (const raw of entries) {
-        const entry = typeof raw === 'string' ? raw.trim() : '';
+        // Accept a numeric ordinal: a JSON tool-call can deliver `blockedBy: [1]` as a
+        // number, not the string "1". Coerce an integer to its string form so the ordinal
+        // regex below resolves it identically to "1". Anything that is neither a string
+        // nor an integer is a malformed edge — throw, never silently drop it. A silently
+        // lost dependency edge is exactly the harm this normalisation exists to prevent.
+        let entry: string;
+        if (typeof raw === 'string') {
+            entry = raw.trim();
+        } else if (typeof raw === 'number' && Number.isInteger(raw)) {
+            entry = String(raw);
+        } else {
+            throw new Error(
+                `blockedBy entry ${JSON.stringify(raw)} is neither a step id/ordinal string ` +
+                `nor an integer ordinal. Pass step ids (slugs), plan ids, or 1-based ordinals.`
+            );
+        }
         if (entry === '') continue;
 
         let id = entry;
