@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
-import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
+import { getActiveLoomRoot, saveDoc, loadDoc, moveTreeOrThrow } from '../../fs/dist';
 import { generateDocId, createBaseFrontmatter, ThreadDoc, today } from '../../core/dist';
 
 /**
@@ -91,7 +91,7 @@ export async function renameThread(
     const to = path.join(weaveDir, input.newThreadId);
     if (!(await deps.fs.pathExists(from))) throw new Error(`Thread '${input.weaveId}/${input.threadId}' not found.`);
     if (await deps.fs.pathExists(to)) throw new Error(`A thread '${input.weaveId}/${input.newThreadId}' already exists.`);
-    await deps.fs.move(from, to, { overwrite: false });
+    await moveTreeOrThrow(from, to, deps.fs);
     await flattenLegacySingletons(to, input.threadId, deps.fs);
     return { from: input.threadId, to: input.newThreadId };
 }
@@ -123,7 +123,7 @@ export async function moveThread(
     if (!(await deps.fs.pathExists(from))) throw new Error(`Thread '${input.fromWeaveId}/${input.threadId}' not found.`);
     if (!(await deps.fs.pathExists(toWeaveDir))) throw new Error(`Destination weave '${input.toWeaveId}' does not exist.`);
     if (await deps.fs.pathExists(to)) throw new Error(`Destination already has a thread '${input.toWeaveId}/${input.threadId}'.`);
-    await deps.fs.move(from, to, { overwrite: false });
+    await moveTreeOrThrow(from, to, deps.fs);
     return { from: `${input.fromWeaveId}/${input.threadId}`, to: `${input.toWeaveId}/${input.threadId}` };
 }
 

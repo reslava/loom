@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
-import { getActiveLoomRoot } from '../../fs/dist';
+import { getActiveLoomRoot, moveTreeOrThrow } from '../../fs/dist';
 
 /**
  * Use-case for restoring an archived item — the inverse of `archiveItem`. Moves
@@ -41,8 +41,7 @@ export async function restoreItem(
     if (!(await deps.fs.pathExists(source))) {
         throw new Error(`Nothing to restore at .archive/${rel}.`);
     }
-    await deps.fs.ensureDir(path.dirname(restored));
-    await deps.fs.move(source, restored, { overwrite: false });
+    await moveTreeOrThrow(source, restored, deps.fs);
 
     // Prune archive container dirs left empty by the move (e.g. the weave dir
     // after its last archived thread/doc is restored), stopping at .archive/.

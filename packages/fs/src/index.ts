@@ -1,6 +1,7 @@
 // Utilities
 export * from './utils/pathUtils';
 export * from './utils/workspaceUtils';
+export { moveTreeOrThrow } from './utils/moveTree';
 
 // Serializers
 export { loadDoc, FrontmatterParseError } from './serializers/frontmatterLoader';

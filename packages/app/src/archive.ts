@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fsExtra from 'fs-extra';
-import { getActiveLoomRoot, resolveDocIdOrThrow } from '../../fs/dist';
+import { getActiveLoomRoot, resolveDocIdOrThrow, moveTreeOrThrow } from '../../fs/dist';
 
 /**
  * Use-case for archiving a Loom item: a single doc (by id) or a whole
@@ -66,7 +66,6 @@ export async function archiveItem(
     // Mirror the path under the single top-level loom/.archive/ tree.
     const rel = source.slice(prefix.length);
     const archivedPath = path.join(loomDir, '.archive', rel);
-    await deps.fs.ensureDir(path.dirname(archivedPath));
-    await deps.fs.move(source, archivedPath, { overwrite: false });
+    await moveTreeOrThrow(source, archivedPath, deps.fs);
     return { source, archivedPath };
 }
