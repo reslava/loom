@@ -45,7 +45,7 @@ Loom's canonical facts (filenames, the workflow loop, the layer diagram) are res
 | **Workflow / phases** (the loop, phase order, a new phase such as `req`) | `loom/refs/workflow-reference.md` · `loom/refs/staleness-reference.md` · `loom/refs/loom-requirements-reference.md` · `loom/refs/architecture-reference.md` · `loom/refs/demo-script-reference.md` · `README.md` · `loom/ctx.md` — *`vision-reference.md` stays deliberately abstract; its loop omits phase detail by design.* |
 | **Package layers / architecture** (dependency rule, MCP surface) | `loom/refs/architecture-reference.md` · `loom/refs/implementation-contract-reference.md` · `loom/ctx.md` · `CLAUDE.md` **+ the `LOOM_CLAUDE_MD` template** |
 
-Also sweep `docs/*.md` (the public user guides) — they carry filename and workflow examples that must not contradict the refs.
+Also sweep the **package READMEs** (`packages/vscode/README.md` — the VS Code Marketplace listing · `packages/cli/README.md` — the npm listing) and `docs/*.md` (the public user guides) — they are user-facing surfaces that carry filename and workflow examples that must not contradict the refs.
 
 ---
 

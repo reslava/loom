@@ -1,16 +1,17 @@
 ---
 type: chat
 id: ch_01KWGJG8MWFQ58FQJ30WP0NN4R
-title: loom-entities-crud Chat
+title: loom-entities-crud update docs and contract Chat
 status: done
 created: 2026-07-02
+updated: 2026-07-02
 version: 1
 tags: []
 parent_id: null
 requires_load: []
 last_ai_block: 23
 ---
-# loom-entities-crud Chat
+# loom-entities-crud update docs and contract Chat
 
 ## Rafa:
 

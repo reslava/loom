@@ -8,7 +8,7 @@
 
 Loom turns your project into a structured collaboration surface between you and AI. Instead of a chat window that forgets everything, you get a document-driven loop:
 
-**chat → idea → design → plan → implement → done**
+**chat → idea → design → req → plan → implement → done**
 
 Every stage is a Markdown document. The AI reads them, writes to them, and tracks progress through them — across sessions, without losing context.
 
@@ -228,7 +228,7 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 - [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) — the panel, buttons, and CONTEXT view
 - [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md) — driving Loom from the terminal
 - [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started-reference.md) — install to first idea in five minutes
-- [How Loom works](https://github.com/reslava/loom/blob/main/loom/refs/vision-reference.md) — the chat → design → plan → implement loop
+- [How Loom works](https://github.com/reslava/loom/blob/main/loom/refs/vision-reference.md) — the chat → design → req → plan → implement loop
 - [Architecture](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md) — MCP surface, doc types, frontmatter
 - [Staleness Model](https://github.com/reslava/loom/blob/main/loom/refs/staleness-reference.md) — how the tree's staleness ⚠ is decided (one directional, version-based rule)
 

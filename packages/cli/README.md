@@ -74,7 +74,7 @@ npx @reslava/loom status
 3. Chat with the agent to shape ideas, then let it generate designs, plans, and
    implement plan steps — all recorded as markdown under `loom/`.
 
-The loop: `chat → {generate|refine} idea/design/plan/ctx → {implement step(s)} → done`.
+The loop: `chat → {generate|refine} idea/design/req/plan/ctx → {implement step(s)} → done`.
 
 ---
 
@@ -129,8 +129,8 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 | `loom weave idea <title> [--weave <n>] [--thread <id>] [--loose]` | Create an idea document. |
 | `loom weave design <weave-id> [--title <t>] [--thread <id>]` | Create a design from an existing idea. |
 | `loom weave plan <weave-id> [--title <t>] [--goal <g>] [--thread <id>]` | Create a plan from a finalized design. |
-| `loom finalize <temp-id>` | Finalize a draft document and generate its permanent ID. |
-| `loom rename <old-id> <new-title>` | Rename a finalized document and update references. |
+| `loom finalize <id>` | Finalize a draft document (status `draft` → `active`). The ULID `id` is unchanged — there is no temp→permanent step. |
+| `loom rename <id> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
 
 ### Workflow events
 
