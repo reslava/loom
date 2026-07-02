@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWJE0CZJG37MM3V1V3CH81GK
 title: resolveBlockedByIds silently drops numeric ordinal blockedBy entries
-status: draft
+status: done
 created: 2026-07-02
 version: 1
 tags: []
