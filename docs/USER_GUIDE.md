@@ -50,7 +50,7 @@ In Loom, the durable artifacts of your work — what you want, how you'll build 
 | Type | What it is |
 |------|-----------|
 | **chat** | Free-form conversation with the AI. The thinking surface — no formal state. |
-| **req** | The thread's locked **scope spec**: what the work must *include*, *exclude*, and be *constrained* by. Born first, auto-loaded into everything built after it. |
+| **req** | The thread's locked **scope spec**: what the work must *include*, *exclude*, and be *constrained* by. Authored after the design, auto-loaded into everything built after it. |
 | **idea** | What you want to build and why it matters. |
 | **design** | How you'll build it: architecture, decisions, trade-offs. Carries a decisions log. |
 | **plan** | A numbered table of concrete implementation steps, each with the files it touches. |
@@ -67,25 +67,27 @@ The distinction between **ctx** and **reference** matters and is covered in §4.
 ## 3. The workflow loop
 
 ```
-chat  →  req  →  idea  →  design  →  plan  →  (implement step by step)  →  done
+chat  →  idea  →  design  →  req  →  plan  →  (implement step by step)  →  done
   └─────────────────── refine any doc, any time ───────────────────┘
 ```
+
+`req` is **optional** and sits between design and plan — a thread with no req goes `design → plan` directly.
 
 Each arrow is an action *you* trigger (a button in the extension, a prompt to Claude Code). The AI does the work and writes the result into the document; you review and approve.
 
 | Stage | What it's for | What the AI does |
 |-------|---------------|------------------|
 | **chat** | Think out loud, explore, decide. | Replies inside the chat doc with full thread context loaded. |
-| **req** | Lock the *scope*: what's in, what's out, what's fixed. | Extracts the explicit include / exclude / constraints from your chat; you curate and **lock** them. |
 | **idea** | Lock down *what* and *why*. | Drafts the idea from your chat or prompt; you refine it. |
 | **design** | Decide *how*. | Generates an architecture + decisions doc from the idea. |
+| **req** | Lock the *scope*: what's in, what's out, what's fixed. | Extracts the explicit include / exclude / constraints from your chat + design; you curate and **lock** them. |
 | **plan** | Break the design into steps. | Generates a numbered steps table, each with files and dependencies. |
 | **implement** | Build it, one step at a time. | Implements the next step, records what it did in the `done` doc, marks the step ✅. |
 | **done** | Close the work. | The `done` doc is the permanent implementation record; the thread can move to a new plan or close. |
 
-### Requirements: lock the scope before you build
+### Requirements: lock the scope before you plan
 
-`req` is the first formal artifact, extracted from your chat *before* the idea. It captures three ID'd lists — **✅ Included**, **❌ Excluded**, **⛓ Constraints** — and once you **lock** it, it becomes the thread's authoritative scope spec. Every doc generated after it (idea, design, plan) is built against the locked spec, and the planner cites which requirement each step satisfies. This is how a "no interaction testing" said once in a chat survives all the way to the plan instead of being silently dropped — and how an open question never gets mistaken for a deliverable. Full model: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
+`req` is authored **after the design** — it crystallizes the thread's scope once the shape is clear, then locks it. It captures three ID'd lists — **✅ Included**, **❌ Excluded**, **⛓ Constraints** — and once you **lock** it, it becomes the thread's authoritative scope spec. Everything built after it (the plan, and any later design refine) is checked against the locked spec, and the planner cites which requirement each step satisfies. This is how a "no interaction testing" said once in a chat survives all the way to the plan instead of being silently dropped — and how an open question never gets mistaken for a deliverable. `req` is optional. Full model: [loom-requirements-reference](../loom/refs/loom-requirements-reference.md).
 
 ### The rhythm: one step, then stop
 
@@ -156,7 +158,7 @@ You open a chat in the `auth` weave's `login-throttle` thread and click *AI Repl
 1. **`loom/ctx.md`** — the global project summary. *(scope: global)*
 2. **`loom/auth/ctx.md`** — the auth weave summary. *(scope: weave)*
 3. **`security-reference.md`** — marked `load: always`, `load_when: [design, plan, implementing]`. You're in a chat, so it's *filtered out* this time. *(excluded by load_when)*
-4. **`login-throttle-idea.md`** and **`login-throttle-design.md`** — the thread's parent chain, loaded in full. *(scope: target chain)*
+4. **`idea.md`** and **`design.md`** (in the `login-throttle` thread) — the thread's parent chain, loaded in full. *(scope: target chain)*
 5. **`rate-limit-api-reference.md`** — because the design's `requires_load` lists it. *(pulled in by requires_load, even though it's `by-request`)*
 6. **the chat doc itself** — the thing you're replying in. *(target)*
 

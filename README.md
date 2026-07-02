@@ -492,6 +492,8 @@ that forgets, every time.
 | [User Guide](./docs/USER_GUIDE.md) | Concepts, the workflow loop, and how context works (start here) |
 | [Extension User Guide](./docs/EXTENSION_USER_GUIDE.md) | The VS Code panel, buttons, and CONTEXT view |
 | [CLI / Claude Code Guide](./docs/CLI_USER_GUIDE.md) | Driving Loom from the terminal via an MCP agent |
+| [Architecture Overview](./docs/ARCHITECTURE.md) | Reader's-eye map of the layered system — defers to the Architecture Reference |
+| [AI Integration](./docs/AI_INTEGRATION.md) | How an AI agent plugs in via MCP: the two paths, context injection, approval gates |
 | [Architecture Reference](./loom/refs/architecture-reference.md) | Package relationships, AI integration, frontmatter fields, directory structure |
 | [MCP Reference](./loom/refs/mcp-reference.md) | The MCP surface: protocol, host landscape, resources, prompts, sampling, and the single-AI model |
 | [Context Pipeline Reference](./loom/refs/loom-context-pipeline-reference.md) | How Loom decides what the AI sees — context assembly, internals |

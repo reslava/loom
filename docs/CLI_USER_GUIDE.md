@@ -1,6 +1,6 @@
 # Loom — CLI & Claude Code User Guide
 
-> **New to Loom?** Read **[Core concepts & workflow](USER_GUIDE.md)** first — it explains weaves, threads, the chat → idea → design → plan → done loop, and how context works. This guide covers only what's specific to driving Loom from the **terminal**: the `loom` CLI and an MCP-capable agent (Claude Code).
+> **New to Loom?** Read **[Core concepts & workflow](USER_GUIDE.md)** first — it explains weaves, threads, the chat → idea → design → req → plan → done loop, and how context works. This guide covers only what's specific to driving Loom from the **terminal**: the `loom` CLI and an MCP-capable agent (Claude Code).
 
 ---
 
@@ -114,7 +114,7 @@ Once connected, you collaborate in natural language; the agent calls Loom tools 
 
 Loom's promise is that you see exactly what the AI saw. In a terminal session that shows up two ways:
 
-- **Visibility lines.** When the agent loads context, it prints one line per document — e.g. `📄 auth-design.md — loaded for context`. That's the literal bundle that went into the prompt.
+- **Visibility lines.** When the agent loads context, it prints one line per document — e.g. `📄 design.md — loaded for context`. That's the literal bundle that went into the prompt.
 - **`loom status`.** Inspect derived state — which threads are active, plan progress, stale docs — without launching the AI.
 
 The context *model* (global/weave ctx, references, `requires_load`, `load_when`) is explained in **[§4 of the core guide](USER_GUIDE.md#4-giving-the-ai-the-right-context)**. The same `.loom/context-prefs.json` overrides the extension's CONTEXT panel writes are honored here too — the launch path reads them when assembling the bundle.
@@ -153,8 +153,8 @@ Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent —
 | `loom weave idea <title> [--weave <w>] [--thread <id>] [--loose]` | Create an idea (new thread by default). |
 | `loom weave design <weave-id> [--thread <id>] [--title <t>]` | Create a design from an existing idea. |
 | `loom weave plan <weave-id> [--thread <id>] [--goal <g>] [--title <t>]` | Create a plan from a finalized design. |
-| `loom finalize <temp-id>` | Finalize a draft doc and assign its permanent ID. |
-| `loom rename <old-id> <new-title>` | Rename a finalized doc and update references. |
+| `loom finalize <id>` | Finalize a draft doc (`draft → active`). |
+| `loom rename <id> <new-title>` | Rename a doc's title (identity is a stable ULID; the filename is flat and doesn't change). |
 
 ### Workflow events
 
