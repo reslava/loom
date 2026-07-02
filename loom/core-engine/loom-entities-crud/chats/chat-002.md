@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 17
+last_ai_block: 23
 ---
 # loom-entities-crud Chat
 
@@ -286,3 +286,57 @@ go
 Since `workflow.yml`/`run_command` is dead, I cut `ARCHITECTURE.md`'s **§8 Security model** and **§9 Extension points** — both described *only* that unbuilt customization layer (custom doc types via `workflow.yml`, the `run_command` effect "disabled by default", `allowShellCommands`, secret filtering). Leaving them would have `ARCHITECTURE` describing features that don't exist. Note: there's still an **active `workflow-run-command` thread** (priority 200) in the roadmap — so if you *do* intend to ship `run_command` + `workflow.yml` someday, that security model is real design that just isn't implemented yet, and I've now removed its doc. Two clean options: (a) leave it removed and re-document when it ships, or (b) I restore §8/§9 but reframed as *"planned, not yet implemented."* I went with (a) — say the word for (b).
 
 That closes the `docs/` sweep. `docs/internal/` untouched (gitignored, yours).
+
+## Rafa:
+
+`workflow-run-command` thread is too complex for an app with no users, so I archived it, agree?
+
+i think this `thread` `loom/core-engine/plan-blockedby-id-normalization/idea.md` should be next to implement to have an stable final loom version, agree?
+
+then we could do-release 1.13.0, agree?
+
+## AI:
+
+Agree on all three — with reasoning, not a rubber-stamp.
+
+### 1. Archiving `workflow-run-command` — yes, strongly
+It's an unbuilt, *high-complexity* feature (shell execution + a security sandbox: `allowShellCommands`, cwd restriction, secret filtering) whose entire justification is end-user customization you have **zero users** asking for. Building a code-execution surface for nobody is the worst effort-to-risk trade in the backlog. Archiving (not deleting) keeps the design if validation ever pulls it back. This also **closes my ARCHITECTURE flag**: with the thread archived, leaving §8/§9 removed (option a) is now unambiguously correct — don't restore them.
+
+> Small follow-on: `vision-reference.md` and `workflow-reference.md` still mention `.loom/workflow.yml` as *"planned / eventual customization."* With the idea now shelved, those are mild aspirational overstatements. I'd leave vision abstract as you decided, but I can soften both to "possible future" or cut them — your call, not blocking a release.
+
+### 2. `plan-blockedby-id-normalization` next — yes
+I read the idea. It's a genuine latent **correctness** bug, not polish: `loom_create_plan` persists `blockedBy` ordinals (`["1","2"]`) verbatim, while `loom_update_step` resolves the same values to stable step-id slugs. So a plan born in one `create` call has a *fragile* dependency graph that silently mis-points the moment a step is inserted/removed/reordered — the exact thing slug-ids exist to prevent. It bit you live authoring `roadmap-release-version-plan-001` (ten follow-up `update_step` calls to fix). For a "stable final version," a correctness bug in the **most-used write path** is precisely the right last fix — and it hits Chord Flow too, so it's real-user-facing.
+
+Two notes: it's currently **only an idea (draft)** — no design/plan yet — so "implement" = a quick design → plan → do-step. It's small (reuse/extract one ordinal→id resolver so create + update converge). The one open question — out-of-range ordinal at create: **error vs pass-through** — I lean **error** (it can only be a mistake), matching the idea. That's a 30-second design call.
+
+### 3. `do-release` after — yes, with the version caveat
+Sequence I'd follow: land the normalization fix → `build-all` + `test-all` green (this release also carries today's doc alignment + the entity-CRUD flat-layout work) → then release. On **1.13.0** specifically: I can't launch `/do-release` (you trigger it), and it pins the exact version from `RELEASING.md` + the git log since the last tag, under lockstep. 1.13.0 (minor) fits a features-and-fixes release, but let the command confirm the number rather than hard-coding it here.
+
+**Next:** on your `go` I'll start the `plan-blockedby-id-normalization` thread — generate the design (settling the error-vs-passthrough question), then a plan — and stop for approval before implementing. Want me to kick that off?
+
+## Rafa:
+
+1. `vision-reference.md` and `workflow-reference.md` still mention `.loom/workflow.yml`: cut them
+2. I do not understand well, do you mean do release 1.13.0 now and before `plan-blockedby-id-normalization` and then other release? I lean do release when `plan-blockedby-id-normalization` is shipped, tell me what is your opinion
+3. yes
+
+## AI:
+
+### 1. `workflow.yml` mentions — cut ✅
+Removed the whole *"Customization (future)"* section from `workflow-reference.md` and the "teams can shape the loop (`.loom/workflow.yml` planned)" bullet from `vision-reference.md`. (Uncommitted for now — I'll fold them into the next commit unless you want them landed separately.)
+
+### 2. Release timing — we agree, I just phrased it badly
+**One release, after `plan-blockedby-id-normalization` ships.** Not two, and not now. My "land the fix → release" was a single release that also carries everything already on `main` since the last tag (the entity-CRUD flat-layout work + today's doc alignment + this fix). No reason to cut a release before the fix — that'd just mean releasing twice. So: finish the fix → `build-all` + `test-all` green → then `/do-release`. Your lean is exactly right.
+
+### 3. Design generated — `design.md` in the thread (review before I plan)
+
+📄 `plan-blockedby-id-normalization/design.md` — created (draft).
+
+I grounded it in the code. The load-bearing finding: **there is no shared write-time ordinal→id resolver today** — `buildStructuredSteps` stores `blockedBy` verbatim, and `isStepBlocked` only tolerates ordinals at *read* time (which is what hides the bug). So the fix introduces one. Two decisions I made in the design that shape the API/tests — confirm these and I'll generate the plan:
+
+- **Out-of-range ordinal → error** (throw at write time), not silent pass-through. It can only be a mistake.
+- **One core helper `resolveBlockedByIds(entries, orderedStepIds)`, shared by create *and* the add/update-step reducers** — so numeric `blockedBy` is normalized identically everywhere and there's no second codepath (what the idea asked for). Non-numeric slugs / `pl_…` plan-ids pass through; result deduped; self-block rejected.
+
+I also scoped **out** a migration of *already-stored* ordinals in existing plans (new writes are clean; the one plan that hit this was hand-fixed) — flag if you'd rather include it.
+
+**STOP — design decision.** Confirm the two calls above (or adjust), and I'll generate the plan, then stop again before implementing.
