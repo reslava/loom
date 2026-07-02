@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KWH67GHRC400TFA4G9Q1XPC9
 title: archive-robust-move Chat
-status: active
+status: done
 created: 2026-07-02
 version: 1
 tags: []

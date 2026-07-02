@@ -2,7 +2,7 @@
 type: design
 id: de_01KWH5FR1BGXFH3GBKECKHG9DF
 title: loom_archive must move atomically, never silently copy
-status: draft
+status: done
 created: 2026-07-02
 updated: 2026-07-02
 version: 2

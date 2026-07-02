@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWH56AJ9M2AZEEJ72JZ8C93J
 title: loom_archive must move atomically, never silently copy
-status: draft
+status: done
 created: 2026-07-02
 version: 1
 tags: []
