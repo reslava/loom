@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 3
+last_ai_block: 5
 ---
 # loom-entities-crud update vsix and cli readmes and include in contract Chat
 
@@ -148,3 +148,16 @@ You've told me the thing that matters: not the link, the **surprise**. Agreed an
 - **Going forward:** tell me your standing preference and I'll follow it exactly — (a) never add it, (b) always add it (now that you're informed), or (c) ask each time. Whatever you pick, no more surprises.
 
 Committing the doc fixes now (README req/filename alignment + contract sweep + this chat), no trailer. I also folded in a tiny concurrent rename you made to chat-002's title so the tree lands clean — flag if you'd rather I hadn't.
+
+## Rafa:
+
+Thank you for info! now you can always add it (b)
+I would like no more surpise with asking and inform me before, but I know it no depends on you.
+
+## AI:
+
+Got it — **(b) always add the `Claude-Session:` trailer** from here on, now with your informed go.
+
+On surprises: you're right that I can't control what the harness injects as a default — but I *can* control whether I flag it. My commitment: when I notice a new convention showing up in my own output that you didn't ask for — a trailer, an attribution, an auto-created file — I'll call it out rather than let it ride silently. Asking-before is on me; the not-noticing was the real failure this time. I've recorded your call so future sessions start from it.
+
+Nothing to commit this turn.
