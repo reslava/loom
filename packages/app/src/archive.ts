@@ -3,8 +3,8 @@ import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, resolveDocIdOrThrow, moveTreeOrThrow } from '../../fs/dist';
 
 /**
- * Use-case for archiving a Loom item: a single doc (by id) or a whole
- * thread/weave folder (by weaveId + optional threadId). The item is *moved*
+ * Use-case for archiving a Loom item: a single doc (by docUlid) or a whole
+ * thread/weave folder (by weaveSlug + optional threadSlug). The item is *moved*
  * under the single top-level `loom/.archive/` tree, mirroring its weave/thread
  * path (never an in-thread `.archive/`). Recoverable via `restoreItem`.
  *
@@ -24,8 +24,8 @@ export interface ArchiveDeps {
 // empty folders behind). The ONE exception is loom/refs/ — references and refs/chats
 // have no thread, so they ARE their own atomic unit and archive individually by id.
 export type ArchiveInput =
-    | { weaveId: string; threadId?: string }
-    | { id: string };
+    | { weaveSlug: string; threadSlug?: string }
+    | { docUlid: string };
 
 export async function archiveItem(
     input: ArchiveInput,
@@ -36,19 +36,19 @@ export async function archiveItem(
     const prefix = loomDir + path.sep;
 
     let source: string;
-    if ('id' in input && input.id) {
-        const { filePath } = await deps.resolveDocIdOrThrow(loomRoot, input.id);
+    if ('docUlid' in input && input.docUlid) {
+        const { filePath } = await deps.resolveDocIdOrThrow(loomRoot, input.docUlid);
         const refsPrefix = path.join(loomDir, 'refs') + path.sep;
         if (!filePath.startsWith(refsPrefix)) {
-            throw new Error('Only references (loom/refs) archive individually — everything else archives with its whole thread: pass { weaveId, threadId? }.');
+            throw new Error('Only references (loom/refs) archive individually — everything else archives with its whole thread: pass { weaveSlug, threadSlug? }.');
         }
         source = filePath;
-    } else if ('weaveId' in input && input.weaveId) {
-        source = input.threadId
-            ? path.join(loomDir, input.weaveId, input.threadId)
-            : path.join(loomDir, input.weaveId);
+    } else if ('weaveSlug' in input && input.weaveSlug) {
+        source = input.threadSlug
+            ? path.join(loomDir, input.weaveSlug, input.threadSlug)
+            : path.join(loomDir, input.weaveSlug);
     } else {
-        throw new Error('archiveItem requires { weaveId, threadId? } or a reference { id }.');
+        throw new Error('archiveItem requires { weaveSlug, threadSlug? } or a reference { docUlid }.');
     }
 
     if (!source.startsWith(prefix)) {

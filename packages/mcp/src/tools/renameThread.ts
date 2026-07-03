@@ -1,25 +1,25 @@
 import * as fs from 'fs-extra';
-import { getActiveLoomRoot } from '../../../fs/dist';
+import { getActiveLoomRoot, loadDoc } from '../../../fs/dist';
 import { renameThread } from '../../../app/dist/thread';
 
 export const toolDef = {
     name: 'loom_rename_thread',
-    description: "Rename a thread folder (loom/{weaveId}/{threadId}) — the slug only. The thread's stable identity (th_ ULID in thread.md) and all its docs are untouched, so depends_on edges and every backlink survive. (Legacy thread-prefixed idea/design filenames are flattened to idea.md/design.md so the rename holds pre-migration.) Use this tool — do not rename thread folders directly.",
+    description: "Rename a thread's folder slug. The thread is identified by its stable th_ ULID (thread_ulid); its identity and all its docs are untouched, so depends_on edges and every backlink survive. (Legacy thread-prefixed idea/design filenames are flattened to idea.md/design.md so the rename holds pre-migration.) Use this tool — do not rename thread folders directly.",
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Weave id that contains the thread.' },
-            threadId: { type: 'string', description: 'Current thread id (folder name).' },
-            newThreadId: { type: 'string', description: 'New thread id (folder name).' },
+            weave_slug: { type: 'string', description: 'Weave folder slug that contains the thread.' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread to rename.' },
+            new_thread_slug: { type: 'string', description: 'New thread folder slug.' },
         },
-        required: ['weaveId', 'threadId', 'newThreadId'],
+        required: ['weave_slug', 'thread_ulid', 'new_thread_slug'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const result = await renameThread(
-        { weaveId: args['weaveId'] as string, threadId: args['threadId'] as string, newThreadId: args['newThreadId'] as string },
-        { getActiveLoomRoot: () => getActiveLoomRoot(root), fs },
+        { weaveSlug: args['weave_slug'] as string, threadUlid: args['thread_ulid'] as string, newThreadSlug: args['new_thread_slug'] as string },
+        { getActiveLoomRoot: () => getActiveLoomRoot(root), loadDoc, fs },
     );
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

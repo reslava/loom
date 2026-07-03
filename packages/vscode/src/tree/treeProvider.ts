@@ -20,6 +20,8 @@ export interface TreeNode extends vscode.TreeItem {
     children?: TreeNode[];
     weaveId?: string;
     threadId?: string;
+    /** The thread's stable th_ ULID (from thread.md) — what ULID-addressed folder ops (rename/move) pass. */
+    threadUlid?: string;
     doc?: Document;
     /** Roadmap thread node — carries the read-model node for drag-reorder. */
     roadmap?: RoadmapNode;
@@ -416,7 +418,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         if (docPath) {
             node.command = { command: 'vscode.open', title: 'Open', arguments: [vscode.Uri.file(docPath)] };
         }
-        return { ...node, weaveId: n.weaveId, threadId: n.threadId, roadmap: n, children: [] };
+        return { ...node, weaveId: n.weaveId, threadId: n.threadId, threadUlid: n.ulid ?? undefined, roadmap: n, children: [] };
     }
 
     private createHistoryBand(history: ShippedPlan[], grouping: HistoryGrouping, currentRelease: string | null): TreeNode {
@@ -684,7 +686,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         if (hasCtx) contextValue += '-has-ctx';
         node.contextValue = contextValue;
 
-        return { ...node, weaveId, threadId: thread.id, children };
+        return { ...node, weaveId, threadId: thread.id, threadUlid: thread.manifest?.id, children };
     }
 
     private getThreadChildren(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode[] {

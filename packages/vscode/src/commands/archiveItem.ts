@@ -11,11 +11,11 @@ export async function archiveItemCommand(treeProvider: LoomTreeProvider, node?: 
     // loom.archive is wired (package.json when-clause) to live items only.
     let args: Record<string, unknown>;
     if (node.doc?.id) {
-        args = { id: node.doc.id };
+        args = { doc_ulid: node.doc.id };
     } else if (node.weaveId && node.threadId) {
-        args = { weaveId: node.weaveId, threadId: node.threadId };
+        args = { weave_slug: node.weaveId, thread_slug: node.threadId };
     } else if (node.weaveId) {
-        args = { weaveId: node.weaveId };
+        args = { weave_slug: node.weaveId };
     } else {
         vscode.window.showErrorMessage('Cannot determine what to archive.');
         return;

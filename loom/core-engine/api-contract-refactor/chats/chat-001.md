@@ -4,11 +4,12 @@ id: ch_01KWKA1QMJQWJWWNRPN3CM8AJN
 title: weave-idea-threadid-fix Chat
 status: done
 created: 2026-07-03
-version: 1
+updated: 2026-07-03
+version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 42
+last_ai_block: 50
 ---
 # weave-idea-threadid-fix Chat
 
@@ -668,3 +669,84 @@ go
 Committing the green checkpoint now — steps 1–6 + step-7 Stage 1, full build + `test-all` green. This captures the actual bug fix (explicit thread creation by ULID, seam gone) as a clean, releasable-shaped state before the big rename pass.
 
 Then starting Stage 2 (the renames). I'll work in build-green sub-stages and **stop to ask for the MCP reconnect** the moment I've built renamed tool schemas and want to live-verify — and I'll flag if a fresh session looks wiser given how much context we've built up.
+
+## AI:
+
+Green checkpoint committed. Before Stage 2, a recommendation you invited: **do Stage 2 in a fresh session.**
+
+Three concrete reasons, not just context size:
+1. **Clean handoff exists now.** The commit is a releasable-shaped, fully-green state — the ideal point to start fresh from. Stage 2's spec is fully captured in the plan (step 7), `api-naming-reference.md`, and `api-audit-reference.md` — a fresh session has everything it needs.
+2. **Stage 2 renames the very workflow tools *I* use.** `loom_complete_step`/`loom_append_done`/`loom_update_step`/`loom_append_to_chat` take `planId` etc. — renaming those mid-session means my own tool calls straddle the old/new schema against a stale-then-reconnected server. A fresh session (started after Stage 2's build + your reconnect) just uses the new names cleanly. Doing it in-session is a fiddly transition for no benefit.
+3. **This session is very long** — a fresh one is faster and cheaper for a big mechanical pass.
+
+So my suggestion: **start a fresh session, point it at the green checkpoint just committed (top of `git log`) + plan step 7, and let it run Stage 2** (renames → build → you reconnect MCP → live-verify → tests green). I'll hand off cleanly.
+
+If you'd rather I just push on here, say so and I will — but I think fresh is the right call, and it's exactly the "start fresh session" trigger you named.
+
+**STOP — fresh session for Stage 2 (recommended), or push on here?**
+
+## Rafa:
+
+I started a fresh session
+I pushed
+go
+
+## AI:
+
+Starting Stage 2 (step 7). Reloaded the drivers: plan-001 step 7, `api-naming-reference.md`, `api-audit-reference.md`. Sub-stage A is "convert the folder-ops (rename/move/archive/delete/restore) to resolve-at-boundary by `thread_ulid`." Reading the actual code surfaced a fork the locked plan didn't foresee — flagging before I touch anything.
+
+**What I found**
+
+- The vscode tree passes **folder slugs**, not ULIDs: `TreeNode.threadId = thread.id` (the folder slug). The archive/delete/restore commands call `callTool('loom_archive', { weaveId, threadId })` with those slugs. There's no `th_` ULID on a general thread node.
+- `archive` / `delete` / `restore` are **folder operations that span `loom/.archive/`**. `restore` acts on an *archived* thread; `delete` on a live *or* archived one. Resolving `thread_ulid`→folder there means scanning the `.archive/` tree, and the archive-view node has no ULID to give.
+- These ops **store no reference** — they move a directory once. The whole value of ULID-addressing (a stored edge surviving a rename) doesn't apply to a one-shot folder move. Their only gain from ULID would be surface uniformity.
+
+**The split**
+
+- **rename_thread / move_thread** — live threads, cheap resolution, vscode can read the ULID from live state. `thread_ulid` is cleanly right here (you rename a thread *by its identity*, not by the slug you're about to change). → I'll convert these.
+- **archive / delete / restore** — two honest options:
+  - **(A) force `thread_ulid` everywhere** (strict plan): plumb thread ULIDs through vscode incl. the archive view + add archive-tree ULID resolution. More work; payoff = uniformity only.
+  - **(B) name them `weave_slug` + `thread_slug`** (folder ops addressed by folder): truthful per naming-rule 3 ("a folder/slug param is `*Slug`"), kills the original ambiguity bug (a slug *named* slug can't mislead), no vscode/archive plumbing, no archived-ULID resolver. Deviates from "uniformly ULID" — but principled: these aren't entity references, they're folder moves.
+
+**My recommendation: A for rename/move, B for archive/delete/restore.** It's the correct-path reading of the convention (rule 4 governs *entity references*; a folder move is a rule-3 folder op), and it avoids plumbing ULIDs into the archive view for zero correctness gain.
+
+If you'd rather hold the line on "uniformly ULID" (A everywhere), I'll do it — it's just more vscode/archive-tree work. Which way?
+
+## Rafa:
+
+Agree with your recommendation
+(sorry i didn't see your question)
+
+## AI:
+
+Locked:
+- **rename_thread / move_thread → `thread_ulid`** (+ `new_thread_slug` / `from_weave_slug`,`to_weave_slug`)
+- **archive / delete / restore → `weave_slug` + `thread_slug`** (honest folder ops; `id`→`doc_ulid` for the refs case)
+
+One caveat I confirmed while checking the call sites (flagging so it's not a silent scope creep): the vscode rename/move sites carry **slugs** today — `rename.ts` passes `threadId`, and the normal-tree drag payload (`roadmapDnd`) is `{ weaveId, threadId }` with no ULID. To pass `thread_ulid` I'll add a small `threadUlid` onto the tree node + drag payload, sourced from `thread.manifest.id` (the `th_` ULID is already loaded on the `Thread` entity). Consequence: **ULID-addressed rename/move require a `thread.md` manifest** — always true for threads created the normal way, and consistent with the "explicit thread creation" invariant from step 6. No new user-facing convention, just necessary plumbing.
+
+Starting sub-stage A: app use-cases (`thread.ts` rename/move resolve-by-ULID; `archive`/`remove`/`restore` field renames) → their MCP tools → vscode callers → `entities-crud.test.ts` fixtures → build + test green.
+
+## AI:
+
+**Sub-stage A done — build + test green.** The five folder-ops are converted per the locked decision:
+
+- **rename_thread / move_thread → `thread_ulid`** — resolve-at-boundary via `resolveThreadFolder`; app inputs now `{ weaveSlug, threadUlid, newThreadSlug }` / `{ fromWeaveSlug, threadUlid, toWeaveSlug }`. vscode plumbs the ULID through a new `TreeNode.threadUlid` (sourced from `thread.manifest?.id`, and `n.ulid` for roadmap nodes) + the drag payload. Guarded: a thread with no `thread.md` can't be renamed/moved by identity (shows a clear message).
+- **archive / delete / restore → `weave_slug` + `thread_slug`** (folder ops) with the refs case as `doc_ulid`. MCP schemas now snake_case (`weave_slug`, `thread_slug`, `doc_ulid`, `archived_rel_path`); app inputs camelCase (`weaveSlug`, `threadSlug`, `docUlid`).
+
+Files: app `thread.ts`/`archive.ts`/`remove.ts`/`restore.ts`; mcp tools `archive`/`delete`/`restore`/`renameThread`/`moveThread`; vscode `archiveItem`/`deleteItem`/`restoreItem`/`rename`/`roadmapDnd`/`treeProvider`; test `entities-crud.test.ts`. No CLI folder-op commands exist, so none needed.
+
+Note: the 5 renamed tools' new schemas are live-verifiable only after an MCP reconnect (build-all doesn't restart the running server) — not blocking, since these aren't workflow tools I use, and dist-importing tests already exercise the logic.
+
+**Next — Chunk B: the broad param-rename pass** across the remaining ~45 tools (the audit table): every `weaveId→weave_slug`, `threadId→thread_ulid` (create/promote/req/quickShip/generate/verify), `planId→plan_ulid`, `parentId→parent_ulid`, `chatId→chat_ulid`, `sourceId→source_ulid`, `targetId→doc_ulid`, snake_case at MCP + camelCase in app + handler mapping. Then Chunk C (tool renames `loom_rename→loom_retitle`, `loom_rename_doc_file→loom_rename_reference_file`) and Chunk D (integration-test fixtures).
+
+This is a clean checkpoint. Want me to commit Chunk A now, or roll straight into Chunk B and commit the whole of step 7 together?
+
+## Rafa:
+
+commit
+then go
+
+## AI:
+
+Committing Chunk A as its own build-green checkpoint, then rolling into Chunk B (the broad param-rename pass over the remaining ~45 tools). I'll build+test green and report at the next checkpoint before committing Chunk B.

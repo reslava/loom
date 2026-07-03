@@ -90,14 +90,14 @@ async function run() {
         await writeDoc(path.join(root, 'loom', 'wv', 'th', 'thread.md'), { type: 'thread', id: 'th_1', title: 'T', priority: 1000, depends_on: [] });
         await fs.ensureDir(path.join(root, 'loom', 'wv2'));
 
-        await renameThread({ weaveId: 'wv', threadId: 'th', newThreadId: 'renamed' }, deps(root));
+        await renameThread({ weaveSlug: 'wv', threadUlid: 'th_1', newThreadSlug: 'renamed' }, deps(root));
         assert(await exists(root, 'loom/wv/renamed/thread.md'), 'thread folder renamed');
         assert(await exists(root, 'loom/wv/renamed/idea.md'), 'legacy idea flattened to idea.md on rename');
         assert(!(await exists(root, 'loom/wv/renamed/th-idea.md')), 'legacy idea name gone');
         const mani = await loadDoc(path.join(root, 'loom/wv/renamed/thread.md')) as any;
         assert(mani.id === 'th_1', 'thread.md ULID untouched by rename');
 
-        await moveThread({ fromWeaveId: 'wv', threadId: 'renamed', toWeaveId: 'wv2' }, deps(root));
+        await moveThread({ fromWeaveSlug: 'wv', threadUlid: 'th_1', toWeaveSlug: 'wv2' }, deps(root));
         assert(await exists(root, 'loom/wv2/renamed/thread.md'), 'thread moved to wv2');
         assert(!(await exists(root, 'loom/wv/renamed')), 'source thread gone after move');
 
@@ -106,7 +106,7 @@ async function run() {
 
         // guards
         let threw = false;
-        try { await moveThread({ fromWeaveId: 'wv3', threadId: 'renamed', toWeaveId: 'nope' }, deps(root)); } catch { threw = true; }
+        try { await moveThread({ fromWeaveSlug: 'wv3', threadUlid: 'th_1', toWeaveSlug: 'nope' }, deps(root)); } catch { threw = true; }
         assert(threw, 'moveThread refuses missing destination weave');
         console.log('    ✅ folder ops correct + guarded');
     }
@@ -140,12 +140,12 @@ async function run() {
         await writeDoc(path.join(root, 'loom', '.archive', 'we2', 'th', 'thread.md'),
             { type: 'thread', id: 'th_a', title: 'T', priority: 1000, depends_on: [] });
         const rmDeps = { getActiveLoomRoot: () => root, resolveDocIdOrThrow, fs };
-        const res = await removeItem({ weaveId: 'we2' }, rmDeps);
+        const res = await removeItem({ weaveSlug: 'we2' }, rmDeps);
         assert(res.removed.includes('.archive'), 'delete targeted the archived path');
         assert(!(await exists(root, 'loom/.archive/we2')), 'archived weave folder removed');
         // A truly-absent target still throws.
         let threw = false;
-        try { await removeItem({ weaveId: 'ghost' }, rmDeps); } catch { threw = true; }
+        try { await removeItem({ weaveSlug: 'ghost' }, rmDeps); } catch { threw = true; }
         assert(threw, 'removeItem throws when neither live nor archived exists');
         console.log('    ✅ archived-thread delete works, absent target still throws');
     }
@@ -160,13 +160,13 @@ async function run() {
         const rDeps = { getActiveLoomRoot: () => root, fs };
 
         // ref → archived under .archive/refs/
-        await archiveItem({ id: 'rf_1' }, aDeps);
+        await archiveItem({ docUlid: 'rf_1' }, aDeps);
         assert(await exists(root, 'loom/.archive/refs/api-reference.md'), 'ref archived to .archive/refs');
         assert(!(await exists(root, 'loom/refs/api-reference.md')), 'ref moved out of loom/refs');
 
         // a thread doc by id → refused (archive the whole thread)
         let threw = false;
-        try { await archiveItem({ id: 'id_1' }, aDeps); } catch { threw = true; }
+        try { await archiveItem({ docUlid: 'id_1' }, aDeps); } catch { threw = true; }
         assert(threw, 'archiving a thread doc by id is refused');
 
         // restore the ref back to loom/refs
@@ -175,7 +175,7 @@ async function run() {
         assert(!(await exists(root, 'loom/.archive/refs/api-reference.md')), 'archive copy gone after restore');
 
         // delete an archived ref by relPath
-        await archiveItem({ id: 'rf_1' }, aDeps);
+        await archiveItem({ docUlid: 'rf_1' }, aDeps);
         await removeItem({ archivedRelPath: 'refs/api-reference.md' }, aDeps);
         assert(!(await exists(root, 'loom/.archive/refs/api-reference.md')), 'archived ref deleted by relPath');
         console.log('    ✅ reference archive/restore/delete works, thread docs refused');

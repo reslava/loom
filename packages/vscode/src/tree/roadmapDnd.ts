@@ -9,7 +9,7 @@ const TREE_MIME = 'application/vnd.loom.tree-node';
 
 // A thread is the atomic, indivisible unit — only whole threads move between weaves.
 // (Docs are never moved across threads: a thread is a chain, not a bag of docs.)
-type TreeDragPayload = { kind: 'thread'; weaveId: string; threadId: string };
+type TreeDragPayload = { kind: 'thread'; weaveId: string; threadId: string; threadUlid?: string };
 
 /** Spacing between renumbered priorities — leaves room and keeps writes small. */
 const PRIORITY_SPACING = 10;
@@ -49,7 +49,7 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
         // Normal tree: drag a thread (→ another weave) or a loose-fiber doc (→ a thread).
         const ctx = (node.contextValue as string | undefined) ?? '';
         if (ctx.startsWith('thread') && node.weaveId && node.threadId) {
-            const payload: TreeDragPayload = { kind: 'thread', weaveId: node.weaveId, threadId: node.threadId };
+            const payload: TreeDragPayload = { kind: 'thread', weaveId: node.weaveId, threadId: node.threadId, threadUlid: node.threadUlid };
             dataTransfer.set(TREE_MIME, new vscode.DataTransferItem(payload));
         }
     }
@@ -146,9 +146,13 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
             return;
         }
         if (target.weaveId === payload.weaveId) return;
+        if (!payload.threadUlid) {
+            vscode.window.showWarningMessage(`Thread '${payload.weaveId}/${payload.threadId}' has no thread.md manifest — cannot move by identity.`);
+            return;
+        }
         try {
             const res = await getMCP(root).callTool('loom_move_thread', {
-                fromWeaveId: payload.weaveId, threadId: payload.threadId, toWeaveId: target.weaveId,
+                from_weave_slug: payload.weaveId, thread_ulid: payload.threadUlid, to_weave_slug: target.weaveId,
             }) as any;
             vscode.window.showInformationMessage(`🧵 Moved thread → ${res.to}`);
             this.treeProvider.refresh();

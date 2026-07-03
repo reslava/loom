@@ -5,9 +5,9 @@ import { getActiveLoomRoot, moveTreeOrThrow } from '../../fs/dist';
 /**
  * Use-case for restoring an archived item — the inverse of `archiveItem`. Moves
  * `loom/.archive/{rel}` back to `loom/{rel}` and prunes any archive container
- * dirs left empty by the move. Keyed by weaveId (+ optional threadId) for a
+ * dirs left empty by the move. Keyed by weaveSlug (+ optional threadSlug) for a
  * folder, or by an archive-relative path for a single doc (archived docs are
- * not in the live link index, so they can't be addressed by id).
+ * not in the live link index, so they can't be addressed by ulid).
  */
 
 export interface RestoreDeps {
@@ -16,7 +16,7 @@ export interface RestoreDeps {
 }
 
 export type RestoreInput =
-    | { weaveId: string; threadId?: string }
+    | { weaveSlug: string; threadSlug?: string }
     | { archivedRelPath: string };
 
 export async function restoreItem(
@@ -28,12 +28,12 @@ export async function restoreItem(
     const archiveDir = path.join(loomDir, '.archive');
 
     let rel: string;
-    if ('weaveId' in input && input.weaveId) {
-        rel = input.threadId ? path.join(input.weaveId, input.threadId) : input.weaveId;
+    if ('weaveSlug' in input && input.weaveSlug) {
+        rel = input.threadSlug ? path.join(input.weaveSlug, input.threadSlug) : input.weaveSlug;
     } else if ('archivedRelPath' in input && input.archivedRelPath) {
         rel = input.archivedRelPath;
     } else {
-        throw new Error('restoreItem requires either { weaveId, threadId? } or { archivedRelPath }.');
+        throw new Error('restoreItem requires either { weaveSlug, threadSlug? } or { archivedRelPath }.');
     }
 
     const source = path.join(archiveDir, rel);

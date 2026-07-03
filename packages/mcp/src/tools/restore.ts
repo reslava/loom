@@ -4,25 +4,25 @@ import { restoreItem, RestoreInput } from '../../../app/dist/restore';
 export const toolDef = {
     name: 'loom_restore',
     description:
-        "Restore an archived Loom item from loom/.archive/ back to loom/ (inverse of loom_archive). Restore a thread/weave folder by { weaveId, threadId? }, or a single archived doc by { archivedRelPath } (its path relative to loom/.archive/, e.g. 'core-engine/foo/plans/x.md'). Empty archive container dirs are pruned. Use this tool — do not move files directly.",
+        "Restore an archived Loom item from loom/.archive/ back to loom/ (inverse of loom_archive). Restore a thread/weave folder by { weave_slug, thread_slug? }, or a single archived doc by { archived_rel_path } (its path relative to loom/.archive/, e.g. 'core-engine/foo/plans/x.md'). A thread/weave is a folder operation, addressed by its folder slug. Empty archive container dirs are pruned. Use this tool — do not move files directly.",
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Weave to restore (whole folder), or the weave of the thread to restore' },
-            threadId: { type: 'string', description: 'Thread to restore (requires weaveId)' },
-            archivedRelPath: { type: 'string', description: "A single doc's path relative to loom/.archive/ (mutually exclusive with weaveId)" },
+            weave_slug: { type: 'string', description: 'Weave folder slug to restore (whole folder), or the weave of the thread to restore' },
+            thread_slug: { type: 'string', description: 'Thread folder slug to restore (requires weave_slug)' },
+            archived_rel_path: { type: 'string', description: "A single doc's path relative to loom/.archive/ (mutually exclusive with weave_slug)" },
         },
         required: [],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const weaveId = args['weaveId'] as string | undefined;
-    const threadId = args['threadId'] as string | undefined;
-    const archivedRelPath = args['archivedRelPath'] as string | undefined;
+    const weaveSlug = args['weave_slug'] as string | undefined;
+    const threadSlug = args['thread_slug'] as string | undefined;
+    const archivedRelPath = args['archived_rel_path'] as string | undefined;
 
-    const input: RestoreInput = weaveId
-        ? { weaveId, threadId }
+    const input: RestoreInput = weaveSlug
+        ? { weaveSlug, threadSlug }
         : { archivedRelPath: archivedRelPath as string };
 
     const result = await restoreItem(input, {

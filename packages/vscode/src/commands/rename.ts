@@ -27,9 +27,11 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
         } else if (ctx.startsWith('thread')) {
             const weaveId = node?.weaveId as string;
             const threadId = node?.threadId as string;
+            const threadUlid = node?.threadUlid as string | undefined;
+            if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot rename by identity.`); return; }
             const newThreadId = await vscode.window.showInputBox({ prompt: `Rename thread folder '${threadId}' to`, value: threadId });
             if (!newThreadId || newThreadId === threadId) return;
-            const res = await mcp.callTool('loom_rename_thread', { weaveId, threadId, newThreadId }) as any;
+            const res = await mcp.callTool('loom_rename_thread', { weave_slug: weaveId, thread_ulid: threadUlid, new_thread_slug: newThreadId }) as any;
             vscode.window.showInformationMessage(`🧵 Thread renamed → ${res.to}`);
         } else if (node?.doc?.id) {
             const newTitle = await vscode.window.showInputBox({ prompt: 'New title', value: node.doc.title });

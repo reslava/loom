@@ -18,13 +18,13 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
     const filePath = (node.doc as any)?._path as string | undefined;
     const archivePrefix = path.join(root, 'loom', '.archive') + path.sep;
     if (node.doc?.id && filePath?.startsWith(archivePrefix)) {
-        args = { archivedRelPath: filePath.slice(archivePrefix.length) };
+        args = { archived_rel_path: filePath.slice(archivePrefix.length) };
     } else if (node.doc?.id) {
-        args = { id: node.doc.id };
+        args = { doc_ulid: node.doc.id };
     } else if (node.weaveId && node.threadId) {
-        args = { weaveId: node.weaveId, threadId: node.threadId };
+        args = { weave_slug: node.weaveId, thread_slug: node.threadId };
     } else if (node.weaveId) {
-        args = { weaveId: node.weaveId };
+        args = { weave_slug: node.weaveId };
     } else {
         vscode.window.showErrorMessage('Cannot determine what to delete.');
         return;
