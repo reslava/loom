@@ -9,18 +9,18 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Target weave id' },
-            threadId: { type: 'string', description: 'Thread id inside the weave' },
+            weave_slug: { type: 'string', description: 'Target weave folder slug' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread inside the weave' },
         },
-        required: ['weaveId', 'threadId'],
+        required: ['weave_slug', 'thread_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const result = await finalizeReq(
         {
-            weaveId: args['weaveId'] as string,
-            threadId: args['threadId'] as string,
+            weaveSlug: args['weave_slug'] as string,
+            threadUlid: args['thread_ulid'] as string,
         },
         { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs },
     );

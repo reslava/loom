@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 50
+last_ai_block: 51
 ---
 # weave-idea-threadid-fix Chat
 
@@ -750,3 +750,11 @@ then go
 ## AI:
 
 Committing Chunk A as its own build-green checkpoint, then rolling into Chunk B (the broad param-rename pass over the remaining ~45 tools). I'll build+test green and report at the next checkpoint before committing Chunk B.
+
+## AI:
+
+**Chunk B — req family done, build + test green.** `create_req` / `amend_req` / `finalize_req` / `verify_req`: MCP schemas → `weave_slug` + `thread_ulid`; app `req.ts` inputs → `weaveSlug`/`threadUlid` (internal path helpers stay slug-based); the sampling fallback in `generate.ts` maps at its call to `createReq`. vscode `req.ts` commands now pass `thread_ulid` (from the `TreeNode.threadUlid` added in Chunk A) — including the two **launch-prompt texts** (which out-rank CLAUDE.md for the launched CLI agent), rewritten to instruct `loom_create_req` / `loom_amend_req` with `weave_slug`/`thread_ulid`. Tests updated (`req-usecases`, `staleness-baselines`, integration). Committing as a build-green checkpoint.
+
+Remaining Chunk B families: **create** (idea/design/plan/chat/thread + `parent_ulid`), **promote** (`source_ulid`, `target_weave_slug`/`target_thread_ulid`), **quick_ship**, **plan-step** (10 tools, `plan_ulid`), **generate**, and **misc** (search/validate/refresh_ctx/context_prefs `doc_ulid`, create_weave/rename_weave). Then Chunk C (tool renames). I'll keep going family-by-family, build-green each.
+
+One decision is waiting at the **plan-step family**: the audit locked Q2→(b) *strict ULID-only* — `plan_ulid` drops the current "ULID **or** filename stem" dual-accept. I'll implement it there, but will pause to confirm if enforcing strict turns out to break an internal caller that relies on stem resolution (e.g. the do-next-step path). Flagging now so it's not a surprise.

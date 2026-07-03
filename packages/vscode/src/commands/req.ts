@@ -22,11 +22,13 @@ export async function generateReqCommand(
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
     const weaveId = node?.weaveId;
     const threadId = node?.threadId;
+    const threadUlid = node?.threadUlid;
     if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a thread to generate its requirements.'); return; }
 
     if (await isClaudeInstalled()) {
+        if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot create its req by identity.`); return; }
         await launchClaude(root, 'Loom: Generate Requirements',
-            `Loom generate requirements task. weaveId="${weaveId}", threadId="${threadId}". Use the loom MCP server: read the thread's chat context (resource loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_create_req ONCE with weaveId="${weaveId}" threadId="${threadId}" and content — ${REQ_BODY_SHAPE} Do NOT call loom_update_doc afterwards — pass the body in the content argument. Do not use loom_generate_req — sampling is unavailable in Claude Code CLI.`,
+            `Loom generate requirements task. weave_slug="${weaveId}", thread_ulid="${threadUlid}". Use the loom MCP server: read the thread's chat context (resource loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_create_req ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}" and content — ${REQ_BODY_SHAPE} Do NOT call loom_update_doc afterwards — pass the body in the content argument. Do not use loom_generate_req — sampling is unavailable in Claude Code CLI.`,
         );
     } else {
         try {
@@ -51,13 +53,15 @@ export async function verifyReqCommand(treeProvider: LoomTreeProvider, node?: Tr
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
     const weaveId = node?.weaveId;
     const threadId = node?.threadId;
+    const threadUlid = node?.threadUlid;
     if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req (or its thread) to verify the plan against it.'); return; }
+    if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot verify its req by identity.`); return; }
 
     try {
         let result: any;
         await vscode.window.withProgress(
             { location: vscode.ProgressLocation.Notification, title: 'Loom: Verifying plan against requirements…', cancellable: false },
-            async () => { result = await getMCP(root).callTool('loom_verify_req', { weaveId, threadId }); },
+            async () => { result = await getMCP(root).callTool('loom_verify_req', { weave_slug: weaveId, thread_ulid: threadUlid }); },
         );
 
         if (result?.ok === false) { vscode.window.showWarningMessage(`Requirements check: ${result.reason}.`); return; }
@@ -90,10 +94,12 @@ export async function finalizeReqCommand(treeProvider: LoomTreeProvider, node?: 
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
     const weaveId = node?.weaveId;
     const threadId = node?.threadId;
+    const threadUlid = node?.threadUlid;
     if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req doc to finalize it.'); return; }
+    if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot finalize its req by identity.`); return; }
 
     try {
-        await getMCP(root).callTool('loom_finalize_req', { weaveId, threadId });
+        await getMCP(root).callTool('loom_finalize_req', { weave_slug: weaveId, thread_ulid: threadUlid });
         vscode.window.showInformationMessage('🔒 Requirements locked.');
         treeProvider.refresh();
     } catch (e: any) { handleMcpError(e, treeProvider); }
@@ -110,15 +116,17 @@ export async function amendReqCommand(treeProvider: LoomTreeProvider, node?: Tre
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
     const weaveId = node?.weaveId;
     const threadId = node?.threadId;
+    const threadUlid = node?.threadUlid;
     if (!weaveId || !threadId) { vscode.window.showErrorMessage('Right-click a req doc to amend it.'); return; }
+    if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot amend its req by identity.`); return; }
 
     if (await isClaudeInstalled()) {
         await launchClaude(root, 'Loom: Amend Requirements',
-            `Loom amend requirements task. weaveId="${weaveId}", threadId="${threadId}". First READ the current req (its existing handles are AUTHORITATIVE — keep them verbatim). Re-read the thread's chat context (loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_amend_req ONCE with weaveId="${weaveId}" threadId="${threadId}" and content — ${REQ_BODY_SHAPE} APPEND-ONLY RULES (the tool refuses any other change): preserve every existing handle id and its number EXACTLY; add new scope only as fresh handles continuing the numbering (e.g. if IN1–IN6 exist, new items are IN7, IN8, …); NEVER renumber, reuse, or delete a handle; to retire an obsolete requirement, keep its line and mark it by inserting \`~dropped\` immediately after the handle (e.g. \`- \\\`IN3\\\` ~dropped superseded by IN7\`). This re-opens the req to draft and bumps its version.`,
+            `Loom amend requirements task. weave_slug="${weaveId}", thread_ulid="${threadUlid}". First READ the current req (its existing handles are AUTHORITATIVE — keep them verbatim). Re-read the thread's chat context (loom://context/thread/${weaveId}/${threadId}?mode=chat), then call MCP tool loom_amend_req ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}" and content — ${REQ_BODY_SHAPE} APPEND-ONLY RULES (the tool refuses any other change): preserve every existing handle id and its number EXACTLY; add new scope only as fresh handles continuing the numbering (e.g. if IN1–IN6 exist, new items are IN7, IN8, …); NEVER renumber, reuse, or delete a handle; to retire an obsolete requirement, keep its line and mark it by inserting \`~dropped\` immediately after the handle (e.g. \`- \\\`IN3\\\` ~dropped superseded by IN7\`). This re-opens the req to draft and bumps its version.`,
         );
     } else {
         try {
-            const result: any = await getMCP(root).callTool('loom_amend_req', { weaveId, threadId });
+            const result: any = await getMCP(root).callTool('loom_amend_req', { weave_slug: weaveId, thread_ulid: threadUlid });
             treeProvider.refresh();
             if (result?.filePath) {
                 const doc = await vscode.workspace.openTextDocument(result.filePath);

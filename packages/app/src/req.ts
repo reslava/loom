@@ -34,8 +34,8 @@ const DEFAULT_REQ_BODY = [
     '',
 ].join('\n');
 
-function reqPathFor(loomRoot: string, weaveId: string, threadId: string): string {
-    return path.join(loomRoot, 'loom', weaveId, threadId, 'req.md');
+function reqPathFor(loomRoot: string, weaveSlug: string, threadSlug: string): string {
+    return path.join(loomRoot, 'loom', weaveSlug, threadSlug, 'req.md');
 }
 
 /**
@@ -45,19 +45,19 @@ function reqPathFor(loomRoot: string, weaveId: string, threadId: string): string
  */
 export async function lockedReqVersion(
     loomRoot: string,
-    weaveId: string,
-    threadId: string,
+    weaveSlug: string,
+    threadSlug: string,
     deps: { loadDoc: typeof loadDoc; fs: typeof fsExtra },
 ): Promise<number | undefined> {
-    const filePath = reqPathFor(loomRoot, weaveId, threadId);
+    const filePath = reqPathFor(loomRoot, weaveSlug, threadSlug);
     if (!(await deps.fs.pathExists(filePath))) return undefined;
     const req = (await deps.loadDoc(filePath)) as ReqDoc;
     return req.status === 'locked' ? req.version : undefined;
 }
 
 export interface CreateReqInput {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadUlid: string;
     title?: string;
     /** Optional body. When provided it replaces the starter stub so the doc is born at v1 with real content. */
     content?: string;
@@ -70,12 +70,12 @@ export async function createReq(
     const loomRoot = deps.getActiveLoomRoot();
     // Resolve the thread by its stable ULID → folder (never fabricates). Path
     // helpers below stay slug-based; resolution lives here at the boundary.
-    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
+    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, deps);
 
-    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
+    const filePath = reqPathFor(loomRoot, input.weaveSlug, threadSlug);
     if (await deps.fs.pathExists(filePath)) {
         throw new Error(
-            `A req doc already exists for ${input.weaveId}/${threadSlug}. Use amendReq to update it.`,
+            `A req doc already exists for ${input.weaveSlug}/${threadSlug}. Use amendReq to update it.`,
         );
     }
 
@@ -112,8 +112,8 @@ export async function createReq(
 }
 
 export interface AmendReqInput {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadUlid: string;
     /** New body. Omit to leave the body unchanged (a pure re-open). */
     content?: string;
 }
@@ -133,10 +133,10 @@ export async function amendReq(
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string; version: number }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
-    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
+    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, deps);
+    const filePath = reqPathFor(loomRoot, input.weaveSlug, threadSlug);
     if (!(await deps.fs.pathExists(filePath))) {
-        throw new Error(`No req doc for ${input.weaveId}/${threadSlug}. Use createReq first.`);
+        throw new Error(`No req doc for ${input.weaveSlug}/${threadSlug}. Use createReq first.`);
     }
 
     const req = (await deps.loadDoc(filePath)) as ReqDoc;
@@ -171,8 +171,8 @@ export async function amendReq(
 }
 
 export interface FinalizeReqInput {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadUlid: string;
 }
 
 export async function finalizeReq(
@@ -180,10 +180,10 @@ export async function finalizeReq(
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string; status: 'locked' }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const { threadSlug } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
-    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
+    const { threadSlug } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, deps);
+    const filePath = reqPathFor(loomRoot, input.weaveSlug, threadSlug);
     if (!(await deps.fs.pathExists(filePath))) {
-        throw new Error(`No req doc for ${input.weaveId}/${threadSlug}.`);
+        throw new Error(`No req doc for ${input.weaveSlug}/${threadSlug}.`);
     }
 
     const req = (await deps.loadDoc(filePath)) as ReqDoc;

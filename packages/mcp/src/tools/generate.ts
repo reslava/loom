@@ -325,7 +325,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await createReq(
-                    { weaveId, threadId, title, content: body },
+                    { weaveSlug: weaveId, threadUlid: threadId, title, content: body },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra },
                 );
 

@@ -40,7 +40,7 @@ async function run() {
 
     // ── req parents to the DESIGN and stamps design_version ──
     console.log('  • req depends on the design (parent + design_version)...');
-    await createReq({ weaveId: 'w', threadId: threadUlid }, deps);
+    await createReq({ weaveSlug: 'w', threadUlid }, deps);
     const req: any = await loadDoc(path.join(threadDir, 'req.md'));
     assert(req.parent_id === design.id, `req parented to the design (${design.id}), got ${req.parent_id}`);
     assert(req.design_version === design.version, `req.design_version === ${design.version}, got ${req.design_version}`);

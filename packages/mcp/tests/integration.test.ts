@@ -330,8 +330,8 @@ async function run(): Promise<void> {
         const createRes = await client.callTool({
             name: 'loom_create_req',
             arguments: {
-                weaveId: 'tw',
-                threadId: t1Ulid,
+                weave_slug: 'tw',
+                thread_ulid: t1Ulid,
                 content: '### ✅ Included\n- `IN1` The thing.\n\n### ❌ Excluded\n- `EX1` Not the other thing.\n\n### ⛓ Constraints\n- `C1` TypeScript only.\n',
             },
         });
@@ -340,7 +340,7 @@ async function run(): Promise<void> {
 
         const finRes = await client.callTool({
             name: 'loom_finalize_req',
-            arguments: { weaveId: 'tw', threadId: t1Ulid },
+            arguments: { weave_slug: 'tw', thread_ulid: t1Ulid },
         });
         const fin = JSON.parse((finRes.content[0] as { text: string }).text);
         assert(fin.status === 'locked', 'finalize returns status locked');
@@ -359,8 +359,8 @@ async function run(): Promise<void> {
         await client.callTool({
             name: 'loom_create_req',
             arguments: {
-                weaveId: 'tw',
-                threadId: tamendUlid,
+                weave_slug: 'tw',
+                thread_ulid: tamendUlid,
                 content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n',
             },
         });
@@ -368,7 +368,7 @@ async function run(): Promise<void> {
         // append IN3 → ok
         const okRes = await client.callTool({
             name: 'loom_amend_req',
-            arguments: { weaveId: 'tw', threadId: tamendUlid, content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n- `IN3` Third.\n' },
+            arguments: { weave_slug: 'tw', thread_ulid: tamendUlid, content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n- `IN3` Third.\n' },
         });
         const ok = JSON.parse((okRes.content[0] as { text: string }).text);
         assert(ok.version === 2, `append bumps to v2, got ${ok.version}`);
@@ -376,7 +376,7 @@ async function run(): Promise<void> {
         // delete IN1 → refused (clean finding, not a crash)
         const badRes = await client.callTool({
             name: 'loom_amend_req',
-            arguments: { weaveId: 'tw', threadId: tamendUlid, content: '### ✅ Included\n- `IN2` Second.\n- `IN3` Third.\n' },
+            arguments: { weave_slug: 'tw', thread_ulid: tamendUlid, content: '### ✅ Included\n- `IN2` Second.\n- `IN3` Third.\n' },
         });
         const bad = JSON.parse((badRes.content[0] as { text: string }).text);
         assert(bad.ok === false && typeof bad.error === 'string' && bad.error.includes('IN1'), 'deleting IN1 is refused with an error naming IN1');
@@ -407,7 +407,7 @@ async function run(): Promise<void> {
 
     // (h) loom_verify_req: structural findings always; semantic blocked without a sampling-capable client
     await test('loom_verify_req returns structural findings (semantic blocked without sampling)', async () => {
-        const res = await client.callTool({ name: 'loom_verify_req', arguments: { weaveId: 'tw', threadId: t1Ulid } });
+        const res = await client.callTool({ name: 'loom_verify_req', arguments: { weave_slug: 'tw', thread_ulid: t1Ulid } });
         const data = JSON.parse((res.content[0] as { text: string }).text);
         assert(data.structural && Array.isArray(data.structural.uncovered), 'structural findings present');
         assert(data.structural.uncovered.some((i: any) => i.id === 'IN1'), `IN1 should be structurally uncovered, got ${JSON.stringify(data.structural?.uncovered)}`);

@@ -32,26 +32,26 @@ export function createVerifyReqTool(server: Server): ToolModule {
             inputSchema: {
                 type: 'object' as const,
                 properties: {
-                    weaveId: { type: 'string', description: 'Weave id' },
-                    threadId: { type: 'string', description: 'Thread id' },
+                    weave_slug: { type: 'string', description: 'Weave folder slug' },
+                    thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread' },
                 },
-                required: ['weaveId', 'threadId'],
+                required: ['weave_slug', 'thread_ulid'],
             },
         },
         handle: async (root, args) => {
-            const weaveId = args['weaveId'] as string;
-            const threadId = args['threadId'] as string;
+            const weaveSlug = args['weave_slug'] as string;
+            const threadUlid = args['thread_ulid'] as string;
 
             const loomRoot = getActiveLoomRoot(root);
             // Reference the thread by its stable ULID → resolve to the folder slug (the Thread entity's id).
-            const { threadSlug } = await resolveThreadFolder(weaveId, threadId, { getActiveLoomRoot: () => loomRoot, loadDoc, fs });
+            const { threadSlug } = await resolveThreadFolder(weaveSlug, threadUlid, { getActiveLoomRoot: () => loomRoot, loadDoc, fs });
             const index = await buildLinkIndex(loomRoot);
-            const weave = await loadWeave(loomRoot, weaveId, index);
+            const weave = await loadWeave(loomRoot, weaveSlug, index);
             const thread = weave?.threads.find((t: { id: string }) => t.id === threadSlug);
-            if (!thread) throw new Error(`Thread not found: ${weaveId}/${threadSlug}`);
+            if (!thread) throw new Error(`Thread not found: ${weaveSlug}/${threadSlug}`);
 
             if (!thread.req || thread.req.status !== 'locked') {
-                return wrap({ weaveId, threadId, ok: false, reason: 'thread has no locked req to verify against' });
+                return wrap({ weaveSlug, threadUlid, ok: false, reason: 'thread has no locked req to verify against' });
             }
 
             const parsed = parseReq(thread.req.content ?? '');
@@ -94,7 +94,7 @@ export function createVerifyReqTool(server: Server): ToolModule {
                 semanticError = e instanceof Error ? e.message : String(e);
             }
 
-            return wrap({ weaveId, threadId, structural, semantic, semanticError });
+            return wrap({ weaveSlug, threadUlid, structural, semantic, semanticError });
         },
     };
 }
