@@ -98,6 +98,8 @@ loom/refs/    Static architectural facts, patterns, API notes.
 **Dependency rule:** `cli / vscode / mcp → app → core + fs`. Layers never import upward.
 **Injection rule:** Every app use-case receives its dependencies explicitly via a `deps` argument.
 
+**API naming rule (hard).** When authoring or reviewing any `loom_*` tool or app use-case, names must be unambiguous to the final consumer (a model reasoning from the name alone): a **ULID reference parameter is `*Ulid`, never `*Id`** (`*Id` is banned as a reference suffix); a **folder/slug parameter is `*Slug`** (including `weaveSlug`); every entity is addressed by its ULID **except weave** (slug-identified — the one documented exception). Casing is per surface: **snake_case at the MCP schema** (`weave_slug`, `thread_ulid`), **camelCase in the app** (`weaveSlug`, `threadUlid`); the tool `handle()` maps between them. Full convention: [loom/refs/api-naming-reference.md](loom/refs/api-naming-reference.md). *(This rule governs Loom's own API authoring — repo-specific, so it carries no `rule:` marker and is not mirrored into the `LOOM_CLAUDE_MD` template.)*
+
 ---
 
 <!-- rule:key-terminology -->

@@ -58,3 +58,6 @@ export {
 // Utilities
 // ============================================================================
 export { resolveThread } from './utils/resolveThread';
+export {
+    resolveThreadFolder, resolveThreadUlid, ResolveThreadFolderDeps, ResolvedThreadFolder,
+} from './utils/resolveThreadFolder';

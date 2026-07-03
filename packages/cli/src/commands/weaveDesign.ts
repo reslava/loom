@@ -2,11 +2,13 @@ import chalk from 'chalk';
 import { weaveDesign } from '../../../app/dist/weaveDesign';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../../fs/dist';
 import * as fs from 'fs-extra';
+import { ensureThreadUlid } from '../threadArg';
 
 export async function weaveDesignCommand(weaveId: string, options: { title?: string; thread?: string }): Promise<void> {
     try {
+        const threadUlid = options.thread ? await ensureThreadUlid(weaveId, options.thread, options.title) : undefined;
         const result = await weaveDesign(
-            { weaveId, title: options.title, threadId: options.thread },
+            { weaveId, title: options.title, threadId: threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs }
         );
         if (result.autoFinalized) {

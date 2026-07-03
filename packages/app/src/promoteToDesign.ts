@@ -3,6 +3,7 @@ import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, ChatDoc, IdeaDoc, DesignDoc, createBaseFrontmatter, generateDocId, singletonFileName } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface PromoteToDesignInput {
     filePath: string;
@@ -49,9 +50,20 @@ export async function promoteToDesign(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc | IdeaDoc;
 
-    const { weaveId, threadId } = input.targetWeaveId
-        ? { weaveId: input.targetWeaveId, threadId: input.targetThreadId }
-        : deriveLocation(input.filePath, deps.loomRoot);
+    // Resolve the target: an explicit targetThreadId is a stable th_ ULID → folder
+    // (never fabricates); a derived location already yields the folder slug.
+    let weaveId: string;
+    let threadId: string | undefined;
+    if (input.targetWeaveId) {
+        weaveId = input.targetWeaveId;
+        threadId = input.targetThreadId
+            ? (await resolveThreadFolder(input.targetWeaveId, input.targetThreadId, {
+                getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
+            })).threadSlug
+            : undefined;
+    } else {
+        ({ weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot));
+    }
 
     let title: string;
     let body: string;

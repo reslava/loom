@@ -1,5 +1,5 @@
 import * as fs from 'fs-extra';
-import { saveDoc } from '../../../fs/dist';
+import { saveDoc, loadDoc } from '../../../fs/dist';
 import { chatNew } from '../../../app/dist/chatNew';
 
 export const toolDef = {
@@ -26,6 +26,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
     };
     const result = await chatNew(input, {
         saveDoc,
+        loadDoc,
         fs,
         loomRoot: root,
     });

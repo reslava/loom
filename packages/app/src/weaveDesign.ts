@@ -9,7 +9,7 @@ import { today } from '../../core/dist';
 import { generateDesignBody } from '../../core/dist';
 import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
-import { ensureThreadManifest } from './thread';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface WeaveDesignInput {
     weaveId: string;
@@ -94,24 +94,21 @@ export async function weaveDesign(
     deps: WeaveDesignDeps
 ): Promise<{ id: string; filePath: string; autoFinalized: boolean }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const weavePath = path.join(loomRoot, 'loom', input.weaveId);
 
-    // Invariant: every doc lives in a thread; a weave folder contains only threads.
-    // Weave-root design creation is retired — a threadId is required.
+    // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
+    // Weave-root design creation is retired — a thread_ulid is required.
     if (!input.threadId) {
-        throw new Error('Cannot create a design at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
+        throw new Error('Cannot create a design: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
-    const threadPath = path.join(weavePath, input.threadId);
-    await deps.fs.ensureDir(threadPath);
-    // Dual-read the parent idea: canonical flat name first, legacy prefixed name second.
-    const ideaCandidates = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${input.threadId}-idea.md`)];
-    let ideaPath: string | undefined;
-    for (const c of ideaCandidates) { if (await deps.fs.pathExists(c)) { ideaPath = c; break; } }
+    // Resolve the thread by its stable ULID → folder (never fabricates).
+    const { threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
+    const ideaPath = path.join(threadPath, 'idea.md');
+    const hasIdea = await deps.fs.pathExists(ideaPath);
     let parentId: string | null = null;
     let designTitle = input.title || input.threadId;
     let ideaVersion: number | undefined;
-    if (ideaPath) {
+    if (hasIdea) {
         const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
         parentId = idea.id;
         designTitle = input.title || idea.title;
@@ -124,7 +121,5 @@ export async function weaveDesign(
     const doc: DesignDoc = { ...frontmatter, content, ...(ideaVersion !== undefined ? { idea_version: ideaVersion } : {}) } as DesignDoc;
     const filePath = path.join(threadPath, singletonFileName('design'));
     await deps.saveDoc(doc, filePath);
-    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-    await ensureThreadManifest(input.weaveId, input.threadId, designTitle, deps);
     return { id, filePath, autoFinalized: false };
 }

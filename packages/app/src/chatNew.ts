@@ -1,9 +1,10 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { saveDoc } from '../../fs/dist';
+import { saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, createBaseFrontmatter, nextOrdinal, chatFileName } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface ChatNewInput {
     weaveId?: string;
@@ -13,6 +14,7 @@ export interface ChatNewInput {
 
 export interface ChatNewDeps {
     saveDoc: typeof saveDoc;
+    loadDoc: typeof loadDoc;
     fs: typeof fs;
     loomRoot: string;
 }
@@ -21,16 +23,26 @@ export async function chatNew(
     input: ChatNewInput,
     deps: ChatNewDeps
 ): Promise<{ id: string; filePath: string }> {
-    const chatsDir = !input.weaveId
-        ? path.join(deps.loomRoot, 'loom', 'chats')
-        : input.threadId
-            ? path.join(deps.loomRoot, 'loom', input.weaveId, input.threadId, 'chats')
-            : path.join(deps.loomRoot, 'loom', input.weaveId, 'chats');
+    // Resolve the thread by its stable ULID → folder when a thread is targeted
+    // (never fabricates); weave-root and global chats need no resolution.
+    let chatsDir: string;
+    let scopeId: string;
+    if (!input.weaveId) {
+        chatsDir = path.join(deps.loomRoot, 'loom', 'chats');
+        scopeId = 'global';
+    } else if (input.threadId) {
+        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, {
+            getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
+        });
+        chatsDir = path.join(threadPath, 'chats');
+        scopeId = threadSlug;
+    } else {
+        chatsDir = path.join(deps.loomRoot, 'loom', input.weaveId, 'chats');
+        scopeId = input.weaveId;
+    }
     await deps.fs.ensureDir(chatsDir);
 
     const existingFiles = await deps.fs.readdir(chatsDir).catch(() => [] as string[]);
-
-    const scopeId = input.threadId ?? input.weaveId ?? 'global';
     // Canonical flat chat filename: chat-NNN.md (ordinal recognises legacy names too).
     const chatFilename = chatFileName(nextOrdinal(existingFiles, 'chat'));
     const chatId = generateDocId('chat');

@@ -251,11 +251,22 @@ async function run(): Promise<void> {
         assert((restored.contents[0].text as string).includes('id: t1-idea'), 'idea returns after reset');
     });
 
+    // Thread manifests: no more auto-scaffold, so every doc-create references a th_ ULID.
+    // Mint each thread explicitly and reuse its ULID (the seeded 'tw/t1' folder gets its
+    // manifest here too). The folder slugs stay t1/tamend/... — state/coverage assert on those.
+    const mkThread = async (slug: string): Promise<string> => {
+        const r = await client.callTool({ name: 'loom_create_thread', arguments: { weaveId: 'tw', threadId: slug } });
+        return JSON.parse((r.content[0] as { text: string }).text).id;
+    };
+    const ideaThreadUlid = await mkThread('integration-test-idea');
+    const t1Ulid = await mkThread('t1');
+    const tamendUlid = await mkThread('tamend');
+
     // (c) call loom_create_idea with valid args
     await test('loom_create_idea creates an idea doc', async () => {
         const result = await client.callTool({
             name: 'loom_create_idea',
-            arguments: { weaveId: 'tw', threadId: 'integration-test-idea', title: 'Integration Test Idea' },
+            arguments: { weaveId: 'tw', threadId: ideaThreadUlid, title: 'Integration Test Idea' },
         });
         const content = result.content[0] as { type: string; text: string };
         const data = JSON.parse(content.text);
@@ -320,7 +331,7 @@ async function run(): Promise<void> {
             name: 'loom_create_req',
             arguments: {
                 weaveId: 'tw',
-                threadId: 't1',
+                threadId: t1Ulid,
                 content: '### ✅ Included\n- `IN1` The thing.\n\n### ❌ Excluded\n- `EX1` Not the other thing.\n\n### ⛓ Constraints\n- `C1` TypeScript only.\n',
             },
         });
@@ -329,7 +340,7 @@ async function run(): Promise<void> {
 
         const finRes = await client.callTool({
             name: 'loom_finalize_req',
-            arguments: { weaveId: 'tw', threadId: 't1' },
+            arguments: { weaveId: 'tw', threadId: t1Ulid },
         });
         const fin = JSON.parse((finRes.content[0] as { text: string }).text);
         assert(fin.status === 'locked', 'finalize returns status locked');
@@ -349,7 +360,7 @@ async function run(): Promise<void> {
             name: 'loom_create_req',
             arguments: {
                 weaveId: 'tw',
-                threadId: 'tamend',
+                threadId: tamendUlid,
                 content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n',
             },
         });
@@ -357,7 +368,7 @@ async function run(): Promise<void> {
         // append IN3 → ok
         const okRes = await client.callTool({
             name: 'loom_amend_req',
-            arguments: { weaveId: 'tw', threadId: 'tamend', content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n- `IN3` Third.\n' },
+            arguments: { weaveId: 'tw', threadId: tamendUlid, content: '### ✅ Included\n- `IN1` First.\n- `IN2` Second.\n- `IN3` Third.\n' },
         });
         const ok = JSON.parse((okRes.content[0] as { text: string }).text);
         assert(ok.version === 2, `append bumps to v2, got ${ok.version}`);
@@ -365,7 +376,7 @@ async function run(): Promise<void> {
         // delete IN1 → refused (clean finding, not a crash)
         const badRes = await client.callTool({
             name: 'loom_amend_req',
-            arguments: { weaveId: 'tw', threadId: 'tamend', content: '### ✅ Included\n- `IN2` Second.\n- `IN3` Third.\n' },
+            arguments: { weaveId: 'tw', threadId: tamendUlid, content: '### ✅ Included\n- `IN2` Second.\n- `IN3` Third.\n' },
         });
         const bad = JSON.parse((badRes.content[0] as { text: string }).text);
         assert(bad.ok === false && typeof bad.error === 'string' && bad.error.includes('IN1'), 'deleting IN1 is refused with an error naming IN1');
@@ -396,7 +407,7 @@ async function run(): Promise<void> {
 
     // (h) loom_verify_req: structural findings always; semantic blocked without a sampling-capable client
     await test('loom_verify_req returns structural findings (semantic blocked without sampling)', async () => {
-        const res = await client.callTool({ name: 'loom_verify_req', arguments: { weaveId: 'tw', threadId: 't1' } });
+        const res = await client.callTool({ name: 'loom_verify_req', arguments: { weaveId: 'tw', threadId: t1Ulid } });
         const data = JSON.parse((res.content[0] as { text: string }).text);
         assert(data.structural && Array.isArray(data.structural.uncovered), 'structural findings present');
         assert(data.structural.uncovered.some((i: any) => i.id === 'IN1'), `IN1 should be structurally uncovered, got ${JSON.stringify(data.structural?.uncovered)}`);
@@ -409,7 +420,7 @@ async function run(): Promise<void> {
         const createRes = await client.callTool({
             name: 'loom_create_plan',
             arguments: {
-                weaveId: 'tw', threadId: 't1', title: 'Citing plan',
+                weaveId: 'tw', threadId: t1Ulid, title: 'Citing plan',
                 goal: 'cite the req',
                 steps: [{ description: 'Build the thing', files: ['x.ts'], satisfies: ['IN1'] }],
             },

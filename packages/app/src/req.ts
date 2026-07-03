@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, DesignDoc, parseReq, diffReqHandles, today } from '../../core/dist';
-import { ensureThreadManifest } from './thread';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 import { parentDesignVersion } from './weavePlan';
 
 /**
@@ -68,13 +68,14 @@ export async function createReq(
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const threadPath = path.join(loomRoot, 'loom', input.weaveId, input.threadId);
-    await deps.fs.ensureDir(threadPath);
+    // Resolve the thread by its stable ULID → folder (never fabricates). Path
+    // helpers below stay slug-based; resolution lives here at the boundary.
+    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
 
-    const filePath = reqPathFor(loomRoot, input.weaveId, input.threadId);
+    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
     if (await deps.fs.pathExists(filePath)) {
         throw new Error(
-            `A req doc already exists for ${input.weaveId}/${input.threadId}. Use amendReq to update it.`,
+            `A req doc already exists for ${input.weaveId}/${threadSlug}. Use amendReq to update it.`,
         );
     }
 
@@ -82,13 +83,10 @@ export async function createReq(
     // design, so req depends on design and stamps the design version as its staleness
     // baseline. Fall back to the idea (req created before a design exists), then null.
     let parentId: string | null = null;
-    let title = input.title ?? `${input.threadId} Requirements`;
+    let title = input.title ?? `${threadSlug} Requirements`;
     let designVersion: number | undefined;
-    // Dual-read design/idea: canonical flat name first, legacy prefixed name second.
-    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${input.threadId}-design.md`)]
-        .find(p => fsExtra.existsSync(p));
-    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${input.threadId}-idea.md`)]
-        .find(p => fsExtra.existsSync(p));
+    const designPath = [path.join(threadPath, 'design.md')].find(p => fsExtra.existsSync(p));
+    const ideaPath = [path.join(threadPath, 'idea.md')].find(p => fsExtra.existsSync(p));
     if (designPath) {
         const design = (await deps.loadDoc(designPath)) as DesignDoc;
         parentId = design.id;
@@ -110,8 +108,6 @@ export async function createReq(
     } as ReqDoc;
 
     await deps.saveDoc(doc, filePath);
-    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-    await ensureThreadManifest(input.weaveId, input.threadId, title, deps);
     return { id, filePath };
 }
 
@@ -137,9 +133,10 @@ export async function amendReq(
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string; version: number }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const filePath = reqPathFor(loomRoot, input.weaveId, input.threadId);
+    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
+    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
     if (!(await deps.fs.pathExists(filePath))) {
-        throw new Error(`No req doc for ${input.weaveId}/${input.threadId}. Use createReq first.`);
+        throw new Error(`No req doc for ${input.weaveId}/${threadSlug}. Use createReq first.`);
     }
 
     const req = (await deps.loadDoc(filePath)) as ReqDoc;
@@ -158,8 +155,7 @@ export async function amendReq(
 
     // An amend reconciles the req against the (possibly updated) design, so re-stamp
     // the design_version baseline — this clears the req's own design-staleness.
-    const threadPath = path.join(loomRoot, 'loom', input.weaveId, input.threadId);
-    const design = await parentDesignVersion(threadPath, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+    const design = await parentDesignVersion(threadPath, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
 
     const updated: ReqDoc = {
         ...req,
@@ -184,9 +180,10 @@ export async function finalizeReq(
     deps: ReqDeps,
 ): Promise<{ id: string; filePath: string; status: 'locked' }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const filePath = reqPathFor(loomRoot, input.weaveId, input.threadId);
+    const { threadSlug } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
+    const filePath = reqPathFor(loomRoot, input.weaveId, threadSlug);
     if (!(await deps.fs.pathExists(filePath))) {
-        throw new Error(`No req doc for ${input.weaveId}/${input.threadId}.`);
+        throw new Error(`No req doc for ${input.weaveId}/${threadSlug}.`);
     }
 
     const req = (await deps.loadDoc(filePath)) as ReqDoc;

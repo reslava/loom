@@ -7,7 +7,7 @@ import { nextOrdinal, planFileName } from '../../core/dist/docNaming';
 import { createBaseFrontmatter } from '../../core/dist/frontmatterUtils';
 import { PlanDoc, DesignDoc, IdeaDoc, PlanStep, serializePlanBody, slugifyStepId, resolveBlockedByIds } from '../../core/dist';
 import { lockedReqVersion } from './req';
-import { ensureThreadManifest } from './thread';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 /** One structured step as supplied to create a plan. `title`/`detail` seed the body
  *  view (`### Step N` sections) but are not persisted to frontmatter (body owns prose). */
@@ -177,24 +177,28 @@ export async function weavePlan(
     assertNoWireLeak('title', input.title);
     const steps = coerceSteps(input.steps);
 
-    const weavePath = path.join(deps.loomRoot, 'loom', input.weaveId);
-
-    // Invariant: every doc lives in a thread; a weave folder contains only threads.
-    // Weave-root plan creation is retired — a threadId is required.
+    // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
+    // Weave-root plan creation is retired — a thread_ulid is required.
     if (!input.threadId) {
-        throw new Error('Cannot create a plan at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
+        throw new Error('Cannot create a plan: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
     {
-        const threadPath = path.join(weavePath, input.threadId);
+        // Resolve the thread by its stable ULID → folder (never fabricates). Path
+        // helpers below stay slug-based; resolution lives here at the boundary.
+        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, {
+            getActiveLoomRoot: () => deps.loomRoot,
+            loadDoc: deps.loadDoc,
+            fs: deps.fs,
+        });
         const plansDir = path.join(threadPath, 'plans');
         await deps.fs.ensureDir(plansDir);
 
         // Canonical flat plan filename: plan-NNN.md (thread-local ordinal, gaps preserved).
-        // nextOrdinal recognises both new (plan-NNN.md) and legacy ({threadId}-plan-NNN.md) names.
+        // nextOrdinal recognises both new (plan-NNN.md) and legacy ({threadSlug}-plan-NNN.md) names.
         const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);
 
-        const planTitle = input.title || `${input.threadId} Plan`;
+        const planTitle = input.title || `${threadSlug} Plan`;
         const planFilename = planFileName(nextOrdinal(existingFiles, 'plan'));
         const planId = generateDocId('plan');
 
@@ -202,14 +206,14 @@ export async function weavePlan(
         // given explicitly) and the design_version staleness baseline. Reading the
         // LIVE version here is the fix — a plan must be born current against its design,
         // never stamped a constant 1 (which made every plan a false-positive stale).
-        const design = await parentDesignVersion(threadPath, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+        const design = await parentDesignVersion(threadPath, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
         const parentId: string | null = input.parentId ?? design?.id ?? null;
 
         const planSteps: PlanStep[] = buildStructuredSteps(steps);
         const body = serializePlanBody(planSteps, { goal: input.goal });
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
         // Stamp the locked req version this plan was built against (req-staleness baseline).
-        const reqV = await lockedReqVersion(deps.loomRoot, input.weaveId, input.threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+        const reqV = await lockedReqVersion(deps.loomRoot, input.weaveId, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
         const doc: PlanDoc = {
             ...baseFrontmatter,
             type: 'plan',
@@ -225,12 +229,6 @@ export async function weavePlan(
 
         const filePath = path.join(plansDir, planFilename);
         await deps.saveDoc(doc, filePath);
-        // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-        await ensureThreadManifest(input.weaveId, input.threadId, planTitle, {
-            getActiveLoomRoot: () => deps.loomRoot,
-            saveDoc: deps.saveDoc,
-            fs: deps.fs,
-        });
         return { id: planId, filePath };
     }
 }

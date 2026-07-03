@@ -6,6 +6,7 @@ import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 import { rekeyDetailSections } from '../packages/core/dist/index.js';
 import { loadWeave, saveDocs, loadDoc, saveDoc } from '../packages/fs/dist/index.js';
 import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createThread } from '../packages/app/dist/thread.js';
 import { runEvent } from '../packages/app/dist/runEvent.js';
 import { addStep } from '../packages/app/dist/addStep.js';
 import { removeStep } from '../packages/app/dist/removeStep.js';
@@ -197,11 +198,12 @@ async function run() {
         const root = path.join(TMP, 'ws');
         await fs.remove(root);
         await fs.ensureDir(path.join(root, '.loom'));
-        await fs.ensureDir(path.join(root, 'loom', 'demo', 'demo'));
+        await fs.ensureDir(path.join(root, 'loom', 'demo'));
+        const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
 
         const created = await weavePlan(
             {
-                weaveId: 'demo', threadId: 'demo', goal: 'build it', title: 'Demo Plan',
+                weaveId: 'demo', threadId: threadUlid, goal: 'build it', title: 'Demo Plan',
                 steps: [
                     { description: 'First', title: 'First', detail: 'first detail' },
                     { description: 'Second', title: 'Second', detail: 'second detail' },

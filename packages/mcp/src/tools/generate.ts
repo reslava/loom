@@ -76,7 +76,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
 
                 const { id, filePath } = await weaveIdea(
                     { title, weave: weaveId, threadId },
-                    { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, fs: fsExtra }
+                    { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
 
                 const doc = await loadDoc(filePath) as Document;

@@ -4,6 +4,7 @@ import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
 import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createThread } from '../packages/app/dist/thread.js';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 
 // Integration coverage for the blockedBy ordinal→slug normalization wired into
@@ -35,9 +36,10 @@ async function run() {
     console.log('🔗 Running blockedBy-normalization integration tests...\n');
     const root = path.join(TMP, 'ws');
     await fs.remove(root);
-    await fs.ensureDir(path.join(root, 'loom', 'demo', 'demo'));
+    await fs.ensureDir(path.join(root, 'loom', 'demo'));
     const deps = { loadWeave, saveDoc, loadDoc, fs, loomRoot: root } as any;
-    const base = { weaveId: 'demo', threadId: 'demo' };
+    const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+    const base = { weaveId: 'demo', threadId: threadUlid };
 
     // 1. Create path: numeric blockedBy ordinals persist as stable slug ids.
     const created = await weavePlan({

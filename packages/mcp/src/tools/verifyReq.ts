@@ -1,5 +1,7 @@
+import * as fs from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
+import { getActiveLoomRoot, loadWeave, buildLinkIndex, loadDoc } from '../../../fs/dist';
+import { resolveThreadFolder } from '../../../app/dist';
 import { parseReq, checkReqCoverage } from '../../../core/dist';
 import { requestSampling, SamplingMessage } from '../sampling';
 
@@ -41,10 +43,12 @@ export function createVerifyReqTool(server: Server): ToolModule {
             const threadId = args['threadId'] as string;
 
             const loomRoot = getActiveLoomRoot(root);
+            // Reference the thread by its stable ULID → resolve to the folder slug (the Thread entity's id).
+            const { threadSlug } = await resolveThreadFolder(weaveId, threadId, { getActiveLoomRoot: () => loomRoot, loadDoc, fs });
             const index = await buildLinkIndex(loomRoot);
             const weave = await loadWeave(loomRoot, weaveId, index);
-            const thread = weave?.threads.find((t: { id: string }) => t.id === threadId);
-            if (!thread) throw new Error(`Thread not found: ${weaveId}/${threadId}`);
+            const thread = weave?.threads.find((t: { id: string }) => t.id === threadSlug);
+            if (!thread) throw new Error(`Thread not found: ${weaveId}/${threadSlug}`);
 
             if (!thread.req || thread.req.status !== 'locked') {
                 return wrap({ weaveId, threadId, ok: false, reason: 'thread has no locked req to verify against' });

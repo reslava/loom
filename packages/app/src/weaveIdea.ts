@@ -6,7 +6,8 @@ import { generateDocId, toKebabCaseId, singletonFileName } from '../../core/dist
 import { createBaseFrontmatter } from '../../core/dist';
 import { generateIdeaBody } from '../../core/dist';
 import { IdeaDoc } from '../../core/dist';
-import { ensureThreadManifest } from './thread';
+import { loadDoc } from '../../fs/dist';
+import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface WeaveIdeaInput {
     title: string;
@@ -19,6 +20,7 @@ export interface WeaveIdeaInput {
 export interface WeaveIdeaDeps {
     getActiveLoomRoot: typeof getActiveLoomRoot;
     saveDoc: typeof saveDoc;
+    loadDoc: typeof loadDoc;
     fs: typeof fs;
 }
 
@@ -26,26 +28,22 @@ export async function weaveIdea(
     input: WeaveIdeaInput,
     deps: WeaveIdeaDeps
 ): Promise<{ id: string; filePath: string }> {
-    const loomRoot = deps.getActiveLoomRoot();
-    const weavesDir = path.join(loomRoot, 'loom');
     const weaveName = input.weave || toKebabCaseId(input.title);
-    const weavePath = path.join(weavesDir, weaveName);
 
-    // Invariant: every doc lives in a thread; a weave folder contains only threads.
-    // Weave-root idea creation is retired — a threadId is required.
+    // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
+    // Weave-root idea creation is retired — a thread_ulid is required.
     if (!input.threadId) {
-        throw new Error('Cannot create an idea at weave root: every doc must live in a thread. Pass a threadId (create/select a thread first).');
+        throw new Error('Cannot create an idea: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
-    const threadPath = path.join(weavePath, input.threadId);
-    await deps.fs.ensureDir(threadPath);
+    // Resolve the thread by its stable ULID → folder. Never fabricates: an unknown
+    // thread_ulid throws (createThread is the only way to make a thread).
+    const { threadPath } = await resolveThreadFolder(weaveName, input.threadId, deps);
     const id = generateDocId('idea');
     const frontmatter = createBaseFrontmatter('idea', id, input.title);
     const content = input.content ?? generateIdeaBody(input.title);
     const doc: IdeaDoc = { ...frontmatter, content } as IdeaDoc;
     const filePath = path.join(threadPath, singletonFileName('idea'));
     await deps.saveDoc(doc, filePath);
-    // Auto-scaffold the thread manifest (first-create seam) so the thread is on the roadmap.
-    await ensureThreadManifest(weaveName, input.threadId, input.title, deps);
     return { id, filePath };
 }

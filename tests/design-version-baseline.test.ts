@@ -6,6 +6,7 @@ import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
 import { isPlanStale } from '../packages/core/dist/index.js';
 import { weavePlan } from '../packages/app/dist/weavePlan.js';
 import { promoteToPlan } from '../packages/app/dist/promoteToPlan.js';
+import { createThread } from '../packages/app/dist/thread.js';
 import { refinePlan } from '../packages/app/dist/refinePlan.js';
 import { backfillDesignVersions } from '../packages/app/dist/backfillDesignVersions.js';
 
@@ -51,9 +52,10 @@ async function run() {
 
     // ── create_plan stamps the LIVE design version (not the constant 1) ──
     console.log('  • create_plan stamps the live design version...');
+    const tcreateUlid = (await createThread({ weaveId: WEAVE, threadId: 'tcreate' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
     const createDesignId = await writeDesign(root, 'tcreate', 3);
     const { filePath: createPath } = await weavePlan(
-        { weaveId: WEAVE, threadId: 'tcreate', goal: 'g', steps: [{ description: 's1' }] },
+        { weaveId: WEAVE, threadId: tcreateUlid, goal: 'g', steps: [{ description: 's1' }] },
         planDeps(root),
     );
     {
@@ -94,6 +96,7 @@ async function run() {
 
     // ── promote → plan stamps the live design version (was omitted → never stale) ──
     console.log('  • promote → plan stamps the live design version...');
+    const tpromoteUlid = (await createThread({ weaveId: WEAVE, threadId: 'tpromote' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
     await writeDesign(root, 'tpromote', 2);
     {
         const ideaPath = path.join(threadDir(root, 'tpromote'), 'tpromote-idea.md');
@@ -104,7 +107,7 @@ async function run() {
         } as any, ideaPath);
 
         const { filePath: promotedPath } = await promoteToPlan(
-            { filePath: ideaPath, targetWeaveId: WEAVE, targetThreadId: 'tpromote', body: '## Goal\ng\n\n## Steps\n1. do a thing\n' },
+            { filePath: ideaPath, targetWeaveId: WEAVE, targetThreadId: tpromoteUlid, body: '## Goal\ng\n\n## Steps\n1. do a thing\n' },
             { loadDoc, saveDoc, fs, aiClient: stubClient(''), loomRoot: root },
         );
         const promoted: any = await loadDoc(promotedPath);

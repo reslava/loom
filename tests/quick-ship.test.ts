@@ -4,6 +4,7 @@ import * as os from 'os';
 import { assert, createPlanDoc } from './test-utils.ts';
 import { loadWeave, saveDoc, saveDocs, loadDoc } from '../packages/fs/dist/index.js';
 import { quickShip } from '../packages/app/dist/quickShip.js';
+import { createThread } from '../packages/app/dist/thread.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-quick-ship-tests');
 
@@ -12,6 +13,15 @@ async function makeLoomRoot(): Promise<string> {
     await fs.ensureDir(path.join(TMP, '.loom'));
     await fs.outputFile(path.join(TMP, '.loom', 'workflow.yml'), 'version: 1\n');
     return TMP;
+}
+
+/** Explicitly mint a thread (no more auto-scaffold seam) and return its stable th_ ULID. */
+async function makeThread(loomRoot: string, weaveId: string, slug: string): Promise<string> {
+    const { id } = await createThread(
+        { weaveId, threadId: slug },
+        { getActiveLoomRoot: () => loomRoot, saveDoc, fs },
+    );
+    return id;
 }
 
 function makeDeps(loomRoot: string) {
@@ -36,8 +46,9 @@ async function run() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'qs-weave-a';
+        const threadUlid = await makeThread(loomRoot, weaveId, 'fast-fixes');
         const result = await quickShip(
-            { weaveId, threadId: 'fast-fixes', description: 'fixed the serializer typo' },
+            { weaveId, threadId: threadUlid, description: 'fixed the serializer typo' },
             makeDeps(loomRoot),
         );
         assert(result.stepCount === 1, 'single description → 1 step');
@@ -55,8 +66,9 @@ async function run() {
     {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'qs-weave-b';
+        const threadUlid = await makeThread(loomRoot, weaveId, 'fast-fixes');
         const result = await quickShip(
-            { weaveId, threadId: 'fast-fixes', description: ['did A', 'did B', 'did C'] },
+            { weaveId, threadId: threadUlid, description: ['did A', 'did B', 'did C'] },
             makeDeps(loomRoot),
         );
         assert(result.stepCount === 3, 'array of 3 → 3 steps');
@@ -77,7 +89,7 @@ async function run() {
             makeDeps(loomRoot),
         );
         assert(result.createdThread === true, 'newThread branch must report createdThread');
-        assert(result.threadId === 'standalone-fix', 'threadId must be the new slug');
+        assert(/^th_/.test(result.threadId), 'threadId must be the minted thread ULID');
         const threadManifest = path.join(loomRoot, 'loom', weaveId, 'standalone-fix', 'thread.md');
         assert(await fs.pathExists(threadManifest), 'thread.md must be minted');
         const plan = await findPlan(loomRoot, weaveId, result.planId);
@@ -95,8 +107,9 @@ async function run() {
         const existingPlanPath = await createPlanDoc(weavePath, existingPlanId, { status: 'implementing' });
         const before = await fs.readFile(existingPlanPath, 'utf8');
 
+        const threadUlid = await makeThread(loomRoot, weaveId, 'qs-thread-d');
         const result = await quickShip(
-            { weaveId, threadId: weaveId, description: 'a side fix that arose mid-plan' },
+            { weaveId, threadId: threadUlid, description: 'a side fix that arose mid-plan' },
             makeDeps(loomRoot),
         );
         assert(result.planId !== existingPlanId, 'quick-ship must mint a NEW plan, not reuse the existing one');

@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { createReq, amendReq, finalizeReq, weavePlan } from '../packages/app/dist/index.js';
+import { createThread } from '../packages/app/dist/thread.js';
 import { saveDoc, loadDoc, loadWeave } from '../packages/fs/dist/index.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-req-usecase-tests');
@@ -16,8 +17,8 @@ async function run() {
     await fs.remove(TMP);
     const loomRoot = TMP;
     const weaveId = 'core-engine';
-    const threadId = 'rdd';
-    await fs.ensureDir(path.join(loomRoot, 'loom', weaveId, threadId));
+    // Explicitly mint the thread (no auto-scaffold); reference it by its th_ ULID.
+    const { id: threadId } = await createThread({ weaveId, threadId: 'rdd' }, { getActiveLoomRoot: () => loomRoot, saveDoc, fs });
 
     // ── create ──
     console.log('  • createReq writes a draft req.md at v1...');

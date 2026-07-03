@@ -81,17 +81,20 @@ export async function quickShip(
     // createThread keys on getActiveLoomRoot(); quick-ship runs against a fixed root.
     const getActiveLoomRoot = () => deps.loomRoot;
     let createdThread = false;
-    let threadId: string;
+    // Downstream create use-cases reference the thread by its stable th_ ULID.
+    // A minted thread yields its ULID; an existing target is passed by ULID.
+    let threadUlid: string;
 
     if (hasNewThread) {
-        threadId = input.newThread!.slug.trim();
-        await createThread(
-            { weaveId: input.weaveId, threadId, title: input.newThread!.title },
+        const slug = input.newThread!.slug.trim();
+        const { id } = await createThread(
+            { weaveId: input.weaveId, threadId: slug, title: input.newThread!.title },
             { getActiveLoomRoot, saveDoc: deps.saveDoc, fs: deps.fs },
         );
+        threadUlid = id;
         createdThread = true;
     } else {
-        threadId = input.threadId!.trim();
+        threadUlid = input.threadId!.trim();
     }
 
     // 1. Create the plan — steps = the descriptions (born status "active").
@@ -102,7 +105,7 @@ export async function quickShip(
     const { id: planId, filePath } = await weavePlan(
         {
             weaveId: input.weaveId,
-            threadId,
+            threadId: threadUlid,
             goal,
             steps: descriptions.map(d => ({ description: d })),
         },
@@ -150,7 +153,7 @@ export async function quickShip(
     return {
         planId,
         weaveId: input.weaveId,
-        threadId,
+        threadId: threadUlid,
         filePath,
         donePath,
         stepCount: descriptions.length,

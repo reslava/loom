@@ -11,7 +11,6 @@ import { generateDocId, createBaseFrontmatter, ThreadDoc, today } from '../../co
  * set-deps use-cases key on the thread's `th_` ULID (what the extension holds).
  *
  *   createThread          → new manifest with a fresh th_ ULID (empty threads)
- *   ensureThreadManifest  → idempotent scaffold (the first-create auto-seam)
  *   setThreadPriority     → the drag-reorder write
  *   setThreadDeps         → set depends_on, REFUSING cycles / unknown targets
  */
@@ -44,6 +43,12 @@ function assertValidThreadId(id: string, label: string): void {
     }
     if (RESERVED_THREAD_IDS.has(id)) {
         throw new Error(`'${id}' is a reserved thread subfolder name, not a thread id.`);
+    }
+    // A folder slug that looks like a th_ ULID is almost certainly a mistaken identity —
+    // this is the reverse of the create-fabrication bug (a ULID passed where a slug is
+    // wanted). Thread folders are human slugs; reject the ULID shape at the seam.
+    if (/^th_/i.test(id)) {
+        throw new Error(`'${id}' looks like a thread ULID, not a folder slug. A thread folder name is a human slug; pass a slug (the th_ ULID is the identity, minted for you).`);
     }
 }
 
@@ -150,6 +155,9 @@ export async function createThread(
     input: CreateThreadInput,
     deps: ScaffoldDeps,
 ): Promise<{ id: string; filePath: string }> {
+    // The threadId here is the NEW folder slug — guard the ULID shape so an explicit
+    // create can never mint a th_-named folder (the reverse of the create-fabrication bug).
+    assertValidThreadId(input.threadId, 'new');
     const loomRoot = deps.getActiveLoomRoot();
     const threadPath = path.join(loomRoot, 'loom', input.weaveId, input.threadId);
     await deps.fs.ensureDir(threadPath);
@@ -174,23 +182,6 @@ export async function createThread(
 
     await deps.saveDoc(doc, filePath);
     return { id, filePath };
-}
-
-/**
- * Auto-scaffold seam: ensure the thread has a `thread.md`, creating one only if
- * absent. Idempotent and safe to call from every doc-create use-case so that the
- * first `loom_create_*` into a brand-new thread materialises its manifest — the
- * invariant "every thread has a manifest" that keeps the roadmap total.
- */
-export async function ensureThreadManifest(
-    weaveId: string,
-    threadId: string,
-    title: string | undefined,
-    deps: ScaffoldDeps,
-): Promise<void> {
-    const loomRoot = deps.getActiveLoomRoot();
-    if (await deps.fs.pathExists(manifestPathFor(loomRoot, weaveId, threadId))) return;
-    await createThread({ weaveId, threadId, title }, deps);
 }
 
 interface ScannedManifest {
