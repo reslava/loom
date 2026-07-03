@@ -150,8 +150,8 @@ function manifestPathFor(loomRoot: string, weaveId: string, threadId: string): s
 }
 
 export interface CreateThreadInput {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     title?: string;
     priority?: number;
     dependsOn?: string[];
@@ -161,23 +161,23 @@ export async function createThread(
     input: CreateThreadInput,
     deps: ScaffoldDeps,
 ): Promise<{ id: string; filePath: string }> {
-    // The threadId here is the NEW folder slug — guard the ULID shape so an explicit
+    // The threadSlug here is the NEW folder slug — guard the ULID shape so an explicit
     // create can never mint a th_-named folder (the reverse of the create-fabrication bug).
-    assertValidThreadId(input.threadId, 'new');
+    assertValidThreadId(input.threadSlug, 'new');
     const loomRoot = deps.getActiveLoomRoot();
-    const threadPath = path.join(loomRoot, 'loom', input.weaveId, input.threadId);
+    const threadPath = path.join(loomRoot, 'loom', input.weaveSlug, input.threadSlug);
     await deps.fs.ensureDir(threadPath);
 
-    const filePath = manifestPathFor(loomRoot, input.weaveId, input.threadId);
+    const filePath = manifestPathFor(loomRoot, input.weaveSlug, input.threadSlug);
     if (await deps.fs.pathExists(filePath)) {
         throw new Error(
-            `A thread.md already exists for ${input.weaveId}/${input.threadId}. ` +
+            `A thread.md already exists for ${input.weaveSlug}/${input.threadSlug}. ` +
             `Use setThreadPriority / setThreadDeps to update it.`,
         );
     }
 
     const id = generateDocId('thread');
-    const frontmatter = createBaseFrontmatter('thread', id, input.title ?? input.threadId, null);
+    const frontmatter = createBaseFrontmatter('thread', id, input.title ?? input.threadSlug, null);
     const doc: ThreadDoc = {
         ...frontmatter,
         status: 'active',

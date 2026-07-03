@@ -255,7 +255,7 @@ async function run(): Promise<void> {
     // Mint each thread explicitly and reuse its ULID (the seeded 'tw/t1' folder gets its
     // manifest here too). The folder slugs stay t1/tamend/... — state/coverage assert on those.
     const mkThread = async (slug: string): Promise<string> => {
-        const r = await client.callTool({ name: 'loom_create_thread', arguments: { weaveId: 'tw', threadId: slug } });
+        const r = await client.callTool({ name: 'loom_create_thread', arguments: { weave_slug: 'tw', thread_slug: slug } });
         return JSON.parse((r.content[0] as { text: string }).text).id;
     };
     const ideaThreadUlid = await mkThread('integration-test-idea');
@@ -266,7 +266,7 @@ async function run(): Promise<void> {
     await test('loom_create_idea creates an idea doc', async () => {
         const result = await client.callTool({
             name: 'loom_create_idea',
-            arguments: { weaveId: 'tw', threadId: ideaThreadUlid, title: 'Integration Test Idea' },
+            arguments: { weave_slug: 'tw', thread_ulid: ideaThreadUlid, title: 'Integration Test Idea' },
         });
         const content = result.content[0] as { type: string; text: string };
         const data = JSON.parse(content.text);
@@ -420,7 +420,7 @@ async function run(): Promise<void> {
         const createRes = await client.callTool({
             name: 'loom_create_plan',
             arguments: {
-                weaveId: 'tw', threadId: t1Ulid, title: 'Citing plan',
+                weave_slug: 'tw', thread_ulid: t1Ulid, title: 'Citing plan',
                 goal: 'cite the req',
                 steps: [{ description: 'Build the thing', files: ['x.ts'], satisfies: ['IN1'] }],
             },

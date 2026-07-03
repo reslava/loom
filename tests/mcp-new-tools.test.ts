@@ -150,9 +150,9 @@ async function run() {
         await expectThrow(() => patchDocHandle(root, { id: 'test-design', old_string: 'NONEXISTENT', new_string: 'x' }), 'old_string not found');
 
         // a frontmatter-native plan with a Goal marker + a step row marker
-        const { id: demoThreadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+        const { id: demoThreadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
         const planRes = await weavePlan(
-            { weaveId: 'demo', threadId: demoThreadUlid, goal: 'GOALMARKER build the widget.', steps: [{ description: 'STEPMARKER do the thing' }] } as any,
+            { weaveSlug: 'demo', threadUlid: demoThreadUlid, goal: 'GOALMARKER build the widget.', steps: [{ description: 'STEPMARKER do the thing' }] } as any,
             { loadWeave, saveDoc, loadDoc, fs, loomRoot: root } as any,
         );
         // a match inside the generated ## Steps table → refused

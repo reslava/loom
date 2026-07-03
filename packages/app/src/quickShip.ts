@@ -18,10 +18,10 @@ import { runEvent } from './runEvent';
  * See loom/core-engine/quick-ship-plan.
  */
 export interface QuickShipInput {
-    weaveId: string;
-    /** Target an existing thread. Mutually exclusive with `newThread`. */
-    threadId?: string;
-    /** Mint a new thread to hold the done plan. Mutually exclusive with `threadId`. */
+    weaveSlug: string;
+    /** Target an existing thread by its stable th_ ULID. Mutually exclusive with `newThread`. */
+    threadUlid?: string;
+    /** Mint a new thread to hold the done plan. Mutually exclusive with `threadUlid`. */
     newThread?: { slug: string; title?: string };
     /** The completed work: one line, or a short list (each entry becomes one done step). */
     description: string | string[];
@@ -40,8 +40,8 @@ export interface QuickShipDeps {
 
 export interface QuickShipResult {
     planId: string;
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadUlid: string;
     filePath: string;
     donePath: string;
     stepCount: number;
@@ -66,13 +66,13 @@ export async function quickShip(
     input: QuickShipInput,
     deps: QuickShipDeps,
 ): Promise<QuickShipResult> {
-    // Target selection: exactly one of an existing threadId or a newThread to mint.
-    const hasThreadId = typeof input.threadId === 'string' && input.threadId.trim() !== '';
+    // Target selection: exactly one of an existing threadUlid or a newThread to mint.
+    const hasThreadUlid = typeof input.threadUlid === 'string' && input.threadUlid.trim() !== '';
     const hasNewThread =
         !!input.newThread && typeof input.newThread.slug === 'string' && input.newThread.slug.trim() !== '';
-    if (hasThreadId === hasNewThread) {
+    if (hasThreadUlid === hasNewThread) {
         throw new Error(
-            'loom_quick_ship: pass exactly one of `threadId` (existing thread) or `newThread` (mint a thread).',
+            'loom_quick_ship: pass exactly one of `thread_ulid` (existing thread) or `newThread` (mint a thread).',
         );
     }
 
@@ -88,13 +88,13 @@ export async function quickShip(
     if (hasNewThread) {
         const slug = input.newThread!.slug.trim();
         const { id } = await createThread(
-            { weaveId: input.weaveId, threadId: slug, title: input.newThread!.title },
+            { weaveSlug: input.weaveSlug, threadSlug: slug, title: input.newThread!.title },
             { getActiveLoomRoot, saveDoc: deps.saveDoc, fs: deps.fs },
         );
         threadUlid = id;
         createdThread = true;
     } else {
-        threadUlid = input.threadId!.trim();
+        threadUlid = input.threadUlid!.trim();
     }
 
     // 1. Create the plan — steps = the descriptions (born status "active").
@@ -104,8 +104,8 @@ export async function quickShip(
             : `Quick-ship record of ${descriptions.length} completed changes.`;
     const { id: planId, filePath } = await weavePlan(
         {
-            weaveId: input.weaveId,
-            threadId: threadUlid,
+            weaveSlug: input.weaveSlug,
+            threadUlid: threadUlid,
             goal,
             steps: descriptions.map(d => ({ description: d })),
         },
@@ -119,7 +119,7 @@ export async function quickShip(
     );
 
     // 2. Start the plan (active → implementing) so its steps can be completed.
-    await runEvent(input.weaveId, { type: 'START_IMPLEMENTING_PLAN', planId } as any, {
+    await runEvent(input.weaveSlug, { type: 'START_IMPLEMENTING_PLAN', planId } as any, {
         loadWeave: deps.loadWeave,
         saveDocs: deps.saveDocs,
         loomRoot: deps.loomRoot,
@@ -152,8 +152,8 @@ export async function quickShip(
 
     return {
         planId,
-        weaveId: input.weaveId,
-        threadId: threadUlid,
+        weaveSlug: input.weaveSlug,
+        threadUlid: threadUlid,
         filePath,
         donePath,
         stepCount: descriptions.length,

@@ -18,7 +18,7 @@ async function makeLoomRoot(): Promise<string> {
 /** Explicitly mint a thread (no more auto-scaffold seam) and return its stable th_ ULID. */
 async function makeThread(loomRoot: string, weaveId: string, slug: string): Promise<string> {
     const { id } = await createThread(
-        { weaveId, threadId: slug },
+        { weaveSlug: weaveId, threadSlug: slug },
         { getActiveLoomRoot: () => loomRoot, saveDoc, fs },
     );
     return id;
@@ -48,7 +48,7 @@ async function run() {
         const weaveId = 'qs-weave-a';
         const threadUlid = await makeThread(loomRoot, weaveId, 'fast-fixes');
         const result = await quickShip(
-            { weaveId, threadId: threadUlid, description: 'fixed the serializer typo' },
+            { weaveSlug: weaveId, threadUlid, description: 'fixed the serializer typo' },
             makeDeps(loomRoot),
         );
         assert(result.stepCount === 1, 'single description → 1 step');
@@ -68,7 +68,7 @@ async function run() {
         const weaveId = 'qs-weave-b';
         const threadUlid = await makeThread(loomRoot, weaveId, 'fast-fixes');
         const result = await quickShip(
-            { weaveId, threadId: threadUlid, description: ['did A', 'did B', 'did C'] },
+            { weaveSlug: weaveId, threadUlid, description: ['did A', 'did B', 'did C'] },
             makeDeps(loomRoot),
         );
         assert(result.stepCount === 3, 'array of 3 → 3 steps');
@@ -85,11 +85,11 @@ async function run() {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'qs-weave-c';
         const result = await quickShip(
-            { weaveId, newThread: { slug: 'standalone-fix', title: 'Standalone fix' }, description: 'one-off fix' },
+            { weaveSlug: weaveId, newThread: { slug: 'standalone-fix', title: 'Standalone fix' }, description: 'one-off fix' },
             makeDeps(loomRoot),
         );
         assert(result.createdThread === true, 'newThread branch must report createdThread');
-        assert(/^th_/.test(result.threadId), 'threadId must be the minted thread ULID');
+        assert(/^th_/.test(result.threadUlid), 'threadUlid must be the minted thread ULID');
         const threadManifest = path.join(loomRoot, 'loom', weaveId, 'standalone-fix', 'thread.md');
         assert(await fs.pathExists(threadManifest), 'thread.md must be minted');
         const plan = await findPlan(loomRoot, weaveId, result.planId);
@@ -109,7 +109,7 @@ async function run() {
 
         const threadUlid = await makeThread(loomRoot, weaveId, 'qs-thread-d');
         const result = await quickShip(
-            { weaveId, threadId: threadUlid, description: 'a side fix that arose mid-plan' },
+            { weaveSlug: weaveId, threadUlid, description: 'a side fix that arose mid-plan' },
             makeDeps(loomRoot),
         );
         assert(result.planId !== existingPlanId, 'quick-ship must mint a NEW plan, not reuse the existing one');
@@ -126,10 +126,10 @@ async function run() {
         const loomRoot = await makeLoomRoot();
         const weaveId = 'qs-weave-e';
         let threw = 0;
-        try { await quickShip({ weaveId, description: 'x' } as any, makeDeps(loomRoot)); } catch { threw++; }
-        try { await quickShip({ weaveId, threadId: 't', newThread: { slug: 's' }, description: 'x' }, makeDeps(loomRoot)); } catch { threw++; }
-        try { await quickShip({ weaveId, threadId: 't', description: '   ' }, makeDeps(loomRoot)); } catch { threw++; }
-        try { await quickShip({ weaveId, threadId: 't', description: [] }, makeDeps(loomRoot)); } catch { threw++; }
+        try { await quickShip({ weaveSlug: weaveId, description: 'x' } as any, makeDeps(loomRoot)); } catch { threw++; }
+        try { await quickShip({ weaveSlug: weaveId, threadUlid: 't',newThread: { slug: 's' }, description: 'x' }, makeDeps(loomRoot)); } catch { threw++; }
+        try { await quickShip({ weaveSlug: weaveId, threadUlid: 't',description: '   ' }, makeDeps(loomRoot)); } catch { threw++; }
+        try { await quickShip({ weaveSlug: weaveId, threadUlid: 't',description: [] }, makeDeps(loomRoot)); } catch { threw++; }
         assert(threw === 4, `all four invalid inputs must throw (got ${threw})`);
         console.log('    ✅ validation: missing/both target and empty description throw');
     }

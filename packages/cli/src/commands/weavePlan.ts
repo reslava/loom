@@ -10,7 +10,7 @@ export async function weavePlanCommand(weaveId: string, options: { title?: strin
         const loomRoot = getActiveLoomRoot();
         const threadUlid = options.thread ? await ensureThreadUlid(weaveId, options.thread, options.title) : undefined;
         const result = await weavePlan(
-            { weaveId, title: options.title, goal: options.goal, threadId: threadUlid },
+            { weaveSlug: weaveId, title: options.title, goal: options.goal, threadUlid },
             { loadWeave, saveDoc, loadDoc, fs, loomRoot }
         );
         console.log(chalk.green(`🧵 Plan woven at ${result.filePath}`));

@@ -11,8 +11,8 @@ import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface WeaveIdeaInput {
     title: string;
-    weave?: string;
-    threadId?: string;
+    weaveSlug?: string;
+    threadUlid?: string;
     /** Optional body. When provided, it replaces the generated stub so the doc is born at version 1 with real content. */
     content?: string;
 }
@@ -28,17 +28,17 @@ export async function weaveIdea(
     input: WeaveIdeaInput,
     deps: WeaveIdeaDeps
 ): Promise<{ id: string; filePath: string }> {
-    const weaveName = input.weave || toKebabCaseId(input.title);
+    const weaveName = input.weaveSlug || toKebabCaseId(input.title);
 
     // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
     // Weave-root idea creation is retired — a thread_ulid is required.
-    if (!input.threadId) {
+    if (!input.threadUlid) {
         throw new Error('Cannot create an idea: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
     // Resolve the thread by its stable ULID → folder. Never fabricates: an unknown
     // thread_ulid throws (createThread is the only way to make a thread).
-    const { threadPath } = await resolveThreadFolder(weaveName, input.threadId, deps);
+    const { threadPath } = await resolveThreadFolder(weaveName, input.threadUlid, deps);
     const id = generateDocId('idea');
     const frontmatter = createBaseFrontmatter('idea', id, input.title);
     const content = input.content ?? generateIdeaBody(input.title);

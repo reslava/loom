@@ -12,9 +12,9 @@ import { getUserName } from './utils/chatNames';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface WeaveDesignInput {
-    weaveId: string;
+    weaveSlug: string;
     title?: string;
-    threadId?: string;
+    threadUlid?: string;
     /** Optional body. When provided, it replaces the generated stub so the doc is born at version 1 with real content. */
     content?: string;
 }
@@ -97,16 +97,16 @@ export async function weaveDesign(
 
     // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
     // Weave-root design creation is retired — a thread_ulid is required.
-    if (!input.threadId) {
+    if (!input.threadUlid) {
         throw new Error('Cannot create a design: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
     // Resolve the thread by its stable ULID → folder (never fabricates).
-    const { threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, deps);
+    const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, deps);
     const ideaPath = path.join(threadPath, 'idea.md');
     const hasIdea = await deps.fs.pathExists(ideaPath);
     let parentId: string | null = null;
-    let designTitle = input.title || input.threadId;
+    let designTitle = input.title || threadSlug;
     let ideaVersion: number | undefined;
     if (hasIdea) {
         const idea = await deps.loadDoc(ideaPath) as IdeaDoc;

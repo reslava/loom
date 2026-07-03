@@ -8,8 +8,8 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Target weave id' },
-            threadId: { type: 'string', description: 'Thread id inside the weave' },
+            weave_slug: { type: 'string', description: 'Target weave folder slug' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread inside the weave' },
             title: { type: 'string', description: 'Optional plan title' },
             goal: { type: 'string', description: 'One paragraph: what this plan implements and why. Rendered as the body ## Goal section.' },
             steps: {
@@ -28,22 +28,22 @@ export const toolDef = {
                     required: ['description'],
                 },
             },
-            parentId: { type: 'string', description: 'Optional explicit parent doc id (defaults to thread design if present)' },
+            parent_ulid: { type: 'string', description: 'Optional explicit parent doc ULID (defaults to thread design if present)' },
         },
-        required: ['weaveId', 'threadId'],
+        required: ['weave_slug', 'thread_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const input = {
-        weaveId: args['weaveId'] as string,
-        threadId: args['threadId'] as string,
+        weaveSlug: args['weave_slug'] as string,
+        threadUlid: args['thread_ulid'] as string,
         title: args['title'] as string | undefined,
         goal: args['goal'] as string | undefined,
         // Pass through unparsed — weavePlan's coerceSteps validates/parses at the
         // app boundary (a malformed call can deliver this JSON-encoded as a string).
         steps: args['steps'] as any[] | string | undefined,
-        parentId: args['parentId'] as string | undefined,
+        parentUlid: args['parent_ulid'] as string | undefined,
     };
     const result = await weavePlan(input, {
         loadWeave,

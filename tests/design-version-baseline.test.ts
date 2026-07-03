@@ -52,10 +52,10 @@ async function run() {
 
     // ── create_plan stamps the LIVE design version (not the constant 1) ──
     console.log('  • create_plan stamps the live design version...');
-    const tcreateUlid = (await createThread({ weaveId: WEAVE, threadId: 'tcreate' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
+    const tcreateUlid = (await createThread({ weaveSlug: WEAVE, threadSlug: 'tcreate' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
     const createDesignId = await writeDesign(root, 'tcreate', 3);
     const { filePath: createPath } = await weavePlan(
-        { weaveId: WEAVE, threadId: tcreateUlid, goal: 'g', steps: [{ description: 's1' }] },
+        { weaveSlug: WEAVE, threadUlid: tcreateUlid, goal: 'g', steps: [{ description: 's1' }] },
         planDeps(root),
     );
     {
@@ -96,7 +96,7 @@ async function run() {
 
     // ── promote → plan stamps the live design version (was omitted → never stale) ──
     console.log('  • promote → plan stamps the live design version...');
-    const tpromoteUlid = (await createThread({ weaveId: WEAVE, threadId: 'tpromote' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
+    const tpromoteUlid = (await createThread({ weaveSlug: WEAVE, threadSlug: 'tpromote' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
     await writeDesign(root, 'tpromote', 2);
     {
         const ideaPath = path.join(threadDir(root, 'tpromote'), 'tpromote-idea.md');

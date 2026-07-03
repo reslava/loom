@@ -7,8 +7,8 @@ import { getUserName } from './utils/chatNames';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface ChatNewInput {
-    weaveId?: string;
-    threadId?: string;
+    weaveSlug?: string;
+    threadUlid?: string;
     title?: string;
 }
 
@@ -27,18 +27,18 @@ export async function chatNew(
     // (never fabricates); weave-root and global chats need no resolution.
     let chatsDir: string;
     let scopeId: string;
-    if (!input.weaveId) {
+    if (!input.weaveSlug) {
         chatsDir = path.join(deps.loomRoot, 'loom', 'chats');
         scopeId = 'global';
-    } else if (input.threadId) {
-        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, {
+    } else if (input.threadUlid) {
+        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, {
             getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
         });
         chatsDir = path.join(threadPath, 'chats');
         scopeId = threadSlug;
     } else {
-        chatsDir = path.join(deps.loomRoot, 'loom', input.weaveId, 'chats');
-        scopeId = input.weaveId;
+        chatsDir = path.join(deps.loomRoot, 'loom', input.weaveSlug, 'chats');
+        scopeId = input.weaveSlug;
     }
     await deps.fs.ensureDir(chatsDir);
 

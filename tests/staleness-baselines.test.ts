@@ -19,7 +19,7 @@ async function run() {
     const root = TMP;
     const deps: any = { getActiveLoomRoot: () => root, saveDoc, loadDoc, fs };
     // Explicitly mint the thread (no auto-scaffold); reference it by its th_ ULID.
-    const { id: threadUlid } = await createThread({ weaveId: 'w', threadId: 't' }, deps);
+    const { id: threadUlid } = await createThread({ weaveSlug: 'w', threadSlug: 't' }, deps);
     const threadDir = path.join(root, 'loom', 'w', 't');
 
     // Idea at version 2 — the design must baseline against THIS version.
@@ -32,7 +32,7 @@ async function run() {
 
     // ── design stamps idea_version + parents to the idea ──
     console.log('  • design stamps idea_version from the live idea...');
-    const { filePath: designPath } = await weaveDesign({ weaveId: 'w', threadId: threadUlid }, deps);
+    const { filePath: designPath } = await weaveDesign({ weaveSlug: 'w', threadUlid }, deps);
     const design: any = await loadDoc(designPath);
     assert(design.idea_version === 2, `design.idea_version === 2, got ${design.idea_version}`);
     assert(design.parent_id === 'id_test', `design parented to the idea, got ${design.parent_id}`);

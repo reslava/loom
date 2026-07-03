@@ -27,7 +27,7 @@ export async function threadCreateCommand(
     try {
         // loom_create_thread writes the thread.md manifest via the app use-case —
         // this is what was missing when the command created the folder with raw fs.
-        await getMCP(root).callTool('loom_create_thread', { weaveId, threadId });
+        await getMCP(root).callTool('loom_create_thread', { weave_slug: weaveId, thread_slug: threadId });
         await treeProvider.waitForRefresh();
         const threadNode = treeProvider.getNodeByThreadId(weaveId, threadId);
         if (threadNode) treeView.reveal(threadNode, { select: true, focus: true, expand: false });

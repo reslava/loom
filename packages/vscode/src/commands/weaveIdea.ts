@@ -3,6 +3,7 @@ import { getMCP } from '../mcp-client';
 import { toKebabCaseId, stripTrailingTypeWord } from '@reslava-loom/core/dist';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { revealDocAfterCreate } from './revealDoc';
+import { ensureThreadUlid } from './ensureThreadUlid';
 
 export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -23,7 +24,9 @@ export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, treeView:
     const title = titleInput || `${threadId} idea`;
 
     try {
-        const result = await getMCP(root).callTool('loom_create_idea', { weaveId, threadId, title }) as any;
+        // Doc-create references a thread by ULID; mint the thread manifest first when new.
+        const threadUlid = await ensureThreadUlid(root, weaveId, node, threadId);
+        const result = await getMCP(root).callTool('loom_create_idea', { weave_slug: weaveId, thread_ulid: threadUlid, title }) as any;
         vscode.window.showInformationMessage(`🧵 Idea woven: ${result.id}`);
         revealDocAfterCreate(treeProvider, treeView, result?.filePath);
     } catch (e: any) {

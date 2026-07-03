@@ -18,7 +18,7 @@ async function run() {
     const loomRoot = TMP;
     const weaveId = 'core-engine';
     // Explicitly mint the thread (no auto-scaffold); reference it by its th_ ULID.
-    const { id: threadId } = await createThread({ weaveId, threadId: 'rdd' }, { getActiveLoomRoot: () => loomRoot, saveDoc, fs });
+    const { id: threadId } = await createThread({ weaveSlug: weaveId, threadSlug: 'rdd' }, { getActiveLoomRoot: () => loomRoot, saveDoc, fs });
 
     // ── create ──
     console.log('  • createReq writes a draft req.md at v1...');
@@ -98,7 +98,7 @@ async function run() {
     console.log('  • weavePlan stamps req_version from the locked req...');
     {
         const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
-        const { filePath } = await weavePlan({ weaveId, threadId, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
+        const { filePath } = await weavePlan({ weaveSlug: weaveId, threadUlid: threadId, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
         const plan: any = await loadDoc(filePath);
         assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
         console.log('    ✅ plan.req_version stamped from locked req');

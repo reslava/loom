@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 51
+last_ai_block: 52
 ---
 # weave-idea-threadid-fix Chat
 
@@ -758,3 +758,18 @@ Committing Chunk A as its own build-green checkpoint, then rolling into Chunk B 
 Remaining Chunk B families: **create** (idea/design/plan/chat/thread + `parent_ulid`), **promote** (`source_ulid`, `target_weave_slug`/`target_thread_ulid`), **quick_ship**, **plan-step** (10 tools, `plan_ulid`), **generate**, and **misc** (search/validate/refresh_ctx/context_prefs `doc_ulid`, create_weave/rename_weave). Then Chunk C (tool renames). I'll keep going family-by-family, build-green each.
 
 One decision is waiting at the **plan-step family**: the audit locked Q2→(b) *strict ULID-only* — `plan_ulid` drops the current "ULID **or** filename stem" dual-accept. I'll implement it there, but will pause to confirm if enforcing strict turns out to break an internal caller that relies on stem resolution (e.g. the do-next-step path). Flagging now so it's not a surprise.
+
+## AI:
+
+**Chunk B — create family done, build + test green.** `create_idea` / `create_design` / `create_plan` / `create_chat` / `create_thread` + `quick_ship`:
+
+- MCP schemas → snake_case (`weave_slug`, `thread_ulid`; `create_thread` → `thread_slug` for the new folder + `depends_on`; `create_plan` → `parent_ulid`). `create_idea` now requires `thread_ulid` (matches the "thread must exist first" invariant). App inputs → camelCase (`weaveSlug`, `threadUlid`, `threadSlug`, `parentUlid`). `generate.ts` maps at its internal calls.
+- **vscode:** added a small `ensureThreadUlid` helper (the human-surface mirror of the CLI's) — the create buttons use `node.threadUlid` when present, else mint the thread manifest first via `loom_create_thread`, preserving "a new idea starts a new thread." Updated the idea/design/plan/chat/thread commands + the **Generate Design / Generate Plan launch prompts** to `weave_slug`/`thread_ulid`.
+
+Two things I fixed inline while here (both were latent bugs, not just renames):
+1. `weaveDesign`'s title fallback was `input.title || input.threadId` — since step 6 that `threadId` holds a **ULID**, so an untitled design would have been titled with a ULID. Now falls back to the thread **slug**.
+2. The **Generate Plan** launch prompt told the agent to pass a `content` Steps *table* to `loom_create_plan` — but `create_plan` is structured-only (goal + steps array). Corrected to instruct a goal + structured steps array.
+
+**Discovered pre-existing issue (flagging, deferring):** the **Promote-to-Plan** launch prompt (`promoteToPlan.ts`) has the *same* stale `content`-table instruction for `loom_create_plan`. It belongs to the **promote family** (which also needs `target_weave_slug`/`target_thread_ulid`/`source_ulid`), so I'll fix the prompt + params together in that batch rather than half-touch it now.
+
+Committing. Remaining Chunk B: **plan-step** (10 tools → `plan_ulid`; carries the locked strict-ULID decision), **promote**, **generate**, **misc** (search/validate/refresh_ctx/context_prefs → `doc_ulid`, create_weave/rename_weave, and the `set_priority`/`set_thread_deps` MCP casing `threadUlid`→`thread_ulid`). Then Chunk C (tool renames).

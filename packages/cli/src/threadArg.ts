@@ -21,7 +21,7 @@ export async function ensureThreadUlid(weaveSlug: string, threadArg: string, tit
         return await resolveThreadUlid(weaveSlug, threadArg, readDeps);
     } catch {
         const { id } = await createThread(
-            { weaveId: weaveSlug, threadId: threadArg, title },
+            { weaveSlug, threadSlug: threadArg, title },
             { getActiveLoomRoot, saveDoc, fs },
         );
         return id;

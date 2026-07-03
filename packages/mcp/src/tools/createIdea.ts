@@ -8,19 +8,19 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Target weave id (directory name under loom/)' },
-            threadId: { type: 'string', description: 'Optional thread id. If provided, places the idea inside the thread.' },
+            weave_slug: { type: 'string', description: 'Target weave folder slug (directory name under loom/)' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread to place the idea in (create the thread first with loom_create_thread).' },
             title: { type: 'string', description: 'Human-readable title for the idea' },
             content: { type: 'string', description: 'Markdown body (no frontmatter). Provide this on creation so the doc is born at version 1 with real content — no follow-up loom_update_doc needed. Omit only if you truly have no body yet.' },
         },
-        required: ['weaveId', 'title'],
+        required: ['weave_slug', 'thread_ulid', 'title'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const input = {
-        weave: args['weaveId'] as string,
-        threadId: args['threadId'] as string | undefined,
+        weaveSlug: args['weave_slug'] as string,
+        threadUlid: args['thread_ulid'] as string | undefined,
         title: args['title'] as string,
         content: args['content'] as string | undefined,
     };

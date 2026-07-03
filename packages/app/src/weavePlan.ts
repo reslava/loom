@@ -21,15 +21,15 @@ export interface PlanStepInput {
 }
 
 export interface WeavePlanInput {
-    weaveId: string;
+    weaveSlug: string;
     title?: string;
     goal?: string;
     /** Structured ordered steps. The plan is born frontmatter-native (Loom owns the table).
      *  Typed `| string` because a malformed agent tool-call can deliver the array
      *  JSON-encoded; {@link coerceSteps} parses/validates it at the use-case boundary. */
     steps?: PlanStepInput[] | string;
-    parentId?: string;
-    threadId?: string;
+    parentUlid?: string;
+    threadUlid?: string;
 }
 
 export interface WeavePlanDeps {
@@ -179,14 +179,14 @@ export async function weavePlan(
 
     // Invariant: every doc lives in a thread, referenced by its stable th_ ULID.
     // Weave-root plan creation is retired — a thread_ulid is required.
-    if (!input.threadId) {
+    if (!input.threadUlid) {
         throw new Error('Cannot create a plan: a thread_ulid is required. Create the thread first (createThread) and pass its returned thread_ulid.');
     }
 
     {
         // Resolve the thread by its stable ULID → folder (never fabricates). Path
         // helpers below stay slug-based; resolution lives here at the boundary.
-        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveId, input.threadId, {
+        const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, {
             getActiveLoomRoot: () => deps.loomRoot,
             loadDoc: deps.loadDoc,
             fs: deps.fs,
@@ -207,13 +207,13 @@ export async function weavePlan(
         // LIVE version here is the fix — a plan must be born current against its design,
         // never stamped a constant 1 (which made every plan a false-positive stale).
         const design = await parentDesignVersion(threadPath, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
-        const parentId: string | null = input.parentId ?? design?.id ?? null;
+        const parentId: string | null = input.parentUlid ?? design?.id ?? null;
 
         const planSteps: PlanStep[] = buildStructuredSteps(steps);
         const body = serializePlanBody(planSteps, { goal: input.goal });
         const baseFrontmatter = createBaseFrontmatter('plan', planId, planTitle, parentId);
         // Stamp the locked req version this plan was built against (req-staleness baseline).
-        const reqV = await lockedReqVersion(deps.loomRoot, input.weaveId, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
+        const reqV = await lockedReqVersion(deps.loomRoot, input.weaveSlug, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
         const doc: PlanDoc = {
             ...baseFrontmatter,
             type: 'plan',

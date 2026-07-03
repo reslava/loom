@@ -8,7 +8,7 @@ export async function weaveDesignCommand(weaveId: string, options: { title?: str
     try {
         const threadUlid = options.thread ? await ensureThreadUlid(weaveId, options.thread, options.title) : undefined;
         const result = await weaveDesign(
-            { weaveId, title: options.title, threadId: threadUlid },
+            { weaveSlug: weaveId, title: options.title, threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs }
         );
         if (result.autoFinalized) {

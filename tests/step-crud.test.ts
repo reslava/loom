@@ -199,11 +199,11 @@ async function run() {
         await fs.remove(root);
         await fs.ensureDir(path.join(root, '.loom'));
         await fs.ensureDir(path.join(root, 'loom', 'demo'));
-        const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+        const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
 
         const created = await weavePlan(
             {
-                weaveId: 'demo', threadId: threadUlid, goal: 'build it', title: 'Demo Plan',
+                weaveSlug: 'demo', threadUlid, goal: 'build it', title: 'Demo Plan',
                 steps: [
                     { description: 'First', title: 'First', detail: 'first detail' },
                     { description: 'Second', title: 'Second', detail: 'second detail' },

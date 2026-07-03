@@ -75,7 +75,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await weaveIdea(
-                    { title, weave: weaveId, threadId },
+                    { title, weaveSlug: weaveId, threadUlid: threadId },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
 
@@ -129,7 +129,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await weaveDesign(
-                    { weaveId, title, threadId },
+                    { weaveSlug: weaveId, title, threadUlid: threadId },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
 
@@ -206,7 +206,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 }));
 
                 const { id, filePath } = await weavePlan(
-                    { weaveId, title, threadId, goal: title, steps: stepsInput },
+                    { weaveSlug: weaveId, title, threadUlid: threadId, goal: title, steps: stepsInput },
                     { loadWeave, saveDoc, loadDoc, fs: fsExtra, loomRoot: root }
                 );
 

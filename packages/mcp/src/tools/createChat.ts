@@ -9,8 +9,8 @@ export const toolDef = {
         type: 'object' as const,
         properties: {
             chatType: { type: 'string', enum: ['thread', 'refs'], description: 'Chat level: "thread" for thread-scoped chats, "refs" for reference chats at loom/refs/chats/' },
-            weaveId: { type: 'string', description: 'Target weave id (required for thread chats)' },
-            threadId: { type: 'string', description: 'Thread id (required for thread chats)' },
+            weave_slug: { type: 'string', description: 'Target weave folder slug (required for thread chats)' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread (required for thread chats)' },
             title: { type: 'string', description: 'Optional chat title' },
         },
         required: [],
@@ -20,8 +20,8 @@ export const toolDef = {
 export async function handle(root: string, args: Record<string, unknown>) {
     const chatType = args['chatType'] as string | undefined;
     const input = {
-        weaveId: chatType === 'refs' ? 'refs' : args['weaveId'] as string,
-        threadId: chatType === 'refs' ? undefined : args['threadId'] as string | undefined,
+        weaveSlug: chatType === 'refs' ? 'refs' : args['weave_slug'] as string,
+        threadUlid: chatType === 'refs' ? undefined : args['thread_ulid'] as string | undefined,
         title: args['title'] as string | undefined,
     };
     const result = await chatNew(input, {

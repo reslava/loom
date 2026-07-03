@@ -40,10 +40,10 @@ async function run() {
     const planDeps = { loadWeave, saveDoc, loadDoc, fs, loomRoot: root };
 
     // Explicitly mint the thread (no auto-scaffold) and reference it by its th_ ULID.
-    const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+    const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
 
     // 1. create idea with body → born at version 1, status draft, body present.
-    const ideaRes = await weaveIdea({ title: 'Body Idea', weave: 'demo', threadId: threadUlid, content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
+    const ideaRes = await weaveIdea({ title: 'Body Idea', weaveSlug: 'demo', threadUlid, content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
     const idea: any = await loadDoc(ideaRes.filePath);
     assert(idea.content.includes('Hand-written body.'), 'idea has the provided body');
     assert(idea.version === 1, `idea born at version 1 (got ${idea.version})`);
@@ -51,7 +51,7 @@ async function run() {
     console.log('  ✓ create idea with body → v1, draft, body present');
 
     // 2. create design with body (thread) → v1, draft, body present.
-    const designRes = await weaveDesign({ weaveId: 'demo', threadId: threadUlid, content: '# Body Design\n\nDesign body here.' }, designDeps as any);
+    const designRes = await weaveDesign({ weaveSlug: 'demo', threadUlid, content: '# Body Design\n\nDesign body here.' }, designDeps as any);
     const design: any = await loadDoc(designRes.filePath);
     assert(design.content.includes('Design body here.'), 'design has the provided body');
     assert(design.version === 1 && design.status === 'draft', 'design born at v1, draft');
@@ -61,7 +61,7 @@ async function run() {
     // (Plans are structured-only — the legacy content→table-parse create path was removed in favor
     // of Loom owning the steps table; idea/design/reference still take a free-form `content` body.)
     const nativeRes = await weavePlan({
-        weaveId: 'demo', threadId: threadUlid, goal: 'Build the widget.',
+        weaveSlug: 'demo', threadUlid, goal: 'Build the widget.',
         steps: [
             { description: 'First step', files: ['a.ts'], satisfies: ['IN1'], detail: '- do the first thing' },
             { description: 'Second step', title: 'Second', blockedBy: ['first-step'] },

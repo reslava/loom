@@ -5,18 +5,18 @@ import { quickShip } from '../../../app/dist/quickShip';
 export const toolDef = {
     name: 'loom_quick_ship',
     description:
-        'Record already-done work as exactly one new DONE plan in a single call — the one-action way to leave a versioned-history entry for a fast fix/feature (roadmap history + actual_release key on done plans). Composes create-plan → start → complete-each-step → close-with-done-record. It does NOT implement code (do the work first, then quick-ship) and NEVER touches an existing plan — it always mints one fresh done plan. Target either an existing thread (threadId) or mint a new one (newThread); pass exactly one. `description` is one line, or a short list where each entry becomes one done step — each must read as completed work.',
+        'Record already-done work as exactly one new DONE plan in a single call — the one-action way to leave a versioned-history entry for a fast fix/feature (roadmap history + actual_release key on done plans). Composes create-plan → start → complete-each-step → close-with-done-record. It does NOT implement code (do the work first, then quick-ship) and NEVER touches an existing plan — it always mints one fresh done plan. Target either an existing thread (thread_ulid) or mint a new one (newThread); pass exactly one. `description` is one line, or a short list where each entry becomes one done step — each must read as completed work.',
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Target weave id.' },
-            threadId: {
+            weave_slug: { type: 'string', description: 'Target weave folder slug.' },
+            thread_ulid: {
                 type: 'string',
-                description: 'Existing thread id to record into. Pass exactly one of threadId or newThread.',
+                description: 'Stable th_ ULID of an existing thread to record into. Pass exactly one of thread_ulid or newThread.',
             },
             newThread: {
                 type: 'object',
-                description: 'Mint a new thread to hold the done plan. Pass exactly one of threadId or newThread.',
+                description: 'Mint a new thread to hold the done plan. Pass exactly one of thread_ulid or newThread.',
                 properties: {
                     slug: { type: 'string', description: 'New thread folder slug (kebab-case).' },
                     title: { type: 'string', description: 'Optional human title for the new thread.' },
@@ -33,7 +33,7 @@ export const toolDef = {
                 description: 'Optional done-doc notes; defaults to a record derived from the description(s).',
             },
         },
-        required: ['weaveId', 'description'],
+        required: ['weave_slug', 'description'],
     },
 };
 
@@ -47,8 +47,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
 
     const result = await quickShip(
         {
-            weaveId: args['weaveId'] as string,
-            threadId: args['threadId'] as string | undefined,
+            weaveSlug: args['weave_slug'] as string,
+            threadUlid: args['thread_ulid'] as string | undefined,
             newThread: args['newThread'] as { slug: string; title?: string } | undefined,
             description: args['description'] as string | string[],
             notes: args['notes'] as string | undefined,

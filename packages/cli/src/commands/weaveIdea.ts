@@ -13,7 +13,7 @@ export async function weaveIdeaCommand(title: string, options: { weave?: string;
         const threadArg = options.thread ?? toKebabCaseId(title);
         const threadUlid = await ensureThreadUlid(weaveSlug, threadArg, title);
         const result = await weaveIdea(
-            { title, weave: weaveSlug, threadId: threadUlid },
+            { title, weaveSlug, threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs }
         );
         console.log(chalk.green(`🧵 Idea woven at ${result.filePath}`));

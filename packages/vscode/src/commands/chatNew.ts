@@ -13,15 +13,15 @@ export async function chatNewCommand(
 
     const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
     const weaveId = selectedNode?.weaveId;
-    const threadId = selectedNode?.threadId;
+    const threadUlid = selectedNode?.threadUlid;
     const titleInput = await vscode.window.showInputBox({ prompt: 'Chat title (optional)', placeHolder: 'Leave blank to use default' });
     if (titleInput === undefined) return;
     const title = titleInput || undefined;
 
     try {
         const toolArgs: Record<string, unknown> = { title };
-        if (weaveId) { toolArgs['weaveId'] = weaveId; }
-        if (threadId) { toolArgs['threadId'] = threadId; }
+        if (weaveId) { toolArgs['weave_slug'] = weaveId; }
+        if (threadUlid) { toolArgs['thread_ulid'] = threadUlid; }
         const result = await getMCP(root).callTool('loom_create_chat', toolArgs) as any;
         if (result?.filePath) {
             const doc = await vscode.workspace.openTextDocument(result.filePath);

@@ -33,8 +33,8 @@ async function run() {
     await fs.remove(root);
     await fs.ensureDir(path.join(root, 'loom', 'demo'));
     const deps = { loadWeave, saveDoc, loadDoc, fs, loomRoot: root } as any;
-    const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
-    const base = { weaveId: 'demo', threadId: threadUlid };
+    const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+    const base = { weaveSlug: 'demo', threadUlid };
 
     // 1. Body leak — the observed failure: wire markers in `goal` must hard-error,
     //    not serialize into the body. (steps undefined here, exactly as observed.)

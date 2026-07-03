@@ -38,8 +38,8 @@ async function run() {
     await fs.remove(root);
     await fs.ensureDir(path.join(root, 'loom', 'demo'));
     const deps = { loadWeave, saveDoc, loadDoc, fs, loomRoot: root } as any;
-    const { id: threadUlid } = await createThread({ weaveId: 'demo', threadId: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
-    const base = { weaveId: 'demo', threadId: threadUlid };
+    const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
+    const base = { weaveSlug: 'demo', threadUlid };
 
     // 1. Create path: numeric blockedBy ordinals persist as stable slug ids.
     const created = await weavePlan({

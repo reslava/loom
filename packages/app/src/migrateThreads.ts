@@ -73,7 +73,7 @@ export async function backfillThreadManifests(
                 continue;
             }
             const res = await createThread(
-                { weaveId, threadId, title },
+                { weaveSlug: weaveId, threadSlug: threadId, title },
                 { getActiveLoomRoot: deps.getActiveLoomRoot, saveDoc: deps.saveDoc, fs: deps.fs },
             );
             created.push({ weaveId, threadId, id: res.id });

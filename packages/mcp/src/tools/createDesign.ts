@@ -8,19 +8,19 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Target weave id' },
-            threadId: { type: 'string', description: 'Thread id inside the weave' },
-            title: { type: 'string', description: 'Optional title override (defaults to idea title or threadId)' },
+            weave_slug: { type: 'string', description: 'Target weave folder slug' },
+            thread_ulid: { type: 'string', description: 'Stable th_ ULID of the thread inside the weave' },
+            title: { type: 'string', description: 'Optional title override (defaults to idea title or thread slug)' },
             content: { type: 'string', description: 'Markdown body (no frontmatter). Provide this on creation so the doc is born at version 1 with real content — no follow-up loom_update_doc needed. Omit only if you truly have no body yet.' },
         },
-        required: ['weaveId', 'threadId'],
+        required: ['weave_slug', 'thread_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const input = {
-        weaveId: args['weaveId'] as string,
-        threadId: args['threadId'] as string,
+        weaveSlug: args['weave_slug'] as string,
+        threadUlid: args['thread_ulid'] as string,
         title: args['title'] as string | undefined,
         content: args['content'] as string | undefined,
     };
