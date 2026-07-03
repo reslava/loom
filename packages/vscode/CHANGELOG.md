@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.14.0] - 2026-07-03
+
+### Fixed
+- **Roadmap priority drag-and-drop works again.** A tree-move drop handler (added for dragging threads between weaves) shadowed the roadmap priority-reorder path, so dragging to reorder by priority in roadmap mode silently did nothing. Both handlers now key off the same `roadmapEnabled` flag that decides the on-screen layout.
+
+### Notes
+- Lockstep 1.14.0 bump with the CLI and the rest of the monorepo, which adds the `loom_quick_ship` one-call done-plan recorder and fixes a `blockedBy` numeric-ordinal drop plus a non-atomic thread archive/move on Windows.
+
 ## [1.13.0] - 2026-07-02
 
 ### Added

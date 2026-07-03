@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWJD3J9MB1XC6XE32QXWDWGA
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.14.0
 steps:
   - id: app-use-case-quickship
     order: 1

@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-07-03
+
+### Added
+- **`loom_quick_ship` — record already-done work in one call.** A new MCP tool that mints exactly one *done* plan for a fast fix or feature, so the work leaves a versioned-history entry (roadmap history + an `actual_release` key) without the full create → start → complete → close ceremony. It takes a `description` (one string, or an array where each entry becomes a done step) and targets an existing thread or mints a new one; it never touches an existing plan and never runs inference.
+
+### Fixed
+- **`blockedBy` no longer silently drops a numeric step ordinal.** `loom_create_plan` coerced any non-string `blockedBy` entry to empty and skipped it, so a JSON number like `[1]` vanished instead of resolving to the target step's id. Integer ordinals now resolve exactly like their string form (`"1"`), and a genuinely malformed entry (float, `NaN`, `null`, object) throws loudly instead of being lost.
+- **Archiving, restoring, and moving a thread can no longer leave the source behind.** On Windows, `loom_archive` (and restore / thread rename & move) could fall back to copy-then-remove and, if the removal failed on an open file handle, leave a silent duplicate. Folder moves now go through one atomic-or-rollback helper: either the whole tree moves or nothing changes, with an actionable "file open/locked, no changes kept" error — never a half-move.
+- **Roadmap drag-and-drop priority reorder works again in the VS Code extension.** A tree-move MIME check added for thread drag-and-drop shadowed the roadmap priority-reorder path, so reordering by priority in roadmap mode silently did nothing. Both drop handlers now key off the same `roadmapEnabled` flag that decides the on-screen layout.
+
 ## [1.13.0] - 2026-07-02
 
 ### Added
@@ -551,7 +561,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.13.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.14.0...HEAD
+[1.14.0]: https://github.com/reslava/loom/releases/tag/v1.14.0
 [1.13.0]: https://github.com/reslava/loom/releases/tag/v1.13.0
 [1.12.0]: https://github.com/reslava/loom/releases/tag/v1.12.0
 [1.11.0]: https://github.com/reslava/loom/releases/tag/v1.11.0
