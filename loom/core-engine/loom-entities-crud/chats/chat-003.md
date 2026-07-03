@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KWHTR2XC6M2QRBYQYJMY4YYC
 title: loom-entities-crud update vsix and cli readmes and include in contract Chat
-status: active
+status: done
 created: 2026-07-02
 updated: 2026-07-02
 version: 1
