@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 7
+last_ai_block: 9
 ---
 # user-feedback Chat
 
@@ -131,3 +131,30 @@ Nothing is committed — tree is dirty with the new files + docs. Say the word a
 ## AI:
 
 Committing now as one feature commit for the `validation/user-feedback` thread: the five-package implementation (core URL builder, fs repo resolver, app use-case, MCP resource, CLI command, install scaffold, extension command/status-bar/setting), the new test wired into `test-all`, and this thread's idea/design/plan/done/chat docs. Leaving `validation/telemetry/idea.md` out — that's the separate next thread, not this scope.
+
+## Rafa:
+
+I tested status bar feedback button, with a tree node selected, it produces this URL:
+https://github.com/reslava/loom/issues/new?template=feedback.yml&environment=Loom+version:+1.15.0%0AOS:+win32%0AWeaves:+11%0AThreads:+109%0ADone+plans:+100%0ACurrent+release:+1.15.0
+
+I filled title & body with `Testing feedback`
+But I can not see the extra info in the issue created: 
+https://github.com/reslava/loom/issues/1
+
+## AI:
+
+Found it — and it's not a code bug. The URL is correct; the **issue form it points at doesn't exist on GitHub yet.**
+
+`.github/ISSUE_TEMPLATE/feedback.yml` isn't in this repo (only `FUNDING.yml` + the release workflow are under `.github/`). GitHub issue-form prefill works by matching `?<field_id>=<value>` against a field **id** in the form. With no `feedback.yml` form, GitHub:
+1. ignores `template=feedback.yml`, opens the plain "blank issue" editor (that's the title/body box you filled), and
+2. drops `environment=…` entirely — there's no `environment` field to receive it.
+
+So issue #1 is exactly the "no form" fallback.
+
+**Why the repo doesn't have it:** the template is scaffolded by `loom install` (the step 6 I just built), but this repo predates that step, so the file was never generated here.
+
+**Fix:** I created `.github/ISSUE_TEMPLATE/feedback.yml` (identical to the scaffold constant). Two things matter for it to take effect:
+- GitHub issue forms only prefill from a form that's committed to the **default branch (`main`)** — so this needs to be **pushed**.
+- Note: neither this commit nor the earlier feature commit is pushed yet (origin/main is behind). The extension worked locally because it runs the built code; the *form* is the only piece that has to live on GitHub.
+
+Committing the template now. **Want me to push `main`?** That publishes both commits to the public repo — outward-facing, so I'll hold for your go. After the push, re-open the button and the environment field should be prefilled.

@@ -1,0 +1,30 @@
+name: Feedback
+description: Share feedback about Loom — wins, friction, bugs, ideas.
+title: "[feedback] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Loom! Nothing here was sent automatically —
+        edit anything below (including the environment details) before submitting.
+  - type: textarea
+    id: what_doing
+    attributes:
+      label: What were you doing?
+      placeholder: e.g. running a plan's steps in the VS Code extension
+    validations:
+      required: false
+  - type: textarea
+    id: what_worked
+    attributes:
+      label: What worked, and what didn't?
+      placeholder: Wins, friction, confusion, bugs — whatever stood out.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Prefilled by Loom (version, OS, non-PII usage counts). Trim anything you like.
+    validations:
+      required: false
