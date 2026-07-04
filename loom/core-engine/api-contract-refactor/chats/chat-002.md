@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 12
+last_ai_block: 13
 ---
 # weave-idea-threadid-fix HANDMADE Chat
 
@@ -228,3 +228,11 @@ Steps 10–13 all ✅; only step 14 (release) left. `build-all` + `test-all` gre
 
 **2 — Committing** steps 10–13 now as one feature commit.
 **3 — Then `/do-release 1.15.0`.** I'll drive the release skill next; it handles changelog + lockstep bump + build/test + tag + push + monitor. Heads-up: after it publishes, the new extension goes to the marketplaces — so this is the real, outward step. I'll report back with the release status.
+
+## AI:
+
+🚀 **v1.15.0 shipped.** npm + VS Code Marketplace + Open VSX all published, GitHub release live: https://github.com/reslava/loom/releases/tag/v1.15.0 — every workflow job green (guard → build-test → publish×3 → release).
+
+On your roadmap-stamp point: it's handled. Sequence run was bump → build/test green → **close the plan** (step 14 done, plan `done`) → `loom record-release 1.15.0` (stamped `actual_release=1.15.0` on `api-contract-refactor`, 98 others already carried a release) → commit `release: v1.15.0` → annotated tag → push. So the roadmap now owns "1.15.0 = api-contract-refactor". The plan is complete (14/14).
+
+Next, per your plan: spin up ideas **4.1 (loom user-feedback friendly)** and **4.2 (telemetry)**, then work them — with `clean-legacy-read` (→2.0.0) and `layer-imports-guard` deferred. Say the word and I'll start the idea for 4.1.
