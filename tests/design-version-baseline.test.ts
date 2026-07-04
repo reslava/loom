@@ -107,7 +107,7 @@ async function run() {
         } as any, ideaPath);
 
         const { filePath: promotedPath } = await promoteToPlan(
-            { filePath: ideaPath, targetWeaveId: WEAVE, targetThreadId: tpromoteUlid, body: '## Goal\ng\n\n## Steps\n1. do a thing\n' },
+            { filePath: ideaPath, targetWeaveSlug: WEAVE, targetThreadUlid: tpromoteUlid, body: '## Goal\ng\n\n## Steps\n1. do a thing\n' },
             { loadDoc, saveDoc, fs, aiClient: stubClient(''), loomRoot: root },
         );
         const promoted: any = await loadDoc(promotedPath);

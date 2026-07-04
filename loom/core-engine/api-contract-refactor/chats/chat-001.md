@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 54
+last_ai_block: 55
 ---
 # weave-idea-threadid-fix Chat
 
@@ -800,3 +800,15 @@ This is a clean checkpoint (3 committed: folder-ops, req, create). **Confirm ful
 **One consistency note (flagging, not blocking):** the app-layer `doStep` use-case (a *separate* AI-body path, not one of the 10 renamed tools and not reached by `loom_do_step`) still takes `planId`. Left as-is to bound scope — a tiny follow-up if we want the whole app camelCase-consistent.
 
 Committing. Remaining Chunk B: **promote** (`source_ulid`/`target_weave_slug`/`target_thread_ulid` + fix the stale content-table prompt), **generate**, **misc** (search/validate/refresh_ctx/context_prefs `doc_ulid`, create_weave/rename_weave, `set_priority`/`set_thread_deps` MCP casing). Then Chunk C (tool renames). As before: after this build the running MCP server is stale (still `planId`), so my progress calls keep working until you reconnect — reconnect is only for live-verifying the renamed schemas.
+
+## AI:
+
+**Chunk B — promote family done, build + test green.** `loom_promote`: `sourceId → source_ulid`, `targetWeaveId → target_weave_slug`, `targetThreadId → target_thread_ulid`; the 3 app use-cases (`promoteToIdea`/`Design`/`Plan`) renamed their inputs to `targetWeaveSlug`/`targetThreadUlid`. vscode promote commands now resolve the target thread via `ensureThreadUlid` (mint-if-new) and pass snake-case keys.
+
+Cleared the two deferred prompt bugs while here:
+- The **Promote-to-Plan** and **Generate-Plan** launch prompts both told the agent to pass a `content` Steps *table* to `loom_create_plan` — but it's structured-only. Both now instruct a `goal` + structured `steps` array (each step object carrying `satisfies` for the IN/C citations). The promote-to-plan prompt keeps the human req.md path using the thread **slug** while the tool call uses the **ULID**.
+- The idea/design promote prompts now name `weave_slug`/`thread_ulid` for their `loom_create_*` calls.
+
+Tests updated (`create-with-body`, `design-version-baseline`). Committing.
+
+Remaining Chunk B: **generate** (loom_generate_* → weave_slug/thread_ulid/chat_ulid), **misc** (search/validate/refresh_ctx → weave_slug; context_prefs `targetId → doc_ulid`; create_weave/rename_weave; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`). Then Chunk C (`loom_rename → loom_retitle`, `loom_rename_doc_file → loom_rename_reference_file`).

@@ -7,8 +7,8 @@ import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface PromoteToDesignInput {
     filePath: string;
-    targetWeaveId?: string;
-    targetThreadId?: string;
+    targetWeaveSlug?: string;
+    targetThreadUlid?: string;
     /** Optional title for the new doc, used when `body` is provided (skips AI). Defaults to the source doc title. */
     title?: string;
     /** Optional inline body. When provided, sampling is skipped and this is used verbatim — required in Claude Code where sampling is blocked. */
@@ -50,14 +50,14 @@ export async function promoteToDesign(
 ): Promise<{ filePath: string; title: string }> {
     const doc = await deps.loadDoc(input.filePath) as ChatDoc | IdeaDoc;
 
-    // Resolve the target: an explicit targetThreadId is a stable th_ ULID → folder
+    // Resolve the target: an explicit targetThreadUlid is a stable th_ ULID → folder
     // (never fabricates); a derived location already yields the folder slug.
     let weaveId: string;
     let threadId: string | undefined;
-    if (input.targetWeaveId) {
-        weaveId = input.targetWeaveId;
-        threadId = input.targetThreadId
-            ? (await resolveThreadFolder(input.targetWeaveId, input.targetThreadId, {
+    if (input.targetWeaveSlug) {
+        weaveId = input.targetWeaveSlug;
+        threadId = input.targetThreadUlid
+            ? (await resolveThreadFolder(input.targetWeaveSlug, input.targetThreadUlid, {
                 getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
             })).threadSlug
             : undefined;

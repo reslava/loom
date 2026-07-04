@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { isClaudeInstalled, launchClaude } from './claudeTerminal';
+import { ensureThreadUlid } from './ensureThreadUlid';
 
 export async function promoteToIdeaCommand(treeProvider: LoomTreeProvider, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -10,19 +11,21 @@ export async function promoteToIdeaCommand(treeProvider: LoomTreeProvider, node?
     const sourceId = node?.doc?.id;
     if (!sourceId) { vscode.window.showErrorMessage('Right-click a chat or doc in the tree to promote it.'); return; }
 
-    const toolArgs: Record<string, unknown> = { sourceId, targetType: 'idea' };
+    const toolArgs: Record<string, unknown> = { source_ulid: sourceId, targetType: 'idea' };
 
-    const targetWeaveId = node?.weaveId ?? await vscode.window.showInputBox({ prompt: 'Target weave ID', placeHolder: 'e.g., my-feature' });
+    const targetWeaveId = node?.weaveId ?? await vscode.window.showInputBox({ prompt: 'Target weave slug', placeHolder: 'e.g., my-feature' });
     if (!targetWeaveId) return;
-    toolArgs['targetWeaveId'] = targetWeaveId;
+    toolArgs['target_weave_slug'] = targetWeaveId;
 
-    let targetThreadId = node?.threadId;
-    if (!targetThreadId) {
-        const input = await vscode.window.showInputBox({ prompt: 'Target thread ID (leave blank for weave-level)', placeHolder: 'e.g., auth-flow' });
+    let targetThreadSlug = node?.threadId;
+    if (!targetThreadSlug) {
+        const input = await vscode.window.showInputBox({ prompt: 'Target thread slug (leave blank for weave-level)', placeHolder: 'e.g., auth-flow' });
         if (input === undefined) return;
-        targetThreadId = input || undefined;
+        targetThreadSlug = input || undefined;
     }
-    if (targetThreadId) toolArgs['targetThreadId'] = targetThreadId;
+    // Resolve the target thread to its ULID (minting the manifest for a new thread).
+    const targetThreadUlid = targetThreadSlug ? await ensureThreadUlid(root, targetWeaveId, node, targetThreadSlug) : undefined;
+    if (targetThreadUlid) toolArgs['target_thread_ulid'] = targetThreadUlid;
 
     if (await isClaudeInstalled()) {
         const sourceFilePath = (node?.doc as any)?._path as string | undefined;
@@ -30,7 +33,7 @@ export async function promoteToIdeaCommand(treeProvider: LoomTreeProvider, node?
             ? `Read the source file at "${sourceFilePath}" using the Read tool (not Bash, not loom_find_doc).`
             : `Use MCP tool loom_find_doc with id="${sourceId}" to get the file path, then read it with the Read tool.`;
         await launchClaude(root, `Loom: Promote to Idea`,
-            `Loom promote to idea task. sourceId="${sourceId}", targetWeaveId="${targetWeaveId}"${targetThreadId ? `, targetThreadId="${targetThreadId}"` : ''}. ${readInstruction} Then call MCP tool loom_create_idea ONCE with weaveId="${targetWeaveId}"${targetThreadId ? `, threadId="${targetThreadId}"` : ''}, a concise title, and content (the full idea body derived from the source). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_idea, in the same single call. Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
+            `Loom promote to idea task. source_ulid="${sourceId}", target_weave_slug="${targetWeaveId}"${targetThreadUlid ? `, target_thread_ulid="${targetThreadUlid}"` : ''}. ${readInstruction} Then call MCP tool loom_create_idea ONCE with weave_slug="${targetWeaveId}"${targetThreadUlid ? `, thread_ulid="${targetThreadUlid}"` : ''}, a concise title, and content (the full idea body derived from the source). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_idea, in the same single call. Do not use loom_promote — sampling is unavailable in Claude Code CLI. Do not invoke CLI commands via Bash.`
         );
     } else {
         try {

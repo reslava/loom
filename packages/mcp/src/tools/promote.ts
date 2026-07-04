@@ -12,14 +12,14 @@ const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            sourceId: { type: 'string', description: 'Source document id' },
+            source_ulid: { type: 'string', description: 'Source document ULID' },
             targetType: { type: 'string', enum: ['idea', 'design', 'plan'], description: 'Target document type' },
-            targetWeaveId: { type: 'string', description: 'Optional target weave id (required when promoting from a global-level chat)' },
-            targetThreadId: { type: 'string', description: 'Optional target thread id within the target weave' },
+            target_weave_slug: { type: 'string', description: 'Optional target weave folder slug (required when promoting from a global-level chat)' },
+            target_thread_ulid: { type: 'string', description: 'Optional target thread ULID within the target weave' },
             title: { type: 'string', description: 'Optional title for the new doc (used with `body`). Defaults to the source doc title.' },
             body: { type: 'string', description: 'Optional inline markdown body (no frontmatter). When provided, sampling is skipped and this is written directly. Required in Claude Code sessions.' },
         },
-        required: ['sourceId', 'targetType'],
+        required: ['source_ulid', 'targetType'],
     },
 };
 
@@ -27,17 +27,17 @@ export function createPromoteTool(server: Server) {
     return {
         toolDef,
         async handle(root: string, args: Record<string, unknown>) {
-            const sourceId = args['sourceId'] as string;
+            const sourceUlid = args['source_ulid'] as string;
             const targetType = args['targetType'] as 'idea' | 'design' | 'plan';
-            const targetWeaveId = args['targetWeaveId'] as string | undefined;
-            const targetThreadId = args['targetThreadId'] as string | undefined;
+            const targetWeaveSlug = args['target_weave_slug'] as string | undefined;
+            const targetThreadUlid = args['target_thread_ulid'] as string | undefined;
             const title = args['title'] as string | undefined;
             const body = args['body'] as string | undefined;
 
-            const { filePath } = await resolveDocIdOrThrow(root, sourceId);
+            const { filePath } = await resolveDocIdOrThrow(root, sourceUlid);
 
             const deps = { loadDoc, saveDoc, fs, aiClient: samplingAiClient(server), loomRoot: root };
-            const target = { targetWeaveId, targetThreadId, title, body };
+            const target = { targetWeaveSlug, targetThreadUlid, title, body };
 
             let result: { filePath: string; title: string };
             if (targetType === 'idea') {

@@ -94,7 +94,7 @@ async function run() {
 
     // 5. promote chat → idea with body, throwing AI → no sampling, body written verbatim.
     const promoted = await promoteToIdea(
-        { filePath: chatPath, targetWeaveId: 'demo', title: 'Promoted Idea', body: '# Promoted Idea\n\nPromoted body.' },
+        { filePath: chatPath, targetWeaveSlug: 'demo', title: 'Promoted Idea', body: '# Promoted Idea\n\nPromoted body.' },
         { loadDoc, saveDoc, fs, aiClient: throwingAi, loomRoot: root },
     );
     const promotedIdea: any = await loadDoc(promoted.filePath);
@@ -104,7 +104,7 @@ async function run() {
 
     // 6. promote chat → plan with body (steps table), throwing AI → steps parsed, no sampling.
     const promotedPlan = await promoteToPlan(
-        { filePath: chatPath, targetWeaveId: 'demo', title: 'Promoted Plan', body: STEPS_TABLE },
+        { filePath: chatPath, targetWeaveSlug: 'demo', title: 'Promoted Plan', body: STEPS_TABLE },
         { loadDoc, saveDoc, fs, aiClient: throwingAi, loomRoot: root },
     );
     const pplan: any = await loadDoc(promotedPlan.filePath);
