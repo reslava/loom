@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-07-04
+
+### Added
+- **`loom resolve-ulid` / `loom resolve-path` — translate between a thread's slug and its ULID.** `loom resolve-ulid <weave> <slug>` returns a thread's stable `th_` ULID; `loom resolve-path <weave> <ulid>` returns its folder slug + absolute path. Create commands (`loom idea`, …) now also accept a thread **slug or ULID**, so you can address a thread by its human name and let Loom resolve it.
+
+### Changed
+- **Unambiguous, canonical-ULID naming across the whole `loom_*` API.** Every tool parameter now names exactly what it holds: a ULID reference is always `*_ulid` (`thread_ulid`, `plan_ulid`, `doc_ulid`, `source_ulid`, `chat_ulid`) and a folder name is always `*_slug` (`weave_slug`, `thread_slug`), snake_case at the MCP boundary (camelCase inside the app). Every entity is addressed by its stable ULID except a weave, which stays slug-addressed. This removes a class of latent data-corruption bug where an `*Id` parameter silently accepted a folder name. Plan-step tools are now strict `plan_ulid`-only (the old "ULID or filename stem" dual-accept is gone), and two tools were renamed for honesty: **`loom_rename` → `loom_retitle`** (it only ever changed a title) and **`loom_rename_doc_file` → `loom_rename_reference_file`** (it only acts on references). Agents read the live tool schema each session, so this is transparent to them — only hand-written scripts that call the tools by old parameter/tool names need updating.
+- **Thread creation is explicit.** A document-create references an *existing* thread by its ULID and never scaffolds a new one as a side effect (the extension's create buttons still compose "new thread + first doc" behind one click).
+
+### Fixed
+- **Passing a thread's ULID to a doc-create no longer fabricates a duplicate thread.** The originating dogfooding bug: `loom_create_idea` given a real thread's `th_` ULID created a *second* folder literally named by the ULID and orphaned the new document there. Creates now resolve the ULID to the real thread through one shared resolver, or **error** on an unresolvable reference — they never invent a thread.
+- **Chats created from inside a thread no longer land at the weave root.** In the extension, New Chat (and Req / Rename) fired from a row *inside* a thread — the Chats section, a document, an existing chat — dropped the thread identity and wrote the chat to an invalid, tree-invisible `loom/{weave}/chats/` location (while Req/Rename falsely reported "no thread.md manifest"). The tree now carries the thread's ULID to every descendant node, and a chat is only ever created in one of its two valid homes — `{weave}/{thread}/chats` or `refs/chats` — erroring instead of writing an orphan.
+
+### Upgrading
+- **No document or on-disk migration is required** — existing `loom/` projects load unchanged. If you have **scripts or MCP calls that name `loom_*` parameters by hand**, update them to the new names (`weaveId` → `weave_slug`, `threadId` → `thread_ulid`, plan handles → `plan_ulid`, …) and rename any `loom_rename` / `loom_rename_doc_file` calls to `loom_retitle` / `loom_rename_reference_file`. AI agents that read the live tool schema need no changes.
+
 ## [1.14.0] - 2026-07-03
 
 ### Added
@@ -561,7 +577,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.14.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/reslava/loom/releases/tag/v1.15.0
 [1.14.0]: https://github.com/reslava/loom/releases/tag/v1.14.0
 [1.13.0]: https://github.com/reslava/loom/releases/tag/v1.13.0
 [1.12.0]: https://github.com/reslava/loom/releases/tag/v1.12.0

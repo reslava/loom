@@ -2,7 +2,7 @@
 type: plan
 id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F
 title: Unambiguous naming + canonical ULID refactor
-status: implementing
+status: done
 created: 2026-07-03
 updated: 2026-07-04
 version: 1
@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KWKFHSXS96W36BE28VYFG64P
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.15.0
 steps:
   - id: draft-the-naming-reference-provisional
     order: 1
@@ -106,7 +107,7 @@ steps:
     satisfies: [IN1]
   - id: release
     order: 14
-    status: pending
+    status: done
     description: Ship the synchronized release via /do-release (breaking change → minor/major). Changelog notes the parameter renames and the seam removal.
     files_touched: [CHANGELOG.md]
     blocked_by: [regression-tests-full-suite-green, regression-chat-location-contract]
@@ -137,7 +138,7 @@ Make the Loom API's parameter names unambiguous and canonicalize ULID usage in o
 | ✅ | 11 | Plumb the thread's th_ ULID down the VS Code tree node subtree. Pass thread.manifest?.id through getThreadChildren → createChatsSection / createDocumentNode / createChatNode (and ctx/refs children) so every descendant node carries threadUlid, exactly as weaveId/threadId (the slug) already flow. Root cause of the regression: threadUlid was set on ONLY the thread node, so New Chat / req / rename invoked from a descendant row saw threadUlid=undefined. This one change fixes New Chat from inside a thread, the false 'no thread.md manifest' errors on req/rename from doc rows, and the ensureThreadUlid create_thread fallback. | packages/vscode/src/tree/treeProvider.ts, packages/vscode/src/commands/chatNew.ts | — | IN8 |
 | ✅ | 12 | Regression test for the chat-location contract (extend tests/api-contract-refactor.test.ts, already wired into scripts/test-all.sh): (1) create_chat with a real existing threadUlid lands in {weave}/{thread}/chats; (2) create_chat for refs lands in refs/chats; (3) a non-refs chat with no resolvable thread THROWS and creates no file at loom/{weave}/chats or loom/chats. Then build-all + test-all green. | tests/api-contract-refactor.test.ts, scripts/test-all.sh | chatnew-two-canonical-homes-or-throw, plumb-threadulid-down-tree-nodes | IN9 |
 | ✅ | 13 | Documentation pass — reflect the refactor's naming/tool renames in the living canonical docs (frozen history left as-is). Fix: architecture-reference (loom_rename→loom_retitle, loom_rename_doc_file→loom_rename_reference_file); loom-requirements-reference (loom_create_req(weaveId,threadId)→(weave_slug,thread_ulid)); README + CLAUDE.md + ctx.md + the LOOM_CLAUDE_MD template ({weaveId}/{threadId} context-URI placeholders → {weaveSlug}/{threadUlid}); ctx.md runEvent(threadId)→runEvent(weaveSlug); README loom://state phantom threadId= → status=. CLAUDE.md⇄template parity preserved (claude-md-sync green). | loom/refs/architecture-reference.md, loom/refs/loom-requirements-reference.md, README.md, CLAUDE.md, loom/ctx.md, packages/app/src/installWorkspace.ts | — | IN1 |
-| 🔳 | 14 | Ship the synchronized release via /do-release (breaking change → minor/major). Changelog notes the parameter renames and the seam removal. | CHANGELOG.md | regression-tests-full-suite-green, regression-chat-location-contract | IN10 |
+| ✅ | 14 | Ship the synchronized release via /do-release (breaking change → minor/major). Changelog notes the parameter renames and the seam removal. | CHANGELOG.md | regression-tests-full-suite-green, regression-chat-location-contract | IN10 |
 ---
 
 ### Legend

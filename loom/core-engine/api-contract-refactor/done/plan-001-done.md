@@ -4,7 +4,7 @@ id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F-done
 title: Done — Unambiguous naming + canonical ULID refactor
 status: done
 created: 2026-07-03
-version: 11
+version: 12
 tags: []
 parent_id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F
 requires_load: []
@@ -120,3 +120,7 @@ Extended `tests/api-contract-refactor.test.ts` (already wired into `scripts/test
 ## Step 13 — Documentation pass — reflect the refactor's naming/tool renames in the living canonical docs (frozen history left as-is). Fix: architecture-reference (loom_rename→loom_retitle, loom_rename_doc_file→loom_rename_reference_file); loom-requirements-reference (loom_create_req(weaveId,threadId)→(weave_slug,thread_ulid)); README + CLAUDE.md + ctx.md + the LOOM_CLAUDE_MD template ({weaveId}/{threadId} context-URI placeholders → {weaveSlug}/{threadUlid}); ctx.md runEvent(threadId)→runEvent(weaveSlug); README loom://state phantom threadId= → status=. CLAUDE.md⇄template parity preserved (claude-md-sync green).
 
 Documentation pass over the living canonical docs (frozen history — old chats/plans/done/superseded designs — deliberately left unchanged; they accurately record the API as it was). Edits:\n- `loom/refs/architecture-reference.md`: `loom_rename`→`loom_retitle`, `loom_rename_doc_file`→`loom_rename_reference_file`.\n- `loom/refs/loom-requirements-reference.md`: `loom_create_req(weaveId, threadId, content?)`→`(weave_slug, thread_ulid, content?)`.\n- `README.md`: context-URI placeholder `{weaveId}/{threadId}`→`{weaveSlug}/{threadUlid}`; `loom://state?weaveId=&threadId=`→`?weaveId=&status=` (the `threadId` filter never existed).\n- `CLAUDE.md` + `loom/ctx.md` + the `LOOM_CLAUDE_MD` template in `packages/app/src/installWorkspace.ts`: same `{weaveId}/{threadId}`→`{weaveSlug}/{threadUlid}` placeholder fix (CLAUDE.md and template edited in lockstep — `claude-md-sync` test green).\n- `loom/ctx.md`: `runEvent(threadId, event, deps)`→`runEvent(weaveSlug, event, deps)` (verified against `packages/app/src/runEvent.ts` — the first arg is the weave).\n\nStale-token scan also confirmed `mcp-reference.md`, `implementation-contract-reference.md`, `getting-started`, `workspace-directory-structure`, and `workflow-reference` are already clean. `build-all` + `test-all` green after the template change.
+
+## Closing notes
+
+Plan complete — shipped in v1.15.0. The api-contract-refactor: unambiguous canonical-ULID naming across the whole loom_* surface, explicit thread creation (no fabricate), the chat-location contract + the VS Code tree threadUlid-plumbing regression fix, a stale tool-description sweep, and the living-docs pass. build-all + test-all green at the release bump.

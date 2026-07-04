@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.15.0] - 2026-07-04
+
+### Fixed
+- **Creating a chat, req, or rename from inside a thread now targets the right thread.** New Chat / Create Req / Rename invoked from a row *inside* a thread (the Chats section, a document, an existing chat) lost the thread's identity — a new chat was misfiled at the weave root (an invalid location the tree can't even show), and Req/Rename falsely reported "no thread.md manifest". The tree now carries the thread's ULID down to every descendant node, so all of these resolve to the correct thread.
+
+### Notes
+- Lockstep 1.15.0 bump with the CLI and the rest of the monorepo — the API contract refactor: unambiguous, canonical-ULID `loom_*` tool naming (`weave_slug` / `thread_ulid` / `plan_ulid` / …), explicit thread creation that never fabricates a duplicate, and the two tool renames `loom_rename` → `loom_retitle` and `loom_rename_doc_file` → `loom_rename_reference_file`.
+
 ## [1.14.0] - 2026-07-03
 
 ### Fixed
