@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 57
+last_ai_block: 58
 ---
 # weave-idea-threadid-fix Chat
 
@@ -830,3 +830,11 @@ Committing. Remaining: **misc** (search/validate/refresh_ctx → `weave_slug`; c
 Misc: `search_docs`/`validate`/`refresh_ctx` → `weave_slug`; `get`/`set_context_prefs` `targetId → doc_ulid` (output echo → `docUlid` too); `create_weave` → `weave_slug`; `rename_weave` → `weave_slug`/`new_weave_slug`; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`, `dependsOn → depends_on` (the app already used `threadUlid`). App inputs renamed where they had a field (`weave.ts` create/rename, `searchDocs`, `validate`). Callers updated: vscode context sidebar, roadmap DnD (`set_priority`), rename/weaveCreate/validate/refreshCtx (+ its launch-prompt literal), CLI search/validate; tests (`entities-crud`, integration `set_context_prefs`).
 
 Committing. **Last piece of step 7 — Chunk C:** the two tool *renames* — `loom_rename → loom_retitle` (it only ever changed a doc's title) and `loom_rename_doc_file → loom_rename_reference_file` (acts on references only), plus `rename.oldId → doc_ulid`. Then step 7 is done and I'll move to step 8 (CLI `resolve-ulid`/`resolve-path`), 9 (regression test), 10 (release).
+
+## AI:
+
+**Chunk C done — and step 7 is complete.** The two tool renames landed: `loom_rename → loom_retitle` (title-only; `oldId → doc_ulid`) and `loom_rename_doc_file → loom_rename_reference_file` (`id → doc_ulid`, `newSlug → new_slug`). Both keep `resolveDocIdOrThrow`'s suggest-on-miss, so a stem/typo is rejected with the canonical ULID rather than silently resolved. `server.ts` registers by `toolDef.name`, so no registration edit was needed; vscode `rename.ts` callers updated. Also refreshed the stale `loom_rename` reference in **both** CLAUDE.md and the `LOOM_CLAUDE_MD` template (parity + all 12 verbatim invariants still pass).
+
+**Step 7 delivered:** the whole live `loom_*` surface is now uniformly and unambiguously named — `weave_slug` / `thread_ulid` / `plan_ulid` / `doc_ulid` / `source_ulid` / `chat_ulid` / `*_slug` at the MCP boundary, camelCase in the app, handlers mapping between; strict ULID-only on plans; folder-ops honestly slug-addressed; two tools renamed to describe what they do. Seven build-green commits (folder-ops, req, create, plan-step, promote, generate, misc) + this one.
+
+Per your standing instruction (confirm before anything beyond Stage 2), I'll **STOP here**. Remaining on the plan: step 8 (CLI `resolve-ulid`/`resolve-path` + the ergonomic slug-or-ULID create commands — the helpers already exist), step 9 (`tests/api-contract-refactor.test.ts` regression), step 10 (release via `/do-release`). The renamed schemas are live-verifiable after an MCP reconnect whenever you want. Want me to go on to step 8, or reconnect + live-verify the renamed surface first?

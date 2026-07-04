@@ -297,7 +297,7 @@ Verify with `claude mcp list`.
   - Existing doc body or frontmatter → `loom_update_doc`
   - Surgical body-prose edits → `loom_patch_doc` (one-line/section find-and-replace — preferred over re-supplying the whole body via `loom_update_doc`; refuses the generated plan `## Steps` table)
   - Plan step edits → `loom_update_step` (amend a pending step's description/files/blockedBy/satisfies) / `loom_add_step` (insert a step — append, or before/after an existing step) / `loom_remove_step` (delete a pending step; strips blockedBy references to it and reports them) / `loom_reorder_steps` (reorder pending steps); done steps are immutable history
-  - Renames/archives → `loom_rename` / `loom_archive`
+  - Renames/archives → `loom_retitle` (doc title) / `loom_rename_reference_file` (reference filename) / `loom_archive`
   - Excluded from the gate: `loom/refs/*.md` (reference docs maintained by hand), `loom/.archive/**/*.md` (archived/deferred docs are frozen — no reducer to run), `CLAUDE.md` at repo root, anything under `packages/**`. Edits to those use normal `Edit`/`Write`.
   - If MCP is genuinely down (rare), output `⚠️ MCP unavailable — editing file directly`, ask Rafa to disable the hook via `/hooks` for this session, and proceed only with explicit go.
 - **Treat MCP tool failures as findings, not friction.** If a `loom_*` tool returns the wrong shape, a malformed doc (missing Steps table, double type-suffix, broken frontmatter), or times out — stop, report what happened in the active chat, and let Rafa decide how to proceed. Routing around a buggy MCP tool by editing the file directly hides the bug; you've now also bypassed the very thing you were supposed to be testing.

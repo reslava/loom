@@ -36,7 +36,7 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
         } else if (node?.doc?.id) {
             const newTitle = await vscode.window.showInputBox({ prompt: 'New title', value: node.doc.title });
             if (!newTitle) return;
-            const res = await mcp.callTool('loom_rename', { oldId: node.doc.id, newTitle }) as any;
+            const res = await mcp.callTool('loom_retitle', { doc_ulid: node.doc.id, newTitle }) as any;
             vscode.window.showInformationMessage(`✏️  Renamed to "${res.title}" (id unchanged: ${res.id})`);
         } else {
             // Section/summary/other nodes are not renamable — no-op (F2 lands here otherwise).
@@ -63,7 +63,7 @@ export async function renameFileCommand(treeProvider: LoomTreeProvider, node?: a
     const newSlug = await vscode.window.showInputBox({ prompt: 'New filename slug (no .md)', value: node?.doc?.slug });
     if (!newSlug) return;
     try {
-        const res = await getMCP(root).callTool('loom_rename_doc_file', { id, newSlug }) as any;
+        const res = await getMCP(root).callTool('loom_rename_reference_file', { doc_ulid: id, new_slug: newSlug }) as any;
         vscode.window.showInformationMessage(`📄 Reference file renamed → ${res.to}`);
         treeProvider.refresh();
     } catch (e: any) {

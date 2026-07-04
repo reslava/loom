@@ -4,7 +4,7 @@ id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F-done
 title: Done — Unambiguous naming + canonical ULID refactor
 status: done
 created: 2026-07-03
-version: 6
+version: 7
 tags: []
 parent_id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F
 requires_load: []
@@ -60,3 +60,21 @@ Removed the `ensureThreadManifest` auto-scaffold seam and converted all 8 doc-cr
 - ~9 tests migrated to createThread-first (quick-ship, create-with-body, req-usecases, staleness-baselines, blockedby-normalization, create-plan-hardening, design-version-baseline, step-crud, mcp-new-tools). Notable: several **encoded the bug** — they passed a slug for a thread never created, passing only because the old seam fabricated it.
 
 Result: `build-all` green; **entire root `tests/` suite green.** The MCP integration test (live req lifecycle) is deferred to step 7 by decision — it exercises `verify_req`/folder-ops that still key on slug, so it needs the step-7 consistency pass, not a create-path patch. Satisfies IN7, EX3.
+
+## Step 7 — Full API-consistency pass, build-green stages (plan B). (a) Convert the REMAINING thread-referencing use-cases that step 6 didn't (verify_req, and the folder-ops rename/move/archive/delete/restore) to resolve-at-boundary by thread_ulid — so the whole live surface is uniformly ULID. (b) Cosmetic renames: MCP schemas + descriptions → snake_case (weave_slug, thread_ulid, …); app inputs/functions → camelCase; handlers map. (c) The two tool renames: loom_rename→loom_retitle, loom_rename_doc_file→loom_rename_reference_file. (d) Fix the MCP integration-test fixtures (real thread manifests + ULIDs) so test-all is fully green. Update ALL callers. Clean break — no shims.
+
+Full API-consistency pass, done in build-green stages (plan B) — 8 build-green commits, `build-all` + `test-all` green throughout.
+
+**(a) Folder-ops resolve-at-boundary.** `verify_req` (Stage 1) + the decision on rename/move/archive/delete/restore: `rename_thread`/`move_thread` → `thread_ulid` (resolve via `resolveThreadFolder`); `archive`/`delete`/`restore` kept honestly slug-addressed (`weave_slug`+`thread_slug`, `doc_ulid` for refs) — a folder move stores no reference, so ULID-addressing there was plumbing-cost for no gain (Rafa approved). vscode carries the ULID via a new `TreeNode.threadUlid`.
+
+**(b) Param renames — all 7 families** to snake_case at the MCP schema, camelCase in the app, handlers mapping:
+- req (create/amend/finalize/verify), create (idea/design/plan/chat/thread + quick_ship; `create_idea` now requires `thread_ulid`; `create_thread` → `thread_slug`+`depends_on`; `create_plan` → `parent_ulid`), plan-step (10 tools → `plan_ulid` with a shared `requirePlanUlid()` **strict** guard — Q2b, dual-accept retired), promote (`source_ulid`/`target_weave_slug`/`target_thread_ulid`), generate (`weave_slug`/`thread_ulid`/`chat_ulid`), misc (search/validate/refresh_ctx → `weave_slug`; context_prefs `doc_ulid`; create_weave/rename_weave; set_priority/set_thread_deps MCP casing → `thread_ulid`/`depends_on`).
+- Added a vscode `ensureThreadUlid` helper (mirror of the CLI's) so create/promote buttons mint the thread manifest first when new. Updated every launch-prompt (they out-rank CLAUDE.md).
+
+**(c) Tool renames.** `loom_rename → loom_retitle`, `loom_rename_doc_file → loom_rename_reference_file`; `loom_rename` reference refreshed in CLAUDE.md + the LOOM_CLAUDE_MD template.
+
+**(d) Test fixtures.** Migrated create-first + ULID seeds across the suite; `createPlanDoc` gained an optional `id` so fixtures carry real `pl_` ULIDs with humanised filenames; `resolution-dx` flipped (start_plan rejects a stem strictly). MCP integration fixture reseeded.
+
+Latent bugs fixed in passing: `weaveDesign` untitled-title was using a ULID (now the slug); the Generate-Plan and Promote-to-Plan launch prompts instructed a `content` Steps table to the structured-only `create_plan` (now goal + structured steps).
+
+Flagged follow-ups: the app `doStep` use-case (separate AI path) keeps `planId`; the generate tools' internal `context/thread` URI passes a ULID where a slug is expected (step-6 residue) — both belong with the `clean-legacy-read` thread.

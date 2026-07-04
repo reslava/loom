@@ -146,7 +146,7 @@ interactively in the project root and approve the \`loom\` server, or use
   - Existing doc body or frontmatter → \`loom_update_doc\`
   - Surgical body-prose edits → \`loom_patch_doc\` (one-line/section find-and-replace — preferred over re-supplying the whole body via \`loom_update_doc\`; refuses the generated plan \`## Steps\` table)
   - Plan step edits → \`loom_update_step\` (amend a pending step's description/files/blockedBy/satisfies) / \`loom_add_step\` (insert a step append/before/after) / \`loom_remove_step\` (delete a pending step; strips blockedBy refs to it) / \`loom_reorder_steps\` (reorder pending steps); done steps are immutable history
-  - Renames/archives → \`loom_rename\` / \`loom_archive\`
+  - Renames/archives → \`loom_retitle\` (doc title) / \`loom_rename_reference_file\` (reference filename) / \`loom_archive\`
   - Excluded from the gate: \`loom/refs/*.md\`, \`loom/.archive/**/*.md\`, repo-root \`CLAUDE.md\`, anything outside \`loom/\`. Edits to those use normal \`Edit\`/\`Write\`.
   - If MCP is genuinely down, output \`⚠️ MCP unavailable — editing file directly\`, ask the user to disable the gate hook via \`/hooks\`, and proceed only with explicit go.
 - **Treat MCP tool failures as findings, not friction.** If a \`loom_*\` tool returns the wrong shape, a malformed doc (missing Steps table, double type-suffix, broken frontmatter), or times out — stop, report what happened in the active chat, and let the user decide how to proceed. Routing around a buggy MCP tool by editing the file directly hides the bug.
