@@ -211,7 +211,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
             const weaveId = node?.weaveId;
             const scope: 'global' | 'weave' = weaveId ? 'weave' : 'global';
-            const argsLiteral = weaveId ? `{ scope: "weave", weaveId: "${weaveId}" }` : `{ scope: "global" }`;
+            const argsLiteral = weaveId ? `{ scope: "weave", weave_slug: "${weaveId}" }` : `{ scope: "global" }`;
             if (await isClaudeInstalled()) {
                 await launchClaude(root, 'Loom: Refresh Ctx',
                     `Loom refresh ctx task (scope=${scope}). ctx exists at global + weave scope only. Call MCP tool loom_refresh_ctx with ${argsLiteral} to get the assembled source and the ctxId, write a concise context summary from that source, then call loom_update_doc on the returned ctxId with the summary body.`
@@ -222,7 +222,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                     let result: any;
                     await vscode.window.withProgress(
                         { location: vscode.ProgressLocation.Notification, title: 'Loom: Preparing ctx…', cancellable: false },
-                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', weaveId ? { scope, weaveId } : { scope }); }
+                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', weaveId ? { scope, weave_slug: weaveId } : { scope }); }
                     );
                     treeProvider.refresh();
                     if (result?.targetPath) { const doc = await vscode.workspace.openTextDocument(result.targetPath); await vscode.window.showTextDocument(doc, { preview: false }); }

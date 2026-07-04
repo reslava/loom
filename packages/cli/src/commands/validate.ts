@@ -15,7 +15,7 @@ export async function validateCommand(weaveId?: string, options?: ValidateOption
     try {
         const loomRoot = getActiveLoomRoot();
         const result = await validate(
-            { weaveId, all: options?.all, verbose: options?.verbose },
+            { weaveSlug: weaveId, all: options?.all, verbose: options?.verbose },
             { getActiveLoomRoot, buildLinkIndex, loadDoc, fs, loomRoot }
         );
 

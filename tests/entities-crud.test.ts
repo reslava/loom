@@ -101,7 +101,7 @@ async function run() {
         assert(await exists(root, 'loom/wv2/renamed/thread.md'), 'thread moved to wv2');
         assert(!(await exists(root, 'loom/wv/renamed')), 'source thread gone after move');
 
-        await renameWeave({ weaveId: 'wv2', newWeaveId: 'wv3' }, deps(root));
+        await renameWeave({ weaveSlug: 'wv2', newWeaveSlug: 'wv3' }, deps(root));
         assert(await exists(root, 'loom/wv3/renamed/thread.md'), 'weave folder renamed');
 
         // guards

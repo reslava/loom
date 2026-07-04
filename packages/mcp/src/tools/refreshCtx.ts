@@ -19,24 +19,24 @@ export function createRefreshCtxTool() {
     return {
         toolDef: {
             name: 'loom_refresh_ctx',
-            description: 'Prepare a ctx (re)generation. Assembles the scope source, ensures the ctx doc shell at the canonical flat path, and returns the source for the agent to summarise — then call loom_update_doc on the returned ctxId with the summary body. No server-side inference (works in any host). scope "global" -> loom/ctx.md (id loom-ctx); scope "weave" -> loom/{weaveId}/ctx.md (id {weaveId}-ctx). Returns stale=false when the source is unchanged since the last generation (source_hash).',
+            description: 'Prepare a ctx (re)generation. Assembles the scope source, ensures the ctx doc shell at the canonical flat path, and returns the source for the agent to summarise — then call loom_update_doc on the returned ctxId with the summary body. No server-side inference (works in any host). scope "global" -> loom/ctx.md (id loom-ctx); scope "weave" -> loom/{weave_slug}/ctx.md (id {weave_slug}-ctx). Returns stale=false when the source is unchanged since the last generation (source_hash).',
             inputSchema: {
                 type: 'object' as const,
                 properties: {
                     scope: { type: 'string', enum: ['global', 'weave'], description: 'ctx scope (global or weave)' },
-                    weaveId: { type: 'string', description: 'Weave id (required when scope = "weave")' },
+                    weave_slug: { type: 'string', description: 'Weave folder slug (required when scope = "weave")' },
                 },
                 required: ['scope'],
             },
         },
         handle: async (root: string, args: Record<string, unknown>) => {
             const scope = args['scope'] as 'global' | 'weave';
-            const weaveId = args['weaveId'] as string | undefined;
+            const weaveId = args['weave_slug'] as string | undefined;
             if (scope !== 'global' && scope !== 'weave') {
                 throw new Error(`Invalid scope "${scope}" — expected "global" or "weave"`);
             }
             if (scope === 'weave' && !weaveId) {
-                throw new Error('weaveId is required when scope = "weave"');
+                throw new Error('weave_slug is required when scope = "weave"');
             }
 
             const registry = new ConfigRegistry();

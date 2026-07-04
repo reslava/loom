@@ -31,7 +31,7 @@ export async function validateCommand(treeProvider: LoomTreeProvider): Promise<v
     try {
         const result = await getMCP(root).callTool(
             'loom_validate',
-            weaveId ? { weaveId } : { all: true }
+            weaveId ? { weave_slug: weaveId } : { all: true }
         ) as { results: ValidationResult[] };
 
         const issues = (result.results ?? []).filter(r => r.issues.length > 0);

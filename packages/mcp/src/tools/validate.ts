@@ -5,22 +5,22 @@ import { validate } from '../../../app/dist/validate';
 export const toolDef = {
     name: 'loom_validate',
     description:
-        'Validate Loom docs and return structured per-weave issues (broken parent_id, dangling child_id, stale plans, missing Steps tables, step-blocker cycles). Pass weaveId for a single weave, or all=true for every weave. Pure read — no mutations.',
+        'Validate Loom docs and return structured per-weave issues (broken parent_id, dangling child_id, stale plans, missing Steps tables, step-blocker cycles). Pass weave_slug for a single weave, or all=true for every weave. Pure read — no mutations.',
     inputSchema: {
         type: 'object' as const,
         properties: {
-            weaveId: { type: 'string', description: 'Validate a single weave' },
-            all: { type: 'boolean', description: 'Validate every weave (used when weaveId is omitted)' },
+            weave_slug: { type: 'string', description: 'Validate a single weave' },
+            all: { type: 'boolean', description: 'Validate every weave (used when weave_slug is omitted)' },
         },
         required: [],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const weaveId = args['weaveId'] as string | undefined;
+    const weaveSlug = args['weave_slug'] as string | undefined;
     // Only the structured `results` are returned — never the LinkIndex (functions/maps).
     const { results } = await validate(
-        { weaveId, all: !weaveId },
+        { weaveSlug, all: !weaveSlug },
         { getActiveLoomRoot, buildLinkIndex, loadDoc, fs, loomRoot: root },
     );
     return { content: [{ type: 'text' as const, text: JSON.stringify({ results }) }] };

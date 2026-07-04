@@ -169,8 +169,8 @@ export class ContextSidebarProvider implements vscode.TreeDataProvider<SectionIt
     private async currentPrefs(root: string): Promise<{ include: string[]; exclude: string[] }> {
         if (!this.targetId) return { include: [], exclude: [] };
         try {
-            // callTool returns the already-parsed { targetId, entry } object (see mcp-client.ts).
-            const res = await getMCP(root).callTool('loom_get_context_prefs', { targetId: this.targetId }) as any;
+            // callTool returns the already-parsed { docUlid, entry } object (see mcp-client.ts).
+            const res = await getMCP(root).callTool('loom_get_context_prefs', { doc_ulid: this.targetId }) as any;
             return { include: res?.entry?.include ?? [], exclude: res?.entry?.exclude ?? [] };
         } catch {
             return { include: [], exclude: [] };
@@ -181,7 +181,7 @@ export class ContextSidebarProvider implements vscode.TreeDataProvider<SectionIt
         const root = this.treeProvider.getLoomRoot();
         if (!root || !this.targetId) return;
         try {
-            await getMCP(root).callTool('loom_set_context_prefs', { targetId: this.targetId, include, exclude });
+            await getMCP(root).callTool('loom_set_context_prefs', { doc_ulid: this.targetId, include, exclude });
         } catch (e: any) {
             vscode.window.showErrorMessage(`Loom: failed to save context override — ${e?.message ?? e}`);
             return;

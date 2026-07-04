@@ -16,7 +16,7 @@ export interface CreateWeaveDeps {
 }
 
 export interface CreateWeaveInput {
-    weaveId: string;
+    weaveSlug: string;
 }
 
 export async function createWeave(
@@ -24,12 +24,12 @@ export async function createWeave(
     deps: CreateWeaveDeps,
 ): Promise<{ weaveId: string; filePath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
-    const weavePath = path.join(loomRoot, 'loom', input.weaveId);
+    const weavePath = path.join(loomRoot, 'loom', input.weaveSlug);
     if (await deps.fs.pathExists(weavePath)) {
-        throw new Error(`A weave already exists at loom/${input.weaveId}.`);
+        throw new Error(`A weave already exists at loom/${input.weaveSlug}.`);
     }
     await deps.fs.ensureDir(weavePath);
-    return { weaveId: input.weaveId, filePath: weavePath };
+    return { weaveId: input.weaveSlug, filePath: weavePath };
 }
 
 /** loom/ entries that are not weaves and must never be a rename source/target. */
@@ -45,8 +45,8 @@ function assertValidWeaveId(id: string, label: string): void {
 }
 
 export interface RenameWeaveInput {
-    weaveId: string;
-    newWeaveId: string;
+    weaveSlug: string;
+    newWeaveSlug: string;
 }
 
 /**
@@ -58,16 +58,16 @@ export async function renameWeave(
     input: RenameWeaveInput,
     deps: CreateWeaveDeps,
 ): Promise<{ from: string; to: string }> {
-    assertValidWeaveId(input.weaveId, 'source');
-    assertValidWeaveId(input.newWeaveId, 'target');
-    if (input.weaveId === input.newWeaveId) {
-        return { from: input.weaveId, to: input.newWeaveId };
+    assertValidWeaveId(input.weaveSlug, 'source');
+    assertValidWeaveId(input.newWeaveSlug, 'target');
+    if (input.weaveSlug === input.newWeaveSlug) {
+        return { from: input.weaveSlug, to: input.newWeaveSlug };
     }
     const loomRoot = deps.getActiveLoomRoot();
-    const from = path.join(loomRoot, 'loom', input.weaveId);
-    const to = path.join(loomRoot, 'loom', input.newWeaveId);
-    if (!(await deps.fs.pathExists(from))) throw new Error(`Weave '${input.weaveId}' not found.`);
-    if (await deps.fs.pathExists(to)) throw new Error(`A weave '${input.newWeaveId}' already exists.`);
+    const from = path.join(loomRoot, 'loom', input.weaveSlug);
+    const to = path.join(loomRoot, 'loom', input.newWeaveSlug);
+    if (!(await deps.fs.pathExists(from))) throw new Error(`Weave '${input.weaveSlug}' not found.`);
+    if (await deps.fs.pathExists(to)) throw new Error(`A weave '${input.newWeaveSlug}' already exists.`);
     await deps.fs.move(from, to, { overwrite: false });
-    return { from: input.weaveId, to: input.newWeaveId };
+    return { from: input.weaveSlug, to: input.newWeaveSlug };
 }

@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 56
+last_ai_block: 57
 ---
 # weave-idea-threadid-fix Chat
 
@@ -822,3 +822,11 @@ Two pre-existing issues I spotted (both sampling-fallback only — flagging, not
 2. The generate tools' internal `loom://context/thread/{weave}/{thread}` URI passes the thread value as a **slug**, but since step 6 that value is a **ULID** — the context/thread resource is slug-addressed. Belongs with the clean-legacy-read follow-up.
 
 Committing. Remaining: **misc** (search/validate/refresh_ctx → `weave_slug`; context_prefs `targetId → doc_ulid`; create_weave/rename_weave; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`), then **Chunk C** (`loom_rename → loom_retitle`, `loom_rename_doc_file → loom_rename_reference_file`).
+
+## AI:
+
+**Chunk B — misc family done, build + test green. Chunk B is now complete** (all 7 param families: folder-ops, req, create, plan-step, promote, generate, misc).
+
+Misc: `search_docs`/`validate`/`refresh_ctx` → `weave_slug`; `get`/`set_context_prefs` `targetId → doc_ulid` (output echo → `docUlid` too); `create_weave` → `weave_slug`; `rename_weave` → `weave_slug`/`new_weave_slug`; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`, `dependsOn → depends_on` (the app already used `threadUlid`). App inputs renamed where they had a field (`weave.ts` create/rename, `searchDocs`, `validate`). Callers updated: vscode context sidebar, roadmap DnD (`set_priority`), rename/weaveCreate/validate/refreshCtx (+ its launch-prompt literal), CLI search/validate; tests (`entities-crud`, integration `set_context_prefs`).
+
+Committing. **Last piece of step 7 — Chunk C:** the two tool *renames* — `loom_rename → loom_retitle` (it only ever changed a doc's title) and `loom_rename_doc_file → loom_rename_reference_file` (acts on references only), plus `rename.oldId → doc_ulid`. Then step 7 is done and I'll move to step 8 (CLI `resolve-ulid`/`resolve-path`), 9 (regression test), 10 (release).

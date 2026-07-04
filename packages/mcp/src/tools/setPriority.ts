@@ -9,16 +9,16 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            threadUlid: { type: 'string', description: "The thread's th_ ULID (its thread.md id)" },
+            thread_ulid: { type: 'string', description: "The thread's th_ ULID (its thread.md id)" },
             priority: { type: 'number', description: 'New soft priority (lower = earlier)' },
         },
-        required: ['threadUlid', 'priority'],
+        required: ['thread_ulid', 'priority'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const result = await setThreadPriority(
-        { threadUlid: args['threadUlid'] as string, priority: args['priority'] as number },
+        { threadUlid: args['thread_ulid'] as string, priority: args['priority'] as number },
         { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs },
     );
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };

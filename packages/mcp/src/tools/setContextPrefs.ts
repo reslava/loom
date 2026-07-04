@@ -7,7 +7,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            targetId: { type: 'string', description: 'Target document id the overrides apply to' },
+            doc_ulid: { type: 'string', description: 'Target document ULID the overrides apply to' },
             include: {
                 type: 'array',
                 items: { type: 'string' },
@@ -20,18 +20,18 @@ export const toolDef = {
             },
             reset: { type: 'boolean', description: 'If true, remove all overrides for this target' },
         },
-        required: ['targetId'],
+        required: ['doc_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const targetId = args['targetId'] as string;
-    if (!targetId) throw new Error('targetId is required');
+    const docUlid = args['doc_ulid'] as string;
+    if (!docUlid) throw new Error('doc_ulid is required');
     const include = Array.isArray(args['include']) ? (args['include'] as string[]) : undefined;
     const exclude = Array.isArray(args['exclude']) ? (args['exclude'] as string[]) : undefined;
     const reset = args['reset'] === true;
 
-    const prefs = await setContextPrefs(root, targetId, { include, exclude, reset });
-    const entry = prefs[targetId] ?? { include: [], exclude: [] };
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ targetId, entry }) }] };
+    const prefs = await setContextPrefs(root, docUlid, { include, exclude, reset });
+    const entry = prefs[docUlid] ?? { include: [], exclude: [] };
+    return { content: [{ type: 'text' as const, text: JSON.stringify({ docUlid, entry }) }] };
 }

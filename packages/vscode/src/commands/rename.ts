@@ -22,7 +22,7 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
             const weaveId = node?.weaveId as string;
             const newWeaveId = await vscode.window.showInputBox({ prompt: `Rename weave folder '${weaveId}' to`, value: weaveId });
             if (!newWeaveId || newWeaveId === weaveId) return;
-            const res = await mcp.callTool('loom_rename_weave', { weaveId, newWeaveId }) as any;
+            const res = await mcp.callTool('loom_rename_weave', { weave_slug: weaveId, new_weave_slug: newWeaveId }) as any;
             vscode.window.showInformationMessage(`📁 Weave renamed → ${res.to}`);
         } else if (ctx.startsWith('thread')) {
             const weaveId = node?.weaveId as string;

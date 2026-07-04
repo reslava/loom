@@ -13,7 +13,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 
 export interface ValidateInput {
-    weaveId?: string;
+    weaveSlug?: string;
     all?: boolean;
     verbose?: boolean;
 }
@@ -104,8 +104,8 @@ export async function validate(
     const index = await deps.buildLinkIndex(loomRoot);
     const results: ValidationResult[] = [];
 
-    if (input.weaveId) {
-        const result = await validateWeave(input.weaveId, index, loomRoot, deps);
+    if (input.weaveSlug) {
+        const result = await validateWeave(input.weaveSlug, index, loomRoot, deps);
         results.push(result);
     } else if (input.all) {
         const entries = await deps.fs.readdir(weavesDir);

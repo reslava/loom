@@ -11,7 +11,7 @@ export const toolDef = {
         properties: {
             query: { type: 'string', description: 'Search query (case-insensitive substring match)' },
             type: { type: 'string', enum: ['idea', 'design', 'plan', 'ctx', 'chat', 'done'], description: 'Optional document type filter' },
-            weaveId: { type: 'string', description: 'Optional weave id to scope the search' },
+            weave_slug: { type: 'string', description: 'Optional weave folder slug to scope the search' },
         },
         required: ['query'],
     },
@@ -23,7 +23,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         {
             query: args['query'] as string,
             type: args['type'] as string | undefined,
-            weaveId: args['weaveId'] as string | undefined,
+            weaveSlug: args['weave_slug'] as string | undefined,
         },
         { getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root }
     );

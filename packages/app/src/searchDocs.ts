@@ -6,7 +6,7 @@ export interface SearchDocsInput {
     /** Optional document type filter (idea | design | plan | ctx | chat | done). */
     type?: string;
     /** Optional weave id to scope the search. */
-    weaveId?: string;
+    weaveSlug?: string;
 }
 
 export interface SearchResult {
@@ -40,7 +40,7 @@ function excerpt(content: string, query: string): string {
 export async function searchDocs(input: SearchDocsInput, deps: SearchDocsDeps): Promise<SearchResult[]> {
     const query = input.query.toLowerCase();
     const typeFilter = input.type;
-    const weaveFilter = input.weaveId;
+    const weaveFilter = input.weaveSlug;
 
     const state = await getState(
         deps,

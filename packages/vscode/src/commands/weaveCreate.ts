@@ -14,7 +14,7 @@ export async function weaveCreateCommand(treeProvider: LoomTreeProvider, treeVie
     if (!weaveId) return;
 
     try {
-        await getMCP(root).callTool('loom_create_weave', { weaveId });
+        await getMCP(root).callTool('loom_create_weave', { weave_slug: weaveId });
         await treeProvider.waitForRefresh();
         const node = treeProvider.getNodeByWeaveId(weaveId);
         if (node) treeView.reveal(node, { select: true, focus: true, expand: false });

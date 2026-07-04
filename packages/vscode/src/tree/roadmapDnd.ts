@@ -120,7 +120,7 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
                 const n = reordered[i];
                 const newPriority = (i + 1) * PRIORITY_SPACING;
                 if (!n.ulid || n.priority === newPriority) continue;
-                await getMCP(root).callTool('loom_set_priority', { threadUlid: n.ulid, priority: newPriority });
+                await getMCP(root).callTool('loom_set_priority', { thread_ulid: n.ulid, priority: newPriority });
                 wrote++;
             }
         } catch (e: any) {

@@ -17,7 +17,7 @@ export async function searchCommand(
     try {
         const registry = new ConfigRegistry();
         const results = await searchDocs(
-            { query, type: options?.type, weaveId: options?.weave },
+            { query, type: options?.type, weaveSlug: options?.weave },
             { getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs }
         );
 

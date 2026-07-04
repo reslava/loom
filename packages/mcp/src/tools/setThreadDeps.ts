@@ -9,16 +9,16 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            threadUlid: { type: 'string', description: "The thread's th_ ULID (its thread.md id)" },
-            dependsOn: { type: 'array', items: { type: 'string' }, description: 'th_ ULIDs this thread depends on (replaces the existing list)' },
+            thread_ulid: { type: 'string', description: "The thread's th_ ULID (its thread.md id)" },
+            depends_on: { type: 'array', items: { type: 'string' }, description: 'th_ ULIDs this thread depends on (replaces the existing list)' },
         },
-        required: ['threadUlid', 'dependsOn'],
+        required: ['thread_ulid', 'depends_on'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
     const result = await setThreadDeps(
-        { threadUlid: args['threadUlid'] as string, dependsOn: (args['dependsOn'] as string[] | undefined) ?? [] },
+        { threadUlid: args['thread_ulid'] as string, dependsOn: (args['depends_on'] as string[] | undefined) ?? [] },
         { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs },
     );
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };

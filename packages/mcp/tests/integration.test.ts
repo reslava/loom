@@ -225,7 +225,7 @@ async function run(): Promise<void> {
 
         const setRes = await client.callTool({
             name: 'loom_set_context_prefs',
-            arguments: { targetId: 'pl_TWPLAN00000000000000000001', exclude: ['t1-idea'] },
+            arguments: { doc_ulid: 'pl_TWPLAN00000000000000000001', exclude: ['t1-idea'] },
         });
         const setData = JSON.parse((setRes.content[0] as { text: string }).text);
         assert(setData.entry.exclude.includes('t1-idea'), 'set returns the persisted exclude');
@@ -233,7 +233,7 @@ async function run(): Promise<void> {
         // get round-trips
         const getRes = await client.callTool({
             name: 'loom_get_context_prefs',
-            arguments: { targetId: 'pl_TWPLAN00000000000000000001' },
+            arguments: { doc_ulid: 'pl_TWPLAN00000000000000000001' },
         });
         const getData = JSON.parse((getRes.content[0] as { text: string }).text);
         assert(getData.entry.exclude.includes('t1-idea'), 'get round-trips the exclude');
@@ -247,7 +247,7 @@ async function run(): Promise<void> {
         // reset so later assertions / reuse see a clean target
         await client.callTool({
             name: 'loom_set_context_prefs',
-            arguments: { targetId: 'pl_TWPLAN00000000000000000001', reset: true },
+            arguments: { doc_ulid: 'pl_TWPLAN00000000000000000001', reset: true },
         });
         const restored = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         assert((restored.contents[0].text as string).includes('id: t1-idea'), 'idea returns after reset');
