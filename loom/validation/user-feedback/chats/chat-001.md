@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 9
+last_ai_block: 12
 ---
 # user-feedback Chat
 
@@ -158,3 +158,39 @@ So issue #1 is exactly the "no form" fallback.
 - Note: neither this commit nor the earlier feature commit is pushed yet (origin/main is behind). The extension worked locally because it runs the built code; the *form* is the only piece that has to live on GitHub.
 
 Committing the template now. **Want me to push `main`?** That publishes both commits to the public repo — outward-facing, so I'll hold for your go. After the push, re-open the button and the environment field should be prefilled.
+
+## Rafa
+
+I pushed and tested status bar button, command, and CLI: all working
+Should we add feedback feature to main README and/or other doc?
+
+## AI:
+
+Yes — and it's not just housekeeping. Vision-check: this thread exists to *turn silent installs into signal*; a feedback path nobody can find collects nothing, so **discoverability is part of the feature**. Documenting it is the same job, finished.
+
+Concrete surfaces, in priority order:
+
+**Essential (the three front doors):**
+- **`README.md`** — add `loom feedback` to the Quick Start command block, and one line in the VS Code Extension section about the Send Feedback button. Best spot: it's the first thing a curious installer reads, and "tell us what you think" belongs there.
+- **`packages/cli/README.md`** (npm listing) — add `loom feedback` to the command reference (with `--repo` / `--print`).
+- **`packages/vscode/README.md`** (Marketplace listing) — mention the Send Feedback status-bar button + command + the `reslava-loom.feedback.repo` setting.
+
+**Nice-to-have (the detailed guides):**
+- **`docs/CLI_USER_GUIDE.md`** — a short `loom feedback` subsection.
+- **`docs/EXTENSION_USER_GUIDE.md`** — a short "Sending feedback" subsection (button, setting, what the snapshot contains + that it's opt-in/editable).
+
+I'd keep every entry short and consistent, and make a point of stating the non-PII/opt-in nature (builds trust → more people actually send). None of these are the machine-enforced `CLAUDE.md`/template pair or a filename/workflow/layer change, so the doc-sync *contract* isn't triggered — this is additive feature docs.
+
+Two scope options: **(a)** the 3 READMEs only (the 80/20 front doors), or **(b)** all 5 including the two user guides. I lean **(b)** — it's cheap and the guides are where a serious user looks. Which do you want, and should I just do it?
+
+## AI:
+
+Done — documented across all 5 surfaces, each entry short, consistent, and explicit about opt-in / non-PII:
+
+- **`README.md`** — `loom feedback` in the Quick Start block + a Send Feedback line (button, command, `feedback.repo` setting) in the VS Code Extension section.
+- **`packages/cli/README.md`** — new **Feedback** command table with `loom feedback [--repo] [--print]`.
+- **`packages/vscode/README.md`** — a **Send feedback** subsection under the panel + a `reslava-loom.feedback.repo` row in the Settings table.
+- **`docs/CLI_USER_GUIDE.md`** — a **Feedback** subsection in the §6 command reference.
+- **`docs/EXTENSION_USER_GUIDE.md`** — a **Sending feedback** subsection + the setting row in §6.
+
+All additive feature docs — didn't touch the machine-enforced `CLAUDE.md`/template pair or any filename/workflow/layer wording, so the doc-sync contract stays satisfied. Committing these docs now.

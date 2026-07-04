@@ -104,6 +104,12 @@ designing, writing code for a step) is done through your MCP agent.
 | `loom validate [weave-id] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
 | `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — one Roadmap band (present + future in a single dependency + priority order, status + blocked-on per row) and history (shipped plans, newest first). Pure read. |
 
+### Feedback
+
+| Command | Description |
+|---------|-------------|
+| `loom feedback [--repo <owner/name>] [--print]` | Open a prefilled GitHub issue to send feedback about Loom. **Opt-in:** it carries Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) that you review and edit before sending — nothing is sent automatically. Targets the workspace's git `origin` remote by default; `--repo` overrides the target, `--print` emits the URL instead of opening a browser. |
+
 ### MCP surface & queries
 
 These commands make the Loom MCP surface reachable from a plain terminal — no MCP host

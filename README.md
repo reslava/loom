@@ -340,6 +340,8 @@ A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-wea
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
 | *Rename / Archive / Delete* | Inline doc management |
 
+A **Send Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts you can edit before sending — opt-in, no background telemetry. Set `reslava-loom.feedback.repo` to override the target repo (it defaults to the workspace's git `origin` remote).
+
 ### AI button paths
 
 Every AI button in the extension picks its path automatically at click time:
@@ -382,6 +384,9 @@ loom weave idea "Add Dark Mode" --weave ui
 
 # Check project state
 loom status
+
+# Send feedback — opt-in, opens a prefilled GitHub issue
+loom feedback
 ```
 
 ---

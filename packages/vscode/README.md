@@ -160,6 +160,10 @@ Each row is one doc, marked by why it's there:
 
 Click a row to **open the doc**. Use the inline actions to **include / exclude / reset**; choices persist per target in `.loom/context-prefs.json`. Per-doc and total token estimates let you keep launches lean.
 
+### Send feedback
+
+A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — opt-in, editable before you send, no background telemetry. It targets the workspace's git `origin` remote by default; set `reslava-loom.feedback.repo` to override the target repo.
+
 ---
 
 ## A real project in Loom
@@ -211,6 +215,7 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 | `reslava-loom.ai.provider` | `anthropic` | AI provider for API key path (anthropic/deepseek/openai) |
 | `reslava-loom.ai.apiKey` | — | API key (fallback — not needed if Claude Code CLI is installed) |
 | `reslava-loom.ai.model` | — | Model override (blank = provider default) |
+| `reslava-loom.feedback.repo` | — | Target repo for *Send Feedback* as `owner/name` (blank = auto-detect from the git `origin` remote) |
 
 ---
 
