@@ -284,7 +284,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     title: { type: 'string', description: 'Optional title for the req doc' },
                     context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject as context.' },
                 },
-                required: ['weaveId', 'threadId'],
+                required: ['weave_slug', 'thread_ulid'],
             },
             async (root, args) => {
                 const weaveId = args['weave_slug'] as string;

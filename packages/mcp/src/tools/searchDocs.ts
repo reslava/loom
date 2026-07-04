@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 
 export const toolDef = {
     name: 'loom_search_docs',
-    description: 'Search documents by a query string. Matches against id, title, and content (case-insensitive). Optionally filter by document type or weave id.',
+    description: 'Search documents by a query string. Matches against id, title, and content (case-insensitive). Optionally filter by document type or weave slug.',
     inputSchema: {
         type: 'object' as const,
         properties: {

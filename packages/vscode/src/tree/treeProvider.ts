@@ -691,6 +691,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     private getThreadChildren(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode[] {
         const children: TreeNode[] = [];
+        // Thread identity flows to EVERY descendant node (like weaveId/threadId), so a
+        // command invoked from a chat/doc/section row inside the thread — New Chat, req,
+        // rename, promote — resolves the thread by its stable th_ ULID. Only the thread
+        // node itself carried threadUlid before; that gap misfiled extension-created chats.
+        const threadUlid = thread.manifest?.id;
 
         // req is the thread's authoritative spec — render it first (chain position),
         // with a lock badge when locked.
@@ -753,7 +758,16 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             children.push(this.createRefsSection(thread.refDocs, weaveId, thread.id));
         }
 
-        return children;
+        // Stamp the thread's ULID across the whole subtree — nested nodes included
+        // (chats, docs inside sections) — so any descendant a command fires from
+        // carries it. Preserve a node that already set its own.
+        const stampThreadUlid = (nodes: TreeNode[]): TreeNode[] =>
+            nodes.map(n => ({
+                ...n,
+                threadUlid: n.threadUlid ?? threadUlid,
+                children: stampThreadUlid(n.children ?? []),
+            }));
+        return stampThreadUlid(children);
     }
 
     private createCtxSection(ctxDocs: Document[], weaveId?: string, threadId?: string): TreeNode {

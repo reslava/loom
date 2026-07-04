@@ -289,4 +289,4 @@ Thread constraints define what docs can exist. Location implies the parent threa
 - VS Code's built-in markdown preview will not display a title heading (acceptable trade-off; the Loom tree view is the primary surface).
 - Future: the Loom extension's preview renderer may inject a synthetic `# {title}` at render time — stored nowhere, display only.
 
-**`loom_rename`** updates `frontmatter.title` only. Folder-slug renames (weave/thread) go through `loom_rename_weave` / `loom_rename_thread`; reference filename-slug renames through `loom_rename_doc_file`.
+**`loom_retitle`** updates `frontmatter.title` only. Folder-slug renames (weave/thread) go through `loom_rename_weave` / `loom_rename_thread`; reference filename-slug renames through `loom_rename_reference_file`.

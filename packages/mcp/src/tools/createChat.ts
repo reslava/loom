@@ -4,7 +4,7 @@ import { chatNew } from '../../../app/dist/chatNew';
 
 export const toolDef = {
     name: 'loom_create_chat',
-    description: 'Create a new chat document. Use chatType="thread" for thread chats (requires weaveId + threadId) or chatType="refs" for reference chats at loom/refs/chats/.',
+    description: 'Create a new chat document in one of the two canonical chat homes. Thread chat: pass weave_slug + thread_ulid (the thread\'s stable th_ ULID) → {weave}/{thread}/chats. Refs chat: pass chatType="refs" → refs/chats. A non-refs chat with no resolvable thread errors — there is no weave-root chat.',
     inputSchema: {
         type: 'object' as const,
         properties: {

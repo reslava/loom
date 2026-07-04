@@ -4,8 +4,8 @@ id: loom-ctx
 title: loom — Global Context
 status: active
 created: 2026-04-29
-updated: 2026-07-02
-version: 9
+updated: 2026-07-04
+version: 11
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -104,7 +104,7 @@ upward. The VS Code extension **must not** import `app` directly — MCP is the 
 
 **Two API surfaces inside `app`:**
 - `getState(deps)` — builds link index once, loads all threads, returns `LoomState`. Read.
-- `runEvent(threadId, event, deps)` — load → reduce → save. Mutate.
+- `runEvent(weaveSlug, event, deps)` — load → reduce → save. Mutate.
 
 **Reducers are pure** — no IO, no async, no VS Code. Side effects run *after* the
 reducer, in `runEvent`.
@@ -125,7 +125,7 @@ the link index, and plan-step validation. A PreToolUse hook physically enforces
 this in Claude Code sessions; see CLAUDE.md for the full hard rule.
 
 **Primary entry points:**
-- `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) —
+- `loom://context/{docId}` (or `loom://context/thread/{weaveSlug}/{threadUlid}`) —
   bundled global/weave ctx + parent chain + requires_load for a doc/thread. Load
   before working on it.
 - `do-next-step` prompt — gives the next incomplete step with full context loaded

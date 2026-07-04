@@ -219,7 +219,7 @@ Mirrors the idea / design pattern:
 
 | Tool | Purpose |
 |------|---------|
-| `loom_create_req(weaveId, threadId, content?)` | Create the `req` doc (pass `content` to author it in one call) |
+| `loom_create_req(weave_slug, thread_ulid, content?)` | Create the `req` doc (pass `content` to author it in one call) |
 | `loom_generate_req` | Extension sampling path; a CLI agent calls `loom_create_req` with `content` instead |
 | `loom_amend_req` | Reconcile new/changed requirements under append-only rules (refuses renumber/delete; retire via `~dropped`) → `draft`, version bump |
 | `loom_finalize_req` | `draft → locked` |

@@ -23,22 +23,29 @@ export async function chatNew(
     input: ChatNewInput,
     deps: ChatNewDeps
 ): Promise<{ id: string; filePath: string }> {
-    // Resolve the thread by its stable ULID → folder when a thread is targeted
-    // (never fabricates); weave-root and global chats need no resolution.
+    // A chat has exactly two canonical homes: refs/chats, or {weave}/{thread}/chats.
+    // Anything else — a weave with no resolvable thread, or no weave at all — is not
+    // a valid chat location and MUST error rather than silently orphan an invalid,
+    // tree-invisible file (the same "unresolvable reference → error, never fabricate"
+    // invariant resolveThreadFolder enforces for doc-creates).
     let chatsDir: string;
     let scopeId: string;
-    if (!input.weaveSlug) {
-        chatsDir = path.join(deps.loomRoot, 'loom', 'chats');
-        scopeId = 'global';
-    } else if (input.threadUlid) {
+    if (input.weaveSlug === 'refs') {
+        chatsDir = path.join(deps.loomRoot, 'loom', 'refs', 'chats');
+        scopeId = 'refs';
+    } else if (input.weaveSlug && input.threadUlid) {
         const { threadSlug, threadPath } = await resolveThreadFolder(input.weaveSlug, input.threadUlid, {
             getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
         });
         chatsDir = path.join(threadPath, 'chats');
         scopeId = threadSlug;
     } else {
-        chatsDir = path.join(deps.loomRoot, 'loom', input.weaveSlug, 'chats');
-        scopeId = input.weaveSlug;
+        throw new Error(
+            `Cannot create chat: a chat lives only in a thread ({weave}/{thread}/chats) ` +
+            `or in refs (refs/chats). Got weaveSlug='${input.weaveSlug ?? ''}' with no ` +
+            `resolvable thread — pass the thread's th_ ULID as threadUlid, or target refs. ` +
+            `A weave-root chat (loom/{weave}/chats) is not a valid location.`,
+        );
     }
     await deps.fs.ensureDir(chatsDir);
 

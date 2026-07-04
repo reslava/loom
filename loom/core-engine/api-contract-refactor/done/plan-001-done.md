@@ -4,7 +4,7 @@ id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F-done
 title: Done — Unambiguous naming + canonical ULID refactor
 status: done
 created: 2026-07-03
-version: 8
+version: 11
 tags: []
 parent_id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F
 requires_load: []
@@ -95,3 +95,28 @@ Regression test `tests/api-contract-refactor.test.ts` (wired into `scripts/test-
 - `resolveThreadUlid` ⇄ `resolveThreadFolder` round-trip, and an unknown slug throws.
 
 Full `test-all` green.
+
+## Step 10 — Fix chatNew to two canonical chat homes only. A chat resolves to exactly: (1) {weave}/{thread}/chats when weaveSlug+threadUlid (via resolveThreadFolder, throw if unresolvable), or (2) refs/chats when weaveSlug='refs'. Delete the weave-root ({weave}/chats) and bare loom/chats fallback branches — a non-refs chat with no resolvable thread now THROWS instead of silently orphaning an invalid, tree-invisible file (same 'unresolvable → error, never fabricate' invariant this thread enforces elsewhere). Correct the stale loom_create_chat tool description ('requires weaveId + threadId' → the weave_slug/thread_ulid + refs contract).
+
+Rewrote `packages/app/src/chatNew.ts` branching to the two canonical chat homes only:
+- `weaveSlug === 'refs'` → `loom/refs/chats` (refs chat).
+- `weaveSlug && threadUlid` → `resolveThreadFolder(...)` → `{weave}/{thread}/chats` (throws on an unresolvable ULID, unchanged).
+- **else → throws** with a clear message. This deletes the two orphan-producing fallback branches: the old `!weaveSlug → loom/chats` (dead — `loom/chats` gone long ago) and `weaveSlug && !threadUlid → loom/{weave}/chats` (invalid weave-root, tree-invisible). Same "unresolvable reference → error, never fabricate" invariant the rest of this thread enforces.
+
+Corrected the stale `loom_create_chat` description in `packages/mcp/src/tools/createChat.ts` ("requires weaveId + threadId" → the weave_slug/thread_ulid + refs="refs/chats" contract).
+
+`./scripts/build-all.sh` green; `./scripts/test-all.sh` 18/18 pass — no existing test relied on the removed branches. Note: the running `loom mcp` in this session still serves the pre-build tool code (build-all doesn't restart it), so the corrected description/behavior lands live only after an MCP/session restart; dist-importing tests already exercise the new code.
+
+## Step 11 — Plumb the thread's th_ ULID down the VS Code tree node subtree. Pass thread.manifest?.id through getThreadChildren → createChatsSection / createDocumentNode / createChatNode (and ctx/refs children) so every descendant node carries threadUlid, exactly as weaveId/threadId (the slug) already flow. Root cause of the regression: threadUlid was set on ONLY the thread node, so New Chat / req / rename invoked from a descendant row saw threadUlid=undefined. This one change fixes New Chat from inside a thread, the false 'no thread.md manifest' errors on req/rename from doc rows, and the ensureThreadUlid create_thread fallback.
+
+Root-cause fix in `packages/vscode/src/tree/treeProvider.ts`: `getThreadChildren` now captures `const threadUlid = thread.manifest?.id` and, before returning, recursively stamps it onto the entire subtree (`stampThreadUlid`) — nested nodes included (chats, docs inside the Chats/Context/References sections), preserving any node that already set its own. Previously only the thread node itself carried `threadUlid`, so New Chat / req / rename / promote fired from a descendant row saw `threadUlid=undefined`. Chose the single recursive stamp at the one funnel over threading a param through six node-builder helpers — DRY, and thread identity now flows to every descendant exactly like `weaveId`/`threadId`. No change needed to the chatNew command: it already reads `node.threadUlid`, which is now populated; refs New Chat still works via `weaveId='refs'`.
+
+Additionally (Rafa's ask — no more stale tool descriptions): swept every `loom_*` tool. Fixed two real stale items — `packages/mcp/src/tools/generate.ts` `loom_generate_req` had `required: ['weaveId','threadId']` while its properties are `weave_slug`/`thread_ulid` (named nonexistent params) → corrected to `['weave_slug','thread_ulid']`; and `searchDocs` description prose 'weave id' → 'weave slug'. Left `stepId`/`orderedStepIds` (a step's stable frontmatter `id`, not a ULID — descriptions say so) and internal local variables / output-payload keys (not descriptions; step-7-scoped cosmetic set).
+
+## Step 12 — Regression test for the chat-location contract (extend tests/api-contract-refactor.test.ts, already wired into scripts/test-all.sh): (1) create_chat with a real existing threadUlid lands in {weave}/{thread}/chats; (2) create_chat for refs lands in refs/chats; (3) a non-refs chat with no resolvable thread THROWS and creates no file at loom/{weave}/chats or loom/chats. Then build-all + test-all green.
+
+Extended `tests/api-contract-refactor.test.ts` (already wired into `scripts/test-all.sh`) with the chat-location contract: (1) chat by existing `thread_ulid` lands in `loom/wv/my-thread/chats/chat-001.md`; (2) refs chat (`weaveSlug='refs'`) lands in `loom/refs/chats/chat-001.md`; (3) a non-refs chat with no `thread_ulid` throws (`/a chat lives only in a thread/`) and a bogus `thread_ulid` throws (`/No thread with ulid/`), with assertions that neither `loom/wv/chats` nor `loom/chats` is created. `build-all` + `test-all` fully green; the api-contract-refactor test alone shows all 6 cases (3 prior + 3 new) passing.
+
+## Step 13 — Documentation pass — reflect the refactor's naming/tool renames in the living canonical docs (frozen history left as-is). Fix: architecture-reference (loom_rename→loom_retitle, loom_rename_doc_file→loom_rename_reference_file); loom-requirements-reference (loom_create_req(weaveId,threadId)→(weave_slug,thread_ulid)); README + CLAUDE.md + ctx.md + the LOOM_CLAUDE_MD template ({weaveId}/{threadId} context-URI placeholders → {weaveSlug}/{threadUlid}); ctx.md runEvent(threadId)→runEvent(weaveSlug); README loom://state phantom threadId= → status=. CLAUDE.md⇄template parity preserved (claude-md-sync green).
+
+Documentation pass over the living canonical docs (frozen history — old chats/plans/done/superseded designs — deliberately left unchanged; they accurately record the API as it was). Edits:\n- `loom/refs/architecture-reference.md`: `loom_rename`→`loom_retitle`, `loom_rename_doc_file`→`loom_rename_reference_file`.\n- `loom/refs/loom-requirements-reference.md`: `loom_create_req(weaveId, threadId, content?)`→`(weave_slug, thread_ulid, content?)`.\n- `README.md`: context-URI placeholder `{weaveId}/{threadId}`→`{weaveSlug}/{threadUlid}`; `loom://state?weaveId=&threadId=`→`?weaveId=&status=` (the `threadId` filter never existed).\n- `CLAUDE.md` + `loom/ctx.md` + the `LOOM_CLAUDE_MD` template in `packages/app/src/installWorkspace.ts`: same `{weaveId}/{threadId}`→`{weaveSlug}/{threadUlid}` placeholder fix (CLAUDE.md and template edited in lockstep — `claude-md-sync` test green).\n- `loom/ctx.md`: `runEvent(threadId, event, deps)`→`runEvent(weaveSlug, event, deps)` (verified against `packages/app/src/runEvent.ts` — the first arg is the weave).\n\nStale-token scan also confirmed `mcp-reference.md`, `implementation-contract-reference.md`, `getting-started`, `workspace-directory-structure`, and `workflow-reference` are already clean. `build-all` + `test-all` green after the template change.
