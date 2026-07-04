@@ -35,7 +35,7 @@ export async function generateReqCommand(
             let result: any;
             await vscode.window.withProgress(
                 { location: vscode.ProgressLocation.Notification, title: 'Loom: Generating requirements…', cancellable: false },
-                async () => { result = await getMCP(root).callTool('loom_generate_req', { weaveId, threadId }); },
+                async () => { result = await getMCP(root).callTool('loom_generate_req', { weave_slug: weaveId, thread_ulid: threadUlid }); },
             );
             treeProvider.refresh();
             revealDocAfterCreate(treeProvider, treeView, result?.filePath);

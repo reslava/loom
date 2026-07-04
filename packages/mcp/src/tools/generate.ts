@@ -55,16 +55,16 @@ export function createGenerateTools(server: Server): ToolModule[] {
             {
                 type: 'object' as const,
                 properties: {
-                    weaveId: { type: 'string', description: 'Target weave ID' },
-                    threadId: { type: 'string', description: 'Target thread ID (optional)' },
+                    weave_slug: { type: 'string', description: 'Target weave folder slug' },
+                    thread_ulid: { type: 'string', description: 'Stable th_ ULID of the target thread (optional)' },
                     title: { type: 'string', description: 'Title for the new idea doc' },
                     prompt: { type: 'string', description: 'Description of the idea to generate' },
                 },
-                required: ['weaveId', 'title', 'prompt'],
+                required: ['weave_slug', 'title', 'prompt'],
             },
             async (root, args) => {
-                const weaveId = args['weaveId'] as string;
-                const threadId = args['threadId'] as string | undefined;
+                const weaveId = args['weave_slug'] as string;
+                const threadId = args['thread_ulid'] as string | undefined;
                 const title = args['title'] as string;
                 const prompt = args['prompt'] as string;
 
@@ -92,16 +92,16 @@ export function createGenerateTools(server: Server): ToolModule[] {
             {
                 type: 'object' as const,
                 properties: {
-                    weaveId: { type: 'string', description: 'Target weave ID' },
-                    threadId: { type: 'string', description: 'Target thread ID' },
+                    weave_slug: { type: 'string', description: 'Target weave folder slug' },
+                    thread_ulid: { type: 'string', description: 'Stable th_ ULID of the target thread' },
                     title: { type: 'string', description: 'Title for the new design doc' },
                     context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject as context.' },
                 },
-                required: ['weaveId', 'threadId', 'title'],
+                required: ['weave_slug', 'thread_ulid', 'title'],
             },
             async (root, args) => {
-                const weaveId = args['weaveId'] as string;
-                const threadId = args['threadId'] as string;
+                const weaveId = args['weave_slug'] as string;
+                const threadId = args['thread_ulid'] as string;
                 const title = args['title'] as string;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
@@ -146,16 +146,16 @@ export function createGenerateTools(server: Server): ToolModule[] {
             {
                 type: 'object' as const,
                 properties: {
-                    weaveId: { type: 'string', description: 'Target weave ID' },
-                    threadId: { type: 'string', description: 'Target thread ID' },
+                    weave_slug: { type: 'string', description: 'Target weave folder slug' },
+                    thread_ulid: { type: 'string', description: 'Stable th_ ULID of the target thread' },
                     title: { type: 'string', description: 'Title for the new plan doc' },
                     context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject as context.' },
                 },
-                required: ['weaveId', 'threadId', 'title'],
+                required: ['weave_slug', 'thread_ulid', 'title'],
             },
             async (root, args) => {
-                const weaveId = args['weaveId'] as string;
-                const threadId = args['threadId'] as string;
+                const weaveId = args['weave_slug'] as string;
+                const threadId = args['thread_ulid'] as string;
                 const title = args['title'] as string;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
@@ -221,16 +221,16 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 type: 'object' as const,
                 properties: {
                     id: { type: 'string', description: 'Reference document ID (from loom_create_reference)' },
-                    weaveId: { type: 'string', description: 'Optional weave ID to load for additional context' },
-                    threadId: { type: 'string', description: 'Optional thread ID to load for additional context' },
+                    weave_slug: { type: 'string', description: 'Optional weave folder slug to load for additional context' },
+                    thread_ulid: { type: 'string', description: 'Optional thread ULID to load for additional context' },
                     context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional additional doc IDs to load as context' },
                 },
                 required: ['id'],
             },
             async (root, args) => {
                 const id = args['id'] as string;
-                const weaveId = args['weaveId'] as string | undefined;
-                const threadId = args['threadId'] as string | undefined;
+                const weaveId = args['weave_slug'] as string | undefined;
+                const threadId = args['thread_ulid'] as string | undefined;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
                 // Primary (agent-supplied) id → suggest-on-miss.
@@ -279,16 +279,16 @@ export function createGenerateTools(server: Server): ToolModule[] {
             {
                 type: 'object' as const,
                 properties: {
-                    weaveId: { type: 'string', description: 'Target weave ID' },
-                    threadId: { type: 'string', description: 'Target thread ID' },
+                    weave_slug: { type: 'string', description: 'Target weave folder slug' },
+                    thread_ulid: { type: 'string', description: 'Stable th_ ULID of the target thread' },
                     title: { type: 'string', description: 'Optional title for the req doc' },
                     context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject as context.' },
                 },
                 required: ['weaveId', 'threadId'],
             },
             async (root, args) => {
-                const weaveId = args['weaveId'] as string;
-                const threadId = args['threadId'] as string;
+                const weaveId = args['weave_slug'] as string;
+                const threadId = args['thread_ulid'] as string;
                 const title = args['title'] as string | undefined;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
@@ -339,12 +339,12 @@ export function createGenerateTools(server: Server): ToolModule[] {
             {
                 type: 'object' as const,
                 properties: {
-                    chatId: { type: 'string', description: 'Chat document ID' },
+                    chat_ulid: { type: 'string', description: 'Chat document ULID' },
                 },
-                required: ['chatId'],
+                required: ['chat_ulid'],
             },
             async (root, args) => {
-                const chatId = args['chatId'] as string;
+                const chatId = args['chat_ulid'] as string;
 
                 // Primary (agent-supplied) id → suggest-on-miss.
                 const { filePath } = await resolveDocIdOrThrow(root, chatId);

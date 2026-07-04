@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 55
+last_ai_block: 56
 ---
 # weave-idea-threadid-fix Chat
 
@@ -812,3 +812,13 @@ Cleared the two deferred prompt bugs while here:
 Tests updated (`create-with-body`, `design-version-baseline`). Committing.
 
 Remaining Chunk B: **generate** (loom_generate_* → weave_slug/thread_ulid/chat_ulid), **misc** (search/validate/refresh_ctx → weave_slug; context_prefs `targetId → doc_ulid`; create_weave/rename_weave; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`). Then Chunk C (`loom_rename → loom_retitle`, `loom_rename_doc_file → loom_rename_reference_file`).
+
+## AI:
+
+**Chunk B — generate family done, build + test green.** `loom_generate_idea`/`design`/`plan`/`req`/`reference`/`chat_reply`: MCP schemas → `weave_slug` / `thread_ulid` / `chat_ulid` (reference keeps its `id` doc-handle). The app-side create/req calls these tools compose were already mapped. vscode sampling fallbacks updated (`generate_chat_reply` → `chat_ulid`, `generate_req` → `weave_slug`/`thread_ulid`).
+
+Two pre-existing issues I spotted (both sampling-fallback only — flagging, not fixing in the rename):
+1. The vscode `generate_design`/`generate_plan` fallbacks call the tool with just `{ id }`, but those tools require `weave_slug`/`thread_ulid`/`title` — a wiring mismatch that predates this refactor.
+2. The generate tools' internal `loom://context/thread/{weave}/{thread}` URI passes the thread value as a **slug**, but since step 6 that value is a **ULID** — the context/thread resource is slug-addressed. Belongs with the clean-legacy-read follow-up.
+
+Committing. Remaining: **misc** (search/validate/refresh_ctx → `weave_slug`; context_prefs `targetId → doc_ulid`; create_weave/rename_weave; `set_priority`/`set_thread_deps` MCP casing `threadUlid → thread_ulid`), then **Chunk C** (`loom_rename → loom_retitle`, `loom_rename_doc_file → loom_rename_reference_file`).

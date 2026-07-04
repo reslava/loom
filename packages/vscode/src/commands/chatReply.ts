@@ -75,7 +75,7 @@ export async function chatReplyCommand(treeProvider: LoomTreeProvider, node?: Tr
         try {
             await vscode.window.withProgress(
                 { location: vscode.ProgressLocation.Notification, title: 'Loom: AI thinking…', cancellable: false },
-                async () => { await getMCP(root).callTool('loom_generate_chat_reply', { chatId }); }
+                async () => { await getMCP(root).callTool('loom_generate_chat_reply', { chat_ulid: chatId }); }
             );
             if (filePath) {
                 const updated = await vscode.workspace.openTextDocument(filePath);
