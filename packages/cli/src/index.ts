@@ -1,6 +1,15 @@
 import { Command } from 'commander';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createLoomMcpServer } from '../../mcp/dist/server';
+import { buildServerTelemetry, buildCliTelemetry, startTelemetrySession, flushOnExit, maybeShowCliNotice } from '../../mcp/dist/telemetryConfig';
+import {
+    trackCommandInvoked,
+    trackDocGenerated,
+    trackDocRefined,
+    trackPlanStarted,
+    trackStepCompleted,
+} from '../../app/dist/telemetry/events';
+import { TelemetryClient } from '../../telemetry/dist';
 import { initCommand } from './commands/init';
 import { installCommand } from './commands/install';
 import { setupCommand } from './commands/setup';
@@ -46,6 +55,32 @@ program
     .name('loom')
     .description('REslava Loom — Weave ideas into features with AI')
     .version(pkg.version);
+
+// CLI-direct telemetry (surface `cli`). Opt-in/Noop like every path. A commander
+// preAction hook records command_invoked + any loop event for terminal usage that
+// bypasses MCP; the long-lived `loom mcp` server builds its own client below.
+const cliTelemetry: TelemetryClient = buildCliTelemetry(pkg.version);
+flushOnExit(cliTelemetry);
+
+const CLI_LOOP_EVENT: Record<string, (t: TelemetryClient) => void> = {
+    'start-plan': (t) => trackPlanStarted(t),
+    'complete-step': (t) => trackStepCompleted(t),
+    'refine-design': (t) => trackDocRefined(t, 'design'),
+    idea: (t) => trackDocGenerated(t, 'idea'),
+    design: (t) => trackDocGenerated(t, 'design'),
+    plan: (t) => trackDocGenerated(t, 'plan'),
+};
+
+program.hook('preAction', (_thisCommand, actionCommand) => {
+    const name = actionCommand.name();
+    // The stdio `loom mcp` server must not print a notice onto its channel; it
+    // discloses via env/README. Interactive CLI-direct commands show it once.
+    if (name !== 'mcp') {
+        maybeShowCliNotice();
+    }
+    trackCommandInvoked(cliTelemetry, name);
+    CLI_LOOP_EVENT[name]?.(cliTelemetry);
+});
 
 program
     .command('install')
@@ -274,7 +309,9 @@ program
     .action(async () => {
         // Server is bundled in-process (see esbuild.js) — no runtime path to mcp/dist.
         const root = process.env['LOOM_ROOT'] ?? process.cwd();
-        const server = createLoomMcpServer(root);
+        const telemetry = buildServerTelemetry(pkg.version);
+        startTelemetrySession(telemetry);
+        const server = createLoomMcpServer(root, telemetry);
         const transport = new StdioServerTransport();
         try {
             await server.connect(transport);

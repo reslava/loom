@@ -35,8 +35,11 @@ The canonical dependency diagram and the full rule set live in
 [architecture-reference.md §1](architecture-reference.md). In one line:
 
 ```
-cli / vscode / mcp  →  app  →  core + fs      (never import upward)
+cli / vscode / mcp  →  app  →  core + fs + telemetry   (never import upward)
 ```
+
+(`telemetry` is a leaf infra package like `fs`, injected via `deps`; see
+[architecture-reference.md §1](architecture-reference.md).)
 
 Two implementation-side rules to keep in mind: **never import `vscode` outside
 `packages/vscode/`**, and `mcp` imports from `app` only — it is the gate.

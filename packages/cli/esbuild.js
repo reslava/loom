@@ -19,6 +19,12 @@ const options = {
     // declared as a real runtime dependency so npm installs it with its correct tree.
     external: ['@modelcontextprotocol/sdk'],
     banner: { js: '#!/usr/bin/env node' },
+    // Bake the PostHog project key (public, write-only) into the shipped bundle at
+    // release time. Unset at build ⇒ '' ⇒ telemetry can never send (Noop), so a
+    // key-less build is safe. Set LOOM_POSTHOG_KEY in the release environment.
+    define: {
+        'process.env.LOOM_POSTHOG_KEY': JSON.stringify(process.env.LOOM_POSTHOG_KEY || ''),
+    },
 };
 
 esbuild.build(options).catch(() => process.exit(1));

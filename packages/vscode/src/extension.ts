@@ -5,6 +5,7 @@ import * as path from 'path';
 // exists, so it cannot go through it. Reads .loom/ config, never loom/ docs.
 import * as fs from 'fs';
 import { execSync } from 'child_process';
+import { maybeShowTelemetryDisclosure } from './telemetryConsent';
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
 import { RoadmapDragAndDropController } from './tree/roadmapDnd';
 import { ViewStateManager } from './view/viewStateManager';
@@ -55,6 +56,9 @@ export interface LoomExtensionAPI {
 
 export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     console.log('🧵 Loom extension activated');
+
+    // One-time, non-blocking opt-in disclosure for usage telemetry (off by default).
+    void maybeShowTelemetryDisclosure(context);
 
     // Initialize icon base URI for custom icons
      setIconBaseUri(context.extensionUri);

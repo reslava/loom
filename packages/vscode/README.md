@@ -162,7 +162,15 @@ Click a row to **open the doc**. Use the inline actions to **include / exclude /
 
 ### Send feedback
 
-A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — opt-in, editable before you send, no background telemetry. It targets the workspace's git `origin` remote by default; set `reslava-loom.feedback.repo` to override the target repo.
+A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — opt-in, editable before you send, nothing sent automatically. It targets the workspace's git `origin` remote by default; set `reslava-loom.feedback.repo` to override the target repo.
+
+### Usage telemetry (opt-in, off by default)
+
+Separately from feedback, Loom can send **anonymous, content-free** usage telemetry so we can see whether the workflow loop is used and where people stall. It is **off by default**; on first activation Loom asks once, and sends nothing unless you choose *Enable*.
+
+- **Turn on/off:** the `reslava-loom.telemetry.enabled` setting (the kill switch — set it back to `false` any time).
+- **Sent only when on:** a random install id, Loom version, OS, `is_ci`, the surface (`extension`), and fixed workflow events (`workspace_activated`, `session_started`, `doc_generated`/`doc_refined` with the doc *type*, `plan_started`, `step_completed`, `plan_done`, `command_invoked`, `error`).
+- **Never sent:** document content, titles, slugs, paths, weave/thread names, or any PII. Events go to PostHog (EU).
 
 ---
 
@@ -216,6 +224,7 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 | `reslava-loom.ai.apiKey` | — | API key (fallback — not needed if Claude Code CLI is installed) |
 | `reslava-loom.ai.model` | — | Model override (blank = provider default) |
 | `reslava-loom.feedback.repo` | — | Target repo for *Send Feedback* as `owner/name` (blank = auto-detect from the git `origin` remote) |
+| `reslava-loom.telemetry.enabled` | `false` | Opt in to anonymous, content-free usage telemetry (never documents/titles/paths/PII). Off by default; this is also the kill switch |
 
 ---
 

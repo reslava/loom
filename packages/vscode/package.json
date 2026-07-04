@@ -444,6 +444,11 @@
           "type": "string",
           "default": "",
           "description": "Target GitHub repo for 'Loom: Send Feedback', as 'owner/name'. Leave blank to auto-detect from the workspace's git origin remote."
+        },
+        "reslava-loom.telemetry.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Opt in to anonymous, content-free usage telemetry: which commands run and where the workflow stalls — never your documents, titles, paths, or any PII. Off by default. See the README for the exact event list."
         }
       }
     },

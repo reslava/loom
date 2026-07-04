@@ -21,13 +21,16 @@ if [ "$LINT" = true ]; then
 fi
 
 echo "🧹 Cleaning dist folders..."
-rm -rf packages/core/dist packages/fs/dist packages/app/dist packages/cli/dist packages/mcp/dist
+rm -rf packages/core/dist packages/fs/dist packages/telemetry/dist packages/app/dist packages/cli/dist packages/mcp/dist
 
 echo "📦 Building core..."
 cd packages/core && npx tsc --build --force
 
 echo "📦 Building fs..."
 cd ../fs && npx tsc --build --force
+
+echo "📦 Building telemetry..."
+cd ../telemetry && npx tsc --build --force
 
 echo "📦 Building app..."
 cd ../app && npx tsc --build --force

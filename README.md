@@ -340,7 +340,16 @@ A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-wea
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
 | *Rename / Archive / Delete* | Inline doc management |
 
-A **Send Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts you can edit before sending — opt-in, no background telemetry. Set `reslava-loom.feedback.repo` to override the target repo (it defaults to the workspace's git `origin` remote).
+A **Send Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts you can edit before sending — opt-in, nothing is sent automatically. Set `reslava-loom.feedback.repo` to override the target repo (it defaults to the workspace's git `origin` remote).
+
+### Usage telemetry (opt-in, off by default)
+
+Separately from feedback, Loom can send **anonymous, content-free** usage telemetry so we can see whether the workflow loop is actually used and where people stall. It is **off by default** and sends nothing until you turn it on.
+
+- **What is sent** (only after you opt in): a random install id, Loom version, OS, `is_ci`, the entry surface (`extension`/`cli`/`agent`), and a fixed set of workflow events — `workspace_activated`, `session_started`, `doc_generated`/`doc_refined` (with the doc *type* only), `plan_started`, `step_completed`, `plan_done`, `command_invoked` (tool/command name), and `error` (operation + error class).
+- **What is never sent**: document content, titles, slugs, file paths, weave/thread names, or any PII.
+- **Turn it on**: set `reslava-loom.telemetry.enabled` to `true` in VS Code, or `LOOM_TELEMETRY=1` for the CLI / MCP server (e.g. in `.mcp.json` env). **Turn it off / kill switch**: set it back to `false` (or unset the env var) — that is all it takes; no id is created and nothing is sent while off.
+- Events go to PostHog (EU region).
 
 ### AI button paths
 

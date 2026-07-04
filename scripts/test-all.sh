@@ -202,6 +202,11 @@ run_test tests/create-plan-hardening.test.ts
 # counts-only snapshot shape (non-PII key allowlist, currentRelease via buildRoadmap)
 run_test tests/user-feedback.test.ts
 
+# telemetry: opt-in consent gate (createTelemetry→Noop unless enabled+key), consentFromEnv
+# opt-in semantics, content-free common props + taxonomy (scalar-only, exact event names),
+# install-id minted only on opt-in, and the MCP dispatch tool→event map (error class never leaks the message)
+run_test tests/telemetry.test.ts
+
 # Legacy integration tests
 run_test tests/id-management.test.ts
 run_test tests/multi-loom.test.ts

@@ -1,0 +1,13 @@
+{
+  "name": "@reslava-loom/telemetry",
+  "version": "1.15.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

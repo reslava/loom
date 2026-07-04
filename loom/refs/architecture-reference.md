@@ -41,11 +41,12 @@ CLI (packages/cli)          VSCode (packages/vscode)
          Query use-cases: searchDocs, getStaleDocs,
          getBlockedSteps (shared by MCP tools + CLI)
                                 │
-                 ┌──────────────┴──────────────┐
-                 ▼                             ▼
-         Domain Layer (core)    Infrastructure Layer (fs)
-         Entities, reducers,    Repositories, serializers,
-         events, validation     link index, path utils
+                 ┌──────────────┼──────────────┐
+                 ▼              ▼               ▼
+      Domain Layer (core)  Infra (fs)   Infra (telemetry)
+      Entities, reducers,  Repositories,  Opt-in, content-free
+      events, validation   serializers,   usage events → PostHog
+                           link index     (injected via deps)
 ```
 
 **Dependency rules (Stage 2):**
@@ -67,7 +68,14 @@ CLI (packages/cli)          VSCode (packages/vscode)
   It must **not** import `cli`/`vscode`. (Routing trivial reads through `app` too
   was considered and rejected as ceremony — the gate that earns its keep is on
   *mutations* and on *vscode → mcp*, not on read-only assembly.)
-- `app` may **only** import from `core` and `fs` (never `cli`/`vscode`/`mcp`).
+- `app` may **only** import from `core`, `fs`, and `telemetry` (never `cli`/`vscode`/`mcp`).
+- `telemetry` (`packages/telemetry`) is a **leaf infrastructure** package — like `fs`,
+  it is injected into consumers via `deps` and imports nothing from `core`/`fs`/`app`.
+  It carries the portable transport/consent/identity core only; the Loom event
+  vocabulary lives in `packages/app/src/telemetry`, and events are emitted at the
+  dispatcher seam (the MCP `CallTool` handler + the CLI command dispatch). Opt-in,
+  content-free, off by default. The concrete client is built at each delivery entry
+  (MCP server → `agent`, CLI → `cli`, extension-spawned server → `extension`).
 - `core` may **only** import from itself — zero sibling packages, zero node IO.
   Guarded by `tests/core-no-fs-imports.test.ts`.
 - `fs` may import from `core` and standard libraries only (never `app`/`cli`/`vscode`/`mcp`).
@@ -245,6 +253,7 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
   packages/
     core/                   ← domain: entities, reducers, events, validation
     fs/                     ← infrastructure: repositories, serializers, link index
+    telemetry/              ← infrastructure: opt-in, content-free usage events → PostHog
     app/                    ← use cases: all business operations
     cli/                    ← delivery: terminal commands
     vscode/                 ← delivery: VS Code extension (human surface)

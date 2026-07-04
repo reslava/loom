@@ -110,6 +110,14 @@ designing, writing code for a step) is done through your MCP agent.
 |---------|-------------|
 | `loom feedback [--repo <owner/name>] [--print]` | Open a prefilled GitHub issue to send feedback about Loom. **Opt-in:** it carries Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) that you review and edit before sending — nothing is sent automatically. Targets the workspace's git `origin` remote by default; `--repo` overrides the target, `--print` emits the URL instead of opening a browser. |
 
+### Usage telemetry (opt-in, off by default)
+
+Loom can optionally send **anonymous, content-free** usage telemetry so we can see whether the workflow loop is used and where people stall. It is **off by default** and sends nothing until you enable it.
+
+- **Enable:** `LOOM_TELEMETRY=1` (e.g. in your `.mcp.json` server env, which is where the agent-side `loom mcp` server reads it). **Disable / kill switch:** unset it or set `LOOM_TELEMETRY=0`.
+- **Sent only when on:** a random install id, Loom version, OS, `is_ci`, the surface (`cli`/`agent`), and fixed workflow events (`workspace_activated`, `session_started`, `doc_generated`/`doc_refined` with the doc *type*, `plan_started`, `step_completed`, `plan_done`, `command_invoked`, `error`).
+- **Never sent:** document content, titles, slugs, paths, weave/thread names, or any PII. Events go to PostHog (EU).
+
 ### MCP surface & queries
 
 These commands make the Loom MCP surface reachable from a plain terminal — no MCP host

@@ -3,6 +3,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CreateMessageRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { makeAIClient } from './ai/makeAIClient';
+import { getTelemetryEnv } from './telemetryConsent';
 
 // MCP SDK default request timeout is 60s. AI-bound tools (sampling round-trips
 // to remote LLMs) routinely exceed that on long inputs, producing
@@ -56,7 +57,7 @@ function createMCPClient(workspaceRoot: string): LoomMCPClient {
     const transport = new StdioClientTransport({
         command: 'loom',
         args: ['mcp'],
-        env: { ...process.env as Record<string, string>, LOOM_ROOT: workspaceRoot },
+        env: { ...process.env as Record<string, string>, LOOM_ROOT: workspaceRoot, ...getTelemetryEnv() },
         stderr: 'pipe',
     });
 

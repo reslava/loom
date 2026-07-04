@@ -5,7 +5,7 @@ title: loom — Global Context
 status: active
 created: 2026-04-29
 updated: 2026-07-04
-version: 11
+version: 12
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -99,8 +99,9 @@ The full doc-type table with file locations and frontmatter shape is in
 
 ## 3. Architecture — how Loom is *built*
 
-**Stage 2 layers:** `cli / vscode → mcp → app → core + fs`. Layers never import
-upward. The VS Code extension **must not** import `app` directly — MCP is the gate.
+**Stage 2 layers:** `cli / vscode → mcp → app → core + fs + telemetry`. Layers never
+import upward. `telemetry` is a leaf infra package (like `fs`) injected via `deps` —
+opt-in, content-free usage events; off by default. The VS Code extension **must not** import `app` directly — MCP is the gate.
 
 **Two API surfaces inside `app`:**
 - `getState(deps)` — builds link index once, loads all threads, returns `LoomState`. Read.

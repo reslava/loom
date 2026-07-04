@@ -73,6 +73,8 @@ import * as createReference from './tools/createReference';
 import * as setContextPrefs from './tools/setContextPrefs';
 import * as getContextPrefs from './tools/getContextPrefs';
 import { buildToolCatalog, registerToolCatalog, getToolCatalogBlock } from './catalog';
+import { TelemetryClient, noopTelemetry } from '../../telemetry/dist';
+import { emitToolSuccess, emitToolError } from './telemetryDispatch';
 import * as continueThread from './prompts/continueThread';
 import * as doNextStep from './prompts/doNextStep';
 import * as refineDesign from './prompts/refineDesign';
@@ -118,7 +120,7 @@ const RESOURCE_TEMPLATES = [
     { uriTemplate: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];
 
-export function createLoomMcpServer(root: string): Server {
+export function createLoomMcpServer(root: string, telemetry: TelemetryClient = noopTelemetry): Server {
     const server = new Server(
         { name: 'loom', version: '1.1.0' },
         { capabilities: { resources: {}, tools: {}, prompts: {} } }
@@ -203,7 +205,14 @@ export function createLoomMcpServer(root: string): Server {
         if (!tool) {
             throw new Error(`Unknown tool: ${name}`);
         }
-        return tool.handle(root, (args ?? {}) as Record<string, unknown>);
+        try {
+            const result = await tool.handle(root, (args ?? {}) as Record<string, unknown>);
+            emitToolSuccess(telemetry, name);
+            return result;
+        } catch (err) {
+            emitToolError(telemetry, name, err);
+            throw err;
+        }
     });
 
     server.setRequestHandler(ListPromptsRequestSchema, async () => ({
