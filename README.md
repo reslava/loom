@@ -28,9 +28,9 @@ grew, it became far more complex — and I ran into all the familiar problems of
 era. I came to dislike working in that window, with its ephemeral conversations that forgot
 everything between sessions.
 
-So I started keeping a `CLAUDE.md` file, to hold our design and planning discussions in a
-persistent Markdown document instead of a disposable chat. Soon I was organizing ideas,
-designs, and plans by feature — and I noticed that this gave the AI a precise context for
+So I started keeping a `{feature}/{slug}-chat.md` file, to hold our design and planning discussions in a
+persistent markdown document instead of a disposable chat. Soon I was organizing ideas,
+designs, and plans by feature in other markdown files — and I noticed that this gave the AI a precise context for
 each one. I began writing *done* documents with implementation notes, and reaching for
 context, reference, and requirements documents to give the AI a real sense of state: every
 session could start with exactly the information the work needed.
