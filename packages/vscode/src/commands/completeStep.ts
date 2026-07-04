@@ -27,7 +27,7 @@ export async function completeStepCommand(treeProvider: LoomTreeProvider, node?:
     try {
         const mcp = getMCP(root);
         for (const item of selected) {
-            await mcp.callTool('loom_complete_step', { planId: plan.id, stepNumber: item.stepOrder });
+            await mcp.callTool('loom_complete_step', { plan_ulid: plan.id, stepNumber: item.stepOrder });
         }
         const count = selected.length;
         vscode.window.showInformationMessage(`🧵 ${count} step${count > 1 ? 's' : ''} completed: ${plan.id}`);

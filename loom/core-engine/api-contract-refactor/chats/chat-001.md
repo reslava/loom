@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 52
+last_ai_block: 54
 ---
 # weave-idea-threadid-fix Chat
 
@@ -773,3 +773,30 @@ Two things I fixed inline while here (both were latent bugs, not just renames):
 **Discovered pre-existing issue (flagging, deferring):** the **Promote-to-Plan** launch prompt (`promoteToPlan.ts`) has the *same* stale `content`-table instruction for `loom_create_plan`. It belongs to the **promote family** (which also needs `target_weave_slug`/`target_thread_ulid`/`source_ulid`), so I'll fix the prompt + params together in that batch rather than half-touch it now.
 
 Committing. Remaining Chunk B: **plan-step** (10 tools → `plan_ulid`; carries the locked strict-ULID decision), **promote**, **generate**, **misc** (search/validate/refresh_ctx/context_prefs → `doc_ulid`, create_weave/rename_weave, and the `set_priority`/`set_thread_deps` MCP casing `threadUlid`→`thread_ulid`). Then Chunk C (tool renames).
+
+## AI:
+
+Create family committed. Investigated the **plan-step family** (10 tools: `add_step`, `close_plan`, `complete_step`, `append_done`, `do_step`, `list_plan_steps`, `remove_step`, `reorder_steps`, `start_plan`, `update_step`) before touching it, because it carries the one behavioral decision — Q2→(b) strict ULID-only (`plan_ulid` drops the current "ULID **or** filename stem" dual-accept).
+
+**Good news — strict is cheap and safe here.** I feared it meant surgery on the shared `resolveDocIdOrThrow` (which also resolves refs by slug), but it doesn't: I just add a boundary guard at each plan-step tool — `if (!/^pl_/i.test(plan_ulid)) throw` — *before* the resolver runs. The resolver is untouched; valid ULIDs flow through exactly as now.
+
+**What actually "breaks":** only `tests/resolution-dx.test.ts`, which *deliberately* asserts a filename stem (`demo-plan-001`) resolves — that assertion flips to "a stem is now rejected," which is the intended change, not a real regression. No production path relies on stems: the `do-next-step` prompt hands back the plan's ULID from state, and vscode/`start_plan` pass the doc id (ULID). So nothing real depends on stem-acceptance.
+
+So the plan-step family = (i) mechanical `planId → plan_ulid` rename across 10 tools + their app use-cases + callers + tests, plus (ii) the strict guard + flip that one test + drop the "stem also accepted" line from the 10 descriptions.
+
+**Recommendation: do full strict now** (option A) — it's the locked decision and it's inexpensive; the alternative (rename but keep tolerating stems) would leave the contract lying ("`plan_ulid`" while still accepting a stem).
+
+Note: these are the workflow tools I use to record progress (`complete_step`/`append_done`/`do_step`). After I build, the running MCP server is stale (still `planId`), so my own progress calls keep working until you reconnect — no mid-session breakage; the reconnect is only for live-verifying the renamed schemas.
+
+This is a clean checkpoint (3 committed: folder-ops, req, create). **Confirm full-strict for the plan-step family and I'll proceed** — or say the word and I'll keep rolling.
+
+## AI:
+
+**Chunk B — plan-step family done (full strict), build + test green.** All 10 tools (`add_step`, `close_plan`, `complete_step`, `append_done`, `do_step`, `list_plan_steps`, `remove_step`, `reorder_steps`, `start_plan`, `update_step`):
+
+- MCP schemas → `plan_ulid`; a shared `requirePlanUlid()` guard enforces strict ULID-only (`/^pl_/`) at each boundary — a filename stem/title is rejected with a clear message, not silently resolved. App use-case inputs → `planUlid` (`completeStep`/`closePlan`/`addStep`/`removeStep`/`reorderSteps`/`updateStep`); internal `WorkflowEvent.planId` fields stay (core event schema). Callers updated: `quickShip`, CLI `complete-step`, and the vscode commands + **launch prompts** (`do_step`/`complete`/`close`/`start`; the `buildPrompt` CLI-agent text now says `plan_ulid`).
+- **Tests:** `resolution-dx` flipped — `start_plan` now *rejects* a stem strictly (find_doc/update_doc still suggest the ULID, since they take a generic doc `id`). `append-done` / `context-dispatcher` / the MCP integration fixture now seed **real `pl_` ULIDs** (via a new optional `id` on the `createPlanDoc` test helper) while keeping the humanised `plan-NNN.md` filename — `resolveWeaveIdForPlan` derives the weave from the resolved *path*, never by parsing the id, so a ULID id works cleanly.
+
+**One consistency note (flagging, not blocking):** the app-layer `doStep` use-case (a *separate* AI-body path, not one of the 10 renamed tools and not reached by `loom_do_step`) still takes `planId`. Left as-is to bound scope — a tiny follow-up if we want the whole app camelCase-consistent.
+
+Committing. Remaining Chunk B: **promote** (`source_ulid`/`target_weave_slug`/`target_thread_ulid` + fix the stale content-table prompt), **generate**, **misc** (search/validate/refresh_ctx/context_prefs `doc_ulid`, create_weave/rename_weave, `set_priority`/`set_thread_deps` MCP casing). Then Chunk C (tool renames). As before: after this build the running MCP server is stale (still `planId`), so my progress calls keep working until you reconnect — reconnect is only for live-verifying the renamed schemas.

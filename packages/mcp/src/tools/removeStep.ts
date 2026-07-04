@@ -1,6 +1,7 @@
 import { loadWeave, saveDocs } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { removeStep as removeStepUseCase } from '../../../app/dist/removeStep';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_remove_step',
@@ -8,15 +9,15 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (ULID e.g. "pl_01J…" or filename stem).' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             stepId: { type: 'string', description: 'The stable id of the step to remove (the `id` field in the steps frontmatter).' },
         },
-        required: ['planId', 'stepId'],
+        required: ['plan_ulid', 'stepId'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const stepId = args['stepId'] as string;
 
     const loadWeaveStrict = async (r: string, w: string) => {
@@ -31,6 +32,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const result = await removeStepUseCase({ planId, stepId }, deps);
+    const result = await removeStepUseCase({ planUlid, stepId }, deps);
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

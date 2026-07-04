@@ -126,10 +126,14 @@ export function mockAIClient(response: string) {
 export async function createPlanDoc(
     weavePath: string,
     planId: string,
-    options?: { status?: string; steps?: Array<{ order: number; description: string; done: boolean }>; threadId?: string }
+    options?: { status?: string; steps?: Array<{ order: number; description: string; done: boolean }>; threadId?: string; id?: string }
 ): Promise<string> {
     // Use weaveId-prefix as threadId (critical invariant: planId.split('-plan-')[0] == weaveId)
     const threadId = options?.threadId ?? planId.split('-plan-')[0];
+    // The frontmatter identity defaults to the filename stem, but a caller can supply a
+    // real pl_ ULID (strict API contract: plan tools accept the ULID only) while keeping
+    // a human plan-NNN filename.
+    const docId = options?.id ?? planId;
     const threadPath = path.join(weavePath, threadId);
     const plansDir = path.join(threadPath, 'plans');
     await fs.ensureDir(plansDir);
@@ -146,7 +150,7 @@ export async function createPlanDoc(
 
     const content = `---
 type: plan
-id: ${planId}
+id: ${docId}
 title: Test Plan ${planId}
 status: ${options?.status ?? 'implementing'}
 created: ${new Date().toISOString().split('T')[0]}

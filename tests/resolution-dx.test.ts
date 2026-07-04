@@ -82,14 +82,17 @@ async function run() {
         ['Document not found', 'did you mean', PLAN_ULID]);
     console.log('  ✓ filename stem misses and suggests the canonical ULID');
 
-    // 5. Suggestion surfaces through the routed tools.
+    // 5. Suggestion surfaces through the id-resolving tools (find_doc / update_doc take
+    //    a generic doc `id`, resolved with suggest-on-miss).
     await expectThrow(() => findDocHandle(root, { id: 'demo-plan-001' }),
         ['did you mean', PLAN_ULID]);
     await expectThrow(() => updateDocHandle(root, { id: 'demo-plan-001', content: 'x' }),
         ['did you mean', PLAN_ULID]);
-    await expectThrow(() => startPlanHandle(root, { planId: 'demo-plan-001' }),
-        ['did you mean', PLAN_ULID]);
-    console.log('  ✓ find_doc / update_doc / start_plan all surface the suggestion');
+    // start_plan is stricter (API contract: plan_ulid accepts the ULID only) — a
+    // filename stem is rejected at the boundary rather than resolved/suggested.
+    await expectThrow(() => startPlanHandle(root, { plan_ulid: 'demo-plan-001' }),
+        ['plan_ulid must be', 'pl_']);
+    console.log('  ✓ find_doc / update_doc suggest the ULID; start_plan rejects a non-ULID strictly');
 
     // 6. The rollout: suggestion also surfaces through a routed read-resource and a
     //    routed tool that previously returned a bare "not found".

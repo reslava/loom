@@ -230,20 +230,20 @@ async function run() {
         const ids0 = detailOrder(born.content);
 
         // reorder → [3rd, 1st, 2nd]
-        await reorderSteps({ planId: created.id, orderedStepIds: [ids0[2], ids0[0], ids0[1]] }, deps);
+        await reorderSteps({ planUlid: created.id, orderedStepIds: [ids0[2], ids0[0], ids0[1]] }, deps);
         const afterReorder: any = await loadDoc(created.filePath);
         assert(detailOrder(afterReorder.content).join(',') === [ids0[2], ids0[0], ids0[1]].join(','), 'saved body detail reflows by id after reorder');
         assert(proseFor(afterReorder.content, ids0[2]) === 'third detail', 'reorder kept prose with its id through the saver');
 
         // add a step with detail (append)
-        const addRes = await addStep({ planId: created.id, step: { description: 'Fourth', title: 'Fourth', detail: 'fourth detail' } }, deps);
+        const addRes = await addStep({ planUlid: created.id, step: { description: 'Fourth', title: 'Fourth', detail: 'fourth detail' } }, deps);
         const newId = addRes.plan.steps[addRes.plan.steps.length - 1].id;
         const afterAdd: any = await loadDoc(created.filePath);
         assert(detailOrder(afterAdd.content).includes(newId), 'saved body gained the new step detail section');
         assert(proseFor(afterAdd.content, newId) === 'fourth detail', 'new step detail persisted through the saver');
 
         // remove the first id (ids0[0]) → its section pruned
-        const rmRes = await removeStep({ planId: created.id, stepId: ids0[0] }, deps);
+        const rmRes = await removeStep({ planUlid: created.id, stepId: ids0[0] }, deps);
         assert(Array.isArray(rmRes.strippedBlockers), 'removeStep reports strippedBlockers');
         const afterRemove: any = await loadDoc(created.filePath);
         assert(!detailOrder(afterRemove.content).includes(ids0[0]), 'removed step detail section pruned from saved body');

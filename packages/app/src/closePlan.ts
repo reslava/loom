@@ -7,7 +7,7 @@ import { PlanDoc } from '../../core/dist/entities/plan';
 import { planReducer } from '../../core/dist/reducers/planReducer';
 
 export interface ClosePlanInput {
-    planId: string;
+    planUlid: string;
     notes?: string;
 }
 
@@ -33,12 +33,12 @@ export async function closePlan(
     input: ClosePlanInput,
     deps: ClosePlanDeps
 ): Promise<{ donePath: string; planId: string }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planId);
+    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planId) as PlanDoc | undefined;
-    if (!plan) throw new Error(`Plan '${input.planId}' not found in weave '${weaveId}'.`);
+    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planUlid) as PlanDoc | undefined;
+    if (!plan) throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'.`);
 
-    const thread = weave.threads.find((t: any) => t.plans.some((p: any) => p.id === input.planId)) as any;
+    const thread = weave.threads.find((t: any) => t.plans.some((p: any) => p.id === input.planUlid)) as any;
 
     const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
     const threadPath = thread ? path.join(weavePath, thread.id) : null;
@@ -46,7 +46,7 @@ export async function closePlan(
 
     // Done id stays ULID-derived (stable); filename humanises to plan-NNN-done.md.
     // Dual-read: keep a pre-existing legacy {planId}-done.md so we append to the same file.
-    const doneId = `${input.planId}-done`;
+    const doneId = `${input.planUlid}-done`;
     const planOrd = (plan as any)._path ? planOrdinalFromFile(path.basename((plan as any)._path)) : null;
     const canonicalDoneFile = planOrd !== null ? doneFileName(planOrd) : `${doneId}.md`;
     const legacyDoneFile = `${doneId}.md`;
@@ -64,7 +64,7 @@ export async function closePlan(
     // No done content and nothing to write — fail loud instead of stubbing.
     if (!notes && !doneExists) {
         throw new Error(
-            `No done content for plan '${input.planId}': the done doc does not exist and no notes were provided. ` +
+            `No done content for plan '${input.planUlid}': the done doc does not exist and no notes were provided. ` +
             `Author it with loom_append_done per step, or pass notes to loom_close_plan.`
         );
     }
@@ -92,7 +92,7 @@ export async function closePlan(
                 created: today(),
                 version: 1,
                 tags: [],
-                parent_id: input.planId,
+                parent_id: input.planUlid,
                 requires_load: [],
                 content: `\n${notes}\n`,
             };
@@ -108,11 +108,11 @@ export async function closePlan(
 
     if (threadPath) {
         // Thread plan: update in place; done doc is the separate record.
-        const planPath = (plan as any)._path ?? path.join(threadPath, 'plans', `${input.planId}.md`);
+        const planPath = (plan as any)._path ?? path.join(threadPath, 'plans', `${input.planUlid}.md`);
         await deps.saveDoc(updatedPlan, planPath);
     } else {
         // Flat/loose plan: move to done/.
-        const newPlanPath = path.join(doneDirPath, `${input.planId}.md`);
+        const newPlanPath = path.join(doneDirPath, `${input.planUlid}.md`);
         await deps.saveDoc(updatedPlan, newPlanPath);
         const oldPlanPath = (plan as any)._path as string | undefined;
         if (oldPlanPath && await deps.fs.pathExists(oldPlanPath)) {
@@ -120,5 +120,5 @@ export async function closePlan(
         }
     }
 
-    return { donePath, planId: input.planId };
+    return { donePath, planId: input.planUlid };
 }

@@ -3,7 +3,7 @@ import { PlanDoc } from '../../core/dist/entities/plan';
 import { WorkflowEvent } from '../../core/dist/events/workflowEvent';
 
 export interface ReorderStepsInput {
-    planId: string;
+    planUlid: string;
     /** Full ordered list of the plan's step ids. Must be a permutation (no adds/drops). */
     orderedStepIds: string[];
 }
@@ -18,17 +18,17 @@ export async function reorderSteps(
     input: ReorderStepsInput,
     deps: ReorderStepsDeps
 ): Promise<{ plan: PlanDoc }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planId);
+    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
 
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId);
+    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
     if (!plan) {
-        throw new Error(`Plan '${input.planId}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
     }
 
-    await deps.runEvent(weaveId, { type: 'REORDER_STEPS', planId: input.planId, orderedStepIds: input.orderedStepIds } as WorkflowEvent);
+    await deps.runEvent(weaveId, { type: 'REORDER_STEPS', planId: input.planUlid, orderedStepIds: input.orderedStepIds } as WorkflowEvent);
 
     const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId)!;
+    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     return { plan: updatedPlan };
 }

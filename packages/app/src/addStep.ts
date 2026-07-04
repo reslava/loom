@@ -6,7 +6,7 @@ import { WorkflowEvent } from '../../core/dist/events/workflowEvent';
 /** Add-step input at the use-case boundary. `files` maps to the step's `files_touched`;
  *  `title`/`detail` seed the new step's body detail section (Option-A saver). */
 export interface AddStepInput {
-    planId: string;
+    planUlid: string;
     step: {
         description: string;
         title?: string;
@@ -32,12 +32,12 @@ export async function addStep(
         throw new Error('addStep requires step.description.');
     }
 
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planId);
+    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
 
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId);
+    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
     if (!plan) {
-        throw new Error(`Plan '${input.planId}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
     }
 
     const step: NewStep = {
@@ -51,12 +51,12 @@ export async function addStep(
 
     await deps.runEvent(weaveId, {
         type: 'ADD_STEP',
-        planId: input.planId,
+        planId: input.planUlid,
         step,
         ...(input.position !== undefined ? { position: input.position } : {}),
     } as WorkflowEvent);
 
     const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId)!;
+    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     return { plan: updatedPlan };
 }

@@ -139,11 +139,14 @@ async function makeWorkspace() {
     await outputFile(path.join(TMP, '.loom', 'workflow.yml'), 'version: 1\n');
     const weaveId = 'cd-weave';
     const weavePath = path.join(TMP, 'loom', weaveId);
-    const planId = `${weaveId}-plan-001`;
+    const stem = `${weaveId}-plan-001`;
+    // The plan's identity is a stable pl_ ULID (strict API contract); the filename stays
+    // the human plan stem. do_step / the context resource address it by the ULID.
+    const planUlid = 'pl_CTXDISPATCH0000000000000001';
     // design lives in the same thread (threadId == weaveId) so the plan bundle includes it
     await createDesignDoc(weavePath, weaveId, { threadId: weaveId, status: 'active' });
-    await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
-    return { root: TMP, planId };
+    await createPlanDoc(weavePath, stem, { status: 'implementing', id: planUlid } as any);
+    return { root: TMP, planId: planUlid };
 }
 
 function parseBrief(res: any) {
@@ -156,7 +159,7 @@ async function roundTripTests() {
 
     // ── first touch: full bundle, no ledger ───────────────────────────────────
     console.log('  • first do_step call injects the full bundle...');
-    const brief1 = parseBrief(await doStepHandle(root, { planId, stepNumber: 1 }));
+    const brief1 = parseBrief(await doStepHandle(root, { plan_ulid: planId, stepNumber: 1 }));
     assert(brief1.contextSkipped === false, 'first call must not be skipped');
     assert(Array.isArray(brief1.contextManifest) && brief1.contextManifest.length === 0, 'first call manifest must be empty');
     assert(typeof brief1.threadContext === 'string' && brief1.threadContext.includes('id: ' + planId), 'bundle must contain the plan');
@@ -170,7 +173,7 @@ async function roundTripTests() {
 
     // ── second touch, full ledger declared → 0 delta, manifest covers all ─────
     console.log('  • re-call with the full ledger → empty delta + manifest covers all...');
-    const brief2 = parseBrief(await doStepHandle(root, { planId, stepNumber: 1, alreadyLoaded: ledger }));
+    const brief2 = parseBrief(await doStepHandle(root, { plan_ulid: planId, stepNumber: 1, alreadyLoaded: ledger }));
     assert(brief2.contextManifest.length === ledger.length, 'manifest must list every assumed-present doc');
     assert(brief2.threadContext.includes('docs=0'), `delta should be empty (docs=0), got header: ${brief2.threadContext.slice(0, 80)}`);
     assert(brief2.threadContext.length < brief1.threadContext.length, 'deduped context must be shorter than the full bundle');
@@ -178,7 +181,7 @@ async function roundTripTests() {
 
     // ── coarse skip flag suppresses the whole bundle ──────────────────────────
     console.log('  • context:"skip" suppresses the bundle entirely...');
-    const brief3 = parseBrief(await doStepHandle(root, { planId, stepNumber: 1, context: 'skip' }));
+    const brief3 = parseBrief(await doStepHandle(root, { plan_ulid: planId, stepNumber: 1, context: 'skip' }));
     assert(brief3.contextSkipped === true, 'skip flag must set contextSkipped');
     assert(/suppressed/i.test(brief3.threadContext), 'skip flag must replace the bundle with a suppression marker');
     console.log('    ✅ skip shortcut suppresses the bundle');

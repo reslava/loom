@@ -16,7 +16,7 @@ export async function closePlanCommand(treeProvider: LoomTreeProvider, node?: Tr
     if (notes === undefined) return;
 
     try {
-        const result = await getMCP(root).callTool('loom_close_plan', { planId: plan.id, notes: notes || undefined }) as any;
+        const result = await getMCP(root).callTool('loom_close_plan', { plan_ulid: plan.id, notes: notes || undefined }) as any;
         treeProvider.refresh();
         if (result?.donePath) {
             const doc = await vscode.workspace.openTextDocument(result.donePath);

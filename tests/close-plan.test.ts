@@ -68,7 +68,7 @@ async function testClosePlan() {
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
 
         const NOTES = 'Implemented X by editing foo.ts and bar.ts. Skipped step 3 (out of scope).';
-        const result = await closePlan({ planId, notes: NOTES }, makeDeps(loomRoot));
+        const result = await closePlan({ planUlid: planId, notes: NOTES }, makeDeps(loomRoot));
 
         const threadId = planId.split('-plan-')[0];
         const threadPath = path.join(weavePath, threadId);
@@ -108,7 +108,7 @@ async function testClosePlan() {
         });
         const donePath = await seedDoneDoc(weavePath, planId, '## Step 1 — Done step\n\nPer-step record from loom_append_done.');
 
-        await closePlan({ planId, notes: 'Closing summary across all steps.' }, makeDeps(loomRoot));
+        await closePlan({ planUlid: planId, notes: 'Closing summary across all steps.' }, makeDeps(loomRoot));
 
         const updated = await loadDoc(donePath) as any;
         assert(updated.content.includes('Per-step record from loom_append_done.'), 'existing per-step content must be preserved');
@@ -129,7 +129,7 @@ async function testClosePlan() {
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
         const donePath = await seedDoneDoc(weavePath, planId, '## Step 1 — A\n\nNotes A.');
 
-        await closePlan({ planId }, makeDeps(loomRoot));
+        await closePlan({ planUlid: planId }, makeDeps(loomRoot));
 
         const after = await loadDoc(donePath) as any;
         assert(after.version === 1, 'done doc must be left untouched (version unchanged)');
@@ -150,7 +150,7 @@ async function testClosePlan() {
 
         let threw = false;
         try {
-            await closePlan({ planId }, makeDeps(loomRoot));
+            await closePlan({ planUlid: planId }, makeDeps(loomRoot));
         } catch (e: any) {
             threw = true;
             assert(/No done content/.test(e.message), 'error must explain the missing done content');
@@ -184,7 +184,7 @@ requires_load: []
 `);
         let threw = false;
         try {
-            await closePlan({ planId: `${weaveId}-plan-999`, notes: 'x' }, makeDeps(loomRoot));
+            await closePlan({ planUlid: `${weaveId}-plan-999`, notes: 'x' }, makeDeps(loomRoot));
         } catch {
             threw = true;
         }

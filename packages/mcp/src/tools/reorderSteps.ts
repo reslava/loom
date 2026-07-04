@@ -1,6 +1,7 @@
 import { loadWeave, saveDocs } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { reorderSteps as reorderStepsUseCase } from '../../../app/dist/reorderSteps';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_reorder_steps',
@@ -8,15 +9,15 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (ULID e.g. "pl_01J…" or filename stem).' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             orderedStepIds: { type: 'array', items: { type: 'string' }, description: 'Every step id of the plan, in the desired new order.' },
         },
-        required: ['planId', 'orderedStepIds'],
+        required: ['plan_ulid', 'orderedStepIds'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const orderedStepIds = (args['orderedStepIds'] as string[]) ?? [];
 
     const loadWeaveStrict = async (r: string, w: string) => {
@@ -31,6 +32,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const result = await reorderStepsUseCase({ planId, orderedStepIds }, deps);
+    const result = await reorderStepsUseCase({ planUlid, orderedStepIds }, deps);
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

@@ -4,7 +4,7 @@ import { PlanDoc } from '../../core/dist/entities/plan';
 import { WorkflowEvent } from '../../core/dist/events/workflowEvent';
 
 export interface CompleteStepInput {
-    planId: string;
+    planUlid: string;
     step: number;
 }
 
@@ -18,14 +18,14 @@ export async function completeStep(
     input: CompleteStepInput,
     deps: CompleteStepDeps
 ): Promise<{ plan: PlanDoc; autoCompleted: boolean }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planId);
+    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
     const stepIndex = input.step - 1;
 
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId);
+    const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
 
     if (!plan) {
-        throw new Error(`Plan '${input.planId}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
     }
 
     if (plan.status !== 'implementing') {
@@ -40,10 +40,10 @@ export async function completeStep(
         throw new Error(`Step ${input.step} is already completed.`);
     }
 
-    await deps.runEvent(weaveId, { type: 'COMPLETE_STEP', planId: input.planId, stepIndex } as WorkflowEvent);
+    await deps.runEvent(weaveId, { type: 'COMPLETE_STEP', planId: input.planUlid, stepIndex } as WorkflowEvent);
 
     const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
-    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planId)!;
+    const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     const autoCompleted = updatedPlan.status === 'done';
 
     return { plan: updatedPlan, autoCompleted };

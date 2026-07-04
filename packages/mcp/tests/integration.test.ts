@@ -57,7 +57,7 @@ async function createFixture(): Promise<string> {
             'version: 1',
             'tags: []',
             'parent_id: null',
-            'child_ids: [tw-plan-001]',
+            'child_ids: [pl_TWPLAN00000000000000000001]',
             'requires_load: []',
             'role: primary',
             '---',
@@ -88,13 +88,15 @@ async function createFixture(): Promise<string> {
         ].join('\n')
     );
 
-    // plan doc: id must be {weaveId}-plan-NNN so completeStep can extract weaveId
+    // plan doc: identity is a stable pl_ ULID (the strict API contract); the filename
+    // stays a human plan-NNN.md. completeStep derives the weave from the resolved PATH,
+    // not by parsing the id (resolveWeaveIdForPlan → findDocumentById).
     await fsExtra.outputFile(
         path.join(threadDir, 'plans', 'tw-plan-001.md'),
         [
             '---',
             'type: plan',
-            'id: tw-plan-001',
+            'id: pl_TWPLAN00000000000000000001',
             'title: "TW Plan 001"',
             'status: implementing',
             'created: 2026-04-26',
@@ -207,10 +209,10 @@ async function run(): Promise<void> {
 
     // (b2) read loom://context for the plan (mode=implementing) — unified pipeline
     await test('read loom://context returns serialised bundle with provenance headers', async () => {
-        const result = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const result = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         const text = result.contents[0].text as string;
-        assert(text.includes('<!-- loom:context-bundle target=tw-plan-001 mode=implementing'), 'leading bundle comment missing');
-        assert(text.includes('id: tw-plan-001'), 'target plan header missing');
+        assert(text.includes('<!-- loom:context-bundle target=pl_TWPLAN00000000000000000001 mode=implementing'), 'leading bundle comment missing');
+        assert(text.includes('id: pl_TWPLAN00000000000000000001'), 'target plan header missing');
         assert(text.includes('id: t1-idea'), 'idea should be in the parent chain');
         assert(text.includes('id: t1-design'), 'design should be in the parent chain');
     });
@@ -218,12 +220,12 @@ async function run(): Promise<void> {
     // (b3) context prefs: set an exclude, confirm it lands in the bundle read path
     await test('loom_set_context_prefs exclusion drops the doc from loom://context', async () => {
         // Sanity: idea is in the bundle before any override (asserted in b2 too).
-        const before = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const before = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         assert((before.contents[0].text as string).includes('id: t1-idea'), 'idea present before exclude');
 
         const setRes = await client.callTool({
             name: 'loom_set_context_prefs',
-            arguments: { targetId: 'tw-plan-001', exclude: ['t1-idea'] },
+            arguments: { targetId: 'pl_TWPLAN00000000000000000001', exclude: ['t1-idea'] },
         });
         const setData = JSON.parse((setRes.content[0] as { text: string }).text);
         assert(setData.entry.exclude.includes('t1-idea'), 'set returns the persisted exclude');
@@ -231,13 +233,13 @@ async function run(): Promise<void> {
         // get round-trips
         const getRes = await client.callTool({
             name: 'loom_get_context_prefs',
-            arguments: { targetId: 'tw-plan-001' },
+            arguments: { targetId: 'pl_TWPLAN00000000000000000001' },
         });
         const getData = JSON.parse((getRes.content[0] as { text: string }).text);
         assert(getData.entry.exclude.includes('t1-idea'), 'get round-trips the exclude');
 
         // the resource now honours the persisted override — idea is gone
-        const after = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const after = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         const afterText = after.contents[0].text as string;
         assert(!afterText.includes('id: t1-idea'), 'idea should be excluded from the bundle after override');
         assert(afterText.includes('id: t1-design'), 'design should still be present');
@@ -245,9 +247,9 @@ async function run(): Promise<void> {
         // reset so later assertions / reuse see a clean target
         await client.callTool({
             name: 'loom_set_context_prefs',
-            arguments: { targetId: 'tw-plan-001', reset: true },
+            arguments: { targetId: 'pl_TWPLAN00000000000000000001', reset: true },
         });
-        const restored = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const restored = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         assert((restored.contents[0].text as string).includes('id: t1-idea'), 'idea returns after reset');
     });
 
@@ -278,13 +280,13 @@ async function run(): Promise<void> {
     await test('loom_complete_step marks step 1 done', async () => {
         const result = await client.callTool({
             name: 'loom_complete_step',
-            arguments: { planId: 'tw-plan-001', stepNumber: 1 },
+            arguments: { plan_ulid: 'pl_TWPLAN00000000000000000001', stepNumber: 1 },
         });
         const content = result.content[0] as { type: string; text: string };
         const data = JSON.parse(content.text);
         // completeStep returns a compact reference (Context Dispatcher, 1.6.0): the plan id,
         // the changed step, and a per-step status line — NOT the full plan body.
-        assert(data.planId === 'tw-plan-001', 'result.planId should match');
+        assert(data.planId === 'pl_TWPLAN00000000000000000001', 'result.planId should match');
         assert(data.completedStep?.order === 1 && data.completedStep?.status === 'done', 'completedStep should be step 1, done');
         assert(data.steps?.[0]?.status === 'done', 'step 1 should be marked done in the status line');
         assert(data.plan === undefined, 'the full plan body must NOT be echoed back');
@@ -345,7 +347,7 @@ async function run(): Promise<void> {
         const fin = JSON.parse((finRes.content[0] as { text: string }).text);
         assert(fin.status === 'locked', 'finalize returns status locked');
 
-        const ctx = await client.readResource({ uri: 'loom://context/tw-plan-001?mode=implementing' });
+        const ctx = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         const text = ctx.contents[0].text as string;
         assert(text.includes(created.id), 'req id should appear in the context bundle');
         assert(text.includes('The thing.'), 'req body should appear in the context bundle');
@@ -428,7 +430,7 @@ async function run(): Promise<void> {
         const created = JSON.parse((createRes.content[0] as { text: string }).text);
         const listRes = await client.callTool({
             name: 'loom_list_plan_steps',
-            arguments: { planId: created.id },
+            arguments: { plan_ulid: created.id },
         });
         const listed = JSON.parse((listRes.content[0] as { text: string }).text);
         const step1 = listed.steps.find((s: any) => s.order === 1);

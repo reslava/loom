@@ -1,6 +1,7 @@
 import { loadWeave, saveDocs } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { completeStep as completeStepUseCase } from '../../../app/dist/completeStep';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_complete_step',
@@ -8,15 +9,15 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             stepNumber: { type: 'number', description: 'Step number (1-based)' },
         },
-        required: ['planId', 'stepNumber'],
+        required: ['plan_ulid', 'stepNumber'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const stepNumber = args['stepNumber'] as number;
 
     const loadWeaveStrict = async (r: string, w: string) => {
@@ -31,7 +32,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const { plan, autoCompleted } = await completeStepUseCase({ planId, step: stepNumber }, deps);
+    const { plan, autoCompleted } = await completeStepUseCase({ planUlid, step: stepNumber }, deps);
 
     // Stopgap: do not echo the whole PlanDoc back on every call (redundant across a
     // multi-step session — the agent already holds the plan). Return a reference plus

@@ -1,6 +1,7 @@
 import * as fs from 'fs-extra';
 import { loadWeave, saveDoc } from '../../../fs/dist';
 import { closePlan as closePlanUseCase } from '../../../app/dist/closePlan';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_close_plan',
@@ -8,18 +9,18 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id to close' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID to close (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             notes: { type: 'string', description: 'Optional closing notes, written verbatim into the done doc' },
         },
-        required: ['planId'],
+        required: ['plan_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const notes = args['notes'] as string | undefined;
 
-    const result = await closePlanUseCase({ planId, notes }, {
+    const result = await closePlanUseCase({ planUlid, notes }, {
         loadWeave,
         saveDoc,
         fs,

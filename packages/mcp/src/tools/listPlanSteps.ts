@@ -1,5 +1,6 @@
 import { resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { PlanDoc } from '../../../core/dist/entities/plan';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_list_plan_steps',
@@ -7,14 +8,14 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
         },
-        required: ['planId'],
+        required: ['plan_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planId = requirePlanUlid(args);
 
     // Primary (agent-supplied) id → suggest-on-miss.
     const { filePath: planFilePath } = await resolveDocIdOrThrow(root, planId);

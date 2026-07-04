@@ -7,11 +7,11 @@ export async function startPlanCommand(treeProvider: LoomTreeProvider, node?: Tr
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
-    const planId = node?.doc?.id ?? await vscode.window.showInputBox({ prompt: 'Plan ID to start', placeHolder: 'e.g., payment-system-plan-001' });
+    const planId = node?.doc?.id ?? await vscode.window.showInputBox({ prompt: 'Plan ULID to start', placeHolder: 'e.g., pl_01J…' });
     if (!planId) return;
 
     try {
-        await getMCP(root).callTool('loom_start_plan', { planId });
+        await getMCP(root).callTool('loom_start_plan', { plan_ulid: planId });
         vscode.window.showInformationMessage(`🧵 Plan started: ${planId}`);
         treeProvider.refresh();
     } catch (e: any) {

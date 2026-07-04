@@ -6,6 +6,9 @@ import { loadDoc } from '../packages/fs/dist/index.js';
 import { handle as appendDoneHandle } from '../packages/mcp/dist/tools/appendDone.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-append-done-tests');
+// Plans are addressed by their stable pl_ ULID (strict API contract); the filename
+// stays a human plan-NNN.md. Each test uses a fresh root, so one ULID is reusable.
+const PLAN_ULID = 'pl_APPENDDONE0000000000000001';
 
 async function makeLoomRoot(): Promise<string> {
     await fs.remove(TMP);
@@ -35,7 +38,7 @@ async function run() {
         const weaveId = 'ad-weave1';
         const weavePath = path.join(root, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
-        await createPlanDoc(weavePath, planId, {
+        await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [
                 { order: 1, description: 'Build the thing', status: 'pending' },
@@ -43,7 +46,7 @@ async function run() {
             ],
         });
 
-        const res = parseResult(await appendDoneHandle(root, { planId, stepNumber: 1, notes: 'Edited foo.ts' }));
+        const res = parseResult(await appendDoneHandle(root, { plan_ulid: PLAN_ULID, stepNumber: 1, notes: 'Edited foo.ts' }));
         assert(res.created === true, 'first call must create the done doc');
         assert(JSON.stringify(res.stepNumbers) === JSON.stringify([1]), 'stepNumbers must be [1]');
 
@@ -61,7 +64,7 @@ async function run() {
         const weaveId = 'ad-weave2';
         const weavePath = path.join(root, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
-        await createPlanDoc(weavePath, planId, {
+        await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [
                 { order: 1, description: 'Step one', status: 'done' },
@@ -72,7 +75,7 @@ async function run() {
 
         // Provide out of order to prove the tool orders by step number.
         const res = parseResult(await appendDoneHandle(root, {
-            planId,
+            plan_ulid: PLAN_ULID,
             steps: [
                 { stepNumber: 3, notes: 'Did three' },
                 { stepNumber: 1, notes: 'Did one' },
@@ -100,13 +103,13 @@ async function run() {
         const weaveId = 'ad-weave3';
         const weavePath = path.join(root, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
-        await createPlanDoc(weavePath, planId, {
+        await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Only step', status: 'pending' }],
         });
 
-        await appendDoneHandle(root, { planId, stepNumber: 1, notes: 'first take' });
-        const res2 = parseResult(await appendDoneHandle(root, { planId, stepNumber: 1, notes: 'second take' }));
+        await appendDoneHandle(root, { plan_ulid: PLAN_ULID, stepNumber: 1, notes: 'first take' });
+        const res2 = parseResult(await appendDoneHandle(root, { plan_ulid: PLAN_ULID, stepNumber: 1, notes: 'second take' }));
         assert(res2.created === false, 'second call must update, not create');
 
         const donePath = await donePathFor(weavePath, planId);
@@ -125,14 +128,14 @@ async function run() {
         const weaveId = 'ad-weave4';
         const weavePath = path.join(root, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
-        await createPlanDoc(weavePath, planId, {
+        await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Real step', status: 'pending' }],
         });
 
         let threw = false;
         try {
-            await appendDoneHandle(root, { planId, steps: [{ stepNumber: 1, notes: 'ok' }, { stepNumber: 99, notes: 'nope' }] });
+            await appendDoneHandle(root, { plan_ulid: PLAN_ULID, steps: [{ stepNumber: 1, notes: 'ok' }, { stepNumber: 99, notes: 'nope' }] });
         } catch (e: any) {
             threw = true;
             assert(/Step 99 not found/.test(e.message), 'error names the missing step');
@@ -150,14 +153,14 @@ async function run() {
         const weaveId = 'ad-weave5';
         const weavePath = path.join(root, 'loom', weaveId);
         const planId = `${weaveId}-plan-001`;
-        await createPlanDoc(weavePath, planId, {
+        await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Real step', status: 'pending' }],
         });
 
         let threw = false;
         try {
-            await appendDoneHandle(root, { planId });
+            await appendDoneHandle(root, { plan_ulid: PLAN_ULID });
         } catch {
             threw = true;
         }

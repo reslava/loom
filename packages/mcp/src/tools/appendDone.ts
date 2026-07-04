@@ -4,6 +4,7 @@ import { resolveDocIdOrThrow, loadDoc, saveDoc } from '../../../fs/dist';
 import { createBaseFrontmatter, doneFileName, planOrdinalFromFile } from '../../../core/dist';
 import { DoneDoc } from '../../../core/dist/entities/done';
 import { PlanDoc } from '../../../core/dist/entities/plan';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_append_done',
@@ -11,7 +12,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             stepNumber: { type: 'number', description: 'Single-step form: step number (1-based). Omit when using `steps`.' },
             notes: { type: 'string', description: 'Single-step form: markdown notes for that step (files created/edited, decisions, etc.). Omit when using `steps`.' },
             steps: {
@@ -27,7 +28,7 @@ export const toolDef = {
                 },
             },
         },
-        required: ['planId'],
+        required: ['plan_ulid'],
     },
 };
 
@@ -85,7 +86,7 @@ function upsertSection(sections: Section[], stepNumber: number, newSection: Sect
 }
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planId = requirePlanUlid(args);
 
     // Normalize single | batch input into one ordered list of entries.
     const rawSteps = args['steps'];

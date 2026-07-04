@@ -2,6 +2,7 @@ import { loadWeave, saveDocs } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { addStep as addStepUseCase } from '../../../app/dist/addStep';
 import { StepPosition } from '../../../core/dist/events/planEvents';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_add_step',
@@ -9,7 +10,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (ULID e.g. "pl_01J…" or filename stem).' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             description: { type: 'string', description: 'The new step (the table "Step" cell). Required.' },
             title: { type: 'string', description: 'Optional short heading for the step\'s `### Step N — {title}` detail section. Defaults to the description.' },
             files: { type: 'array', items: { type: 'string' }, description: 'Files this step touches ("Files touched" column).' },
@@ -19,12 +20,12 @@ export const toolDef = {
             after: { type: 'string', description: 'Insert immediately after this existing step id. Mutually exclusive with `before`.' },
             before: { type: 'string', description: 'Insert immediately before this existing step id. Mutually exclusive with `after`.' },
         },
-        required: ['planId', 'description'],
+        required: ['plan_ulid', 'description'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const after = args['after'] as string | undefined;
     const before = args['before'] as string | undefined;
     if (after !== undefined && before !== undefined) {
@@ -54,6 +55,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const result = await addStepUseCase({ planId, step, position }, deps);
+    const result = await addStepUseCase({ planUlid, step, position }, deps);
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

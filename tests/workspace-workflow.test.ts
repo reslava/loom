@@ -58,11 +58,11 @@ async function testWorkspaceWorkflow() {
             loomRoot,
         };
 
-        const r1 = await completeStep({ planId, step: 1 }, deps);
+        const r1 = await completeStep({ planUlid: planId, step: 1 }, deps);
         assert(r1.autoCompleted === false, 'step 1 must not auto-complete plan');
         assert(r1.plan.steps[0].status === 'done', 'step 1 must be marked done');
 
-        const r2 = await completeStep({ planId, step: 2 }, deps);
+        const r2 = await completeStep({ planUlid: planId, step: 2 }, deps);
         assert(r2.autoCompleted === true, 'all steps done must auto-complete plan');
         assert(r2.plan.status === 'done', 'plan status must be done after auto-complete');
         console.log('    ✅ completeStep + auto-complete works');
@@ -75,7 +75,7 @@ async function testWorkspaceWorkflow() {
         const { threadPath, planId } = await seedWeaveWithThread(loomRoot, 'ww-weave3', 'feature-c', { planStatus: 'done' });
 
         await closePlan(
-            { planId, notes: 'Workspace closing note.' },
+            { planUlid: planId, notes: 'Workspace closing note.' },
             {
                 loadWeave: makeLoadWeave(loomRoot),
                 saveDoc,
@@ -144,7 +144,7 @@ async function testWorkspaceWorkflow() {
         );
 
         await closePlan(
-            { planId, notes: 'Done summary.' },
+            { planUlid: planId, notes: 'Done summary.' },
             { loadWeave: loadW, saveDoc, fs: fsDeps, loomRoot }
         );
 

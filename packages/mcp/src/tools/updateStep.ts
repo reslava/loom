@@ -1,6 +1,7 @@
 import { loadWeave, saveDocs } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { updateStep as updateStepUseCase } from '../../../app/dist/updateStep';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_update_step',
@@ -8,19 +9,19 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id (ULID e.g. "pl_01J…" or filename stem).' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             stepId: { type: 'string', description: 'The step\'s stable id (the `id` field in the steps frontmatter, e.g. "loom-patch-doc").' },
             description: { type: 'string', description: 'New step description (the table "Step" cell). Omit to leave unchanged.' },
             files: { type: 'array', items: { type: 'string' }, description: 'Replacement "Files touched" list. Omit to leave unchanged.' },
             blockedBy: { type: 'array', items: { type: 'string' }, description: 'Replacement blockedBy list (step ids / plan ids). Omit to leave unchanged.' },
             satisfies: { type: 'array', items: { type: 'string' }, description: 'Replacement satisfies list (requirement handles). Omit to leave unchanged.' },
         },
-        required: ['planId', 'stepId'],
+        required: ['plan_ulid', 'stepId'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planUlid = requirePlanUlid(args);
     const stepId = args['stepId'] as string;
     const patch = {
         ...(args['description'] !== undefined ? { description: args['description'] as string } : {}),
@@ -41,6 +42,6 @@ export async function handle(root: string, args: Record<string, unknown>) {
         loomRoot: root,
     };
 
-    const result = await updateStepUseCase({ planId, stepId, patch }, deps);
+    const result = await updateStepUseCase({ planUlid, stepId, patch }, deps);
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }

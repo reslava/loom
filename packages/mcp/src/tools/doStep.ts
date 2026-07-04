@@ -4,11 +4,12 @@ import { PlanDoc } from '../../../core/dist/entities/plan';
 import { Document, ContextBundle } from '../../../core/dist';
 import { serializeBundle } from '../../../app/dist/context/serializeBundle';
 import { handleContextResource } from '../resources/context';
+import { requirePlanUlid } from './planUlid';
 
 const INSTRUCTIONS = `Implement this step using your file-editing tools (Read, Edit, Write, Bash, etc.).
 After implementation:
-1. Call loom_append_done with { planId, stepNumber, notes } where "notes" summarizes what you actually did (files created/edited, decisions made).
-2. Call loom_complete_step with { planId, stepNumber } to mark the step ✅.
+1. Call loom_append_done with { plan_ulid, stepNumber, notes } where "notes" summarizes what you actually did (files created/edited, decisions made).
+2. Call loom_complete_step with { plan_ulid, stepNumber } to mark the step ✅.
 If you reach a decision that needs human input, stop and ask — do not guess.`;
 
 export const toolDef = {
@@ -17,7 +18,7 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
             stepNumber: { type: 'number', description: 'Optional. Specific step number to brief. If omitted, the first not-done step is used.' },
             context_ids: { type: 'array', items: { type: 'string' }, description: 'Optional. Additional doc IDs to inject into the brief context.' },
             context: { type: 'string', enum: ['skip'], description: 'Optional. Coarse "I hold the whole thread" shortcut: suppress the entire thread context bundle (~6–7k tokens). Use for the 2nd+ step of the same plan when nothing changed. For precise per-doc dedupe (e.g. after a refine bumped one doc) use alreadyLoaded instead.' },
@@ -35,12 +36,12 @@ export const toolDef = {
                 description: 'Optional. The context ledger (Context Dispatcher, model C): the {id, version} docs you already hold this session. The brief injects ONLY the delta (docs absent from the ledger or whose version changed) and reports the assumed-present rest in `contextManifest`. The precise form of context:"skip"; declaring every thread doc here ≡ skip. A version bump always re-injects, so there is no silent under-load.',
             },
         },
-        required: ['planId'],
+        required: ['plan_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planId = args['planId'] as string;
+    const planId = requirePlanUlid(args);
     const stepNumber = typeof args['stepNumber'] === 'number' ? (args['stepNumber'] as number) : undefined;
     const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
     const skipContext = args['context'] === 'skip' || args['brief_only'] === true;

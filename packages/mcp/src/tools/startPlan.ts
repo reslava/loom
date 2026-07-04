@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { loadWeave, saveDocs, resolveDocIdOrThrow } from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
+import { requirePlanUlid } from './planUlid';
 
 export const toolDef = {
     name: 'loom_start_plan',
@@ -8,14 +9,14 @@ export const toolDef = {
     inputSchema: {
         type: 'object' as const,
         properties: {
-            planId: { type: 'string', description: 'Plan id. Canonical form is the ULID (e.g. "pl_01J…"); the filename stem (e.g. "my-weave-plan-001") is also accepted and resolved.' },
+            plan_ulid: { type: 'string', description: 'Plan\'s stable pl_ ULID (e.g. "pl_01J…"). ULID only — a filename stem or title is rejected.' },
         },
-        required: ['planId'],
+        required: ['plan_ulid'],
     },
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const planKey = args['planId'] as string;
+    const planKey = requirePlanUlid(args);
     // Resolve filename-stems / typos to the canonical plan id (with suggest-on-miss),
     // then derive the weave from the resolved path.
     const { id: planId, filePath } = await resolveDocIdOrThrow(root, planKey);

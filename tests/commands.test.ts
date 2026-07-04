@@ -129,14 +129,14 @@ async function testCompleteStepUseCase() {
     const deps = { loadWeave: loadWeaveOrThrow, runEvent: runEventBound, loomRoot };
 
     console.log('  • completeStep: mark step 1 done...');
-    const r1 = await completeStep({ planId, step: 1 }, deps);
+    const r1 = await completeStep({ planUlid: planId, step: 1 }, deps);
     assert(r1.plan.steps[0].status === 'done', 'step 1 must be marked done');
     assert(r1.autoCompleted === false, 'should not auto-complete with step 2 remaining');
     assert(r1.plan.status === 'implementing', 'status must remain implementing');
     console.log('    ✅ step 1 marked done, status still implementing');
 
     console.log('  • completeStep: mark last step done — plan auto-completes...');
-    const r2 = await completeStep({ planId, step: 2 }, deps);
+    const r2 = await completeStep({ planUlid: planId, step: 2 }, deps);
     assert(r2.plan.steps[1].status === 'done', 'step 2 must be marked done');
     assert(r2.autoCompleted === true, 'plan must auto-complete');
     assert(r2.plan.status === 'done', 'plan status must be done');
@@ -145,7 +145,7 @@ async function testCompleteStepUseCase() {
     console.log('  • completeStep: already-done step throws...');
     let threw = false;
     try {
-        await completeStep({ planId, step: 1 }, deps);
+        await completeStep({ planUlid: planId, step: 1 }, deps);
     } catch {
         threw = true;
     }

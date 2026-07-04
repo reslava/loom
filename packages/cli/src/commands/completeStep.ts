@@ -25,7 +25,7 @@ export async function completeStepCommand(planId: string, options: { step?: stri
             runEvent(tid, evt, { loadWeave: loadWeaveOrThrow, saveDocs, loomRoot });
 
         const result = await completeStep(
-            { planId, step },
+            { planUlid: planId, step },
             { loadWeave: loadWeaveOrThrow, runEvent: runEventBound, loomRoot }
         );
 

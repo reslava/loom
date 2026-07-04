@@ -134,7 +134,7 @@ export async function quickShip(
         });
     for (let step = 1; step <= descriptions.length; step++) {
         await completeStep(
-            { planId, step },
+            { planUlid: planId, step },
             { loadWeave: deps.loadWeave, runEvent: boundRunEvent, loomRoot: deps.loomRoot },
         );
     }
@@ -146,7 +146,7 @@ export async function quickShip(
             : `Quick-shipped — recorded already-completed work:\n\n` +
               descriptions.map((d, i) => `${i + 1}. ${d}`).join('\n');
     const { donePath } = await closePlan(
-        { planId, notes },
+        { planUlid: planId, notes },
         { loadWeave: deps.loadWeave, saveDoc: deps.saveDoc, fs: deps.fs, loomRoot: deps.loomRoot },
     );
 
