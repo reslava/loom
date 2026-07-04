@@ -9,7 +9,7 @@ version: 2
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 58
+last_ai_block: 60
 ---
 # weave-idea-threadid-fix Chat
 
@@ -838,3 +838,20 @@ Committing. **Last piece of step 7 — Chunk C:** the two tool *renames* — `lo
 **Step 7 delivered:** the whole live `loom_*` surface is now uniformly and unambiguously named — `weave_slug` / `thread_ulid` / `plan_ulid` / `doc_ulid` / `source_ulid` / `chat_ulid` / `*_slug` at the MCP boundary, camelCase in the app, handlers mapping between; strict ULID-only on plans; folder-ops honestly slug-addressed; two tools renamed to describe what they do. Seven build-green commits (folder-ops, req, create, plan-step, promote, generate, misc) + this one.
 
 Per your standing instruction (confirm before anything beyond Stage 2), I'll **STOP here**. Remaining on the plan: step 8 (CLI `resolve-ulid`/`resolve-path` + the ergonomic slug-or-ULID create commands — the helpers already exist), step 9 (`tests/api-contract-refactor.test.ts` regression), step 10 (release via `/do-release`). The renamed schemas are live-verifiable after an MCP reconnect whenever you want. Want me to go on to step 8, or reconnect + live-verify the renamed surface first?
+
+## Rafa:
+
+mcp reconnected and tools reviewed, well done!
+do steps 8-9
+
+## AI:
+
+**Steps 8 & 9 done — build + test green.**
+
+**Step 8 (CLI ergonomics):** added `loom resolve-ulid <weave> <slug>` (folder slug → `th_` ULID) and `loom resolve-path <weave> <ulid>` (ULID → `weave/slug` + absolute path), backed by the existing `resolveThreadUlid`/`resolveThreadFolder` helpers. The "create commands accept slug-or-ULID" half was already covered by `ensureThreadUlid`. Live-verified against this repo — `resolve-ulid core-engine api-contract-refactor` → `th_01KWKA1E779SGAMFKYMRGXTC6M`, `resolve-path` round-trips, unknown slug errors with exit 1.
+
+**Step 9 (regression test):** `tests/api-contract-refactor.test.ts` (wired into `test-all.sh`) locks the core invariant — create-by-existing-`thread_ulid` lands in that exact thread; create-by-unknown-`thread_ulid` throws and fabricates nothing (asserts specifically that **no folder named by the ULID** appears — the originating bug); plus the resolve round-trip. Full suite green.
+
+Also a nice bonus: recording these two steps just now went through the **reconnected** server via `loom_complete_step(plan_ulid=…)` / `loom_append_done(plan_ulid=…)` — so the renamed workflow tools are confirmed working live end-to-end, not just via dist-importing tests.
+
+**9/10 done.** Only **step 10 (release via `/do-release`)** remains. Per your standing "don't jump to release" instruction, I'll **STOP here** — say the word (or run `/do-release`) when you want to ship it. Committing steps 8–9 now.

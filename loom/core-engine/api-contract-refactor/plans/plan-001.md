@@ -64,14 +64,14 @@ steps:
     satisfies: [IN8, C1, C5, C6, EX2]
   - id: cli-slug-ulid-ergonomics-create-commands
     order: 8
-    status: pending
+    status: done
     description: "CLI slug/ULID ergonomics: create commands accept a thread SLUG (resolved to ULID for humans) or a ULID directly; add `loom resolve-ulid <weave> <slug>` (slug → th_ ULID) and `loom resolve-path <weave> <ulid>` (ULID → folder path), backed by a new `resolveThreadUlid` app helper (inverse of resolveThreadFolder)."
     files_touched: [packages/cli/src/, packages/app/src/utils/resolveThreadFolder.ts, packages/app/src/index.ts]
     blocked_by: []
     satisfies: [IN6, IN8]
   - id: regression-tests-full-suite-green
     order: 9
-    status: pending
+    status: done
     description: "Add tests/api-contract-refactor.test.ts (wired into scripts/test-all.sh): create-by-existing-threadUlid lands in that thread; create-by-unknown-threadUlid throws; no path fabricates a thread folder. Then build-all + test-all green."
     files_touched: [tests/api-contract-refactor.test.ts, scripts/test-all.sh]
     blocked_by: [rename-params-api-wide-snake-case]
@@ -103,8 +103,8 @@ Make the Loom API's parameter names unambiguous and canonicalize ULID usage in o
 | ✅ | 5 | Add a single shared resolveThreadFolder(weaveSlug, threadUlid, deps) in packages/app/src/utils — scans thread manifests, maps th_ ULID → folder, throws on an unresolvable ULID. The one ULID→folder chokepoint every create/promote/folder-op routes through. | packages/app/src/utils/resolveThreadFolder.ts, packages/app/src/index.ts | finalize-the-convention-from-audit | IN6 |
 | ✅ | 6 | Remove the ensureThreadManifest auto-scaffold-into-unknown-thread seam. Thread creation becomes explicit (createThread → { threadUlid }); doc-create use-cases require an existing thread referenced by threadUlid (resolved via step 5) and never fabricate one. | packages/app/src/thread.ts, packages/app/src/weaveIdea.ts, packages/app/src/weaveDesign.ts, packages/app/src/req.ts, packages/app/src/weavePlan.ts, packages/app/src/chatNew.ts, packages/app/src/promoteToIdea.ts, packages/app/src/promoteToDesign.ts, packages/app/src/promoteToPlan.ts | shared-resolvethreadfolder-resolver | IN7, EX3 |
 | ✅ | 7 | Full API-consistency pass, build-green stages (plan B). (a) Convert the REMAINING thread-referencing use-cases that step 6 didn't (verify_req, and the folder-ops rename/move/archive/delete/restore) to resolve-at-boundary by thread_ulid — so the whole live surface is uniformly ULID. (b) Cosmetic renames: MCP schemas + descriptions → snake_case (weave_slug, thread_ulid, …); app inputs/functions → camelCase; handlers map. (c) The two tool renames: loom_rename→loom_retitle, loom_rename_doc_file→loom_rename_reference_file. (d) Fix the MCP integration-test fixtures (real thread manifests + ULIDs) so test-all is fully green. Update ALL callers. Clean break — no shims. | packages/mcp/src/tools/, packages/app/src/, packages/cli/src/, packages/vscode/src/, tests/, packages/mcp/tests/ | finalize-the-convention-from-audit, explicit-thread-creation-remove-auto-scaffold | IN8, C1, C5, C6, EX2 |
-| 🔳 | 8 | CLI slug/ULID ergonomics: create commands accept a thread SLUG (resolved to ULID for humans) or a ULID directly; add `loom resolve-ulid <weave> <slug>` (slug → th_ ULID) and `loom resolve-path <weave> <ulid>` (ULID → folder path), backed by a new `resolveThreadUlid` app helper (inverse of resolveThreadFolder). | packages/cli/src/, packages/app/src/utils/resolveThreadFolder.ts, packages/app/src/index.ts | — | IN6, IN8 |
-| 🔳 | 9 | Add tests/api-contract-refactor.test.ts (wired into scripts/test-all.sh): create-by-existing-threadUlid lands in that thread; create-by-unknown-threadUlid throws; no path fabricates a thread folder. Then build-all + test-all green. | tests/api-contract-refactor.test.ts, scripts/test-all.sh | rename-params-api-wide-snake-case | IN9 |
+| ✅ | 8 | CLI slug/ULID ergonomics: create commands accept a thread SLUG (resolved to ULID for humans) or a ULID directly; add `loom resolve-ulid <weave> <slug>` (slug → th_ ULID) and `loom resolve-path <weave> <ulid>` (ULID → folder path), backed by a new `resolveThreadUlid` app helper (inverse of resolveThreadFolder). | packages/cli/src/, packages/app/src/utils/resolveThreadFolder.ts, packages/app/src/index.ts | — | IN6, IN8 |
+| ✅ | 9 | Add tests/api-contract-refactor.test.ts (wired into scripts/test-all.sh): create-by-existing-threadUlid lands in that thread; create-by-unknown-threadUlid throws; no path fabricates a thread folder. Then build-all + test-all green. | tests/api-contract-refactor.test.ts, scripts/test-all.sh | rename-params-api-wide-snake-case | IN9 |
 | 🔳 | 10 | Ship the synchronized release via /do-release (breaking change → minor/major). Changelog notes the parameter renames and the seam removal. | CHANGELOG.md | regression-tests-full-suite-green | IN10 |
 ---
 

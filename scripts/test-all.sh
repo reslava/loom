@@ -112,6 +112,11 @@ run_test tests/migrate-layout.test.ts
 # Entities CRUD: docNaming (writers/ordinals/recognisers), rename/move weave·thread·doc, loose-fiber guard, reference file rename
 run_test tests/entities-crud.test.ts
 
+# API contract refactor: a doc-create references its thread by th_ ULID, lands in that
+# exact thread, and NEVER fabricates one from an unresolvable reference (the originating
+# duplicate-thread bug); resolveThreadUlid ⇄ resolveThreadFolder round-trip.
+run_test tests/api-contract-refactor.test.ts
+
 # archive-robust-move: moveTreeOrThrow is atomic-or-fail-loud — a copy-fallback that leaves
 # the source (move resolves OR throws) rolls back the copy and throws (no silent duplicate);
 # a pre-existing dest is never clobbered. Shared by archive / restore / thread-move.

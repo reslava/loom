@@ -32,6 +32,7 @@ import { backfillReleasesCommand } from './commands/backfillReleases';
 import { backfillDesignVersionsCommand } from './commands/backfillDesignVersions';
 import { backfillStalenessBaselinesCommand } from './commands/backfillStalenessBaselines';
 import { recordReleaseCommand } from './commands/recordRelease';
+import { resolveUlidCommand, resolvePathCommand } from './commands/resolve';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -180,6 +181,16 @@ program
     .command('next [plan-id]')
     .description('Print the next incomplete step + context for a plan (defaults to the active plan)')
     .action(nextCommand);
+
+program
+    .command('resolve-ulid <weave> <slug>')
+    .description('Resolve a thread folder slug to its stable th_ ULID (the identity the loom_* API references)')
+    .action(resolveUlidCommand);
+
+program
+    .command('resolve-path <weave> <ulid>')
+    .description('Resolve a thread th_ ULID to its folder (weave/slug + absolute path)')
+    .action(resolvePathCommand);
 
 program
     .command('search <query>')

@@ -4,7 +4,7 @@ id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F-done
 title: Done — Unambiguous naming + canonical ULID refactor
 status: done
 created: 2026-07-03
-version: 7
+version: 8
 tags: []
 parent_id: pl_01KWKHA82YGZ6AHAHPAR7TZ79F
 requires_load: []
@@ -78,3 +78,20 @@ Full API-consistency pass, done in build-green stages (plan B) — 8 build-green
 Latent bugs fixed in passing: `weaveDesign` untitled-title was using a ULID (now the slug); the Generate-Plan and Promote-to-Plan launch prompts instructed a `content` Steps table to the structured-only `create_plan` (now goal + structured steps).
 
 Flagged follow-ups: the app `doStep` use-case (separate AI path) keeps `planId`; the generate tools' internal `context/thread` URI passes a ULID where a slug is expected (step-6 residue) — both belong with the `clean-legacy-read` thread.
+
+## Step 8 — CLI slug/ULID ergonomics: create commands accept a thread SLUG (resolved to ULID for humans) or a ULID directly; add `loom resolve-ulid <weave> <slug>` (slug → th_ ULID) and `loom resolve-path <weave> <ulid>` (ULID → folder path), backed by a new `resolveThreadUlid` app helper (inverse of resolveThreadFolder).
+
+CLI slug/ULID ergonomics.
+
+- Added `loom resolve-ulid <weave> <slug>` (folder slug → stable `th_` ULID) and `loom resolve-path <weave> <ulid>` (ULID → `weave/slug` + absolute path) in `packages/cli/src/commands/resolve.ts`, registered in `index.ts`. Backed by the existing `resolveThreadUlid` / `resolveThreadFolder` app helpers (no new engine).
+- The "create commands accept a slug OR a ULID" half was already satisfied by `ensureThreadUlid` (threadArg.ts): a `th_` value passes through, a slug resolves-or-mints.
+- Live-verified against this repo: `resolve-ulid core-engine api-contract-refactor` → `th_01KWKA1E779SGAMFKYMRGXTC6M`; `resolve-path` round-trips to the folder; an unknown slug errors with exit 1.
+
+## Step 9 — Add tests/api-contract-refactor.test.ts (wired into scripts/test-all.sh): create-by-existing-threadUlid lands in that thread; create-by-unknown-threadUlid throws; no path fabricates a thread folder. Then build-all + test-all green.
+
+Regression test `tests/api-contract-refactor.test.ts` (wired into `scripts/test-all.sh`):
+- create by an existing `thread_ulid` lands the doc in that exact thread (`loom/wv/my-thread/idea.md`);
+- create by an unknown `thread_ulid` throws (`No thread with ulid`) and fabricates nothing — asserts the weave still holds only the real thread AND that no folder literally named by the ULID exists (the originating bug);
+- `resolveThreadUlid` ⇄ `resolveThreadFolder` round-trip, and an unknown slug throws.
+
+Full `test-all` green.
