@@ -38,6 +38,7 @@ import { markDoneCommand, markActiveCommand } from './commands/markStatus';
 import { restoreItemCommand } from './commands/restoreItem';
 import { createReferenceCommand } from './commands/createReference';
 import { addRequiresLoadCommand } from './commands/addRequiresLoad';
+import { sendFeedbackCommand } from './commands/sendFeedback';
 import { setIconBaseUri } from './icons';
 import { disposeMCP, getMCP, getMCPConnected } from './mcp-client';
 import { handleMcpError } from './mcpErrorUtils';
@@ -139,6 +140,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(
         vscode.commands.registerCommand('loom.refresh', syncAndRefresh),
         vscode.commands.registerCommand('loom.reconnectMcp', () => { disposeMCP(); syncAndRefresh(); }),
+        vscode.commands.registerCommand('loom.sendFeedback', () => sendFeedbackCommand()),
         vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.threadCreate', (node?: TreeNode) => threadCreateCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, treeView, node)),
@@ -325,6 +327,14 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     const mcpStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
     mcpStatusBar.command = 'loom.reconnectMcp';
     context.subscriptions.push(mcpStatusBar);
+
+    // Feedback status bar — always visible, zero-nag entry point to Send Feedback.
+    const feedbackStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 89);
+    feedbackStatusBar.text = '$(feedback) Feedback';
+    feedbackStatusBar.tooltip = 'Send feedback about Loom';
+    feedbackStatusBar.command = 'loom.sendFeedback';
+    feedbackStatusBar.show();
+    context.subscriptions.push(feedbackStatusBar);
 
     // Re-sync status bar once MCP actually connects (first successful state read)
     context.subscriptions.push(treeProvider.onMCPStateChange(() => syncSetupContext()));

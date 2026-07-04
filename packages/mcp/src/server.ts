@@ -19,6 +19,7 @@ import { handleDocsResource } from './resources/docs';
 import { handleContextResource } from './resources/context';
 import { handlePlanResource } from './resources/plan';
 import { handleRequiresLoadResource } from './resources/requiresLoad';
+import { handleFeedbackContextResource } from './resources/feedbackContext';
 import * as createIdea from './tools/createIdea';
 import * as createDesign from './tools/createDesign';
 import * as createPlan from './tools/createPlan';
@@ -107,6 +108,7 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://roadmap', name: 'Roadmap', description: 'Derived cross-weave roadmap: future (pending/blocked, dependency+priority order), present (active/implementing), history (shipped plans), and diagnostics (cycles, dangling deps, missing thread.md)', mimeType: 'application/json' },
     { uri: 'loom://catalog', name: 'Tool Catalog', description: 'Grouped index of all loom_* MCP tools (name + one-line purpose). Read this BEFORE searching for a tool, then ToolSearch select:<exact name>.', mimeType: 'text/markdown' },
     { uri: 'loom://refs', name: 'References', description: 'Reference docs under loom/refs/ as { id, title, file } — backs the requires_load picker', mimeType: 'application/json' },
+    { uri: 'loom://feedback-context', name: 'Feedback Context', description: 'Assembled feedback payload: resolved target repo (git-remote/config), non-PII usage snapshot (counts only), and the prefilled GitHub issue-form URL', mimeType: 'application/json' },
 ];
 
 const RESOURCE_TEMPLATES = [
@@ -166,6 +168,9 @@ export function createLoomMcpServer(root: string): Server {
         }
         if (uri === 'loom://refs') {
             return handleRefsResource(root);
+        }
+        if (uri === 'loom://feedback-context' || uri.startsWith('loom://feedback-context?')) {
+            return handleFeedbackContextResource(root, uri);
         }
         if (uri === 'loom://roadmap') {
             return handleRoadmapResource(root, uri);

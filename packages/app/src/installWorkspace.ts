@@ -2,7 +2,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { initLocal } from './init';
 import { ConfigRegistry } from '../../fs/dist';
-import { today } from '../../core/dist';
+import { today, FEEDBACK_TEMPLATE_FILE } from '../../core/dist';
 
 export interface InstallWorkspaceInput {
     force?: boolean;
@@ -24,6 +24,7 @@ export interface InstallWorkspaceResult {
     ctxWritten: boolean;
     settingsJsonWritten: boolean;
     settingsLocalJsonWritten: boolean;
+    feedbackTemplateWritten: boolean;
 }
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
@@ -287,6 +288,41 @@ const CLAUDE_LOCAL_MD = `# Project-Local AI Rules
 `;
 
 
+// GitHub issue *form*. The `environment` textarea `id` MUST stay in sync with
+// core's buildFeedbackUrl, which prefills it via ?environment=<encoded>. Scaffolded
+// once and never overwritten (like CLAUDE-LOCAL.md) so users can customize it.
+const FEEDBACK_ISSUE_FORM = `name: Feedback
+description: Share feedback about Loom — wins, friction, bugs, ideas.
+title: "[feedback] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Loom! Nothing here was sent automatically —
+        edit anything below (including the environment details) before submitting.
+  - type: textarea
+    id: what_doing
+    attributes:
+      label: What were you doing?
+      placeholder: e.g. running a plan's steps in the VS Code extension
+    validations:
+      required: false
+  - type: textarea
+    id: what_worked
+    attributes:
+      label: What worked, and what didn't?
+      placeholder: Wins, friction, confusion, bugs — whatever stood out.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Prefilled by Loom (version, OS, non-PII usage counts). Trim anything you like.
+    validations:
+      required: false
+`;
+
 export async function installWorkspace(
     input: InstallWorkspaceInput,
     deps: InstallWorkspaceDeps
@@ -412,5 +448,17 @@ export async function installWorkspace(
         settingsLocalJsonWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, claudeLocalMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten };
+    // Step 8: scaffold the GitHub issue-form template that `loom feedback` (and the
+    // extension's Send Feedback) prefill. Written once and never overwritten — not
+    // even on --force — so a user who customizes the form keeps their edits.
+    const issueTemplateDir = path.join(root, '.github', 'ISSUE_TEMPLATE');
+    const feedbackTemplatePath = path.join(issueTemplateDir, FEEDBACK_TEMPLATE_FILE);
+    let feedbackTemplateWritten = false;
+    if (!deps.fs.existsSync(feedbackTemplatePath)) {
+        deps.fs.ensureDirSync(issueTemplateDir);
+        deps.fs.writeFileSync(feedbackTemplatePath, FEEDBACK_ISSUE_FORM, 'utf8');
+        feedbackTemplateWritten = true;
+    }
+
+    return { path: root, loomDirCreated, claudeMdWritten, claudeLocalMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten, feedbackTemplateWritten };
 }

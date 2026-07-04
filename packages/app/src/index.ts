@@ -43,6 +43,9 @@ export {
     backfillStalenessBaselines, BackfillStalenessBaselinesDeps, BackfillStalenessBaselinesResult,
 } from './backfillStalenessBaselines';
 export { getBlockedSteps, GetBlockedStepsDeps, BlockedStep } from './getBlockedSteps';
+export {
+    getFeedbackContext, GetFeedbackContextInput, GetFeedbackContextDeps,
+} from './getFeedbackContext';
 
 // ============================================================================
 // Use‑Cases — Context Pipeline

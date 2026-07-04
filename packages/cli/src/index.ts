@@ -33,6 +33,7 @@ import { backfillDesignVersionsCommand } from './commands/backfillDesignVersions
 import { backfillStalenessBaselinesCommand } from './commands/backfillStalenessBaselines';
 import { recordReleaseCommand } from './commands/recordRelease';
 import { resolveUlidCommand, resolvePathCommand } from './commands/resolve';
+import { feedbackCommand } from './commands/feedback';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -259,6 +260,13 @@ program
     .description('Migrate onto the directional staleness model: stamp idea_version on designs, design_version on reqs, and repoint each req parent from idea to design. Idempotent.')
     .option('--dry-run', 'Show what would change without writing')
     .action((options) => backfillStalenessBaselinesCommand({ dryRun: options.dryRun }));
+
+program
+    .command('feedback')
+    .description('Open a prefilled GitHub issue to send feedback about Loom. Opt-in: carries Loom version, OS, and non-PII usage counts you review and edit before sending. Nothing is sent automatically.')
+    .option('--repo <owner/name>', 'Override the target repo (default: the git origin remote)')
+    .option('--print', 'Print the prefilled URL instead of opening a browser')
+    .action((options) => feedbackCommand({ repo: options.repo, print: options.print }));
 
 program
     .command('mcp')

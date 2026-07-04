@@ -108,6 +108,14 @@ export { generatePlanBody } from './bodyGenerators/planBody';
 export { generateCtxBody, CtxSummaryData } from './bodyGenerators/ctxBody';
 
 // ============================================================================
+// Feedback
+// ============================================================================
+export {
+    FeedbackSnapshot, FeedbackContext, FEEDBACK_TEMPLATE_FILE,
+    formatFeedbackEnvironment, buildFeedbackUrl,
+} from './feedback';
+
+// ============================================================================
 // Shared Types
 // ============================================================================
 export { Document, DocumentStatus } from './entities/document';

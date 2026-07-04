@@ -69,6 +69,12 @@
         "icon": "$(debug-restart)"
       },
       {
+        "command": "loom.sendFeedback",
+        "title": "Send Feedback",
+        "category": "Loom",
+        "icon": "$(feedback)"
+      },
+      {
         "command": "loom.weaveCreate",
         "title": "New Weave",
         "category": "Loom",
@@ -433,6 +439,11 @@
           "type": "string",
           "default": "",
           "description": "Base URL override for OpenAI-compatible endpoints. Leave blank to use provider default."
+        },
+        "reslava-loom.feedback.repo": {
+          "type": "string",
+          "default": "",
+          "description": "Target GitHub repo for 'Loom: Send Feedback', as 'owner/name'. Leave blank to auto-detect from the workspace's git origin remote."
         }
       }
     },
