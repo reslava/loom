@@ -16,6 +16,8 @@ Every stage is a Markdown document. The AI reads them, writes to them, and track
 
 📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
 
+> 💬 **Feedback appreciated.** Using Loom? Tell me how it's going — I'm always looking for ways to improve it. I'd like to know what worked and what got in the way. Click the **Feedback** button in the status bar or run `loom feedback`; it opens a prefilled GitHub issue you edit before sending. Opt-in, nothing sent automatically.
+
 ---
 
 ## Why Loom

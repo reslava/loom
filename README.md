@@ -9,6 +9,8 @@ as the first, and every decision is traceable.
 
 📚 **User Guides:** [Core concepts & workflow](./docs/USER_GUIDE.md) · [VS Code Extension](./docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code](./docs/CLI_USER_GUIDE.md)
 
+> 💬 **Feedback appreciated.** Using Loom? Tell me how it's going — I'm always looking for ways to improve it. I'd like to know what worked and what got in the way. Click the **Feedback** button in the status bar or run `loom feedback`; it opens a prefilled GitHub issue you edit before sending. Opt-in, nothing sent automatically.
+
 > *"The workflow of serious projects needs to be organised and persistent: ideas, designs,
 > plans, reference material, appropriate context. Documents represent the state of the project —
 > fresh, defined and auditable — as opposed to an ever-expanding, opaque and degraded chat history."*
