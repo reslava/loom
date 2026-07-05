@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-07-05
+
+### Added
+- **In-tool user feedback — turn silent installs into signal.** A one-click **Send Feedback** button in the VS Code extension and a new `loom feedback` command open a *prefilled* GitHub issue carrying only your Loom version, OS, and a non-PII usage snapshot (document / plan counts) that you review and edit before it's ever sent. No backend, no silent send, no PII. Feedback always reaches the Loom project regardless of which project you're in, so it lands where it can be acted on; `reslava-loom.feedback.repo` / `loom feedback --repo` can redirect it elsewhere (for a fork or reuse of the mechanism).
+- **Opt-in, content-free usage telemetry.** Loom can now report a small, fixed set of workflow events — activation, session start, doc generated / refined, plan started, step completed, plan done, errors, and command invoked — so it's possible to see whether the core loop is actually used and where people stall. It is **off by default** and sends nothing until you explicitly opt in (`reslava-loom.telemetry.enabled` in the extension; `LOOM_TELEMETRY=1` for the CLI / agent). Events are anonymous and content-free *by construction*: a random install id only — never document content, titles, paths, or weave/thread names. A one-time disclosure and a documented kill switch ship with it, and the README lists exactly what is and isn't collected.
+
 ## [1.15.0] - 2026-07-04
 
 ### Added
@@ -577,7 +583,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.16.0...HEAD
+[1.16.0]: https://github.com/reslava/loom/releases/tag/v1.16.0
 [1.15.0]: https://github.com/reslava/loom/releases/tag/v1.15.0
 [1.14.0]: https://github.com/reslava/loom/releases/tag/v1.14.0
 [1.13.0]: https://github.com/reslava/loom/releases/tag/v1.13.0

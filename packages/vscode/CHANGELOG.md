@@ -1,5 +1,14 @@
 # Loom VS Code Extension — Changelog
 
+## [1.16.0] - 2026-07-05
+
+### Added
+- **Send Feedback.** A new status-bar button (and command) opens a prefilled GitHub issue carrying only your Loom version, OS, and a non-PII usage snapshot (counts) that you edit before sending — no backend, no silent send. Feedback goes to the Loom project by default; `reslava-loom.feedback.repo` can redirect it elsewhere.
+- **Opt-in usage telemetry.** A new `reslava-loom.telemetry.enabled` setting (default **false**) plus a one-time, dismissible disclosure. When enabled, the extension tags its usage as the `extension` surface; events are anonymous and content-free — never your documents, titles, or paths — and nothing is sent until you opt in.
+
+### Notes
+- Lockstep 1.16.0 bump with the CLI and the rest of the monorepo, which adds the portable `packages/telemetry` core and the `loom feedback` command.
+
 ## [1.15.0] - 2026-07-04
 
 ### Fixed

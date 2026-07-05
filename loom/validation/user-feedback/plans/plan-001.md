@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWQ8SBCKE1TMAK1FQP8J7WGR
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.16.0
 steps:
   - id: core-buildfeedbackurl
     order: 1

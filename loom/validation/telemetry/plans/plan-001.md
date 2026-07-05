@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWQM19SYX6Q3GNNJ17PT07YF
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.16.0
 steps:
   - id: scaffold-packages-telemetry
     order: 1
