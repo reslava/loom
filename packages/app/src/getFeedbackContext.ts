@@ -1,15 +1,15 @@
 import { LoomState } from '../../core/dist/entities/state';
 import { buildRoadmap } from '../../core/dist/derived';
-import { buildFeedbackUrl, FeedbackContext, FeedbackSnapshot } from '../../core/dist/feedback';
-import { resolveFeedbackRepo } from '../../fs/dist';
+import { buildFeedbackUrl, resolveFeedbackRepo, FeedbackContext, FeedbackSnapshot } from '../../core/dist/feedback';
 
 // ---------------------------------------------------------------------------
 // getFeedbackContext — assemble everything a feedback entry point needs.
 //
-// Orchestration only ((input, deps) => result): resolve the target repo (fs),
-// gather the non-PII usage snapshot from an already-built LoomState, and hand
-// both to the pure core URL builder. The delivery layers (CLI, MCP resource,
-// extension) just open the returned url.
+// Orchestration only ((input, deps) => result): resolve the target repo (the
+// central sink, or an explicit override), gather the non-PII usage snapshot
+// from an already-built LoomState, and hand both to the pure core URL builder.
+// The delivery layers (CLI, MCP resource, extension) just open the returned url.
+// Repo resolution is pure (no git IO), so it's called directly, not injected.
 // ---------------------------------------------------------------------------
 
 export interface GetFeedbackContextInput {
@@ -17,14 +17,11 @@ export interface GetFeedbackContextInput {
     loomVersion: string;
     /** Explicit "owner/name" override (e.g. the reslava-loom.feedback.repo setting). */
     repoOverride?: string | null;
-    /** Directory to resolve the git remote from. Defaults to process.cwd(). */
-    cwd?: string;
 }
 
 export interface GetFeedbackContextDeps {
     /** Bound state reader — the caller supplies the fs-wired getState thunk. */
     getState: () => Promise<LoomState>;
-    resolveFeedbackRepo: typeof resolveFeedbackRepo;
     /** os.platform, injected for testability. */
     platform: () => string;
 }
@@ -49,6 +46,6 @@ export async function getFeedbackContext(
         currentRelease: buildRoadmap(state).currentRelease,
     };
 
-    const repo = deps.resolveFeedbackRepo({ override: input.repoOverride, cwd: input.cwd });
+    const repo = resolveFeedbackRepo(input.repoOverride);
     return { repo, snapshot, url: buildFeedbackUrl({ repo, snapshot }) };
 }

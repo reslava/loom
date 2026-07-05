@@ -28,19 +28,40 @@ export interface FeedbackSnapshot {
 
 /**
  * Everything the feedback entry points need: the resolved target repo, the
- * environment snapshot, and the ready-to-open prefilled URL. `repo` and `url`
- * are null when no target repo could be resolved (no override, no git remote).
+ * environment snapshot, and the ready-to-open prefilled URL. The repo always
+ * resolves (to the central sink or an explicit override), so both are non-null.
  */
 export interface FeedbackContext {
-    /** "owner/name", or null when unresolved. */
-    repo: string | null;
+    /** "owner/name" — the resolved feedback sink. */
+    repo: string;
     snapshot: FeedbackSnapshot;
-    /** Prefilled GitHub issue-form URL, or null when repo is null. */
-    url: string | null;
+    /** Prefilled GitHub issue-form URL. */
+    url: string;
 }
 
-/** Issue-form template filename scaffolded by `loom install`. */
+/** Issue-form template filename the central sink repo hosts. */
 export const FEEDBACK_TEMPLATE_FILE = 'feedback.yml';
+
+/**
+ * The canonical feedback sink: EVERY Loom install — this repo, chord-flow, any
+ * end-user project — files feedback into the Loom project's issues, so the
+ * signal lands where it's acted on. This is deliberately central, not the
+ * current project's repo: a user reporting a Loom bug wants the Loom maintainer
+ * to see it, not to file it in their own repo where it's lost.
+ */
+export const DEFAULT_FEEDBACK_REPO = 'reslava/loom';
+
+/**
+ * Resolve the feedback target: an explicit override, else the central sink.
+ * Pure. The override exists for *code reuse* — a fork or a non-Loom tool built
+ * on this mechanism points feedback at its own repo (e.g. via the
+ * `reslava-loom.feedback.repo` setting / `--repo` flag). Absent that, feedback
+ * always reaches the Loom project; it never depends on the current git remote.
+ */
+export function resolveFeedbackRepo(override?: string | null): string {
+    const o = override?.trim();
+    return o ? o : DEFAULT_FEEDBACK_REPO;
+}
 
 /**
  * Render the snapshot as the human-readable body of the form's `environment`
@@ -58,14 +79,12 @@ export function formatFeedbackEnvironment(s: FeedbackSnapshot): string {
 }
 
 /**
- * Build a prefilled GitHub issue-form URL. Pure. Returns null when `repo` is
- * null so callers surface a "set feedback.repo" message rather than a broken
- * link. GitHub issue *forms* prefill fields by their YAML `id` via
- * `?<field_id>=<value>` (URL-encoded); here the `environment` textarea id must
- * match the scaffolded template, and `template=` targets the form itself.
+ * Build a prefilled GitHub issue-form URL. Pure. GitHub issue *forms* prefill
+ * fields by their YAML `id` via `?<field_id>=<value>` (URL-encoded); here the
+ * `environment` textarea id must match the sink repo's form, and `template=`
+ * targets the form itself.
  */
-export function buildFeedbackUrl(params: { repo: string | null; snapshot: FeedbackSnapshot }): string | null {
-    if (!params.repo) return null;
+export function buildFeedbackUrl(params: { repo: string; snapshot: FeedbackSnapshot }): string {
     const base = `https://github.com/${params.repo}/issues/new`;
     const query = new URLSearchParams({
         template: FEEDBACK_TEMPLATE_FILE,

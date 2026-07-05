@@ -7,9 +7,6 @@ export { moveTreeOrThrow } from './utils/moveTree';
 export { loadDoc, FrontmatterParseError } from './serializers/frontmatterLoader';
 export { saveDoc, FileWriteError, FilePermissionError } from './serializers/frontmatterSaver';
 
-// Feedback
-export { resolveFeedbackRepo, parseGitHubRepo, ResolveFeedbackRepoOptions } from './feedbackRepo';
-
 // Repositories
 export { loadWeave, saveWeave, saveDocs } from './repositories/weaveRepository';
 export { loadThread, saveThread, docPathInThread } from './repositories/threadRepository';

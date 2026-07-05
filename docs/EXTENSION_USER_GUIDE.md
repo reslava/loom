@@ -171,13 +171,13 @@ Settings are under `reslava-loom.` in VS Code settings:
 | `reslava-loom.ai.apiKey` | — | API key for the fallback path. Not needed if Claude Code CLI is installed. |
 | `reslava-loom.ai.model` | — | Model override; blank uses the provider default. |
 | `reslava-loom.ai.baseUrl` | — | Base URL override for OpenAI-compatible endpoints. |
-| `reslava-loom.feedback.repo` | — | Target repo for *Send Feedback* as `owner/name`; blank auto-detects from the workspace's git `origin` remote. |
+| `reslava-loom.feedback.repo` | — | Target repo for *Send Feedback* as `owner/name`; blank sends to the Loom project. Set only to redirect feedback elsewhere. |
 
 > The API key is only used by the fallback path. With Claude Code on your PATH, you can leave it blank.
 
 ### Sending feedback
 
-A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue about Loom. It's **opt-in** and carries only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — you review and edit everything before submitting; nothing is sent in the background. The target repo comes from the workspace's git `origin` remote by default, or `reslava-loom.feedback.repo` if you set it.
+A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue about Loom. It's **opt-in** and carries only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — you review and edit everything before submitting; nothing is sent in the background. Feedback goes to the Loom project by default so it reaches the maintainer; set `reslava-loom.feedback.repo` only to redirect it elsewhere.
 
 ---
 

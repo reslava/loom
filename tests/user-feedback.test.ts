@@ -1,14 +1,17 @@
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import * as os from 'os';
 import { assert } from './test-utils';
-import { buildFeedbackUrl, formatFeedbackEnvironment, FEEDBACK_TEMPLATE_FILE } from '../packages/core/dist/index.js';
-import { parseGitHubRepo, resolveFeedbackRepo } from '../packages/fs/dist/index.js';
+import {
+    buildFeedbackUrl,
+    formatFeedbackEnvironment,
+    resolveFeedbackRepo,
+    FEEDBACK_TEMPLATE_FILE,
+    DEFAULT_FEEDBACK_REPO,
+} from '../packages/core/dist/index.js';
 import { getFeedbackContext } from '../packages/app/dist/index.js';
 
-// In-tool user feedback — pure URL builder, repo resolution, and the app
-// use-case's snapshot shape (counts only, no PII). All hermetic: the only IO is
-// a git-remote read against a throwaway non-repo dir to prove the null branch.
+// In-tool user feedback — pure URL builder, central-sink repo resolution, and the
+// app use-case's snapshot shape (counts only, no PII). Fully hermetic: no IO. The
+// key invariant under test: feedback resolves to the central Loom sink, NOT the
+// current project's git remote, so every install's feedback reaches the maintainer.
 
 const SNAPSHOT = {
     loomVersion: '1.0.0',
@@ -20,10 +23,7 @@ const SNAPSHOT = {
 };
 
 function testBuildFeedbackUrl(): void {
-    // No repo → null (callers show a "set feedback.repo" message, not a broken link).
-    assert(buildFeedbackUrl({ repo: null, snapshot: SNAPSHOT }) === null, 'null repo → null url');
-
-    const url = buildFeedbackUrl({ repo: 'reslava/loom', snapshot: SNAPSHOT })!;
+    const url = buildFeedbackUrl({ repo: 'reslava/loom', snapshot: SNAPSHOT });
     assert(url.startsWith('https://github.com/reslava/loom/issues/new?'), `base url: ${url}`);
     assert(url.includes(`template=${FEEDBACK_TEMPLATE_FILE}`), 'carries template param');
     assert(url.includes('environment='), 'carries prefilled environment field');
@@ -34,26 +34,20 @@ function testBuildFeedbackUrl(): void {
     assert(env.includes('Loom version: 1.0.0') && env.includes('Done plans: 1'), 'environment body is human-readable');
 }
 
-function testParseGitHubRepo(): void {
-    assert(parseGitHubRepo('https://github.com/reslava/loom.git') === 'reslava/loom', 'https .git');
-    assert(parseGitHubRepo('https://github.com/reslava/loom') === 'reslava/loom', 'https no .git');
-    assert(parseGitHubRepo('git@github.com:reslava/loom.git') === 'reslava/loom', 'scp-style ssh');
-    assert(parseGitHubRepo('ssh://git@github.com/reslava/loom.git') === 'reslava/loom', 'ssh url');
-    assert(parseGitHubRepo('https://gitlab.com/x/y.git') === null, 'non-github → null');
-}
+function testResolveFeedbackRepo(): void {
+    // The central sink is the Loom repo, and it's what you get with no override —
+    // regardless of the current project's git remote. This is the whole fix: every
+    // install files into reslava/loom, never its own repo.
+    assert(DEFAULT_FEEDBACK_REPO === 'reslava/loom', 'sink is the Loom repo');
+    assert(resolveFeedbackRepo() === 'reslava/loom', 'no override → central sink');
+    assert(resolveFeedbackRepo(undefined) === 'reslava/loom', 'undefined → sink');
+    assert(resolveFeedbackRepo(null) === 'reslava/loom', 'null → sink');
+    assert(resolveFeedbackRepo('   ') === 'reslava/loom', 'blank → sink');
 
-async function testResolveFeedbackRepo(): Promise<void> {
-    assert(resolveFeedbackRepo({ override: 'owner/name' }) === 'owner/name', 'override wins');
-    assert(resolveFeedbackRepo({ override: '  owner/name  ' }) === 'owner/name', 'override trimmed');
-
-    // No override + a non-git directory → null (git remote read fails, caught).
-    const tmp = path.join(os.tmpdir(), `loom-feedback-nogit-${Date.now()}`);
-    await fs.ensureDir(tmp);
-    try {
-        assert(resolveFeedbackRepo({ cwd: tmp }) === null, 'no remote → null');
-    } finally {
-        await fs.remove(tmp);
-    }
+    // An explicit override wins — the reuse hinge (a fork or a non-Loom tool built
+    // on this mechanism points feedback at its own repo).
+    assert(resolveFeedbackRepo('owner/name') === 'owner/name', 'override wins');
+    assert(resolveFeedbackRepo('  owner/name  ') === 'owner/name', 'override trimmed');
 }
 
 async function testGetFeedbackContext(): Promise<void> {
@@ -72,15 +66,11 @@ async function testGetFeedbackContext(): Promise<void> {
 
     const ctx = await getFeedbackContext(
         { loomVersion: '9.9.9', repoOverride: 'owner/name' },
-        {
-            getState: async () => state,
-            resolveFeedbackRepo: (opts?: { override?: string | null }) => opts?.override ?? null,
-            platform: () => 'testos',
-        },
+        { getState: async () => state, platform: () => 'testos' },
     );
 
     assert(ctx.repo === 'owner/name', 'repo from override');
-    assert(ctx.url !== null && ctx.url.includes('owner/name'), 'url built for resolved repo');
+    assert(ctx.url.includes('owner/name'), 'url built for resolved repo');
 
     const s = ctx.snapshot;
     assert(s.loomVersion === '9.9.9', 'reports passed loom version');
@@ -98,18 +88,18 @@ async function testGetFeedbackContext(): Promise<void> {
         `snapshot keys are counts-only: ${keys.join(',')}`,
     );
 
-    // Unresolved repo → null repo AND null url.
-    const noRepo = await getFeedbackContext(
+    // No override → the central sink, and a real (non-null) url every time.
+    const central = await getFeedbackContext(
         { loomVersion: '9.9.9' },
-        { getState: async () => state, resolveFeedbackRepo: () => null, platform: () => 'testos' },
+        { getState: async () => state, platform: () => 'testos' },
     );
-    assert(noRepo.repo === null && noRepo.url === null, 'unresolved repo → null repo + url');
+    assert(central.repo === 'reslava/loom', 'no override → central sink repo');
+    assert(central.url.includes('reslava/loom'), 'url targets the central sink');
 }
 
 async function run(): Promise<void> {
     testBuildFeedbackUrl();
-    testParseGitHubRepo();
-    await testResolveFeedbackRepo();
+    testResolveFeedbackRepo();
     await testGetFeedbackContext();
     console.log('✅ user-feedback.test.ts passed');
 }

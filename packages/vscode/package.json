@@ -443,7 +443,7 @@
         "reslava-loom.feedback.repo": {
           "type": "string",
           "default": "",
-          "description": "Target GitHub repo for 'Loom: Send Feedback', as 'owner/name'. Leave blank to auto-detect from the workspace's git origin remote."
+          "description": "Target GitHub repo for 'Loom: Send Feedback', as 'owner/name'. Leave blank to send feedback to the Loom project (reslava/loom); set this only to redirect feedback elsewhere, e.g. a fork."
         },
         "reslava-loom.telemetry.enabled": {
           "type": "boolean",

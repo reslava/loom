@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import * as os from 'os';
 import { exec } from 'child_process';
 import { getState, getFeedbackContext } from '../../../app/dist';
-import { getActiveLoomRoot, loadWeave, buildLinkIndex, resolveFeedbackRepo, ConfigRegistry } from '../../../fs/dist';
+import { getActiveLoomRoot, loadWeave, buildLinkIndex, ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
 const pkg = require('../../package.json');
@@ -19,19 +19,12 @@ export async function feedbackCommand(options?: { repo?: string; print?: boolean
     try {
         const registry = new ConfigRegistry();
         const ctx = await getFeedbackContext(
-            { loomVersion: pkg.version, repoOverride: options?.repo, cwd: process.cwd() },
+            { loomVersion: pkg.version, repoOverride: options?.repo },
             {
                 getState: () => getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs }),
-                resolveFeedbackRepo,
                 platform: () => os.platform(),
             },
         );
-
-        if (!ctx.url) {
-            console.error(chalk.red('❌ Could not resolve a target repo for feedback.'));
-            console.error(chalk.gray('   Pass one with `loom feedback --repo owner/name`, or add a GitHub `origin` remote.'));
-            process.exit(1);
-        }
 
         console.log(chalk.bold('\n🧵 Send Loom feedback'));
         console.log(chalk.gray(`   Repo:     ${ctx.repo}`));

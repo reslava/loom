@@ -1,6 +1,6 @@
 import { getState } from '../../../app/dist/getState';
 import { getFeedbackContext } from '../../../app/dist/getFeedbackContext';
-import { getActiveLoomRoot, loadWeave, buildLinkIndex, resolveFeedbackRepo, ConfigRegistry } from '../../../fs/dist';
+import { getActiveLoomRoot, loadWeave, buildLinkIndex, ConfigRegistry } from '../../../fs/dist';
 import * as os from 'os';
 import * as fs from 'fs-extra';
 
@@ -22,10 +22,9 @@ export async function handleFeedbackContextResource(root: string, uri?: string) 
         try { repoOverride = new URL(uri).searchParams.get('repo'); } catch { /* no query */ }
     }
     const ctx = await getFeedbackContext(
-        { loomVersion: pkg.version, repoOverride, cwd: root },
+        { loomVersion: pkg.version, repoOverride },
         {
             getState: () => getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root }),
-            resolveFeedbackRepo,
             platform: () => os.platform(),
         },
     );
