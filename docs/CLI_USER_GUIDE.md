@@ -170,7 +170,7 @@ Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent —
 
 | Command | Description |
 |---------|-------------|
-| `loom feedback [--repo <owner/name>] [--print]` | Open a prefilled GitHub issue to send feedback about Loom. **Opt-in** — it carries only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) that you review and edit before sending; nothing is sent automatically. Targets the workspace's git `origin` remote by default; `--repo` overrides the target, `--print` emits the URL instead of opening a browser. |
+| `loom feedback [--print]` | Open a prefilled GitHub issue to send feedback about Loom. **Opt-in** — it carries only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) that you review and edit before sending; nothing is sent automatically. `--print` emits the URL instead of opening a browser. |
 
 ---
 

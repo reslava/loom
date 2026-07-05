@@ -1,22 +1,19 @@
 import { LoomState } from '../../core/dist/entities/state';
 import { buildRoadmap } from '../../core/dist/derived';
-import { buildFeedbackUrl, resolveFeedbackRepo, FeedbackContext, FeedbackSnapshot } from '../../core/dist/feedback';
+import { buildFeedbackUrl, FEEDBACK_REPO, FeedbackContext, FeedbackSnapshot } from '../../core/dist/feedback';
 
 // ---------------------------------------------------------------------------
 // getFeedbackContext — assemble everything a feedback entry point needs.
 //
-// Orchestration only ((input, deps) => result): resolve the target repo (the
-// central sink, or an explicit override), gather the non-PII usage snapshot
-// from an already-built LoomState, and hand both to the pure core URL builder.
-// The delivery layers (CLI, MCP resource, extension) just open the returned url.
-// Repo resolution is pure (no git IO), so it's called directly, not injected.
+// Orchestration only ((input, deps) => result): gather the non-PII usage
+// snapshot from an already-built LoomState and hand it to the pure core URL
+// builder targeting the fixed feedback sink. The delivery layers (CLI, MCP
+// resource, extension) just open the returned url.
 // ---------------------------------------------------------------------------
 
 export interface GetFeedbackContextInput {
     /** Loom version to report — the caller's lockstep package version. */
     loomVersion: string;
-    /** Explicit "owner/name" override (e.g. the reslava-loom.feedback.repo setting). */
-    repoOverride?: string | null;
 }
 
 export interface GetFeedbackContextDeps {
@@ -46,6 +43,5 @@ export async function getFeedbackContext(
         currentRelease: buildRoadmap(state).currentRelease,
     };
 
-    const repo = resolveFeedbackRepo(input.repoOverride);
-    return { repo, snapshot, url: buildFeedbackUrl({ repo, snapshot }) };
+    return { repo: FEEDBACK_REPO, snapshot, url: buildFeedbackUrl({ repo: FEEDBACK_REPO, snapshot }) };
 }

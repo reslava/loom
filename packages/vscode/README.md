@@ -162,7 +162,7 @@ Click a row to **open the doc**. Use the inline actions to **include / exclude /
 
 ### Send feedback
 
-A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — opt-in, editable before you send, nothing sent automatically. Feedback goes to the Loom project by default so it reaches the maintainer; set `reslava-loom.feedback.repo` only to redirect it elsewhere (e.g. a fork).
+A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts (weaves / threads / done plans / current release) — opt-in, editable before you send, nothing sent automatically.
 
 ### Usage telemetry (opt-in, off by default)
 
@@ -223,7 +223,6 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 | `reslava-loom.ai.provider` | `anthropic` | AI provider for API key path (anthropic/deepseek/openai) |
 | `reslava-loom.ai.apiKey` | — | API key (fallback — not needed if Claude Code CLI is installed) |
 | `reslava-loom.ai.model` | — | Model override (blank = provider default) |
-| `reslava-loom.feedback.repo` | — | Target repo for *Send Feedback* as `owner/name` (blank = the Loom project; set only to redirect feedback elsewhere) |
 | `reslava-loom.telemetry.enabled` | `false` | Opt in to anonymous, content-free usage telemetry (never documents/titles/paths/PII). Off by default; this is also the kill switch |
 
 ---

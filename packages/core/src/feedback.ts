@@ -43,25 +43,14 @@ export interface FeedbackContext {
 export const FEEDBACK_TEMPLATE_FILE = 'feedback.yml';
 
 /**
- * The canonical feedback sink: EVERY Loom install — this repo, chord-flow, any
- * end-user project — files feedback into the Loom project's issues, so the
- * signal lands where it's acted on. This is deliberately central, not the
- * current project's repo: a user reporting a Loom bug wants the Loom maintainer
- * to see it, not to file it in their own repo where it's lost.
+ * The feedback sink — the sole target. EVERY Loom install (this repo, any
+ * end-user project) files feedback into the Loom project's issues, full stop.
+ * There is intentionally no override: a user must never be able to point Loom
+ * feedback at their own repo, where it would be noise to them and invisible to
+ * the maintainer. Reusing this mechanism in a non-Loom tool means changing this
+ * constant, nothing else.
  */
-export const DEFAULT_FEEDBACK_REPO = 'reslava/loom';
-
-/**
- * Resolve the feedback target: an explicit override, else the central sink.
- * Pure. The override exists for *code reuse* — a fork or a non-Loom tool built
- * on this mechanism points feedback at its own repo (e.g. via the
- * `reslava-loom.feedback.repo` setting / `--repo` flag). Absent that, feedback
- * always reaches the Loom project; it never depends on the current git remote.
- */
-export function resolveFeedbackRepo(override?: string | null): string {
-    const o = override?.trim();
-    return o ? o : DEFAULT_FEEDBACK_REPO;
-}
+export const FEEDBACK_REPO = 'reslava/loom';
 
 /**
  * Render the snapshot as the human-readable body of the form's `environment`

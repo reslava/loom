@@ -340,7 +340,7 @@ A **Roadmap** toolbar toggle re-lays the Threads view into the derived cross-wea
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
 | *Rename / Archive / Delete* | Inline doc management |
 
-A **Send Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts you can edit before sending — opt-in, nothing is sent automatically. Feedback goes to the Loom project so it reaches the maintainer; set `reslava-loom.feedback.repo` only to redirect it elsewhere (e.g. a fork).
+A **Send Feedback** button in the status bar (and the `Loom: Send Feedback` command) opens a prefilled GitHub issue carrying only Loom version, OS, and non-PII usage counts you can edit before sending — opt-in, nothing is sent automatically.
 
 ### Usage telemetry (opt-in, off by default)
 

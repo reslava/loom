@@ -440,11 +440,6 @@
           "default": "",
           "description": "Base URL override for OpenAI-compatible endpoints. Leave blank to use provider default."
         },
-        "reslava-loom.feedback.repo": {
-          "type": "string",
-          "default": "",
-          "description": "Target GitHub repo for 'Loom: Send Feedback', as 'owner/name'. Leave blank to send feedback to the Loom project (reslava/loom); set this only to redirect feedback elsewhere, e.g. a fork."
-        },
         "reslava-loom.telemetry.enabled": {
           "type": "boolean",
           "default": false,

@@ -9,20 +9,14 @@ import * as fs from 'fs-extra';
 const pkg = require('../../package.json');
 
 /**
- * loom://feedback-context — read-only. Assembles the resolved target repo, the
- * non-PII usage snapshot, and the prefilled issue-form URL. The extension reads
- * this and opens `url`; nothing is sent from here. An optional `?repo=owner/name`
- * carries the client's config override (e.g. the reslava-loom.feedback.repo
- * setting) so URL building stays entirely server-side.
+ * loom://feedback-context — read-only. Assembles the fixed feedback-sink repo,
+ * the non-PII usage snapshot, and the prefilled issue-form URL. The extension
+ * reads this and opens `url`; nothing is sent from here.
  */
-export async function handleFeedbackContextResource(root: string, uri?: string) {
+export async function handleFeedbackContextResource(root: string, _uri?: string) {
     const registry = new ConfigRegistry();
-    let repoOverride: string | null = null;
-    if (uri) {
-        try { repoOverride = new URL(uri).searchParams.get('repo'); } catch { /* no query */ }
-    }
     const ctx = await getFeedbackContext(
-        { loomVersion: pkg.version, repoOverride },
+        { loomVersion: pkg.version },
         {
             getState: () => getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root }),
             platform: () => os.platform(),

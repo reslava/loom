@@ -111,8 +111,8 @@ export { generateCtxBody, CtxSummaryData } from './bodyGenerators/ctxBody';
 // Feedback
 // ============================================================================
 export {
-    FeedbackSnapshot, FeedbackContext, FEEDBACK_TEMPLATE_FILE, DEFAULT_FEEDBACK_REPO,
-    formatFeedbackEnvironment, buildFeedbackUrl, resolveFeedbackRepo,
+    FeedbackSnapshot, FeedbackContext, FEEDBACK_TEMPLATE_FILE, FEEDBACK_REPO,
+    formatFeedbackEnvironment, buildFeedbackUrl,
 } from './feedback';
 
 // ============================================================================

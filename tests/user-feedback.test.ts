@@ -2,16 +2,15 @@ import { assert } from './test-utils';
 import {
     buildFeedbackUrl,
     formatFeedbackEnvironment,
-    resolveFeedbackRepo,
     FEEDBACK_TEMPLATE_FILE,
-    DEFAULT_FEEDBACK_REPO,
+    FEEDBACK_REPO,
 } from '../packages/core/dist/index.js';
 import { getFeedbackContext } from '../packages/app/dist/index.js';
 
-// In-tool user feedback — pure URL builder, central-sink repo resolution, and the
-// app use-case's snapshot shape (counts only, no PII). Fully hermetic: no IO. The
-// key invariant under test: feedback resolves to the central Loom sink, NOT the
-// current project's git remote, so every install's feedback reaches the maintainer.
+// In-tool user feedback — pure URL builder + the app use-case's snapshot shape
+// (counts only, no PII). Fully hermetic: no IO. The invariant under test: feedback
+// always targets the fixed Loom sink (FEEDBACK_REPO), with no override of any kind —
+// a user can never point Loom feedback at their own repo.
 
 const SNAPSHOT = {
     loomVersion: '1.0.0',
@@ -23,7 +22,9 @@ const SNAPSHOT = {
 };
 
 function testBuildFeedbackUrl(): void {
-    const url = buildFeedbackUrl({ repo: 'reslava/loom', snapshot: SNAPSHOT });
+    assert(FEEDBACK_REPO === 'reslava/loom', 'sink is the Loom repo');
+
+    const url = buildFeedbackUrl({ repo: FEEDBACK_REPO, snapshot: SNAPSHOT });
     assert(url.startsWith('https://github.com/reslava/loom/issues/new?'), `base url: ${url}`);
     assert(url.includes(`template=${FEEDBACK_TEMPLATE_FILE}`), 'carries template param');
     assert(url.includes('environment='), 'carries prefilled environment field');
@@ -32,22 +33,6 @@ function testBuildFeedbackUrl(): void {
 
     const env = formatFeedbackEnvironment(SNAPSHOT);
     assert(env.includes('Loom version: 1.0.0') && env.includes('Done plans: 1'), 'environment body is human-readable');
-}
-
-function testResolveFeedbackRepo(): void {
-    // The central sink is the Loom repo, and it's what you get with no override —
-    // regardless of the current project's git remote. This is the whole fix: every
-    // install files into reslava/loom, never its own repo.
-    assert(DEFAULT_FEEDBACK_REPO === 'reslava/loom', 'sink is the Loom repo');
-    assert(resolveFeedbackRepo() === 'reslava/loom', 'no override → central sink');
-    assert(resolveFeedbackRepo(undefined) === 'reslava/loom', 'undefined → sink');
-    assert(resolveFeedbackRepo(null) === 'reslava/loom', 'null → sink');
-    assert(resolveFeedbackRepo('   ') === 'reslava/loom', 'blank → sink');
-
-    // An explicit override wins — the reuse hinge (a fork or a non-Loom tool built
-    // on this mechanism points feedback at its own repo).
-    assert(resolveFeedbackRepo('owner/name') === 'owner/name', 'override wins');
-    assert(resolveFeedbackRepo('  owner/name  ') === 'owner/name', 'override trimmed');
 }
 
 async function testGetFeedbackContext(): Promise<void> {
@@ -65,12 +50,13 @@ async function testGetFeedbackContext(): Promise<void> {
     };
 
     const ctx = await getFeedbackContext(
-        { loomVersion: '9.9.9', repoOverride: 'owner/name' },
+        { loomVersion: '9.9.9' },
         { getState: async () => state, platform: () => 'testos' },
     );
 
-    assert(ctx.repo === 'owner/name', 'repo from override');
-    assert(ctx.url.includes('owner/name'), 'url built for resolved repo');
+    // Always the Loom sink — no input can redirect it.
+    assert(ctx.repo === 'reslava/loom', 'repo is the fixed Loom sink');
+    assert(ctx.url.includes('reslava/loom'), 'url targets the Loom sink');
 
     const s = ctx.snapshot;
     assert(s.loomVersion === '9.9.9', 'reports passed loom version');
@@ -87,19 +73,10 @@ async function testGetFeedbackContext(): Promise<void> {
         JSON.stringify(keys) === JSON.stringify(['currentRelease', 'donePlanCount', 'loomVersion', 'platform', 'threadCount', 'weaveCount']),
         `snapshot keys are counts-only: ${keys.join(',')}`,
     );
-
-    // No override → the central sink, and a real (non-null) url every time.
-    const central = await getFeedbackContext(
-        { loomVersion: '9.9.9' },
-        { getState: async () => state, platform: () => 'testos' },
-    );
-    assert(central.repo === 'reslava/loom', 'no override → central sink repo');
-    assert(central.url.includes('reslava/loom'), 'url targets the central sink');
 }
 
 async function run(): Promise<void> {
     testBuildFeedbackUrl();
-    testResolveFeedbackRepo();
     await testGetFeedbackContext();
     console.log('✅ user-feedback.test.ts passed');
 }

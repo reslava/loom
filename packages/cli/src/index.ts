@@ -299,9 +299,8 @@ program
 program
     .command('feedback')
     .description('Open a prefilled GitHub issue to send feedback about Loom. Opt-in: carries Loom version, OS, and non-PII usage counts you review and edit before sending. Nothing is sent automatically.')
-    .option('--repo <owner/name>', 'Send feedback to a different repo (default: the Loom project, reslava/loom)')
     .option('--print', 'Print the prefilled URL instead of opening a browser')
-    .action((options) => feedbackCommand({ repo: options.repo, print: options.print }));
+    .action((options) => feedbackCommand({ print: options.print }));
 
 program
     .command('mcp')

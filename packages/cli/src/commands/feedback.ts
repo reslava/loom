@@ -15,11 +15,11 @@ function openUrl(url: string): void {
     exec(cmd, () => { /* ignore — the URL was already printed as a fallback */ });
 }
 
-export async function feedbackCommand(options?: { repo?: string; print?: boolean }): Promise<void> {
+export async function feedbackCommand(options?: { print?: boolean }): Promise<void> {
     try {
         const registry = new ConfigRegistry();
         const ctx = await getFeedbackContext(
-            { loomVersion: pkg.version, repoOverride: options?.repo },
+            { loomVersion: pkg.version },
             {
                 getState: () => getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs }),
                 platform: () => os.platform(),

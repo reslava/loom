@@ -197,9 +197,9 @@ run_test tests/install-workspace.test.ts
 # never persists a corrupt plan + returns success (real fs)
 run_test tests/create-plan-hardening.test.ts
 
-# user-feedback: pure buildFeedbackUrl encoding, resolveFeedbackRepo (override →
-# central reslava/loom sink, never the current git remote), and getFeedbackContext's
-# counts-only snapshot shape (non-PII key allowlist, currentRelease via buildRoadmap)
+# user-feedback: pure buildFeedbackUrl encoding, the fixed FEEDBACK_REPO sink
+# (reslava/loom, no override of any kind), and getFeedbackContext's counts-only
+# snapshot shape (non-PII key allowlist, currentRelease via buildRoadmap)
 run_test tests/user-feedback.test.ts
 
 # telemetry: opt-in consent gate (createTelemetry→Noop unless enabled+key), consentFromEnv
