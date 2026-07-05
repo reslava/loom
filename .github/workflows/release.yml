@@ -109,6 +109,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build all packages (canonical build)
+        # Bake the PostHog project key into the shipped CLI bundle (esbuild `define`
+        # in packages/cli/esbuild.js). Unset ⇒ '' ⇒ telemetry is structurally Noop,
+        # so a missing secret ships a safe, inert build rather than failing. The key
+        # is a PostHog public/write-only project token — safe to embed in the client
+        # bundle; the secret is repo hygiene, not confidentiality.
+        env:
+          LOOM_POSTHOG_KEY: ${{ secrets.LOOM_POSTHOG_KEY }}
         run: bash scripts/build-all.sh
       - name: Run full test suite
         run: bash scripts/test-all.sh
