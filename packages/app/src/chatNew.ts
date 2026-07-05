@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { saveDoc, loadDoc } from '../../fs/dist';
-import { generateDocId, createBaseFrontmatter, nextOrdinal, chatFileName } from '../../core/dist';
+import { generateDocId, createBaseFrontmatter, nextOrdinal, chatFileName, formatOrdinal } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
@@ -51,9 +51,12 @@ export async function chatNew(
 
     const existingFiles = await deps.fs.readdir(chatsDir).catch(() => [] as string[]);
     // Canonical flat chat filename: chat-NNN.md (ordinal recognises legacy names too).
-    const chatFilename = chatFileName(nextOrdinal(existingFiles, 'chat'));
+    const ordinal = nextOrdinal(existingFiles, 'chat');
+    const chatFilename = chatFileName(ordinal);
     const chatId = generateDocId('chat');
-    const title = input.title || `${scopeId} Chat`;
+    // Default title carries the same NNN as the filename so sibling default-named
+    // chats under one thread stay distinct (chat-002.md → "{scope} Chat 002").
+    const title = input.title || `${scopeId} Chat ${formatOrdinal(ordinal)}`;
 
     const frontmatter = createBaseFrontmatter('chat', chatId, title, null);
     const doc: ChatDoc = {
