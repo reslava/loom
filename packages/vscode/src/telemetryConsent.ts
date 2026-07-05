@@ -23,6 +23,42 @@ export function getTelemetryEnv(): Record<string, string> {
     };
 }
 
+/** Status-bar label reflecting the current opt-in state. */
+export function telemetryStatusText(): string {
+    return isTelemetryEnabled() ? '$(pulse) Telemetry: On' : '$(pulse) Telemetry: Off';
+}
+
+/** Tooltip reflecting the current opt-in state. */
+export function telemetryStatusTooltip(): string {
+    return isTelemetryEnabled()
+        ? 'Loom usage telemetry is ON (anonymous, content-free) — click to turn off'
+        : 'Loom usage telemetry is OFF — click to help improve Loom';
+}
+
+/**
+ * Toggle the telemetry opt-in. Turning it ON asks for a one-line confirmation that
+ * states exactly what is (and isn't) sent, so consent stays informed; turning it
+ * OFF is a single click with no prompt. Writes the global setting; the status-bar
+ * item re-renders via the config-change listener.
+ */
+export async function toggleTelemetryCommand(): Promise<void> {
+    const config = vscode.workspace.getConfiguration();
+    if (isTelemetryEnabled()) {
+        await config.update(TELEMETRY_SETTING, false, vscode.ConfigurationTarget.Global);
+        vscode.window.setStatusBarMessage('Loom telemetry turned off.', 3000);
+        return;
+    }
+    const choice = await vscode.window.showInformationMessage(
+        'Enable anonymous, content-free usage telemetry? It sends only which commands run and where the workflow stalls — never your documents, titles, paths, or any PII. Off anytime with one click.',
+        'Enable',
+        'Cancel',
+    );
+    if (choice === 'Enable') {
+        await config.update(TELEMETRY_SETTING, true, vscode.ConfigurationTarget.Global);
+        vscode.window.setStatusBarMessage('Loom telemetry enabled — thank you!', 3000);
+    }
+}
+
 /** globalState key marking the one-time disclosure as already shown. */
 const DISCLOSURE_SHOWN_KEY = 'reslava-loom.telemetry.disclosed';
 

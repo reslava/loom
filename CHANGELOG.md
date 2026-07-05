@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **One-click telemetry toggle in the VS Code status bar.** A `Telemetry: On/Off` item makes opt-in usage telemetry discoverable and one click to enable or disable — no digging through Settings. Turning it on shows a one-line confirmation of exactly what's sent (never your documents, titles, or paths); turning it off is a single click. Still off by default.
+
+### Changed
+- **Feedback always goes to the Loom project.** Removed the `reslava-loom.feedback.repo` setting and the `loom feedback --repo` flag — feedback about Loom belongs with the maintainer, never scattered into each user's own repo. Reusing the mechanism in another tool is a one-line code change.
+
 ## [1.16.0] - 2026-07-05
 
 ### Added

@@ -168,7 +168,7 @@ A **Feedback** button in the status bar (and the `Loom: Send Feedback` command) 
 
 Separately from feedback, Loom can send **anonymous, content-free** usage telemetry so we can see whether the workflow loop is used and where people stall. It is **off by default**; on first activation Loom asks once, and sends nothing unless you choose *Enable*.
 
-- **Turn on/off:** the `reslava-loom.telemetry.enabled` setting (the kill switch — set it back to `false` any time).
+- **Turn on/off:** click the **Telemetry: On/Off** item in the status bar (one click — first enable confirms what's sent), or toggle the `reslava-loom.telemetry.enabled` setting. Either is the kill switch.
 - **Sent only when on:** a random install id, Loom version, OS, `is_ci`, the surface (`extension`), and fixed workflow events (`workspace_activated`, `session_started`, `doc_generated`/`doc_refined` with the doc *type*, `plan_started`, `step_completed`, `plan_done`, `command_invoked`, `error`).
 - **Never sent:** document content, titles, slugs, paths, weave/thread names, or any PII. Events go to PostHog (EU).
 

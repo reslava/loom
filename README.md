@@ -348,7 +348,7 @@ Separately from feedback, Loom can send **anonymous, content-free** usage teleme
 
 - **What is sent** (only after you opt in): a random install id, Loom version, OS, `is_ci`, the entry surface (`extension`/`cli`/`agent`), and a fixed set of workflow events — `workspace_activated`, `session_started`, `doc_generated`/`doc_refined` (with the doc *type* only), `plan_started`, `step_completed`, `plan_done`, `command_invoked` (tool/command name), and `error` (operation + error class).
 - **What is never sent**: document content, titles, slugs, file paths, weave/thread names, or any PII.
-- **Turn it on**: set `reslava-loom.telemetry.enabled` to `true` in VS Code, or `LOOM_TELEMETRY=1` for the CLI / MCP server (e.g. in `.mcp.json` env). **Turn it off / kill switch**: set it back to `false` (or unset the env var) — that is all it takes; no id is created and nothing is sent while off.
+- **Turn it on**: click the **Telemetry: Off** item in the VS Code status bar (one click; first enable shows exactly what's sent), or set `reslava-loom.telemetry.enabled` to `true`, or `LOOM_TELEMETRY=1` for the CLI / MCP server (e.g. in `.mcp.json` env). **Turn it off / kill switch**: click the same status-bar item, set the setting back to `false`, or unset the env var — that is all it takes; no id is created and nothing is sent while off.
 - Events go to PostHog (EU region).
 
 ### AI button paths

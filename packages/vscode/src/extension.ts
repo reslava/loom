@@ -5,7 +5,7 @@ import * as path from 'path';
 // exists, so it cannot go through it. Reads .loom/ config, never loom/ docs.
 import * as fs from 'fs';
 import { execSync } from 'child_process';
-import { maybeShowTelemetryDisclosure } from './telemetryConsent';
+import { maybeShowTelemetryDisclosure, toggleTelemetryCommand, telemetryStatusText, telemetryStatusTooltip, TELEMETRY_SETTING } from './telemetryConsent';
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
 import { RoadmapDragAndDropController } from './tree/roadmapDnd';
 import { ViewStateManager } from './view/viewStateManager';
@@ -145,6 +145,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.refresh', syncAndRefresh),
         vscode.commands.registerCommand('loom.reconnectMcp', () => { disposeMCP(); syncAndRefresh(); }),
         vscode.commands.registerCommand('loom.sendFeedback', () => sendFeedbackCommand()),
+        vscode.commands.registerCommand('loom.toggleTelemetry', () => toggleTelemetryCommand()),
         vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.threadCreate', (node?: TreeNode) => threadCreateCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, treeView, node)),
@@ -339,6 +340,23 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     feedbackStatusBar.command = 'loom.sendFeedback';
     feedbackStatusBar.show();
     context.subscriptions.push(feedbackStatusBar);
+
+    // Telemetry toggle status bar — always visible; shows the opt-in state and
+    // flips it on click (the one-click, discoverable path to enable/disable).
+    const telemetryStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 88);
+    telemetryStatusBar.command = 'loom.toggleTelemetry';
+    const syncTelemetryStatusBar = (): void => {
+        telemetryStatusBar.text = telemetryStatusText();
+        telemetryStatusBar.tooltip = telemetryStatusTooltip();
+        telemetryStatusBar.show();
+    };
+    syncTelemetryStatusBar();
+    context.subscriptions.push(telemetryStatusBar);
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration(TELEMETRY_SETTING)) syncTelemetryStatusBar();
+        })
+    );
 
     // Re-sync status bar once MCP actually connects (first successful state read)
     context.subscriptions.push(treeProvider.onMCPStateChange(() => syncSetupContext()));

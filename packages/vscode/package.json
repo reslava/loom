@@ -75,6 +75,12 @@
         "icon": "$(feedback)"
       },
       {
+        "command": "loom.toggleTelemetry",
+        "title": "Toggle Usage Telemetry",
+        "category": "Loom",
+        "icon": "$(pulse)"
+      },
+      {
         "command": "loom.weaveCreate",
         "title": "New Weave",
         "category": "Loom",
