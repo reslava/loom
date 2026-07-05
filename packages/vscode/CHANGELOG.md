@@ -1,12 +1,13 @@
 # Loom VS Code Extension — Changelog
 
-## [Unreleased]
+## [1.17.0] - 2026-07-05
 
 ### Added
 - **Telemetry status-bar toggle.** A `Telemetry: On/Off` status-bar item — one click to enable or disable opt-in usage telemetry (first enable confirms exactly what's sent). The discoverable path to the setting, and a one-click kill switch.
 
 ### Changed
 - **Send Feedback always targets the Loom project.** Removed the `reslava-loom.feedback.repo` setting — feedback no longer redirects to the current repo.
+- **New chats get a numbered default title.** A default-named chat is now titled `{thread} Chat NNN` (matching its filename) instead of a title shared by every chat in the thread.
 
 ## [1.16.0] - 2026-07-05
 

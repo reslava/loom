@@ -10,11 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-07-05
+
 ### Added
 - **One-click telemetry toggle in the VS Code status bar.** A `Telemetry: On/Off` item makes opt-in usage telemetry discoverable and one click to enable or disable — no digging through Settings. Turning it on shows a one-line confirmation of exactly what's sent (never your documents, titles, or paths); turning it off is a single click. Still off by default.
 
 ### Changed
 - **Feedback always goes to the Loom project.** Removed the `reslava-loom.feedback.repo` setting and the `loom feedback --repo` flag — feedback about Loom belongs with the maintainer, never scattered into each user's own repo. Reusing the mechanism in another tool is a one-line code change.
+- **Default chat titles are numbered.** A chat left with its default name is now titled `{thread} Chat NNN` — matching its `chat-NNN.md` filename — instead of a bare `{thread} Chat` shared by every chat in the thread, so sibling chats are distinguishable at a glance. An explicit title still overrides.
 
 ## [1.16.0] - 2026-07-05
 
@@ -589,7 +592,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/reslava/loom/releases/tag/v1.17.0
 [1.16.0]: https://github.com/reslava/loom/releases/tag/v1.16.0
 [1.15.0]: https://github.com/reslava/loom/releases/tag/v1.15.0
 [1.14.0]: https://github.com/reslava/loom/releases/tag/v1.14.0

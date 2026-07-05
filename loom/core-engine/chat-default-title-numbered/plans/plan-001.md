@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.17.0
 steps:
   - id: numbered-the-default-chat-title-chatnew
     order: 1
