@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 11
+last_ai_block: 14
 ---
 # telemetry setup and release Chat
 
@@ -211,3 +211,84 @@ I've **paused the release** here (no bump/tag yet) since you're mid-verification
 ## AI:
 
 Continuing the release. Committing the feedback fix on its own (`fix(feedback):`), then the bump → build/test → record-release → `release: v1.16.0` → annotated tag → push, and I'll watch the publish workflow through to npm + Marketplace + Open VSX.
+
+## AI:
+
+🚀 **Released — v1.16.0 is live everywhere.**
+
+Release workflow `28732126617` — all six jobs green:
+`guard ✅ · build-test ✅ · publish-npm ✅ · publish-vsce ✅ · publish-ovsx ✅ · release ✅`
+
+Confirmed live:
+- **npm**: `@reslava/loom@1.16.0`
+- **VS Code Marketplace**: `reslava.loom-vscode` 1.16.0 (publish-vsce success)
+- **Open VSX**: 1.16.0
+- **GitHub release**: https://github.com/reslava/loom/releases/tag/v1.16.0 (published, not draft)
+
+What shipping this means:
+- **Telemetry is now actually collecting.** The published npm bundle was built by CI with the `LOOM_POSTHOG_KEY` secret, so it bakes the real key instead of `''` — opt-in users now send the content-free loop events (the path you already saw ingest in PostHog EU). Still off by default; nothing until opt-in.
+- **Feedback routes centrally.** Every install's `loom feedback` / Send Feedback now opens an issue against `reslava/loom`, not the current project — so real feedback finally reaches you.
+- `record-release` stamped both plans with `actual_release: 1.16.0` (telemetry + user-feedback), so the roadmap owns what shipped.
+
+Next: opt-in telemetry data will start trickling into PostHog EU as users on 1.16.0 enable it, and feedback issues (if any) will land in this repo's Issues. Nothing more to do on the release — want me to close this chat?
+
+## Rafa:
+
+Weekly limits and AI costs always imply making conversations short, that could make you feel I am not fully expressing myself
+
+### Feedback repo issue
+
+I know I am Spanish and my English is not good enough, so my explanations maybe are not clear enough, but what you understood and implement for Loom feedback was dangerous and had no sense at all.
+Why an user would like to send loom feedback to his own repo?
+Sending noise to a user repo is dangerous
+I thought you have more common sense about what we build and its implications.
+
+### Feedback 
+
+Although the repository issue has already been resolved, there are still some things that don't make sense. These 2 sentences are from README:
+>Feedback goes to the Loom project so it reaches the maintainer; 
+This is redundant, obvious and unnecessary.
+
+>set reslava-loom.feedback.repo only to redirect it elsewhere (e.g. a fork).
+this param should not exists at all 
+
+Loom feedback goes to loom repo issues, everything else is just extra.
+
+### Telemetry
+
+From README:
+>Turn it on: set reslava-loom.telemetry.enabled to true in VS Code, or LOOM_TELEMETRY=1 for the CLI / MCP server (e.g. in .mcp.json env).
+
+VSCode > Preferences > Settings
+- In this project and Chord Flow with already installed Loom the parameter reslava-loom.telemetry.enabled does not exists  
+- I created a new workspace and installed Loom, and reslava-loom.telemetry.enabled exists
+
+Why in already loom installed projects the param not exists?
+
+Telemetry is opt-in and the way to enable it is hard, so I am sure nobody will do it.
+We should add a very easy, direct, highlight way to enable it. Maybe a status bar button similar to feedback one.
+
+## AI:
+
+On the meta point first: understood, and it's fair. I won't read a short message as you not caring, and I'll ask instead of assuming when something's ambiguous. Your English is clear enough — the miss here was mine, not a language gap.
+
+**Owning the feedback mistake.** You're right: routing feedback into a user's own repo was a bad call, and "sending noise into someone else's repo is dangerous" is exactly the implication I should have weighed before building it. I over-abstracted toward "make it reusable" and lost the common-sense question — *why would a user ever want that?* They wouldn't. That's on me, not on how you explained it.
+
+**Feedback — done, the clean way you asked for.** Removed the override entirely:
+- No `reslava-loom.feedback.repo` setting, no `--repo` flag.
+- Feedback is hardwired to `reslava/loom` via a single `FEEDBACK_REPO` constant. Reusing the mechanism in a non-Loom tool = change that one line, nothing user-facing.
+- Dropped the redundant "goes to the Loom project so it reaches the maintainer" sentence from the READMEs + guides.
+- Build + full test suite green.
+
+**Telemetry setting missing — confirmed, and thanks for verifying.** It's a VS Code *configuration contribution* declared in the extension's `package.json`. An already-open window keeps running the **pre-1.16.0 extension host**, so the new setting only registers after **Reload Window** (or a restart) — which is exactly what you saw. New windows pick it up immediately. Nothing to fix; it's how VS Code loads contributed settings.
+
+**Telemetry is too hard to enable — agree.** A setting nobody finds means no data, which defeats the whole point. Your status-bar-button idea is right. Before I build it, one design call (it's a privacy surface, worth getting right):
+- **When is it visible?** (a) always show a small toggle reflecting state — "Telemetry: off/on", click flips it; (b) show a subtle prompt only while off, hide once decided; (c) a Command Palette command plus a status item.
+- **On enable:** one-click flip, or a quick confirm showing exactly what's sent (keeps consent honest)?
+- My lean: **(a) always-visible toggle + a one-line confirm on first enable** — cheap, honest, and the off-switch stays one click too.
+
+**Release timing** — two ways to ship the above:
+- **1.16.1 patch now** for just the feedback cleanup, then the telemetry button later; or
+- **hold** and ship the feedback cleanup *and* the telemetry-enable button together as **1.17.0**.
+
+I've committed the feedback cleanup either way. Tell me the button UX (a/b/c + confirm?) and which release path, and I'll take it from there.
