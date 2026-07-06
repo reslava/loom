@@ -4,7 +4,7 @@ id: th_01KV3MWS5N826EQ1262YKZWD6Y
 title: Context Dispatcher Sidebar — surface the loaded-context ledger
 status: active
 created: 2026-06-14
-updated: 2026-07-04
+updated: 2026-07-06
 version: 1
 tags: []
 parent_id: null

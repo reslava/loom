@@ -4,7 +4,7 @@ id: th_01KV3MWSD3YWMBHGMJNXFRTD16
 title: Loom Demo Deliverables
 status: active
 created: 2026-06-14
-updated: 2026-07-04
+updated: 2026-07-06
 version: 1
 tags: []
 parent_id: null

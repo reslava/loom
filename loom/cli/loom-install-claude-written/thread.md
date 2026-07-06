@@ -1,17 +1,16 @@
 ---
 type: thread
-id: th_01KWWAF7RY027B42SKPGN167WZ
-title: Resolve telemetry consent from a shared source (remove per-process env-plumbing)
+id: th_01KWWG4GA3YB6CF8059J8GG48K
+title: loom-install-claude-written
 status: active
 created: 2026-07-06
-updated: 2026-07-06
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 20
+priority: 1000
 depends_on: []
 ---
-# Resolve telemetry consent from a shared source (remove per-process env-plumbing)
+# loom-install-claude-written
 
 Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). The thread's roadmap status and history are *derived* (`buildRoadmap`), never stored here.

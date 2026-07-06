@@ -4,11 +4,12 @@ id: th_01KWW4QXB7MR5ESMXKTTAWNBVV
 title: Load thread context by need, not by trigger, on chat reply
 status: active
 created: 2026-07-06
+updated: 2026-07-06
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 90
+priority: 10
 depends_on: []
 ---
 # Load thread context by need, not by trigger, on chat reply
