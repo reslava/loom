@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWQM19SYX6Q3GNNJ17PT07YF
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.18.0
 steps:
   - id: added-a-loom-install-id-env
     order: 1

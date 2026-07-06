@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.18.0] - 2026-07-06
+
+### Fixed
+- **Opt-in telemetry now covers AI actions launched from the extension.** Generate / Refine / Promote / Do-Step open a Claude agent that runs its own Loom server process, which the `Telemetry: On` toggle never reached — so with telemetry enabled, the core workflow events still went unrecorded. The toggle's consent now propagates into that launched agent (tagged as the `extension` surface), so opting in captures the full loop. Off by default and content-free, as before.
+
+### Notes
+- Lockstep 1.18.0 bump with the CLI and the rest of the monorepo — adds the `chat_created` telemetry event. Also refreshes the Marketplace README with a feedback CTA.
+
 ## [1.17.0] - 2026-07-05
 
 ### Added

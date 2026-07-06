@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-07-06
+
+### Added
+- **`chat_created` telemetry event.** Opt-in telemetry now records when a chat — the entry point of the Loom loop — is *created* (creation only; never replies or any message content), so the usage funnel begins at "opened the thinking surface" rather than at the first generated doc. Anonymous and content-free as ever.
+
+### Fixed
+- **Opt-in telemetry now covers AI actions, not just the extension itself.** Generating, refining, or implementing from the extension launches a Claude agent that runs its *own* Loom server process — which the telemetry opt-in never reached, so the most important workflow events (generate / refine / do-step) went unrecorded even with telemetry turned on. Consent now propagates to that agent (tagged as the `extension` surface), so opting in captures the whole loop. Telemetry remains off by default and content-free.
+
+### Changed
+- **READMEs invite feedback above the fold.** A short "feedback appreciated" line now sits near the top of the root and Marketplace READMEs, pointing at the in-tool **Send Feedback** button / `loom feedback`.
+
 ## [1.17.0] - 2026-07-05
 
 ### Added
@@ -592,7 +603,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.17.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.18.0...HEAD
+[1.18.0]: https://github.com/reslava/loom/releases/tag/v1.18.0
 [1.17.0]: https://github.com/reslava/loom/releases/tag/v1.17.0
 [1.16.0]: https://github.com/reslava/loom/releases/tag/v1.16.0
 [1.15.0]: https://github.com/reslava/loom/releases/tag/v1.15.0
