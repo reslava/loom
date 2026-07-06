@@ -90,18 +90,34 @@ async function run() {
     {
         const dir = path.join(os.tmpdir(), `loom-telemetry-test-${Date.now()}`);
         fs.rmSync(dir, { recursive: true, force: true });
-        const client = createTelemetry({ enabled: true, surface: 'agent', loomVersion: '9.9.9', apiKey: 'phc_test', configDir: dir });
+        // Explicit empty env so the runner's own LOOM_INSTALL_ID (a maintainer may
+        // have it set globally) can't hijack the random-UUID path under test.
+        const client = createTelemetry({ enabled: true, surface: 'agent', loomVersion: '9.9.9', apiKey: 'phc_test', configDir: dir, env: {} });
         assert(client instanceof PostHogTelemetry, 'enabled + key → PostHogTelemetry');
         const idFile = path.join(dir, 'telemetry.json');
         assert(fs.existsSync(idFile), 'install id persisted only after opt-in');
-        const id1 = getOrCreateInstallId(dir);
-        const id2 = getOrCreateInstallId(dir);
+        const id1 = getOrCreateInstallId(dir, {});
+        const id2 = getOrCreateInstallId(dir, {});
         assert(id1 === id2 && id1.length >= 32, 'install id is stable across reads');
         // track must never throw; flush with an empty queue resolves without network
         client.track('workspace_activated');
         assert(typeof (client as PostHogTelemetry).flush === 'function', 'flush exists');
         fs.rmSync(dir, { recursive: true, force: true });
         console.log('  ✅ PostHog client construction + identity');
+    }
+
+    // --- LOOM_INSTALL_ID pins the distinct_id (store untouched) ---------------
+    {
+        const dir = path.join(os.tmpdir(), `loom-installid-test-${Date.now()}`);
+        fs.rmSync(dir, { recursive: true, force: true });
+        const pinned = getOrCreateInstallId(dir, { LOOM_INSTALL_ID: 'loom-dev' });
+        assert(pinned === 'loom-dev', 'LOOM_INSTALL_ID used verbatim');
+        assert(!fs.existsSync(path.join(dir, 'telemetry.json')), 'override does not touch the store');
+        // Whitespace-only / empty override falls through to the random UUID path.
+        const blank = getOrCreateInstallId(dir, { LOOM_INSTALL_ID: '   ' });
+        assert(blank !== 'loom-dev' && blank.length >= 32, 'blank override → random id');
+        fs.rmSync(dir, { recursive: true, force: true });
+        console.log('  ✅ LOOM_INSTALL_ID override');
     }
 
     // --- defaultConfigDir honours LOOM_CONFIG_DIR ----------------------------
@@ -152,6 +168,15 @@ async function run() {
         const r3 = new Recorder();
         emitToolSuccess(r3, 'loom_close_plan');
         assert(r3.events.some(e => e.event === 'plan_done'), 'loom_close_plan → plan_done');
+
+        const rc = new Recorder();
+        emitToolSuccess(rc, 'loom_create_chat');
+        assert(rc.events[0].event === 'command_invoked' && rc.events[0].props?.command === 'loom_create_chat', 'chat: command_invoked first');
+        assert(rc.events.some(e => e.event === 'chat_created'), 'loom_create_chat → chat_created');
+
+        const ra = new Recorder();
+        emitToolSuccess(ra, 'loom_append_to_chat'); // append is NOT a loop event
+        assert(ra.events.length === 1 && ra.events[0].event === 'command_invoked', 'append → only command_invoked (no chat_created)');
 
         const r4 = new Recorder();
         emitToolSuccess(r4, 'loom_find_doc'); // no loop mapping

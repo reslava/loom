@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
+import { getTelemetryEnv } from '../telemetryConsent';
 
 const exec = promisify(cp.exec);
 
@@ -30,7 +31,13 @@ function getLoomTerminal(root: string): vscode.Terminal {
         try { _terminal.dispose(); } catch { /* already gone */ }
         _terminal = undefined;
     }
-    _terminal = vscode.window.createTerminal({ name: 'Loom AI', cwd: root });
+    // Propagate the extension's telemetry consent + surface tag into the launched
+    // agent's environment. The agent creates docs through its OWN `loom mcp` (spawned
+    // by Claude Code from .mcp.json), a different process than the extension's server —
+    // so without this, the UI "Telemetry: On" toggle would never reach the primary AI
+    // path and every generate/refine/do-step event would be silently dropped. The
+    // toggle now governs the work the button triggers; surface stays `extension`.
+    _terminal = vscode.window.createTerminal({ name: 'Loom AI', cwd: root, env: getTelemetryEnv() });
     return _terminal;
 }
 

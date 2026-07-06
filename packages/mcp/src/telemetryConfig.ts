@@ -12,6 +12,23 @@ import { trackWorkspaceActivated, trackSessionStarted } from '../../app/dist/tel
 const POSTHOG_KEY = process.env.LOOM_POSTHOG_KEY ?? '';
 
 /**
+ * Warn once on stderr when the user opted in (`LOOM_TELEMETRY` truthy) but this
+ * build has no PostHog key baked in (`POSTHOG_KEY` empty ⇒ structurally Noop). An
+ * opted-in user would otherwise send nothing *silently* — exactly the failure a
+ * local key-less `build-all.sh` produces (it never sets `LOOM_POSTHOG_KEY`, so the
+ * esbuild `define` bakes `''`). Kept at the host layer on purpose: `packages/telemetry`
+ * is silent by design and never writes to stderr.
+ */
+function warnIfEnabledButKeyless(env: NodeJS.ProcessEnv): void {
+    if (consentFromEnv(env) && !POSTHOG_KEY) {
+        process.stderr.write(
+            '⚠ Loom telemetry is ON but this build has no PostHog key baked in — ' +
+                'events will NOT send. Rebuild with LOOM_POSTHOG_KEY set to enable.\n',
+        );
+    }
+}
+
+/**
  * Build the telemetry client for a server process. Surface comes from
  * `LOOM_SURFACE` (the VS Code extension sets `extension` when it spawns
  * `loom mcp`; Claude Code leaves it unset ⇒ `agent`). Consent comes from
@@ -22,6 +39,7 @@ export function buildServerTelemetry(
     env: NodeJS.ProcessEnv = process.env,
 ): TelemetryClient {
     const surface: Surface = (env.LOOM_SURFACE as Surface) || 'agent';
+    warnIfEnabledButKeyless(env);
     return createTelemetry({
         enabled: consentFromEnv(env),
         surface,
@@ -39,6 +57,7 @@ export function buildCliTelemetry(
     loomVersion: string,
     env: NodeJS.ProcessEnv = process.env,
 ): TelemetryClient {
+    warnIfEnabledButKeyless(env);
     return createTelemetry({
         enabled: consentFromEnv(env),
         surface: 'cli',

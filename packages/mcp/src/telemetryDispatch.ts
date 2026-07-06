@@ -1,6 +1,7 @@
 import { TelemetryClient } from '../../telemetry/dist';
 import {
     trackCommandInvoked,
+    trackChatCreated,
     trackDocGenerated,
     trackDocRefined,
     trackPlanStarted,
@@ -20,6 +21,8 @@ import {
 
 /** Wire tool name → the loop event it represents, beyond the generic command_invoked. */
 const LOOP_EVENT: Record<string, (t: TelemetryClient) => void> = {
+    // chat phase — a new thinking surface is opened (creation only; appends are noise).
+    loom_create_chat: (t) => trackChatCreated(t),
     // {generate} phase — a structured doc is born (Claude Code create* path)…
     loom_create_idea: (t) => trackDocGenerated(t, 'idea'),
     loom_create_design: (t) => trackDocGenerated(t, 'design'),

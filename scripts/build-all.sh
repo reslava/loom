@@ -41,6 +41,15 @@ cd ../mcp && npx tsc --build --force
 echo "📦 Building cli (bundled with esbuild)..."
 cd ../cli && node esbuild.js
 
+# Surface whether the PostHog key was baked into this bundle. Key-less builds are
+# structurally Noop (telemetry can never send) — this line makes that visible at
+# every build so a silent key-less local build never masquerades as working.
+if [ -n "$LOOM_POSTHOG_KEY" ]; then
+    echo "🔑 PostHog key: present — telemetry can send"
+else
+    echo "🔑 PostHog key: absent — telemetry is Noop (set LOOM_POSTHOG_KEY before building to bake it)"
+fi
+
 echo "🔗 Linking CLI globally..."
 npm link --force
 

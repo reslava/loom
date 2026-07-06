@@ -25,11 +25,24 @@ export function defaultConfigDir(env: NodeJS.ProcessEnv = process.env): string {
  * Read the persisted anonymous install id, creating it on first call. The id is a
  * random UUID with NO link to any project, path, machine name, or user identity.
  *
+ * `LOOM_INSTALL_ID` overrides the persisted id verbatim (store untouched): it pins
+ * the `distinct_id` to a known value so those events can be cohorted/filtered in
+ * the dashboard — e.g. a maintainer marking their own installs to exclude them from
+ * "real adoption" numbers while keeping them for loop-validation. Opt-in like the
+ * rest of telemetry; it does nothing unless consent + a key are also present.
+ *
  * Only ever call this AFTER consent — never mint an id for a user who has not
  * opted in. If the store cannot be written (read-only FS, etc.) an ephemeral id
  * is returned so a session still coheres, without crashing.
  */
-export function getOrCreateInstallId(configDir: string = defaultConfigDir()): string {
+export function getOrCreateInstallId(
+    configDir: string = defaultConfigDir(),
+    env: NodeJS.ProcessEnv = process.env,
+): string {
+    const override = env.LOOM_INSTALL_ID?.trim();
+    if (override) {
+        return override;
+    }
     const file = path.join(configDir, 'telemetry.json');
     try {
         const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));

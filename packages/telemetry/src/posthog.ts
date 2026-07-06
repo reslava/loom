@@ -40,7 +40,7 @@ export class PostHogTelemetry implements TelemetryClient {
     constructor(config: TelemetryConfig & { apiKey: string }) {
         this.host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, '');
         this.apiKey = config.apiKey;
-        this.distinctId = getOrCreateInstallId(config.configDir);
+        this.distinctId = getOrCreateInstallId(config.configDir, config.env);
         this.sessionId = newSessionId();
         this.common = buildCommonProps({
             surface: config.surface,

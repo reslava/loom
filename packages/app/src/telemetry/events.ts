@@ -27,6 +27,15 @@ export function trackSessionStarted(t: TelemetryClient): void {
     t.track('session_started');
 }
 
+/**
+ * A new chat (the thinking surface) was opened — the loop's entry point. Answers
+ * "is the collaboration medium actually used?". Fired on chat *creation* only, not
+ * per reply: appends are high-volume and would swamp the signal.
+ */
+export function trackChatCreated(t: TelemetryClient): void {
+    t.track('chat_created');
+}
+
 /** A structured doc was generated (the {generate} phase). */
 export function trackDocGenerated(t: TelemetryClient, type: DocType): void {
     t.track('doc_generated', { type });

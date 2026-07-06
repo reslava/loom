@@ -4,7 +4,8 @@ id: de_01KWQM19SYX6Q3GNNJ17PT07YF
 title: Opt-in usage telemetry — design
 status: done
 created: 2026-07-04
-version: 1
+updated: 2026-07-06
+version: 3
 idea_version: 1
 tags: []
 parent_id: id_01KWP9GAY7TYGS7NFKC5KFZAJ3
@@ -87,8 +88,13 @@ When telemetry is disabled, each injects `NoopTelemetry`, so `app` code is uncon
 | 7 | `plan_done` | — | **loop closure / success** |
 | 8 | `error` | `operation, error_class` | where people stall (content-free) |
 | 9 | `command_invoked` | `command` | coarse "which tools fire" |
+| 10 | `chat_created` | — | thinking-surface entry — is the loop's front door (chat) used? Creation only, never appends (too high-volume) |
 
-The funnel `doc_generated → plan_started → step_completed → plan_done` + retention (`session_started` per `install_id` over time) + `error` clustering answers all three questions. Anything beyond this table is out of scope for v1.
+The funnel `chat_created → doc_generated → plan_started → step_completed → plan_done` + retention (`session_started` per `install_id` over time) + `error` clustering answers all three questions. `chat_created` (added post-v1) anchors the funnel at the loop's actual entry — the thinking surface — so "opened a chat but never generated" becomes a visible drop-off rather than a blind spot. Anything beyond this table is out of scope.
+
+### Cross-process consent (post-v1 correction)
+
+The emit point is the MCP `CallTool` dispatcher seam (decision B) — a single code choke point all `loom_*` writes funnel through. But telemetry is emitted by a **per-process** client built from that process's env, and the primary AI path runs a **second** `loom mcp` process: the extension's AI buttons launch a Claude Code agent whose own `loom mcp` (spawned from `.mcp.json`) creates the docs. The VS Code `telemetry.enabled` toggle only seeded the extension's *own* server, so agent-path loop events (generate/refine/do-step) silently dropped. Fix: `launchClaude` now injects `getTelemetryEnv()` (consent + `surface: extension`) into the launched terminal, so the UI toggle governs the work the button triggers. The lesson: a single *code* choke point is not a single *runtime* meeting point — consent/identity must reach every process that runs the app, since the app is a per-process library, not a shared service.
 
 ## Identity, privacy & consent
 
