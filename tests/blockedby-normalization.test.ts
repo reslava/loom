@@ -76,6 +76,18 @@ async function run() {
     );
     console.log('  ✓ create: out-of-range ordinal → throws');
 
+    // 3b. Create path: a well-formed but unknown slug ("s1" guess) hard-errors — it is
+    // NOT silently persisted as a dangling edge (the recurrence this plan closes).
+    await rejects(
+        () => weavePlan({ ...base, goal: 'x', steps: [
+            { description: 'First', title: 'first' },
+            { description: 'Second', title: 'second', blockedBy: ['s1'] },
+        ] } as any, deps),
+        'unknown step id "s1"',
+        'create unknown slug',
+    );
+    console.log('  ✓ create: unknown slug "s1" → throws (no silent dangling edge)');
+
     // 4. UPDATE_STEP reducer: a numeric blockedBy patch normalizes to a slug id.
     const doc: any = { id: 'pl_x', status: 'implementing', steps: [mkStep('a', 1), mkStep('b', 2), mkStep('c', 3)] };
     const afterUpdate = planReducer(doc, { type: 'UPDATE_STEP', stepId: 'c', patch: { blockedBy: ['1'] } } as any);
@@ -85,13 +97,23 @@ async function run() {
         'ordinal "9"',
         'update out-of-range ordinal',
     );
-    console.log('  ✓ update-step: numeric blockedBy → slug id; out-of-range throws');
+    await rejects(
+        async () => planReducer(doc, { type: 'UPDATE_STEP', stepId: 'c', patch: { blockedBy: ['s1'] } } as any),
+        'unknown step id "s1"',
+        'update unknown slug',
+    );
+    console.log('  ✓ update-step: numeric blockedBy → slug id; out-of-range and unknown slug throw');
 
     // 5. ADD_STEP reducer: the new step's numeric blockedBy resolves against the final order.
     const afterAdd = planReducer(doc, { type: 'ADD_STEP', step: { description: 'D', title: 'd', blockedBy: ['2'] }, position: 'append' } as any);
     const added = afterAdd.steps.find((s: any) => s.id === 'd');
     assert(!!added && eq(added.blockedBy, ['b']), `add: ['2'] → ['b'] (got ${JSON.stringify(added?.blockedBy)})`);
-    console.log('  ✓ add-step: numeric blockedBy → slug id (final-order)');
+    await rejects(
+        async () => planReducer(doc, { type: 'ADD_STEP', step: { description: 'E', title: 'e', blockedBy: ['s1'] }, position: 'append' } as any),
+        'unknown step id "s1"',
+        'add unknown slug',
+    );
+    console.log('  ✓ add-step: numeric blockedBy → slug id (final-order); unknown slug throws');
 
     // 6. Reorder keeps slug edges pointing at the same logical steps.
     const withEdge: any = { id: 'pl_y', status: 'implementing', steps: [mkStep('a', 1), mkStep('b', 2, ['a']), mkStep('c', 3)] };

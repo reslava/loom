@@ -49,6 +49,15 @@ export function isStepBlocked(
 }
 
 /**
+ * Whether a `blockedBy` entry names a *plan* (cross-plan dependency) rather than a
+ * sibling step: a canonical `pl_…` ULID, or a legacy positional `"{slug}-plan-NNN"`
+ * id. Such entries are passed through unvalidated by {@link resolveBlockedByIds}.
+ */
+function isPlanIdRef(entry: string): boolean {
+    return entry.startsWith('pl_') || entry.includes('-plan-');
+}
+
+/**
  * Normalize a step's `blockedBy` entries to stable step-id slugs (write-time).
  *
  * The write-path counterpart to {@link isStepBlocked}'s read-time ordinal
@@ -58,10 +67,16 @@ export function isStepBlocked(
  *
  * - A numeric entry (`"1"`) or `"Step N"` form → the id at that 1-based position
  *   in `orderedStepIds`.
- * - Any other (non-numeric) entry — an already-resolved step-id slug, or a plan
- *   id (`pl_…` / a cross-plan blocker) — passes through unchanged.
- * - A numeric entry with no step at that position (out of range) throws: a
- *   positional reference to a step that doesn't exist can only be a mistake.
+ * - A plan id (`pl_…`, or a legacy `"{slug}-plan-NNN"` cross-plan blocker) passes
+ *   through unchanged — best-effort, since the resolver holds only this plan's step
+ *   ids and cannot verify another plan exists (matching {@link isStepBlocked}'s
+ *   "missing plan ⇒ blocked" read-time convention).
+ * - A non-numeric entry that matches a known id in `orderedStepIds` passes through.
+ * - A numeric entry out of range, OR a non-numeric entry that is neither a plan id
+ *   nor a known step id, throws: a positional reference to a nonexistent step, or a
+ *   well-formed but unknown slug (the `"s1"` guess), can only be a mistake — and
+ *   persisting it would create a silent dangling edge, exactly what this normaliser
+ *   exists to prevent.
  * - The result is de-duplicated (first occurrence wins), so an ordinal and the
  *   slug it resolves to collapse to one edge. An entry that resolves to `selfId`
  *   (a step blocking itself) throws.
@@ -99,7 +114,7 @@ export function resolveBlockedByIds(
         }
         if (entry === '') continue;
 
-        let id = entry;
+        let id: string;
         const ordinal = entry.match(/^(?:Step\s+)?(\d+)$/i);
         if (ordinal) {
             const position = parseInt(ordinal[1], 10);
@@ -110,6 +125,24 @@ export function resolveBlockedByIds(
                 );
             }
             id = orderedStepIds[position - 1];
+        } else if (isPlanIdRef(entry)) {
+            // Cross-plan blocker: pass through unvalidated. The resolver holds only this
+            // plan's step ids, so it cannot verify the target plan exists — that stays
+            // best-effort, matching isStepBlocked's "missing plan ⇒ blocked" convention.
+            id = entry;
+        } else if (orderedStepIds.includes(entry)) {
+            // An already-resolved step-id slug — passes through.
+            id = entry;
+        } else {
+            // A well-formed string that is neither an ordinal, a plan id, nor a known
+            // step id. This is the "s1" guess: previously it passed through and persisted
+            // as a *dangling* edge. Refuse it loudly — no dependency edge is lost silently.
+            throw new Error(
+                `blockedBy references unknown step id ${JSON.stringify(entry)}. ` +
+                `Valid step ids: ${orderedStepIds.map(s => JSON.stringify(s)).join(', ') || '(none)'}. ` +
+                `To reference a sibling step by position, use its 1-based ordinal ` +
+                `(e.g. "1" for the first step); for a cross-plan dependency use the target plan's pl_… id.`
+            );
         }
 
         if (selfId !== undefined && id === selfId) {

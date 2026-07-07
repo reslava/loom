@@ -3,8 +3,9 @@ import { resolveBlockedByIds } from '../packages/core/dist/index.js';
 
 // resolveBlockedByIds is the single write-time normalizer shared by loom_create_plan
 // and the ADD_STEP / UPDATE_STEP reducers: numeric / "Step N" blockedBy entries resolve
-// to the stable step-id slug at that position; slugs and plan-ids pass through; an
-// out-of-range ordinal throws; the result dedupes and a self-block throws.
+// to the stable step-id slug at that position; KNOWN slugs and plan-ids pass through; an
+// out-of-range ordinal OR a well-formed but unknown slug (the "s1" guess) throws rather
+// than persisting a silent dangling edge; the result dedupes and a self-block throws.
 
 const eq = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -40,8 +41,9 @@ async function run() {
     console.log('  • "Step N" form — case-insensitive, whitespace-tolerant');
     assert(eq(resolveBlockedByIds(['Step 2', 'step 3', ' 1 '], ids), ['beta', 'gamma', 'alpha']), 'Step N form');
 
-    console.log('  • slugs and plan ids pass through unchanged');
+    console.log('  • KNOWN slugs and plan ids pass through unchanged');
     assert(eq(resolveBlockedByIds(['beta', 'pl_01ABC'], ids), ['beta', 'pl_01ABC']), 'passthrough');
+    assert(eq(resolveBlockedByIds(['demo-plan-001'], ids), ['demo-plan-001']), 'legacy plan-id passthrough');
 
     console.log('  • mixed ordinal + slug');
     assert(eq(resolveBlockedByIds(['1', 'gamma'], ids), ['alpha', 'gamma']), 'mixed');
@@ -57,8 +59,12 @@ async function run() {
     expectThrows(() => resolveBlockedByIds(['2'], ids, 'beta'), /itself/, 'self via ordinal');
     expectThrows(() => resolveBlockedByIds(['beta'], ids, 'beta'), /itself/, 'self via slug');
 
-    console.log('  • a signed number is not an ordinal — passes through');
-    assert(eq(resolveBlockedByIds(['-1'], ids), ['-1']), 'signed passthrough');
+    console.log('  • a well-formed non-ordinal that is not a known step id throws (no silent dangling edge)');
+    expectThrows(() => resolveBlockedByIds(['s1'], ids), /unknown step id "s1"/, 'unknown slug s1');
+    expectThrows(() => resolveBlockedByIds(['-1'], ids), /unknown step id "-1"/, 'signed non-ordinal is unknown, not passthrough');
+    // the throw teaches the caller: it lists the valid ids and points at the ordinal form
+    expectThrows(() => resolveBlockedByIds(['s1'], ids), /Valid step ids: "alpha", "beta", "gamma"/, 'lists valid ids');
+    expectThrows(() => resolveBlockedByIds(['s1'], ids), /1-based ordinal/, 'suggests ordinal form');
 
     console.log('  • empty-string entry carries no edge — skipped, not thrown');
     assert(eq(resolveBlockedByIds(['', 'alpha', '  '], ids), ['alpha']), 'empty skipped');

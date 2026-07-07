@@ -14,7 +14,7 @@ export const toolDef = {
             description: { type: 'string', description: 'The new step (the table "Step" cell). Required.' },
             title: { type: 'string', description: 'Optional short heading for the step\'s `### Step N — {title}` detail section. Defaults to the description.' },
             files: { type: 'array', items: { type: 'string' }, description: 'Files this step touches ("Files touched" column).' },
-            blockedBy: { type: 'array', items: { type: 'string' }, description: 'Step ids and/or plan ids this step depends on.' },
+            blockedBy: { type: 'array', items: { type: 'string' }, description: 'Steps this new step depends on. Each entry is an existing step-id slug, a 1-based ordinal ("1","2") naming a step by its position in the final order, or a cross-plan "pl_…" plan id. Do NOT invent "s1"-style ids — an unknown value is rejected, not silently stored.' },
             satisfies: { type: 'array', items: { type: 'string' }, description: 'Requirement handles (IN/C) this step advances.' },
             detail: { type: 'string', description: 'Optional markdown body for the step\'s `### Step N` detail section.' },
             after: { type: 'string', description: 'Insert immediately after this existing step id. Mutually exclusive with `before`.' },

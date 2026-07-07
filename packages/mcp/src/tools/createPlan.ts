@@ -21,7 +21,7 @@ export const toolDef = {
                         description: { type: 'string', description: 'The step, as it appears in the table "Step" cell.' },
                         title: { type: 'string', description: 'Optional short heading for the "### Step N — {title}" section (defaults to description).' },
                         files: { type: 'array', items: { type: 'string' }, description: 'Files this step touches ("Files touched" column).' },
-                        blockedBy: { type: 'array', items: { type: 'string' }, description: 'Step ids and/or plan ids this step depends on.' },
+                        blockedBy: { type: 'array', items: { type: 'string' }, description: 'Steps this step depends on. Each entry is a 1-based ordinal ("1","2") naming a sibling step by position, an existing step-id slug, or a cross-plan "pl_…" plan id. In this create call the generated slugs are not known yet, so reference siblings by ordinal ("1" = the first step). Do NOT invent "s1"-style ids — an unknown value is rejected, not silently stored.' },
                         satisfies: { type: 'array', items: { type: 'string' }, description: 'Requirement handles (IN/C) this step advances.' },
                         detail: { type: 'string', description: 'Optional markdown for the "### Step N" detail section (body prose, not persisted to frontmatter).' },
                     },

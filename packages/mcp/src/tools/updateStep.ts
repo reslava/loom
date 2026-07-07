@@ -13,7 +13,7 @@ export const toolDef = {
             stepId: { type: 'string', description: 'The step\'s stable id (the `id` field in the steps frontmatter, e.g. "loom-patch-doc").' },
             description: { type: 'string', description: 'New step description (the table "Step" cell). Omit to leave unchanged.' },
             files: { type: 'array', items: { type: 'string' }, description: 'Replacement "Files touched" list. Omit to leave unchanged.' },
-            blockedBy: { type: 'array', items: { type: 'string' }, description: 'Replacement blockedBy list (step ids / plan ids). Omit to leave unchanged.' },
+            blockedBy: { type: 'array', items: { type: 'string' }, description: 'Replacement blockedBy list (omit to leave unchanged). Each entry is an existing step-id slug, a 1-based ordinal ("1","2") naming a step by position, or a cross-plan "pl_…" plan id. Do NOT invent "s1"-style ids — an unknown value is rejected, not silently stored.' },
             satisfies: { type: 'array', items: { type: 'string' }, description: 'Replacement satisfies list (requirement handles). Omit to leave unchanged.' },
         },
         required: ['plan_ulid', 'stepId'],
