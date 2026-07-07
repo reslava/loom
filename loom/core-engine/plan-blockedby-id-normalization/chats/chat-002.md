@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 14
+last_ai_block: 16
 ---
 # Recurrence: unknown string blockedBy stored as dangling edge
 
@@ -129,3 +129,36 @@ Committing the plan-002 work now. Agreed on your sequence: **reconnect the MCP f
 If 1–3 behave as stated through the live MCP, the class of bug is closed at the tool surface, not just in unit tests. I'll report each result here and leave the fake thread/plan for you to delete.
 
 Stopping now so you can reconnect MCP.
+
+## AI:
+
+Live-MCP test complete (fresh code after your reconnect). Threw the fake work into a throwaway thread: **`loom/core-engine/zz-blockedby-live-test/`** — safe to delete.
+
+**Results — all green through the real tool surface:**
+
+| # | Test | Expected | Actual |
+|---|------|----------|--------|
+| 1 | `create_plan` step 2 `blockedBy:["1"]`, step 3 `["1","2"]` | persist sibling **slugs** | ✅ `["step-one"]`, `["step-one","step-two"]` — no raw ordinals |
+| 2 | `create_plan` step `blockedBy:["s1"]` | **throw**, create nothing | ✅ threw `unknown step id "s1"` (+ valid ids + ordinal hint); no plan doc |
+| 3a | `update_step` `blockedBy:["s1"]` | throw | ✅ same teaching error |
+| 3b | `add_step` `blockedBy:["s1"]` | throw | ✅ same teaching error |
+| 3c | `add_step` `blockedBy:["2"]` | succeed → slug | ✅ resolved to `["step-two"]` |
+
+**Two things worth calling out beyond the pass/fail:**
+
+- **No partial write on rejection.** The failed `add_step` (3b) left *no* orphan step — the plan's final step list is 1/2/3 + the good add only. The throw fires in the reducer before the save, so a rejected edge never half-lands.
+- **The error teaches.** Every rejection names the bad value, lists the valid step ids, and points at the ordinal form (`"1" = first step`) — so the next agent self-corrects instead of guessing again. And the live tool *schemas* now carry the same guidance (I saw the tightened `blockedBy` descriptions when the tools loaded), so the model is steered before it even calls.
+
+**Can we be sure the class is gone?** For the write paths, yes — the only way a `blockedBy` edge persists now is: a valid ordinal (→ resolved to a slug), an existing step-id slug, or a `pl_…` plan id. Anything else throws. The one deliberate seam left open is **cross-plan `pl_…` refs**, which still pass through unvalidated (the resolver can't see other plans) — consistent with `isStepBlocked`'s "missing plan ⇒ blocked" read-time convention. If you want *that* tightened too (validate the target plan actually exists at write time), it's a separate, wider change — say the word and I'll open a thread for it.
+
+Go ahead and delete `zz-blockedby-live-test` whenever; nothing depends on it.
+
+## AI:
+
+Spun up the follow-up thread for the one seam we left open: **`core-engine/cross-plan-blocker-validation/`** (idea written, `status: draft`).
+
+The idea frames it as the *same* dangling-edge class one level up (plan→plan), but flags why it isn't a one-liner extension of the `"s1"` fix:
+- The pure `resolveBlockedByIds` can't see other plans — validating a `pl_…` needs a plan-existence oracle (link index), which lives in `fs`/`app`, so it's a `core`-purity vs. widen-the-signature decision.
+- Unlike a sibling step (always known at author time), a cross-plan target may legitimately not exist *yet* — so the policy is a real choice: hard-throw (symmetry, forces create-order) vs. warn-and-store (diagnostics) vs. keep best-effort.
+
+Left both as open design questions rather than pre-deciding. Not started — it's `draft`, ready for a design pass when you want it.
