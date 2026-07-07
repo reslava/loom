@@ -73,6 +73,7 @@ import * as createReference from './tools/createReference';
 import * as setContextPrefs from './tools/setContextPrefs';
 import * as getContextPrefs from './tools/getContextPrefs';
 import * as install from './tools/install';
+import * as seedExample from './tools/seedExample';
 import { buildToolCatalog, registerToolCatalog, getToolCatalogBlock } from './catalog';
 import { TelemetryClient, noopTelemetry } from '../../telemetry/dist';
 import { emitToolSuccess, emitToolError } from './telemetryDispatch';
@@ -136,7 +137,7 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
         ...reg('req', [amendReq, finalizeReq, createVerifyReqTool(server)]),
         ...reg('thread', [createThread, setPriority, setThreadDeps, renameThread, moveThread]),
         ...reg('weave', [renameWeave]),
-        ...reg('workspace', [install]),
+        ...reg('workspace', [install, seedExample]),
         ...reg('chat', [appendToChat, readChatTail]),
         ...reg('context', [setContextPrefs, getContextPrefs, createRefreshCtxTool()]),
         ...reg('query', [findDoc, searchDocs, getBlockedSteps, getStalePlans, getStaleDocs, validate]),

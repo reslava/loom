@@ -318,7 +318,22 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.install.runInstall', () => runLoomInstall()),
         vscode.commands.registerCommand('loom.install.openAiSettings', () =>
             vscode.commands.executeCommand('workbench.action.openSettings', 'reslava-loom.ai')
-        )
+        ),
+        vscode.commands.registerCommand('loom.openWalkthrough', () =>
+            vscode.commands.executeCommand('workbench.action.openWalkthrough', 'reslava.loom-vscode#loom.getStarted', false)
+        ),
+        vscode.commands.registerCommand('loom.seedExample', async () => {
+            const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
+            try {
+                await vscode.window.withProgress(
+                    { location: vscode.ProgressLocation.Notification, title: 'Loom: Seeding example…', cancellable: false },
+                    async () => { await getMCP(root).callTool('loom_seed_example', {}); }
+                );
+                syncAndRefresh();
+                vscode.window.showInformationMessage('Seeded an example weave — explore it, then delete it whenever you like.');
+            } catch (e: any) { handleMcpError(e, treeProvider); }
+        })
     );
 
     let aiEnabled = true;
@@ -473,6 +488,25 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(watcher);
 
     setImmediate(() => syncAndRefresh());
+
+    // What's New (returning users). Fires once per version, and ONLY for people
+    // upgrading from an older version — a fresh install stores the version
+    // silently and gets the walkthrough instead. This is the one proactive
+    // channel to users who installed Loom, hit the old install friction, and quit.
+    async function maybeShowWhatsNew(): Promise<void> {
+        const current = context.extension.packageJSON.version as string;
+        const seen = context.globalState.get<string>('loom.whatsNewSeenVersion');
+        if (seen === current) return;
+        const isUpgrade = seen !== undefined;
+        await context.globalState.update('loom.whatsNewSeenVersion', current);
+        if (!isUpgrade) return;
+        const pick = await vscode.window.showInformationMessage(
+            'Loom is now 1‑click — no CLI, no setup. The extension runs its own bundled server.',
+            'Show me', 'Dismiss'
+        );
+        if (pick === 'Show me') vscode.commands.executeCommand('loom.openWalkthrough');
+    }
+    setImmediate(() => maybeShowWhatsNew());
 
     return { treeProvider, getAiEnabled: () => aiEnabled };
 }

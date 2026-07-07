@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 35
+last_ai_block: 39
 ---
 # reduce-friction-cli-autoinstall Chat 001
 
@@ -510,3 +510,37 @@ Before I run the whole of Plan B, two things surface — one is exactly the kind
 If you're good with the two above, I'll do the **whole Plan B** (folding in What's-New if you say yes) in the next pass.
 
 STOP — waiting on: (1) fold in the What's-New notification? (2) OK on `loom_seed_example` as an MCP tool?
+
+## Rafa:
+
+I like (1), fold in
+(2) OK. We always respect layering architecture rules and stop to design when it is impossible.
+go
+
+## AI:
+
+Yes — you're right, there's an existing walkthrough. It's defined inline in `package.json` as `loom.getStarted` (not separate files, which is what my "no walkthroughs dir" note meant). Its **first step is the now-obsolete `npm install -g` ("Install Loom CLI")**, and it ends on "Create your first weave" rather than a real first loop. So step 3 **rewrites** it, not creates it: drop the Install-CLI step, make Initialize one click (in-process), keep AI-setup optional, and end on an actual *chat → generate idea* so the walkthrough demonstrates the shipped zero-install flow. I'm not recreating anything — good catch, keeping it in mind. Proceeding with Plan B.
+
+## AI:
+
+Will do — step 3 will move the walkthrough content **out of `package.json` into its own `packages/vscode/walkthroughs/` directory**, one markdown file per step, referenced from each step via `media.markdown`. `package.json` keeps only the step scaffolding (id / title / short description / completion event); the prose lives in the `.md` files. Cleaner and easier to edit than the inline strings. Continuing.
+
+## AI:
+
+**Plan B complete — 7/7 ✅ (plan auto-`done`). Both plans done; the whole thread is implemented.**
+
+- **1 · Keywords + link** — `keywords` (mcp, ai-agent, claude-code, workflow-automation, …) in package.json; prominent Getting Started link.
+- **2 · Value prop + zero-install** — new marketplace description ("AI workflow engine … 1-click, no CLI, no setup"); all three READMEs rewritten (install = 1 click, `.mcp.json` → pinned npx, requirements no longer list a global CLI).
+- **3 · Walkthrough** — moved out of package.json into `packages/vscode/walkthroughs/*.md` (your call), dropped the obsolete Install-CLI step, ends on "Run the loop." VSIX ships all four files.
+- **4 · Empty-state** — welcome panels now offer 1-click Initialize / walkthrough, and New Weave / **Start with an example**.
+- **5 · Example seed** — `loom_seed_example` MCP tool composing the app create use-cases (weave→thread→idea→plan); verified end-to-end. (Layer-respected: lives in the MCP tool composing app, not an app import — noted the file-list deviation in the done doc.)
+- **6 · 3-surface docs** — a "Delivery surfaces & audiences" diagram + table in `architecture-reference.md`, and a matching "Three ways to run Loom" table in all three READMEs.
+- **7 · What's New toast** — fires once, only for **upgraders** (fresh installs get the walkthrough), pointing quitters at the now-1-click flow.
+
+Build + typecheck + **full suite (18/18) green**; package.json valid; VSIX ships the walkthrough dir + `loom-mcp.js`.
+
+**Where we are:** four gates → one, and the listing/first-run/returning-user story all tell that truthfully. Plan A + Plan B ship together in **one release** (IN12) — nothing is published yet.
+
+Committing Plan B now. **Next: review the diff, then release** when you're happy — that's `/do-release` (I can't trigger it). Want me to do anything else first (e.g. the deferred `LOOM_CLAUDE_MD` `.mcp.json` example nit), or is this release-ready?
+
+STOP after the commit — waiting on your review / release call.

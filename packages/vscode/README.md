@@ -35,37 +35,42 @@ Traditional AI chat:          Loom:
 
 ---
 
-## Install
+## Install — one click, no CLI
 
-**1. Install the CLI** (required — the extension talks to it):
+1. **Install this extension** from the VS Code Marketplace (search `Loom AI`, publisher `reslava`).
+2. Open a folder and click **Initialize Loom** in the Loom panel.
 
-```bash
-npm install -g @reslava/loom
-```
+That's it. The Loom engine is **bundled inside the extension** and runs on VS Code's own runtime — no `npm install`, no global `loom` command, no Node to set up. Initializing creates `.loom/` (config + the `CLAUDE.md` AI session contract), `loom/` (your doc workspace), and `.mcp.json` (so an AI agent can drive Loom too).
 
-**2. Install the extension** from the VS Code marketplace: search `reslava.loom`.
+📚 **New here?** → [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started-reference.md) — install to your first idea in five minutes.
 
-**3. Initialize Loom in your project**:
+---
 
-```bash
-loom install
-```
+## Three ways to run Loom
 
-This creates `.loom/` (config), `loom/` (your doc workspace), and a `CLAUDE.md` that wires up the AI session contract.
+Loom is one engine with three delivery surfaces. Pick the one that fits — you don't need all three.
+
+| Surface | Who it's for | Setup |
+|---------|--------------|-------|
+| **VS Code extension** | You, working in VS Code | Install the extension — **1 click, no CLI** |
+| **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | `loom install` writes `.mcp.json` (pinned `npx`) — no global install |
+| **CLI** | Terminal, scripting, CI | `npm i -g @reslava/loom` |
+
+The extension is the recommended default; the CLI/MCP path serves agents and hosts the extension can't reach. → [Architecture: delivery surfaces](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md#delivery-surfaces--audiences)
 
 ---
 
 ## Connect an AI agent
 
-Loom works best with an MCP-capable AI agent (Claude Code, Cursor). `loom install` already wrote `.mcp.json` to your project root — shown here for reference:
+Want a coding agent (Claude Code, Cursor, …) to drive Loom directly? `loom install` (or the extension's **Initialize**) already wrote `.mcp.json` to your project root, using a pinned `npx` command so the agent needs **no global install**:
 
 ```json
 {
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": {
         "LOOM_ROOT": "${workspaceFolder}"
       }
@@ -231,9 +236,8 @@ reslava-loom.ai.provider → anthropic | openai | deepseek
 
 ## Requirements
 
-- VS Code 1.85+
-- Node.js 18+
-- `@reslava/loom` CLI installed globally
+- VS Code 1.85+ — the extension is self-contained (bundled server; no separate CLI or Node install)
+- For AI actions: [Claude Code](https://docs.anthropic.com/claude-code) (recommended — no API key) *or* an API key in settings
 
 ---
 

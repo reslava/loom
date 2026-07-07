@@ -20,6 +20,48 @@ load_when: [design, plan]
 > purity, ID lifecycle, and gotchas) see
 > [implementation-contract-reference.md](implementation-contract-reference.md).
 
+## Delivery surfaces & audiences
+
+Loom is **one engine** (`app` + `core` + `fs` + `telemetry`, exposed through the
+`mcp` server) shipped through three delivery surfaces. Which one a user installs
+depends on where they work — but all three drive the same document graph through
+the same MCP tools.
+
+```
+                        ┌───────────────────────────────┐
+                        │   Loom engine (one codebase)   │
+                        │   mcp → app → core + fs + tel   │
+                        └───────────────┬───────────────┘
+                   bundled            npx-fetched            npm -g
+                       │                   │                    │
+                       ▼                   ▼                    ▼
+             ┌───────────────┐    ┌────────────────┐    ┌──────────────┐
+             │ VS Code ext.  │    │  AI agent (MCP) │    │     CLI      │
+             │ (human, GUI)  │    │ Claude Code /   │    │ terminal /   │
+             │               │    │ Cursor / etc.   │    │ scripting/CI │
+             └───────────────┘    └────────────────┘    └──────────────┘
+```
+
+| Surface | Audience | How the engine is delivered | Prereqs |
+|---------|----------|-----------------------------|---------|
+| **VS Code extension** | A human in VS Code | **Bundled** into the VSIX (`dist/loom-mcp.js`); the extension spawns it on VS Code's own Electron-as-Node (`process.execPath` + `ELECTRON_RUN_AS_NODE=1`) | None — no global CLI, no user Node |
+| **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | **`npx`** — `loom install` writes `.mcp.json` with `npx -y @reslava/loom@<version> mcp`, pinned to the writing version | Node (the agent already has it) |
+| **CLI** | Terminal users, scripting, CI, non-VS-Code hosts | **Global install** — `npm i -g @reslava/loom` (or `npx @reslava/loom …` ad hoc) | Node |
+
+**Design rules that follow from this:**
+- The three surfaces never diverge in behaviour — they are thin deliveries of the
+  same `app` use-cases via the same `mcp` server. A fix in `app` fixes it everywhere.
+- The **extension imports no `app`** — even its own bundled server is reached through
+  MCP (`vscode → mcp → app`), and workspace init / example-seed go through the
+  `loom_install` / `loom_seed_example` MCP tools rather than a direct `app` import.
+- **Positioning:** the extension is the recommended default for humans; the CLI/MCP
+  path is a first-class route for agents and hosts the extension can't serve (terminal
+  Claude Code, Continue, JetBrains, CI). Neither is a second-class fallback.
+- The global `@reslava/loom` CLI still ships (for the CLI surface and the `npx` path);
+  it is no longer a *prerequisite* of the extension.
+
+---
+
 ## 1. Package Relationships (Stage 2)
 
 ```

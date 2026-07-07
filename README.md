@@ -102,6 +102,20 @@ file. Changes are versioned in git.
 
 ---
 
+## Three ways to run Loom
+
+Loom is **one engine** with three delivery surfaces — pick the one that fits your setup; you don't need all three.
+
+| Surface | Who it's for | Setup |
+|---------|--------------|-------|
+| **VS Code extension** | Working in VS Code | Install **Loom AI** from the Marketplace — **1 click, no CLI, no Node** |
+| **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | `loom install` writes `.mcp.json` (pinned `npx`) — no global install |
+| **CLI** | Terminal, scripting, CI | `npm i -g @reslava/loom` |
+
+The engine is identical across all three: the extension **bundles** it and runs it on VS Code's own runtime, agents **fetch** it via `npx`, and the CLI **installs** it globally. The extension is the recommended default; the CLI/MCP path serves agents and hosts the extension can't reach. → [Architecture: delivery surfaces & audiences](./loom/refs/architecture-reference.md#delivery-surfaces--audiences)
+
+---
+
 ## Fresh, Scoped, Auditable
 
 This is what Loom does that no chat-native tool can:
@@ -199,8 +213,8 @@ agent — Claude Code, Cursor, Continue, Cline — can read and write Loom state
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": { "LOOM_ROOT": "${workspaceFolder}" }
     }
   }
@@ -382,6 +396,8 @@ MCP tools delegate to `app` — no bypassing. Full breakdown in the
 ---
 
 ## Quick Start
+
+**In VS Code?** Install **Loom AI** from the Marketplace and click **Initialize Loom** — that's the entire setup (no CLI, no Node). The rest of this section is the **CLI / agent** path:
 
 ```bash
 npm install -g @reslava/loom

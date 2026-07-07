@@ -1,7 +1,7 @@
 {
   "name": "loom-vscode",
   "displayName": "Loom AI",
-  "description": "Weave ideas into features with AI — document‑driven workflow for VS Code",
+  "description": "AI workflow engine: turns your project docs into a structured graph your AI agent reads and writes. 1‑click in VS Code — no CLI, no setup.",
   "version": "1.18.0",
   "publisher": "reslava",
   "license": "MIT",
@@ -15,6 +15,17 @@
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "mcp",
+    "ai-agent",
+    "claude-code",
+    "workflow-automation",
+    "ai",
+    "workflow",
+    "documentation",
+    "markdown",
+    "cursor"
   ],
   "activationEvents": [
     "workspaceContains:.loom/**",
@@ -46,12 +57,12 @@
     "viewsWelcome": [
       {
         "view": "loom.threads",
-        "contents": "No Loom workspace found.\n\nRun `loom install` to initialize Loom in this folder.\n\n[Initialize Workspace](command:loom.install.runInstall)",
+        "contents": "Welcome to Loom — 1‑click, no CLI needed.\n\nInitialize this folder to create your doc workspace (`.loom/`, `.mcp.json`, and the AI session rules).\n\n[Initialize Loom](command:loom.install.runInstall)\n\n[Open the Get Started walkthrough](command:loom.openWalkthrough)",
         "when": "!loom.workspaceInitialized"
       },
       {
         "view": "loom.threads",
-        "contents": "No weaves yet.\n\nCreate your first weave to start organizing your work.\n\n[New Weave](command:loom.weaveCreate)",
+        "contents": "No weaves yet.\n\nA weave groups related work (idea → design → plan → done).\n\n[New Weave](command:loom.weaveCreate)\n\nNew to Loom? See the whole shape at once:\n\n[Start with an example](command:loom.seedExample)",
         "when": "loom.workspaceInitialized && !loom.hasWeaves"
       }
     ],
@@ -410,6 +421,24 @@
         "title": "Group History By…",
         "category": "Loom",
         "icon": "$(tag)"
+      },
+      {
+        "command": "loom.seedExample",
+        "title": "Start with an Example",
+        "category": "Loom",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "loom.setupAi",
+        "title": "Set up AI",
+        "category": "Loom",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "loom.openWalkthrough",
+        "title": "Open Get Started Walkthrough",
+        "category": "Loom",
+        "icon": "$(book)"
       }
     ],
     "configuration": {
@@ -457,54 +486,47 @@
       {
         "id": "loom.getStarted",
         "title": "Get Started with Loom",
-        "description": "Set up AI-assisted, document-driven workflow in your workspace.",
+        "description": "1‑click, document‑driven AI workflow — no CLI, no setup.",
         "steps": [
           {
-            "id": "installCli",
-            "title": "Install Loom CLI",
-            "description": "Install the Loom CLI globally.\n\n[Open Terminal](command:loom.install.openCliTerminal)",
-            "completionEvents": [
-              "onContext:loom.cliDetected"
-            ],
-            "media": {
-              "image": "media/loom.png",
-              "altText": "Loom"
-            }
-          },
-          {
             "id": "initWorkspace",
-            "title": "Initialize this workspace",
-            "description": "Run `loom install` to create `.loom/`, write the session contract, and set up MCP.\n\n[Initialize](command:loom.install.runInstall)",
+            "title": "Initialize Loom (1 click)",
+            "description": "Create your doc workspace — no CLI, no Node, no terminal.\n[Initialize Loom](command:loom.install.runInstall)",
             "completionEvents": [
               "onContext:loom.workspaceInitialized"
             ],
             "media": {
-              "image": "media/loom.png",
-              "altText": "Loom"
+              "markdown": "walkthroughs/01-initialize.md"
             }
           },
           {
-            "id": "configureAi",
-            "title": "Configure an AI provider",
-            "description": "Add your Claude (Anthropic), DeepSeek, or OpenAI API key to enable AI commands.\n\n[Open Settings](command:loom.install.openAiSettings)",
+            "id": "setupAi",
+            "title": "Connect an AI (optional)",
+            "description": "Claude Code is recommended — no API key needed. Or set an API key.\n[Set up AI](command:loom.setupAi)",
             "completionEvents": [
               "onContext:loom.aiConfigured"
             ],
             "media": {
-              "image": "media/loom.png",
-              "altText": "Loom"
+              "markdown": "walkthroughs/02-connect-ai.md"
             }
           },
           {
-            "id": "createWeave",
+            "id": "firstWeave",
             "title": "Create your first weave",
-            "description": "Start a new project weave from the Loom panel toolbar.\n\n[New Weave](command:loom.weaveCreate)",
+            "description": "Group your work into a weave — or seed a ready‑made example to see the shape.\n[New Weave](command:loom.weaveCreate)\n[Start with an example](command:loom.seedExample)",
             "completionEvents": [
               "onContext:loom.hasWeaves"
             ],
             "media": {
-              "image": "media/loom.png",
-              "altText": "Loom"
+              "markdown": "walkthroughs/03-first-weave.md"
+            }
+          },
+          {
+            "id": "runLoop",
+            "title": "Run the loop",
+            "description": "Chat → Generate Idea → Design → Plan → Do Step. Every stage is a Markdown doc the AI reads and writes.",
+            "media": {
+              "markdown": "walkthroughs/04-run-the-loop.md"
             }
           }
         ]

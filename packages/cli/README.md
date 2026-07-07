@@ -18,6 +18,8 @@ at every action instead of starting each turn empty.
 > CRUD. The actual thinking and implementation happen through an MCP-capable agent
 > (Claude Code, Cursor, or any MCP client) connected to the Loom MCP server.
 
+> **Prefer VS Code?** The [**Loom AI extension**](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) bundles this same engine — install it and everything works in **1 click, no CLI needed**. This npm package is the right choice when you drive Loom from **Cursor, Continue, terminal Claude Code, or CI** (as an MCP server) or straight from the terminal. See [the three ways to run Loom](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md#delivery-surfaces--audiences).
+
 ---
 
 ## Why Loom
@@ -177,13 +179,17 @@ your agent launches it via the `.mcp.json` that `loom install` writes:
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": { "LOOM_ROOT": "${workspaceFolder}" }
     }
   }
 }
 ```
+
+`loom install` writes this with the version pinned, so the agent fetches the exact
+build via `npx` — no global install required. (If you did `npm i -g @reslava/loom`,
+`"command": "loom", "args": ["mcp"]` works too.)
 
 The server exposes Loom's documents, workflow tools, and prompts to the agent so all
 writes to `loom/**/*.md` flow through validated, event-sourced operations.
