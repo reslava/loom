@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KWY29ATW21P7NDBG8GSA8C2J
 title: reduce-onboarding-friction Chat 002
-status: active
+status: done
 created: 2026-07-07
 version: 1
 tags: []

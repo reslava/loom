@@ -4,11 +4,12 @@ id: th_01KWWHYEBCS47G7K7QQQVDYPCR
 title: reduce-friction-cli-autoinstall
 status: active
 created: 2026-07-06
+updated: 2026-07-07
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 5
+priority: 10
 depends_on: []
 ---
 # reduce-friction-cli-autoinstall

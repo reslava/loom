@@ -4,12 +4,12 @@ id: th_01KVA8QBHD129NZN822WVMABVT
 title: loom_create_plan should normalize blockedBy ordinals to step-id slugs
 status: active
 created: 2026-06-17
-updated: 2026-06-17
+updated: 2026-07-07
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 20
+priority: 10
 depends_on: []
 ---
 # loom_create_plan should normalize blockedBy ordinals to step-id slugs

@@ -4,11 +4,12 @@ id: th_01KWWG4GA3YB6CF8059J8GG48K
 title: loom-install-claude-written
 status: active
 created: 2026-07-06
+updated: 2026-07-07
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 30
 depends_on: []
 ---
 # loom-install-claude-written
