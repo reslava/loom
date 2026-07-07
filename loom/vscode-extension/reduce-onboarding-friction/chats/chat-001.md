@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 48
+last_ai_block: 49
 ---
 # reduce-friction-cli-autoinstall Chat 001
 
@@ -654,3 +654,17 @@ do-release 1.19.0
 Agreed — **future follow-up (captured here):** investigate *why* `loom_validate` fires so often (likely the extension re-validates on every tree refresh / file-watch tick). The telemetry filter treats the symptom; the real fix would be to debounce or gate the validate calls themselves. Not urgent — noting it so it isn't lost.
 
 Now shipping **v1.19.0** via the release flow. Committing this note first so the release starts from a clean tree, then running `/do-release 1.19.0` — synchronized CLI + extension: changelog, version bump, build + full test, tag, push, and monitor the publish workflow.
+
+## AI:
+
+**Shipped — v1.19.0 is live. 🎉**
+
+- Bumped all 7 packages → 1.19.0; root CHANGELOG rolled; vscode CHANGELOG `[1.19.0]` hand-added.
+- `build-all` + full suite (18/18) green; `loom record-release 1.19.0` stamped both plans (plan-001, plan-002) with `actual_release`.
+- Commit `release: v1.19.0` (`7ecbbf3`), annotated tag `v1.19.0` pushed.
+- Release workflow **all green**: guard · build-test · publish-npm · publish-vsce · publish-ovsx · release. GitHub release published; npm at 1.19.0; Marketplace + Open VSX published.
+
+The `reduce-onboarding-friction` thread is **done and shipped**: four setup gates → one, and the listing / first-run / returning-user story all tell that truthfully.
+
+The one open follow-up we parked: investigate *why* `loom_validate` fires so often (debounce/gate the calls, not just filter the telemetry). It's captured here for a future thread.
+
