@@ -6,16 +6,16 @@ export const promptDef = {
     name: 'refine-design',
     description: 'Load a design doc and related thread chat history, return a refinement proposal prompt.',
     arguments: [
-        { name: 'designId', description: 'Design document ID', required: true },
+        { name: 'designUlid', description: 'Design document ULID', required: true },
     ],
 };
 
 export async function handle(root: string, args: Record<string, string | undefined>) {
-    const designId = args['designId'];
-    if (!designId) throw new Error('designId is required');
+    const designUlid = args['designUlid'];
+    if (!designUlid) throw new Error('designUlid is required');
 
     // Primary (agent-supplied) id → suggest-on-miss.
-    const { filePath } = await resolveDocIdOrThrow(root, designId);
+    const { filePath } = await resolveDocIdOrThrow(root, designUlid);
 
     const designContent = await fs.readFile(filePath, 'utf8');
 
@@ -34,10 +34,10 @@ export async function handle(root: string, args: Record<string, string | undefin
         }
     }
 
-    const combined = [`## design: ${designId}\n\n${designContent}`, ...chatSections].join('\n\n---\n\n');
+    const combined = [`## design: ${designUlid}\n\n${designContent}`, ...chatSections].join('\n\n---\n\n');
 
     return {
-        description: `Refine design ${designId}`,
+        description: `Refine design ${designUlid}`,
         messages: [
             { role: 'user' as const, content: { type: 'text' as const, text: combined } },
             {

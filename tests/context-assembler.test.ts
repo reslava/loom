@@ -168,7 +168,7 @@ async function run() {
     // ── serializeBundle ───────────────────────────────────────────────────────
     console.log('  • serializeBundle markdown shape...');
     const md = serializeBundle(bundle);
-    assert(md.startsWith('<!-- loom:context-bundle target=c1 mode=chat docs=10'), 'leading bundle comment missing/wrong');
+    assert(md.startsWith('<!-- loom:context-bundle target=c1 ') && md.includes('mode=chat docs=10'), 'leading bundle comment missing/wrong');
     assert(md.includes('### [global ctx] g-ctx · id: g-ctx'), 'global ctx header wrong');
     assert(md.includes('### [target chat] c1 · id: c1'), 'target header wrong');
     assert(md.includes('### ⚠️ requires_load target missing: ghost'), 'missing header wrong');

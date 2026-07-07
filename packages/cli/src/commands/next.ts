@@ -36,7 +36,7 @@ export async function nextCommand(planId?: string): Promise<void> {
         const root = getActiveLoomRoot();
         const client = await connectLocalMcp(root);
         try {
-            const out = await client.getPrompt('do-next-step', { planId: resolved });
+            const out = await client.getPrompt('do-next-step', { planUlid: resolved });
             console.log(out);
         } finally {
             await client.close();

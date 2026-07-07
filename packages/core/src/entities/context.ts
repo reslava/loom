@@ -128,4 +128,14 @@ export interface ContextBundle {
      * Lets the agent reconcile assumed-present vs actually-in-window.
      */
     manifest: ManifestEntry[];
+    /**
+     * Resolved address of the target's home thread, when it lives in one:
+     * `weaveSlug` (folder slug) + `threadUlid` (the thread manifest's `th_` ULID).
+     * Surfaced so a caller that just loaded context can issue a thread-scoped
+     * write (quick_ship, set_priority, do_step) with no second lookup. `weaveSlug`
+     * is present for any weave-homed target; `threadUlid` only when a thread manifest
+     * exists. Both absent for global-scope targets.
+     */
+    weaveSlug?: string;
+    threadUlid?: string;
 }

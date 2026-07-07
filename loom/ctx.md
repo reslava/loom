@@ -5,7 +5,7 @@ title: loom — Global Context
 status: active
 created: 2026-04-29
 updated: 2026-07-07
-version: 13
+version: 14
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -126,7 +126,7 @@ the link index, and plan-step validation. A PreToolUse hook physically enforces
 this in Claude Code sessions; see CLAUDE.md for the full hard rule.
 
 **Primary entry points:**
-- `loom://context/{docId}` (or `loom://context/thread/{weaveSlug}/{threadSlug}`) —
+- `loom://context/{docUlid}` (or `loom://context/thread/{weaveSlug}/{threadSlug}`) —
   bundled global/weave ctx + parent chain + requires_load for a doc/thread. Load
   before working on it.
 - `do-next-step` prompt — gives the next incomplete step with full context loaded

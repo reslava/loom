@@ -117,6 +117,10 @@ run_test tests/entities-crud.test.ts
 # duplicate-thread bug); resolveThreadUlid ⇄ resolveThreadFolder round-trip.
 run_test tests/api-contract-refactor.test.ts
 
+# MCP read-surface naming: no *Id resource-template placeholder / prompt-arg name;
+# the slug thread form resolves and the bundle manifest carries weave_slug + thread_ulid
+run_test tests/mcp-read-surface-naming.test.ts
+
 # archive-robust-move: moveTreeOrThrow is atomic-or-fail-loud — a copy-fallback that leaves
 # the source (move resolves OR throws) rolls back the copy and throws (no silent duplicate);
 # a pre-existing dest is never clobbered. Shared by archive / restore / thread-move.

@@ -86,10 +86,10 @@ stable, so they are listed here in full.
 
 | URI | Returns | Use when |
 |-----|---------|----------|
-| `loom://context/{docId}` (or `loom://context/thread/{weaveId}/{threadId}`) | Unified context bundle: global/weave ctx + parent chain + `requires_load` for a target; append `?mode={chat\|idea\|design\|plan\|implementing\|refine\|promote\|ctx}` and `?loaded=id@version,…` | **Start of any thread work** |
-| `loom://docs/{id}` | Raw markdown of any doc by id | Reading a specific doc |
-| `loom://plan/{id}` | Plan doc with steps parsed as JSON | Inspecting a plan's step list |
-| `loom://requires-load/{id}` | All `requires_load` docs, recursive + deduplicated | Loading a doc's full dependency tree |
+| `loom://context/{docUlid}` — or the slug forms `loom://context/thread/{weaveSlug}/{threadSlug}` and `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` | Unified context bundle: global/weave ctx + parent chain + `requires_load` for a target; append `?mode={chat\|idea\|design\|plan\|implementing\|refine\|promote\|ctx}` and `?loaded=id@version,…`. The bundle manifest header carries the resolved `weave_slug` + `thread_ulid` so a following thread-scoped write needs no second lookup. | **Start of any thread work** |
+| `loom://docs/{docUlid}` | Raw markdown of any doc by its ULID | Reading a specific doc |
+| `loom://plan/{planUlid}` | Plan doc with steps parsed as JSON | Inspecting a plan's step list |
+| `loom://requires-load/{docUlid}` | All `requires_load` docs, recursive + deduplicated | Loading a doc's full dependency tree |
 
 `loom://context` is the primary entry point — it bundles everything needed for a
 thread in one call, and dedupes against a declared ledger (see Context Dispatcher
@@ -133,13 +133,13 @@ here in full.
 
 | Prompt | Required args | What it does |
 |--------|--------------|-------------|
-| `do-next-step` | `planId` | Loads thread context + plan, returns the next step instruction + a pre-filled `loom_complete_step` call. **Primary workflow driver.** |
-| `continue-thread` | `weaveId`, `threadId` | Reviews thread state, suggests next action |
-| `refine-design` | `weaveId`, `threadId` | Reviews a design doc, suggests refinements |
+| `do-next-step` | `planUlid` | Loads thread context + plan, returns the next step instruction + a pre-filled `loom_complete_step` call. **Primary workflow driver.** |
+| `continue-thread` | `weaveSlug`, `threadSlug` | Reviews thread state, suggests next action |
+| `refine-design` | `designUlid` | Reviews a design doc, suggests refinements |
 | `validate-state` | — | Reviews diagnostics (incl. roadmap cycles/dangling deps) and identifies issues |
-| `weave-idea` | `weaveId`, `title` | Starts a new idea in the workflow (sampling) |
-| `weave-design` | `weaveId`, `threadId` | Transitions idea → design (sampling) |
-| `weave-plan` | `weaveId`, `threadId` | Generates a plan from a design (sampling) |
+| `weave-idea` | `weaveSlug`, `prompt` (`threadSlug` optional) | Drafts an idea from a description (sampling) |
+| `weave-design` | `weaveSlug`, `threadSlug` | Transitions idea → design (sampling) |
+| `weave-plan` | `weaveSlug`, `threadSlug` | Generates a plan from a design (sampling) |
 
 ---
 

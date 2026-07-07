@@ -115,11 +115,11 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://feedback-context', name: 'Feedback Context', description: 'Assembled feedback payload: resolved target repo (git-remote/config), non-PII usage snapshot (counts only), and the prefilled GitHub issue-form URL', mimeType: 'application/json' },
 ];
 
-const RESOURCE_TEMPLATES = [
-    { uriTemplate: 'loom://docs/{id}', name: 'Document', description: 'Raw markdown of any Loom document by id', mimeType: 'text/plain' },
-    { uriTemplate: 'loom://context/{docId}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target doc. Forms: loom://context/{docId} or loom://context/thread/{weaveId}/{threadId}. Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
-    { uriTemplate: 'loom://plan/{id}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
-    { uriTemplate: 'loom://requires-load/{id}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
+export const RESOURCE_TEMPLATES = [
+    { uriTemplate: 'loom://docs/{docUlid}', name: 'Document', description: 'Raw markdown of any Loom document by its ULID', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/{docUlid}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target. Two forms — ULID: loom://context/{docUlid}; slug (human-pointable): loom://context/thread/{weaveSlug}/{threadSlug}. Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://plan/{planUlid}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
+    { uriTemplate: 'loom://requires-load/{docUlid}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];
 
 export function createLoomMcpServer(root: string, telemetry: TelemetryClient = noopTelemetry): Server {

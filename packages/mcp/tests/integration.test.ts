@@ -211,7 +211,7 @@ async function run(): Promise<void> {
     await test('read loom://context returns serialised bundle with provenance headers', async () => {
         const result = await client.readResource({ uri: 'loom://context/pl_TWPLAN00000000000000000001?mode=implementing' });
         const text = result.contents[0].text as string;
-        assert(text.includes('<!-- loom:context-bundle target=pl_TWPLAN00000000000000000001 mode=implementing'), 'leading bundle comment missing');
+        assert(text.includes('<!-- loom:context-bundle target=pl_TWPLAN00000000000000000001 ') && text.includes('mode=implementing'), 'leading bundle comment missing');
         assert(text.includes('id: pl_TWPLAN00000000000000000001'), 'target plan header missing');
         assert(text.includes('id: t1-idea'), 'idea should be in the parent chain');
         assert(text.includes('id: t1-design'), 'design should be in the parent chain');

@@ -19,7 +19,14 @@ function header(d: BundledDoc): string {
  * agent-specific hints — those belong in the per-command prompt template.
  */
 export function serializeBundle(bundle: ContextBundle): string {
-    const comment = `<!-- loom:context-bundle target=${bundle.targetId} mode=${bundle.mode} docs=${bundle.docs.length} tokens~=${bundle.totalTokens} -->`;
+    // Thread address (IN4): stamp the resolved weave_slug / thread_ulid into the
+    // manifest header when present, so a caller that just read context can issue a
+    // thread-scoped write without a second lookup.
+    const addr = [
+        bundle.weaveSlug ? `weave_slug=${bundle.weaveSlug}` : null,
+        bundle.threadUlid ? `thread_ulid=${bundle.threadUlid}` : null,
+    ].filter(Boolean).join(' ');
+    const comment = `<!-- loom:context-bundle target=${bundle.targetId}${addr ? ` ${addr}` : ''} mode=${bundle.mode} docs=${bundle.docs.length} tokens~=${bundle.totalTokens} -->`;
 
     const sections = bundle.docs.map(d => {
         if (d.missing) return header(d);

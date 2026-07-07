@@ -4,21 +4,21 @@ export const promptDef = {
     name: 'continue-thread',
     description: 'Load full thread context (idea, design, active plan, refs) and return a next-action proposal prompt.',
     arguments: [
-        { name: 'weaveId', description: 'Weave ID', required: true },
-        { name: 'threadId', description: 'Thread ID', required: true },
+        { name: 'weaveSlug', description: 'Weave folder slug', required: true },
+        { name: 'threadSlug', description: 'Thread folder slug', required: true },
     ],
 };
 
 export async function handle(root: string, args: Record<string, string | undefined>) {
-    const weaveId = args['weaveId'];
-    const threadId = args['threadId'];
-    if (!weaveId || !threadId) throw new Error('weaveId and threadId are required');
+    const weaveSlug = args['weaveSlug'];
+    const threadSlug = args['threadSlug'];
+    if (!weaveSlug || !threadSlug) throw new Error('weaveSlug and threadSlug are required');
 
-    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}?mode=chat`);
+    const ctx = await handleContextResource(root, `loom://context/thread/${weaveSlug}/${threadSlug}?mode=chat`);
     const contextText = ctx.contents[0].text;
 
     return {
-        description: `Thread context for ${weaveId}/${threadId}`,
+        description: `Thread context for ${weaveSlug}/${threadSlug}`,
         messages: [
             {
                 role: 'user' as const,

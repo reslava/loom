@@ -2,7 +2,7 @@ import { getState } from '../../../app/dist/getState';
 import { assembleContext } from '../../../app/dist/context/assembleContext';
 import { serializeBundle } from '../../../app/dist/context/serializeBundle';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex, readContextPrefsEntry } from '../../../fs/dist';
-import { resolveId, LoadedDoc } from '../../../core/dist';
+import { resolveId, LoadedDoc, LoomState, Thread, Document } from '../../../core/dist';
 import { ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 
@@ -34,18 +34,44 @@ function parseLoadedLedger(param: string | null): LoadedDoc[] {
 }
 
 /**
- * loom://context/{docId}?mode={mode}
- * loom://context/thread/{weaveId}/{threadId}?mode={mode}
+ * loom://context/{docUlid}?mode={mode}              (ULID form — strict)
+ * loom://context/thread/{weaveSlug}/{threadSlug}?mode={mode}   (slug form — human-pointable)
  *
  * The Unified Context Pipeline delivery point. Builds LoomState (the one impure
  * boundary), runs the pure assembler, and returns the serialised, agent-agnostic
  * markdown bundle. Replaces the legacy loom://thread-context bundling entirely.
  *
- * Two addressing forms:
- *  - doc form: anchor on a specific document id.
- *  - thread form: anchor on a thread's primary doc (design ?? idea ?? active
- *    plan ?? first doc) — the migration path for thread-level callers.
+ * Two explicit forms, each strict about its own input (naming rule 2 — separate
+ * forms, never a dual-accept param):
+ *  - ULID form: loom://context/{docUlid} — anchor on a document's canonical id.
+ *  - Slug form (human-pointable): loom://context/thread/{weaveSlug}/{threadSlug}
+ *    anchors on a thread's primary doc; loom://context/{weaveSlug}/{threadSlug}/{docSlug}
+ *    anchors on a named doc within a thread. Slugs resolve → canonical id via the
+ *    link index.
  */
+function resolveThreadOrThrow(state: LoomState, weaveSlug: string, threadSlug: string): Thread {
+    const weave = state.weaves.find(w => w.id === weaveSlug);
+    const thread = weave?.threads.find(t => t.id === threadSlug);
+    if (!thread) throw new Error(`Thread not found: ${weaveSlug}/${threadSlug}`);
+    return thread;
+}
+
+/**
+ * Resolve a document within a thread from a human-pointable doc slug: the canonical
+ * singletons by keyword (idea/design/req), else a match on a doc's own id or slug
+ * (plan-NNN, chat-NNN, references). A trailing `.md` is tolerated.
+ */
+function resolveThreadDocBySlug(thread: Thread, docSlug: string): Document | undefined {
+    const s = docSlug.toLowerCase().replace(/\.md$/, '');
+    if (s === 'idea') return thread.idea;
+    if (s === 'design') return thread.design;
+    if (s === 'req') return thread.req;
+    return (
+        thread.allDocs.find(d => d.id === docSlug || (d as { slug?: string }).slug === docSlug) ??
+        thread.plans.find(p => p.id === docSlug)
+    );
+}
+
 export async function handleContextResource(root: string, uri: string) {
     const url = new URL(uri.replace('loom://', 'loom://host/'));
     // loom://context/...  →  pathname "/context/..."
@@ -65,29 +91,35 @@ export async function handleContextResource(root: string, uri: string) {
     });
 
     let targetId: string;
-    if (segments[1] === 'thread') {
-        // loom://context/thread/{weaveId}/{threadId}
-        const weaveId = segments[2];
-        const threadId = segments[3];
-        if (!weaveId || !threadId) {
-            throw new Error('loom://context/thread requires weaveId and threadId: loom://context/thread/{weaveId}/{threadId}');
+    if (segments.length === 4) {
+        // Both slug forms carry four path segments — the thread form and the
+        // path-qualified doc form — distinguished by the `thread` marker.
+        if (segments[1] === 'thread') {
+            // Slug form (thread): loom://context/thread/{weaveSlug}/{threadSlug}
+            const [, , weaveSlug, threadSlug] = segments;
+            const thread = resolveThreadOrThrow(state, weaveSlug, threadSlug);
+            const primary =
+                thread.design ??
+                thread.idea ??
+                thread.plans.find(p => p.status === 'implementing') ??
+                thread.plans.find(p => p.status === 'active') ??
+                thread.plans[0] ??
+                thread.allDocs[0];
+            if (!primary) throw new Error(`Thread ${weaveSlug}/${threadSlug} has no documents to anchor context`);
+            targetId = primary.id;
+        } else {
+            // Slug form (doc): loom://context/{weaveSlug}/{threadSlug}/{docSlug}
+            const [, weaveSlug, threadSlug, docSlug] = segments;
+            const thread = resolveThreadOrThrow(state, weaveSlug, threadSlug);
+            const doc = resolveThreadDocBySlug(thread, docSlug);
+            if (!doc) throw new Error(`No document "${docSlug}" in thread ${weaveSlug}/${threadSlug}`);
+            targetId = doc.id;
         }
-        const weave = state.weaves.find(w => w.id === weaveId);
-        const thread = weave?.threads.find(t => t.id === threadId);
-        if (!thread) throw new Error(`Thread not found: ${weaveId}/${threadId}`);
-        const primary =
-            thread.design ??
-            thread.idea ??
-            thread.plans.find(p => p.status === 'implementing') ??
-            thread.plans.find(p => p.status === 'active') ??
-            thread.plans[0] ??
-            thread.allDocs[0];
-        if (!primary) throw new Error(`Thread ${weaveId}/${threadId} has no documents to anchor context`);
-        targetId = primary.id;
     } else {
+        // ULID form (canonical): loom://context/{docUlid}
         targetId = segments.slice(1).join('/');
         if (!targetId) {
-            throw new Error('loom://context requires a document id: loom://context/{docId}?mode={mode}');
+            throw new Error('loom://context requires a target: loom://context/{docUlid}, loom://context/thread/{weaveSlug}/{threadSlug}, or loom://context/{weaveSlug}/{threadSlug}/{docSlug}');
         }
     }
 

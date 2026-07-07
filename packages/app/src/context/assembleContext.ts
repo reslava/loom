@@ -289,7 +289,19 @@ export function assembleContext(
         e => !((e.reason === 'load_when-filter' || e.reason === 'user-exclude') && emitted.has(e.id)),
     );
 
-    return { targetId: canonicalTargetId, mode, docs, excluded: finalExcluded, totalTokens, manifest };
+    return {
+        targetId: canonicalTargetId,
+        mode,
+        docs,
+        excluded: finalExcluded,
+        totalTokens,
+        manifest,
+        // Thread address of the target's home thread (IN4): lets a caller issue a
+        // thread-scoped write after one context read, no second lookup. weaveId is
+        // the weave folder slug; thread.manifest.id is the authored `th_` ULID.
+        weaveSlug: weaveId,
+        threadUlid: thread?.manifest?.id,
+    };
 }
 
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {
