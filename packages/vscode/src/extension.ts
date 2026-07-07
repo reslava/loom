@@ -310,15 +310,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 await funnelAiSetup();
             }
         }),
-        vscode.commands.registerCommand('loom.install.openCliTerminal', () => {
-            const t = vscode.window.createTerminal('Loom CLI Install');
-            t.show();
-            t.sendText('npm install -g @reslava/loom');
-        }),
         vscode.commands.registerCommand('loom.install.runInstall', () => runLoomInstall()),
-        vscode.commands.registerCommand('loom.install.openAiSettings', () =>
-            vscode.commands.executeCommand('workbench.action.openSettings', 'reslava-loom.ai')
-        ),
         vscode.commands.registerCommand('loom.openWalkthrough', () =>
             vscode.commands.executeCommand('workbench.action.openWalkthrough', 'reslava.loom-vscode#loom.getStarted', false)
         ),
