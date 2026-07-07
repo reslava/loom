@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWW4S1BHFEBWFH84KVYAYKD9
 title: Load thread context by need, not by trigger, on chat reply
-status: draft
+status: done
 created: 2026-07-06
 version: 1
 tags: []

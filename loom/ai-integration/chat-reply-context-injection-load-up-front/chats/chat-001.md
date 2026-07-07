@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KWY5NJKYXST562TB3QJQZEJN
 title: context-load-by-need Chat 001
-status: active
+status: done
 created: 2026-07-07
 version: 1
 tags: []
@@ -312,3 +312,41 @@ Important: this is **naming debt, not a bug**. Those `{weaveId}/{threadId}` segm
 **Bottom line:** docs and code are ~one-surface apart, not fundamentally mismatched. The thing that scared you (fabrication, ambiguity) is solved. What remains is finishing the *same* naming convention on the read surface — resources + prompts — in code and docs together. That's thread **(a)**, and it's low-risk: no data path, just renames + doc alignment.
 
 I'm committing the doc fix now. Thread (a) is precisely scoped above — say go and I'll create it as its own `core-engine` (API) thread with this as the idea, so it's out of your head and into a durable doc.
+
+## Rafa:
+
+Thanks! now I have a clear vision of what is happening with mcp resources, I thought that surface was already covered, I don't know why we did not covered it in the refactor, it has no sense at all, so we need to solve this gap now
+
+create thread (a) — "extend *Slug/*Ulid naming to the MCP read surface (resource URIs + prompt args), code + docs" — as a core-engine thread
+
+in that thread:
+- create and idea
+- create a chat this will be the active chat from now, so your next reply goes there (this way we could close this rare thread)
+
+after (a) implemented way all surfaces will speak same API language contract 
+(CLAUDE.md / ctx.md / template thread-resource form needs to be updated again, correct?)
+
+### Question
+
+What is the manifest enhancement?
+
+### MCP resources
+
+I can inspect mcp tools in claude CLI using `/mcp` -> view tools
+But I can not see MCP resources, the only source for me is `loom/refs/mcp-reference.md`. This doc should be included in CLAUDE.md section line 38 `## Doc-sync contract...` 3rd row `Package layers / architecture (dependency rule, MCP surface)`
+
+If you know an easy way for me to list, check and use mcp resources pls tell me
+
+Make a table with mcp resources to read context
+
+### Pending stuff
+
+- mcp context resources should admit SLUG (becuase human user will ask you that way) and should return ULID for next mcp calls no need extra calls
+
+- API ULID / Slug should be honored in all surfaces
+
+Please, remind me if I am missing something
+
+## Rafa:
+
+Thread renamed from `context-load-by-need`to `chat-reply-context-injection-load-up-front`

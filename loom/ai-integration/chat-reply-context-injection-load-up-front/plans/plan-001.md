@@ -1,7 +1,7 @@
 ---
 type: plan
 id: pl_01KWYNA01G1Y58ZZK64XATYHKX
-title: context-load-by-need Plan
+title: chat-reply-context-injection-load-up-front
 status: done
 created: 2026-07-07
 updated: 2026-07-07
@@ -20,7 +20,7 @@ steps:
     blocked_by: []
     satisfies: []
 ---
-# context-load-by-need Plan
+# chat-reply-context-injection-load-up-front
 
 ## Goal
 
