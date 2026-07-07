@@ -1,17 +1,17 @@
 ---
 type: thread
-id: th_01KWWG4GA3YB6CF8059J8GG48K
-title: loom-install-claude-written
+id: th_01KWYT7251D3XJXTK68MN9QG18
+title: MCP read surface — align resource/prompt naming to Slug/Ulid + slug-in/ULID-out
 status: active
-created: 2026-07-06
+created: 2026-07-07
 updated: 2026-07-07
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 50
+priority: 10
 depends_on: []
 ---
-# loom-install-claude-written
+# MCP read surface — align resource/prompt naming to Slug/Ulid + slug-in/ULID-out
 
 Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). The thread's roadmap status and history are *derived* (`buildRoadmap`), never stored here.

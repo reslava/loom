@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 40
+priority: 60
 depends_on: []
 ---
 # Resolve telemetry consent from a shared source (remove per-process env-plumbing)
