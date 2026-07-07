@@ -54,6 +54,8 @@ echo "🔗 Linking CLI globally..."
 npm link --force
 
 echo "📦 Building vscode..."
-cd ../vscode && npx tsc --build --force
+# tsc typechecks/emits; esbuild produces the shipped bundles — including
+# dist/loom-mcp.js, the MCP server the extension spawns on Electron-as-Node.
+cd ../vscode && npx tsc --build --force && node esbuild.js
 
 echo "✅ Build complete. 'loom' command is ready."

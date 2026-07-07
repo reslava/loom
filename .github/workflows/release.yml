@@ -126,6 +126,12 @@ jobs:
           cd packages/cli
           npm pack --pack-destination "$GITHUB_WORKSPACE/artifacts"
       - name: Package VS Code extension (.vsix)
+        # vsce runs `vscode:prepublish` → esbuild --production, which re-emits
+        # dist/loom-mcp.js. That rebuild must see the key or it would overwrite
+        # the build-all output with a key-less bundle. Same public/write-only
+        # token as the CLI; unset ⇒ inert build.
+        env:
+          LOOM_POSTHOG_KEY: ${{ secrets.LOOM_POSTHOG_KEY }}
         run: |
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/artifacts"

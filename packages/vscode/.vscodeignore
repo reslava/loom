@@ -11,6 +11,8 @@ package-old-loom.json
 # Monorepo siblings — already bundled by esbuild into dist/extension.js
 ../**
 
-# Dist: only the bundled output is needed
+# Dist: only the bundled outputs are needed — the extension itself and the
+# Loom MCP server (dist/loom-mcp.js) the extension spawns on Electron-as-Node.
 dist/**
 !dist/extension.js
+!dist/loom-mcp.js

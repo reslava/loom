@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CreateMessageRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -54,10 +55,14 @@ export function disposeMCP(): void {
 
 function createMCPClient(workspaceRoot: string): LoomMCPClient {
     const out = getOut();
+    // Spawn the Loom MCP server bundled into the VSIX (dist/loom-mcp.js) on VS
+    // Code's own Electron-as-Node — no global `loom` CLI, no user-installed
+    // Node. __dirname is the extension's dist/, alongside loom-mcp.js.
+    const serverEntry = path.join(__dirname, 'loom-mcp.js');
     const transport = new StdioClientTransport({
-        command: 'loom',
-        args: ['mcp'],
-        env: { ...process.env as Record<string, string>, LOOM_ROOT: workspaceRoot, ...getTelemetryEnv() },
+        command: process.execPath,
+        args: [serverEntry],
+        env: { ...process.env as Record<string, string>, ELECTRON_RUN_AS_NODE: '1', LOOM_ROOT: workspaceRoot, ...getTelemetryEnv() },
         stderr: 'pipe',
     });
 

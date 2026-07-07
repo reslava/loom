@@ -43,7 +43,7 @@ import { sendFeedbackCommand } from './commands/sendFeedback';
 import { setIconBaseUri } from './icons';
 import { disposeMCP, getMCP, getMCPConnected } from './mcp-client';
 import { handleMcpError } from './mcpErrorUtils';
-import { isClaudeInstalled, launchClaude } from './commands/claudeTerminal';
+import { isClaudeInstalled, launchClaude, hasApiKey, funnelAiSetup } from './commands/claudeTerminal';
 import { TokenEstimatorService } from './services/tokenEstimatorService';
 import { ContextSidebarProvider } from './providers/contextSidebarProvider';
 
@@ -101,6 +101,26 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         treeProvider.setWorkspaceRoot(root);
         treeProvider.refresh();
         if (root) updateDiagnostics(diagnosticCollection, root);
+    }
+
+    // In-process workspace install via the loom_install MCP tool — no terminal,
+    // real progress + error surfacing. Replaces the old `loom install` shell-out
+    // while keeping the vscode → mcp → app layer boundary (C3): the extension
+    // never imports app, it calls through MCP.
+    async function runLoomInstall(): Promise<void> {
+        const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
+        try {
+            await vscode.window.withProgress(
+                { location: vscode.ProgressLocation.Notification, title: 'Loom: Installing…', cancellable: false },
+                async () => { await getMCP(root).callTool('loom_install', {}); }
+            );
+            syncAndRefresh();
+            syncSetupContext();
+            vscode.window.showInformationMessage('Loom installed in this workspace.');
+        } catch (e: any) {
+            handleMcpError(e, treeProvider);
+        }
     }
 
     context.subscriptions.push(
@@ -248,7 +268,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 await launchClaude(root, 'Loom: Generate Design',
                     `Loom generate design task. ideaId="${id}", weave_slug="${weaveId}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the idea, then call MCP tool loom_create_design ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}", a concise title, and content (the full design body derived from the idea). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_design, in the same single call. Do not use loom_generate_design — sampling is unavailable in Claude Code CLI.`
                 );
-            } else {
+            } else if (hasApiKey()) {
                 try {
                     let result: any;
                     await vscode.window.withProgress(
@@ -259,6 +279,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                     if (result?.filePath) { const doc = await vscode.workspace.openTextDocument(result.filePath); await vscode.window.showTextDocument(doc, { preview: false }); }
                     vscode.window.showInformationMessage('Design generated');
                 } catch (e: any) { handleMcpError(e, treeProvider); }
+            } else {
+                await funnelAiSetup();
             }
         }),
         vscode.commands.registerCommand('loom.generatePlan', async (node?: TreeNode) => {
@@ -273,7 +295,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                 await launchClaude(root, 'Loom: Generate Plan',
                     `Loom generate plan task. designId="${id}", weave_slug="${weaveId}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the design, and read loom://context/thread/${weaveId}/${threadId}?mode=plan for the thread's locked requirements (the req doc — appears first). Treat its Excluded items and Constraints as HARD BOUNDARIES (no steps for excluded work), cover every Included requirement, and cite the requirement ids (IN/C handles) each step advances. Then call MCP tool loom_create_plan ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}", a concise title, a goal, and a structured steps array (each step: description, files, blockedBy, satisfies with the cited IN/C ids). Do NOT call loom_update_doc afterwards. Do not use loom_generate_plan — sampling is unavailable in Claude Code CLI.`
                 );
-            } else {
+            } else if (hasApiKey()) {
                 try {
                     let result: any;
                     await vscode.window.withProgress(
@@ -284,6 +306,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                     if (result?.filePath) { const doc = await vscode.workspace.openTextDocument(result.filePath); await vscode.window.showTextDocument(doc, { preview: false }); }
                     vscode.window.showInformationMessage('Plan generated');
                 } catch (e: any) { handleMcpError(e, treeProvider); }
+            } else {
+                await funnelAiSetup();
             }
         }),
         vscode.commands.registerCommand('loom.install.openCliTerminal', () => {
@@ -306,6 +330,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         })
     );
 
+    // Guards the onboarding notification against overlapping toasts (see below).
+    let setupNotifyInFlight = false;
+
     // Context keys — drive walkthrough completion and notification targeting
     async function syncSetupContext(): Promise<void> {
         const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -313,7 +340,10 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         const workspaceInitialized = root ? fs.existsSync(path.join(root, '.loom')) : false;
         const mcpConfigured = root ? await detectMcpConfig(root) : false;
         const mcpLive = getMCPConnected();
-        const aiConfigured = cliDetected;
+        const claudeOk = await isClaudeInstalled();
+        // AI = an agent (Claude Code) OR the API-key fallback — NOT the loom CLI,
+        // which the extension no longer needs (its server is bundled).
+        const aiConfigured = claudeOk || hasApiKey();
         const hasWeaves = root ? detectHasWeaves(root) : false;
 
         const set = (key: string, val: boolean) => vscode.commands.executeCommand('setContext', key, val);
@@ -326,6 +356,18 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         mcpStatusBar.text = mcpLive ? '$(plug) Loom MCP' : '$(debug-disconnect) Loom MCP';
         mcpStatusBar.tooltip = mcpLive ? 'Loom MCP connected — click to reconnect' : 'Loom MCP disconnected — click to reconnect';
         mcpStatusBar.show();
+
+        // AI status bar (Claude Code ✓ / API-key fallback / not set up).
+        aiStatusBar.text = claudeOk ? '$(sparkle) Claude Code' : hasApiKey() ? '$(key) Loom AI: key' : '$(warning) Loom AI: setup';
+        aiStatusBar.tooltip = claudeOk
+            ? 'Claude Code detected — AI actions launch an agent'
+            : hasApiKey()
+                ? 'Using the API-key sampling fallback — click to change AI setup'
+                : 'No AI configured — click to set up Claude Code or an API key';
+        aiStatusBar.show();
+
+        // Re-evaluate onboarding whenever setup state changes (FP1 fix in the fn).
+        void showSetupNotification();
     }
 
     // MCP status bar
@@ -358,58 +400,55 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         })
     );
 
+    // AI status bar — shows the AI path (Claude Code / API key / not set up);
+    // click funnels to AI setup. Text is refreshed by syncSetupContext.
+    const aiStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 87);
+    aiStatusBar.command = 'loom.setupAi';
+    context.subscriptions.push(aiStatusBar);
+    context.subscriptions.push(
+        vscode.commands.registerCommand('loom.setupAi', () => funnelAiSetup())
+    );
+
     // Re-sync status bar once MCP actually connects (first successful state read)
     context.subscriptions.push(treeProvider.onMCPStateChange(() => syncSetupContext()));
 
     syncSetupContext();
 
-    // Partial-setup notification — shown at most once per workspace per session
+    // Onboarding notification. Re-evaluated on activation and whenever setup
+    // state changes (called from syncSetupContext). The old code set a permanent
+    // "shown once" boolean and then went silent forever after the first prompt
+    // (FP1). Here dismissal is keyed to the *current* gap signature, so the same
+    // gap won't nag but a changed remaining gap re-prompts. With the server now
+    // bundled, the only setup is initialising the workspace docs — loom_install
+    // writes .loom/, .mcp.json and CLAUDE.md together, so the old CLI-not-found /
+    // npm-install branch is gone.
     async function showSetupNotification(): Promise<void> {
-        const shownKey = 'loom.setupNotificationShown';
-        if (context.workspaceState.get<boolean>(shownKey)) return;
-
+        if (setupNotifyInFlight) return;
         const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (!root) return;
 
-        const cliOk = isLoomCliAvailable();
         const loomDirOk = fs.existsSync(path.join(root, '.loom'));
         const mcpOk = await detectMcpConfig(root);
         const claudeMdOk = fs.existsSync(path.join(root, '.loom', 'CLAUDE.md'));
+        if (loomDirOk && mcpOk && claudeMdOk) return; // fully initialised
 
-        let message: string | undefined;
-        let action: string | undefined;
-        let onAction: (() => void) | undefined;
+        const gap = [!loomDirOk && 'loom', !mcpOk && 'mcp', !claudeMdOk && 'claude'].filter(Boolean).join(',');
+        if (context.workspaceState.get<string>('loom.setupDismissedGap') === gap) return;
 
-        if (!cliOk) {
-            message = 'Loom CLI not found. Install it to use Loom.';
-            action = 'Open Terminal';
-            onAction = () => {
-                const t = vscode.window.createTerminal('Loom Setup');
-                t.show();
-                t.sendText('npm install -g @reslava/loom');
-            };
-        } else if (!loomDirOk) {
-            message = 'Initialize Loom in this workspace?';
-            action = 'Initialize';
-            onAction = () => runLoomInstall();
-        } else if (!mcpOk) {
-            message = 'Set up Loom MCP for this workspace?';
-            action = 'Set up';
-            onAction = () => runLoomInstall();
-        } else if (!claudeMdOk) {
-            message = 'Update Loom session rules?';
-            action = 'Update';
-            onAction = () => runLoomInstall();
+        setupNotifyInFlight = true;
+        try {
+            // Record the gap before awaiting the choice so this exact gap isn't
+            // re-shown; a *different* remaining gap re-prompts on the next sync.
+            await context.workspaceState.update('loom.setupDismissedGap', gap);
+            const choice = await vscode.window.showInformationMessage(
+                'Initialize Loom in this workspace? (creates .loom/, .mcp.json, and session rules)',
+                'Initialize', 'Not now'
+            );
+            if (choice === 'Initialize') await runLoomInstall();
+        } finally {
+            setupNotifyInFlight = false;
         }
-
-        if (!message || !action || !onAction) return;
-
-        await context.workspaceState.update(shownKey, true);
-        const choice = await vscode.window.showInformationMessage(message, action, 'Not now');
-        if (choice === action) onAction();
     }
-
-    setImmediate(() => showSetupNotification());
 
     context.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(() => syncAndRefresh())
@@ -477,12 +516,6 @@ function detectHasWeaves(workspaceRoot: string): boolean {
             fs.statSync(path.join(loomDir, entry)).isDirectory()
         );
     } catch { return false; }
-}
-
-function runLoomInstall(): void {
-    const terminal = vscode.window.createTerminal('Loom Install');
-    terminal.show();
-    terminal.sendText('loom install');
 }
 
 function debounce(fn: () => void, ms: number): () => void {

@@ -4,6 +4,10 @@ import { initLocal } from './init';
 import { ConfigRegistry } from '../../fs/dist';
 import { today } from '../../core/dist';
 
+// Lockstep version of the Loom packages — used to pin the `.mcp.json` npx command
+// so the Claude Code agent fetches the exact version that wrote the config.
+const { version: LOOM_VERSION } = require('../package.json') as { version: string };
+
 export interface InstallWorkspaceInput {
     force?: boolean;
 }
@@ -346,12 +350,14 @@ export async function installWorkspace(
     }
 
     // Step 4: write .mcp.json at project root with the real workspace path (skip if exists and not --force)
+    // The Claude Code agent spawns its own server via npx — no global `loom`
+    // install required, pinned to this exact (lockstep) version to avoid skew.
     const mcpJson = JSON.stringify({
         mcpServers: {
             loom: {
                 type: 'stdio',
-                command: 'loom',
-                args: ['mcp'],
+                command: 'npx',
+                args: ['-y', `@reslava/loom@${LOOM_VERSION}`, 'mcp'],
                 env: { LOOM_ROOT: root.replace(/\\/g, '/') },
             },
         },

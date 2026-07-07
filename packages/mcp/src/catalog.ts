@@ -14,7 +14,7 @@ export interface CatalogTool {
 // Render order + human titles for known groups. Unknown groups render after these
 // (alphabetically), and ungrouped tools fall into a trailing "Other" bucket — so a
 // newly registered tool always appears, even before anyone assigns it a group.
-const GROUP_ORDER = ['create', 'refine', 'generate', 'plan', 'req', 'chat', 'doc', 'context', 'query'];
+const GROUP_ORDER = ['create', 'refine', 'generate', 'plan', 'req', 'chat', 'doc', 'context', 'query', 'workspace'];
 const GROUP_TITLES: Record<string, string> = {
     create: 'Create',
     refine: 'Refine',
@@ -25,6 +25,7 @@ const GROUP_TITLES: Record<string, string> = {
     doc: 'Doc edit / lifecycle',
     context: 'Context prefs',
     query: 'Query / state',
+    workspace: 'Workspace',
     other: 'Other',
 };
 

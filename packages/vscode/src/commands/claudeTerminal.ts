@@ -20,6 +20,27 @@ export async function isClaudeInstalled(): Promise<boolean> {
     }
 }
 
+/** Whether the API-key sampling fallback is configured (the non-Claude AI path). */
+export function hasApiKey(): boolean {
+    return !!vscode.workspace.getConfiguration('reslava-loom.ai').get<string>('apiKey');
+}
+
+/**
+ * Funnel the user to set up an AI path instead of dead-ending an AI action.
+ * Claude Code is the recommended path; the API-key fallback stays discoverable.
+ */
+export async function funnelAiSetup(): Promise<void> {
+    const pick = await vscode.window.showInformationMessage(
+        'Loom AI needs Claude Code (recommended) or an API key to run.',
+        'Install Claude Code', 'Set API Key'
+    );
+    if (pick === 'Install Claude Code') {
+        vscode.env.openExternal(vscode.Uri.parse('https://docs.anthropic.com/claude-code'));
+    } else if (pick === 'Set API Key') {
+        vscode.commands.executeCommand('workbench.action.openSettings', 'reslava-loom.ai.apiKey');
+    }
+}
+
 let _terminal: vscode.Terminal | undefined;
 
 // Always start with a fresh shell. Reusing the terminal across calls is
@@ -63,13 +84,7 @@ function buildClaudeCommand(promptFile: string): string {
 
 export async function launchClaude(root: string, terminalName: string, prompt: string): Promise<void> {
     if (!(await isClaudeInstalled())) {
-        const action = await vscode.window.showErrorMessage(
-            'Claude Code CLI not found on PATH. Install it to use AI features.',
-            'Open Install Page'
-        );
-        if (action === 'Open Install Page') {
-            vscode.env.openExternal(vscode.Uri.parse('https://docs.anthropic.com/claude-code'));
-        }
+        await funnelAiSetup();
         return;
     }
 
