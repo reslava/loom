@@ -90,8 +90,8 @@ that file is for permissions/hooks/env and ignores \`mcpServers\`):
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": {
         "LOOM_ROOT": "\${workspaceFolder}"
       }

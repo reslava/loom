@@ -16,25 +16,17 @@
 
 ---
 
-## 1. Install
+## 1. Install — one click, no CLI
 
-**1. Install the CLI** (the extension talks to it):
+**1. Install the extension** — search **`Loom AI`** (publisher `reslava`) in the VS Code Marketplace.
 
-```bash
-npm install -g @reslava/loom
-```
+**2. Open your project and click *Initialize Loom*** in the Loom panel.
 
-**2. Install the extension** — search `reslava.loom` in the VS Code Marketplace.
+That's it — no CLI, no Node, no terminal. The Loom engine is **bundled inside the extension** and runs on VS Code's own runtime. Initializing creates `.loom/` (config + the `CLAUDE.md` session contract), `loom/` (your document workspace), and `.mcp.json` (MCP wiring, so an AI agent can drive Loom too). The Loom icon then appears in the Activity Bar.
 
-**3. Initialize Loom in your project**, from the project root:
+> First time? The extension ships a **Get Started** walkthrough (Command Palette → *Welcome: Open Walkthrough* → "Get Started with Loom") — Initialize, connect an AI (optional), create your first weave, and run the loop.
 
-```bash
-loom install
-```
-
-This creates `.loom/` (config), `loom/` (your document workspace), a `CLAUDE.md` session contract, and the MCP wiring. The Loom icon then appears in the Activity Bar.
-
-> First time? The extension ships a **Get Started** walkthrough (Command Palette → *Welcome: Open Walkthrough* → "Get Started with Loom") that steps you through CLI install, `loom install`, AI setup, and your first weave.
+> Prefer the terminal, or driving Loom from Cursor / CI? The `@reslava/loom` CLI is a separate install — see the [CLI User Guide](CLI_USER_GUIDE.md). You don't need it for the extension.
 
 ---
 

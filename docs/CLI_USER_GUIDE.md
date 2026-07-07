@@ -29,6 +29,8 @@ So: you use `loom` to set up and to look at state; you talk to **Claude Code** t
 
 ## 2. Install & initialize
 
+> **In VS Code?** You don't need the CLI — install the **Loom AI** extension and everything works in 1 click. This guide is for driving Loom from the **terminal** or a **non-VS-Code agent** (Cursor, Continue, CI). See [Three ways to run Loom](../loom/refs/architecture-reference.md#delivery-surfaces--audiences).
+
 **Install the CLI globally:**
 
 ```bash
@@ -61,8 +63,8 @@ Add **`.mcp.json`** to your project root:
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": {
         "LOOM_ROOT": "${workspaceFolder}"
       }

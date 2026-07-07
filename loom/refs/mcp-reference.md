@@ -184,8 +184,8 @@ runs inference → result returned to the server → server writes the document.
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": {
         "LOOM_ROOT": "${workspaceFolder}",
         "DEEPSEEK_API_KEY": "your-key-here"

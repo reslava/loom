@@ -18,28 +18,20 @@ One-page guide: from zero to your first AI-generated idea in five minutes.
 
 ---
 
-## 1. Install
+## 1. Install — one click, no CLI
 
-```bash
-npm install -g @reslava/loom
-```
+Install the **Loom AI** extension from the VS Code Marketplace (search **`Loom AI`**, publisher `reslava`). The Loom engine is bundled inside it — there's nothing to `npm install` and no global `loom` command to set up.
 
-Then install the VS Code extension: search **`reslava.loom`** in the Extensions panel.
+> Not using VS Code? Loom also ships as a CLI + MCP server for Cursor, Continue, terminal Claude Code, and CI — see the [CLI User Guide](../../docs/CLI_USER_GUIDE.md) and [Three ways to run Loom](architecture-reference.md#delivery-surfaces--audiences).
 
 ---
 
 ## 2. Initialize Loom in your project
 
-Open your project folder in VS Code and run:
-
-```bash
-loom install
-```
-
-This creates:
+Open your project folder in VS Code and click **Initialize Loom** in the Loom panel (or run the *Loom: Initialize* command). This creates:
 - `.loom/` — config, hooks, AI session contract (`CLAUDE.md`)
 - `loom/` — your document workspace (weaves, threads, chats, plans)
-- `.mcp.json` — MCP server config so your AI agent can reach Loom tools
+- `.mcp.json` — MCP server config (pinned `npx`) so your AI agent can reach Loom tools
 
 ---
 

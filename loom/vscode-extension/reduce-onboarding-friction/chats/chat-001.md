@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 39
+last_ai_block: 42
 ---
 # reduce-friction-cli-autoinstall Chat 001
 
@@ -544,3 +544,63 @@ Build + typecheck + **full suite (18/18) green**; package.json valid; VSIX ships
 Committing Plan B now. **Next: review the diff, then release** when you're happy — that's `/do-release` (I can't trigger it). Want me to do anything else first (e.g. the deferred `LOOM_CLAUDE_MD` `.mcp.json` example nit), or is this release-ready?
 
 STOP after the commit — waiting on your review / release call.
+
+## Rafa:
+
+remind me the deferred `LOOM_CLAUDE_MD` `.mcp.json` example nit and any other pending task
+
+review & update 
+loom/refs/getting-started-reference.md
+docs/AI_INTEGRATION.md
+docs/ARCHITECTURE.md
+docs/CLI_USER_GUIDE.md
+docs/EXTENSION_USER_GUIDE.md
+docs/USER_GUIDE.md
+
+many of them are really stale now and still show:
+
+```bash
+npm install -g @reslava/loom
+```
+
+for install
+
+## AI:
+
+### Pending items
+
+**The deferred nit** — the `LOOM_CLAUDE_MD` template in `packages/app/src/installWorkspace.ts:93` (the `.loom/CLAUDE.md` every downstream `loom install` writes) shows an `.mcp.json` example with `"command": "loom"`, but install now writes `npx`. Should show the pinned-npx form so downstream docs match what's actually written.
+
+**Everything else stale (a grep across docs + refs):**
+- **`npm install -g` as THE install:** `docs/EXTENSION_USER_GUIDE.md` (:21–24, "Install the CLI — the extension talks to it") and `loom/refs/getting-started-reference.md` (:24) — both now wrong; the extension is 1-click. (`docs/CLI_USER_GUIDE.md` keeps it — that's the CLI surface, legitimately.)
+- **`.mcp.json` examples showing `"command": "loom"`:** `loom/refs/architecture-reference.md:145`, `loom/refs/mcp-reference.md:187`, `loom/refs/cli-commands-reference.md:50`, `loom/refs/CLAUDE-template-reference.md:40`, `docs/CLI_USER_GUIDE.md:64` → pinned npx.
+- **`loom/refs/vscode-commands-reference.md:163`** describes the *old* walkthrough steps ("install the CLI, run loom install, configure AI provider, create weave") — no longer the steps.
+- **Vestigial code:** the `loom.install.openCliTerminal` command (opens a terminal to `npm install -g`) is now unused by onboarding — candidate to remove.
+
+**One deliberate keep:** the **root** `CLAUDE.md`'s `.mcp.json` example stays `"command": "loom"` — *this* repo runs the globally-linked CLI in dev (build-all `npm link`), so it's correct here. The prose is allowed to differ from the template (the claude-md-sync test locks rule-ids + invariant tokens, not the example), and downstream correctly gets npx via the template.
+
+Now doing the sweep you asked for (the 6 docs + the refs + the template nit). Will commit it separately.
+
+## AI:
+
+Sweep done — stale install instructions updated across docs + refs + the template nit.
+
+**Rewrote to 1-click / no-CLI:**
+- `docs/EXTENSION_USER_GUIDE.md` §1 Install — was "1. Install the CLI (the extension talks to it)"; now install the extension → click Initialize, no CLI/Node/terminal.
+- `loom/refs/getting-started-reference.md` §1–2 — same, plus a "not using VS Code?" pointer to the CLI guide + the three-surfaces section.
+
+**`.mcp.json` examples → pinned `npx` (the deferred nit + siblings):**
+- `packages/app/src/installWorkspace.ts` (the `LOOM_CLAUDE_MD` template every `loom install` writes) ✅ the nit.
+- `loom/refs/mcp-reference.md`, `loom/refs/CLAUDE-template-reference.md`, `loom/refs/architecture-reference.md`, `loom/refs/cli-commands-reference.md`, `docs/CLI_USER_GUIDE.md`.
+- `loom/refs/vscode-commands-reference.md` — the walkthrough-steps description now matches the new steps (Initialize → AI → weave/example → run the loop).
+- `docs/CLI_USER_GUIDE.md` — added a "In VS Code? use the extension" callout at the top; kept `npm install -g` below it (that IS the CLI surface).
+
+**The three concept docs you listed — `USER_GUIDE.md`, `AI_INTEGRATION.md`, `ARCHITECTURE.md` — had no stale install/mcp snippets.** They reference the CLI/extension only conceptually and accurately (e.g. AI_INTEGRATION's two AI paths), so I left them.
+
+**Deliberate keeps:** the **root `CLAUDE.md`** `.mcp.json` example stays `"command":"loom"` — this repo runs the globally-linked CLI in dev — and `docs/internal/*` + `loom/refs/.archive/*` (backups/frozen) untouched.
+
+**Verified:** build green; full suite **18/18** including the **claude-md-sync** test (the template change is prose inside the existing `rule:claude-code-config` marker, so rule-set + invariants still match); re-grep clean.
+
+One loose end still open (code, not docs): the `loom.install.openCliTerminal` command (opens a terminal to `npm install -g`) is now unused by onboarding — want me to remove it, or leave it as a manual escape hatch?
+
+Committing this sweep now.

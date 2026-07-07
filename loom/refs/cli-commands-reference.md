@@ -47,7 +47,7 @@ List all registered looms.
 Show the currently active loom.
 
 ### `loom mcp`
-Start the Loom MCP server over stdio. Normally launched **by your agent** via `.mcp.json` (`"command": "loom", "args": ["mcp"]`), not run by hand.
+Start the Loom MCP server over stdio. Normally launched **by your agent** via `.mcp.json` (`"command": "npx", "args": ["-y", "@reslava/loom@<version>", "mcp"]`), not run by hand.
 
 ---
 

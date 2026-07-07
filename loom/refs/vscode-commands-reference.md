@@ -160,7 +160,7 @@ All under the `reslava-loom.` prefix:
 
 ## Get Started walkthrough
 
-The extension ships a `loom.getStarted` walkthrough (*Welcome: Open Walkthrough* → "Get Started with Loom") with four steps: install the CLI, run `loom install`, configure an AI provider, and create your first weave.
+The extension ships a `loom.getStarted` walkthrough (*Welcome: Open Walkthrough* → "Get Started with Loom") with four steps: initialize the workspace (1 click, no CLI), connect an AI (optional), create your first weave (or seed an example), and run the loop.
 
 ---
 
