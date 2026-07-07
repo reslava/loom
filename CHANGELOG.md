@@ -10,6 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.19.0] - 2026-07-07
+
+### Added
+- **Install the extension — that's the whole setup. No CLI, no Node, no terminal.** The Loom engine (its MCP server) is now bundled inside the VS Code extension and runs on VS Code's own runtime, so installing the extension gives you a working workspace in one click. The old "install the global CLI first" step is gone — four setup gates collapse to one. *(The `@reslava/loom` CLI still ships for the terminal, CI, and non-VS-Code agents; it's simply no longer a prerequisite for the extension.)*
+- **Start with an example.** An empty Loom panel now offers a one-click **Start with an example** that seeds a tiny, clearly-labelled `example` weave → thread → idea → plan, so you see the whole shape at once instead of staring at an empty tree. Opt-in only (never seeded on install); delete it whenever.
+- **Guided AI setup + an AI status indicator.** A new status-bar item shows your AI path at a glance (Claude Code ✓ / API key / not set up), and AI actions now funnel you to set one up instead of silently failing when neither Claude Code nor an API key is present.
+- **In-process workspace initialization.** Initializing a workspace now runs inside the extension with real progress and error reporting, instead of shelling out to a terminal.
+
+### Changed
+- **AI agents connect with no global install.** `loom install` now writes `.mcp.json` with a pinned `npx -y @reslava/loom@<version> mcp` command, so Claude Code / Cursor / any MCP host fetches the exact server version on demand — no `npm i -g` required.
+- **Listing, READMEs, walkthrough, and Getting Started rewritten** around the 1-click flow and the three delivery surfaces (bundled extension · npx agent · global CLI), with a new "Delivery surfaces & audiences" diagram in the architecture reference and new Marketplace keywords (`mcp`, `ai-agent`, `claude-code`, `workflow-automation`).
+- **Quieter opt-in telemetry.** `loom_validate` — which the extension fires constantly from diagnostics/refresh — no longer emits a `command_invoked` event; it was ~99% noise and carried no workflow meaning. Telemetry remains off by default and content-free.
+
+### Fixed
+- **A correct setup no longer reads as "not found".** The extension used to run a global `loom` it located on PATH (captured at launch), so a freshly-installed CLI kept looking missing until a full VS Code restart. The bundled server removes that probe entirely — the single most common "I installed it and it still says it's not there" failure.
+- **Onboarding no longer goes silent after one prompt.** The setup notification used to fire once and never return; it now re-checks per remaining step, so finishing one part surfaces the next.
+
+### Removed
+- Dead install-helper commands (`loom.install.openCliTerminal`, `loom.install.openAiSettings`) and the unused CLI-detection probe, all orphaned by the zero-install onboarding.
+
 ## [1.18.0] - 2026-07-06
 
 ### Added
@@ -603,7 +623,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.18.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.19.0...HEAD
+[1.19.0]: https://github.com/reslava/loom/releases/tag/v1.19.0
 [1.18.0]: https://github.com/reslava/loom/releases/tag/v1.18.0
 [1.17.0]: https://github.com/reslava/loom/releases/tag/v1.17.0
 [1.16.0]: https://github.com/reslava/loom/releases/tag/v1.16.0

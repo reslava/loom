@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KWWPT2GMZ4YRE270SNJZ3D5T
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.19.0
 steps:
   - id: keywords-getting-started-link
     order: 1

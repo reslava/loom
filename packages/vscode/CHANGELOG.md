@@ -1,5 +1,24 @@
 # Loom VS Code Extension — Changelog
 
+## [1.19.0] - 2026-07-07
+
+### Added
+- **1-click install — no CLI, no Node, no terminal.** The Loom engine is now bundled inside the extension and runs on VS Code's own runtime, so installing the extension is the entire setup: open a folder and click **Initialize Loom**. The old "install the `@reslava/loom` CLI first" requirement is gone.
+- **Start with an example.** The empty Loom panel offers a one-click **Start with an example** that seeds a tiny, clearly-labelled `example` weave → thread → idea → plan so you can see the shape at once. Opt-in; delete it whenever.
+- **AI status bar + guided setup.** A status-bar item shows your AI path (Claude Code ✓ / API key / not set up), and AI actions funnel you to set one up instead of failing silently.
+- **"What's New" notice** shown once to returning users, pointing out that setup is now 1-click.
+
+### Changed
+- **AI agents need no global install.** Initializing writes `.mcp.json` with a pinned `npx` command, so Claude Code / Cursor fetch the exact server on demand.
+- **In-process Initialize** with real progress + errors (no terminal), and the onboarding prompt now re-checks per remaining setup step.
+- **Rewritten walkthrough** (now in its own files), Marketplace listing, and README around the 1-click flow and the three ways to run Loom.
+
+### Fixed
+- **A correct install no longer shows as "CLI not found".** The extension no longer probes for a global `loom` on PATH (captured at launch), which used to make a freshly-installed CLI look missing until a full restart.
+
+### Removed
+- Dead install-helper commands orphaned by the new onboarding.
+
 ## [1.18.0] - 2026-07-06
 
 ### Fixed
