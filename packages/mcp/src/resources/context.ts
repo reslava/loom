@@ -58,18 +58,33 @@ function resolveThreadOrThrow(state: LoomState, weaveSlug: string, threadSlug: s
 
 /**
  * Resolve a document within a thread from a human-pointable doc slug: the canonical
- * singletons by keyword (idea/design/req), else a match on a doc's own id or slug
- * (plan-NNN, chat-NNN, references). A trailing `.md` is tolerated.
+ * singletons by keyword (idea/design/req), else a match on a doc's own id, its `slug`,
+ * or its **filename stem** (plan-NNN, chat-NNN, references — the name a human sees on
+ * disk and types, e.g. `chat-001.md`). A trailing `.md` is tolerated on every form,
+ * and matching is case-insensitive.
  */
 function resolveThreadDocBySlug(thread: Thread, docSlug: string): Document | undefined {
     const s = docSlug.toLowerCase().replace(/\.md$/, '');
     if (s === 'idea') return thread.idea;
     if (s === 'design') return thread.design;
     if (s === 'req') return thread.req;
-    return (
-        thread.allDocs.find(d => d.id === docSlug || (d as { slug?: string }).slug === docSlug) ??
-        thread.plans.find(p => p.id === docSlug)
-    );
+
+    const stemOf = (d: { _path?: string }): string | undefined =>
+        d._path ? d._path.split(/[\\/]/).pop()!.replace(/\.md$/i, '').toLowerCase() : undefined;
+    const matches = (d: Document): boolean =>
+        d.id.toLowerCase() === s ||
+        (d as { slug?: string }).slug?.toLowerCase() === s ||
+        stemOf(d as { _path?: string }) === s;
+
+    // Search every doc collection — allDocs is the union, but plans/chats/refDocs are
+    // listed explicitly so resolution never depends on how allDocs was populated.
+    const candidates: Document[] = [
+        ...thread.allDocs,
+        ...thread.plans,
+        ...thread.chats,
+        ...thread.refDocs,
+    ];
+    return candidates.find(matches);
 }
 
 export async function handleContextResource(root: string, uri: string) {

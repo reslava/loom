@@ -76,22 +76,23 @@ export async function findThreadPath(loomRoot: string, weaveId: string): Promise
 }
 
 /**
- * Resolves the weave ID for a given plan ID by locating the plan file on disk.
+ * Resolves the weave slug for a given plan by locating the plan file on disk.
  * Searches under {loomRoot}/loom/ and returns the first path component (the weave dir).
- * This is necessary because plan IDs follow {threadId}-plan-{n}, not {weaveId}-plan-{n}.
+ * A plan is addressed by its ULID; the weave slug is recovered from the resolved
+ * *path*, never by parsing the id.
  */
-export async function resolveWeaveIdForPlan(loomRoot: string, planId: string): Promise<string> {
+export async function resolveWeaveSlugForPlan(loomRoot: string, planUlid: string): Promise<string> {
     const loomDir = path.join(loomRoot, 'loom');
-    const planPath = await findDocumentById(loomDir, planId);
+    const planPath = await findDocumentById(loomDir, planUlid);
     if (!planPath) {
-        throw new Error(`Plan '${planId}' not found under ${loomDir}`);
+        throw new Error(`Plan '${planUlid}' not found under ${loomDir}`);
     }
     const rel = path.relative(loomDir, planPath);
-    const weaveId = rel.split(path.sep)[0];
-    if (!weaveId) {
-        throw new Error(`Could not derive weave ID from plan path: ${planPath}`);
+    const weaveSlug = rel.split(path.sep)[0];
+    if (!weaveSlug) {
+        throw new Error(`Could not derive weave slug from plan path: ${planPath}`);
     }
-    return weaveId;
+    return weaveSlug;
 }
 
 /**

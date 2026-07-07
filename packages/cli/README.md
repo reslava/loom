@@ -102,8 +102,8 @@ designing, writing code for a step) is done through your MCP agent.
 
 | Command | Description |
 |---------|-------------|
-| `loom status [weave-id] [--verbose] [--json] [--filter <c>] [--sort <o>]` | Show derived state of weaves/threads. |
-| `loom validate [weave-id] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
+| `loom status [weave] [--verbose] [--json] [--filter <c>] [--sort <o>]` | Show derived state of weaves/threads. |
+| `loom validate [weave] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
 | `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — one Roadmap band (present + future in a single dependency + priority order, status + blocked-on per row) and history (shipped plans, newest first). Pure read. |
 
 ### Feedback
@@ -132,9 +132,9 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 | `loom catalog` | Print the grouped index of every `loom_*` MCP tool (`loom://catalog`). |
 | `loom resources` | List the MCP resources this Loom advertises (uri + title). |
 | `loom resources read <uri>` | Read any MCP resource by uri (e.g. `loom://summary`, `loom://context/<id>`). |
-| `loom context <docId> [--mode <m>]` | Print the assembled context bundle for a doc, or a thread via `thread/<weave>/<thread>`. |
-| `loom next [plan-id]` | Print the next incomplete step + context for a plan (defaults to the active plan). |
-| `loom search <query> [--type <t>] [--weave <id>]` | Search docs by id/title/content; prints id + title + snippet. |
+| `loom context <doc> [--mode <m>]` | Print the assembled context bundle for a doc, or a thread via `thread/<weave>/<thread>`. |
+| `loom next [plan]` | Print the next incomplete step + context for a plan (defaults to the active plan). |
+| `loom search <query> [--type <t>] [--weave <weave>]` | Search docs by id/title/content; prints id + title + snippet. |
 | `loom stale [--all]` | List docs that may be stale — a child whose upstream parent moved past its stamped baseline (`design` behind idea, `req` behind design, `plan` behind design/req) + reason. Default shows the **actionable** set (matches the extension); `--all` adds done/historical docs. See [the staleness model](../../loom/refs/staleness-reference.md). |
 | `loom blocked` | List blocked steps across implementing plans + their blockers. |
 
@@ -142,19 +142,19 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 
 | Command | Description |
 |---------|-------------|
-| `loom weave idea <title> [--weave <n>] [--thread <id>] [--loose]` | Create an idea document. |
-| `loom weave design <weave-id> [--title <t>] [--thread <id>]` | Create a design from an existing idea. |
-| `loom weave plan <weave-id> [--title <t>] [--goal <g>] [--thread <id>]` | Create a plan from a finalized design. |
-| `loom finalize <id>` | Finalize a draft document (status `draft` → `active`). The ULID `id` is unchanged — there is no temp→permanent step. |
-| `loom rename <id> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
+| `loom weave idea <title> [--weave <weave>] [--thread <slug>] [--loose]` | Create an idea document. |
+| `loom weave design <weave> [--title <t>] [--thread <slug>]` | Create a design from an existing idea. |
+| `loom weave plan <weave> [--title <t>] [--goal <g>] [--thread <slug>]` | Create a plan from a finalized design. |
+| `loom finalize <draft>` | Finalize a draft document (status `draft` → `active`). The ULID `id` is unchanged — there is no temp→permanent step. |
+| `loom rename <doc> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
 
 ### Workflow events
 
 | Command | Description |
 |---------|-------------|
-| `loom refine-design <weave-id>` | Fire `REFINE_DESIGN` (bumps design version, marks child plans stale). |
-| `loom start-plan <plan-id>` | Move a plan to `implementing`. |
-| `loom complete-step <plan-id> --step <n>` | Mark plan step `n` as done. |
+| `loom refine-design <weave>` | Fire `REFINE_DESIGN` (bumps design version, marks child plans stale). |
+| `loom start-plan <plan>` | Move a plan to `implementing`. |
+| `loom complete-step <plan> --step <n>` | Mark plan step `n` as done. |
 
 These event/CRUD commands change document **state** only.
 
@@ -163,7 +163,7 @@ These event/CRUD commands change document **state** only.
 | Command | Description |
 |---------|-------------|
 | `loom migrate [--dry-run]` | Backfill `thread.md` (a fresh `th_` ULID + title + default priority) for every thread folder missing one — needed for the derived roadmap. Idempotent (skips threads that already have a manifest); `--dry-run` prints what it would create and touches nothing. |
-| `loom migrate-plan-steps [plan-id] [--dry-run]` | Migrate legacy plans (steps in the body table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched). |
+| `loom migrate-plan-steps [plan] [--dry-run]` | Migrate legacy plans (steps in the body table) to frontmatter-native `steps` (the v1.3.0 source of truth). Idempotent; never empties a table it can't parse (reports it as `unparseable` and leaves it untouched). |
 | `loom backfill-design-versions [--dry-run]` | Repair plan `design_version` baselines stamped before create/promote read the live design version. Idempotent. |
 | `loom backfill-staleness-baselines [--dry-run]` | Migrate onto the [directional staleness model](../../loom/refs/staleness-reference.md): stamp `idea_version` on designs and `design_version` on reqs, repoint each req parent idea→design (and strip the dead `req_version`). Idempotent. |
 

@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWYWHSWQH5PMK0HNTASGBJ9K
 title: Align the CLI surface to the Slug/Ulid API contract
-status: draft
+status: done
 created: 2026-07-07
 version: 1
 tags: []

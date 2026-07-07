@@ -4,11 +4,11 @@ import { getActiveLoomRoot, saveDoc, loadDoc } from '../../../fs/dist';
 import * as fs from 'fs-extra';
 import { ensureThreadUlid } from '../threadArg';
 
-export async function weaveDesignCommand(weaveId: string, options: { title?: string; thread?: string }): Promise<void> {
+export async function weaveDesignCommand(weaveSlug: string, options: { title?: string; thread?: string }): Promise<void> {
     try {
-        const threadUlid = options.thread ? await ensureThreadUlid(weaveId, options.thread, options.title) : undefined;
+        const threadUlid = options.thread ? await ensureThreadUlid(weaveSlug, options.thread, options.title) : undefined;
         const result = await weaveDesign(
-            { weaveSlug: weaveId, title: options.title, threadUlid },
+            { weaveSlug, title: options.title, threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs }
         );
         if (result.autoFinalized) {

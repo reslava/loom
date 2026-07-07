@@ -90,7 +90,7 @@ async function createFixture(): Promise<string> {
 
     // plan doc: identity is a stable pl_ ULID (the strict API contract); the filename
     // stays a human plan-NNN.md. completeStep derives the weave from the resolved PATH,
-    // not by parsing the id (resolveWeaveIdForPlan → findDocumentById).
+    // not by parsing the id (resolveWeaveSlugForPlan → findDocumentById).
     await fsExtra.outputFile(
         path.join(threadDir, 'plans', 'tw-plan-001.md'),
         [
@@ -446,6 +446,22 @@ async function run(): Promise<void> {
         assert(names.includes('continue-thread'), 'should include continue-thread');
         assert(names.includes('do-next-step'), 'should include do-next-step');
         assert(names.includes('validate-state'), 'should include validate-state');
+    });
+
+    // do-next-step is strict pl_ ULID (cli-surface-naming): accepts a ULID, rejects a stem.
+    await test('do-next-step accepts a pl_ ULID', async () => {
+        const res = await client.getPrompt({ name: 'do-next-step', arguments: { planUlid: 'pl_TWPLAN00000000000000000001' } });
+        assert(Array.isArray(res.messages) && res.messages.length > 0, 'should return prompt messages for a valid plan ULID');
+    });
+
+    await test('do-next-step rejects a filename stem', async () => {
+        let threw = false;
+        try {
+            await client.getPrompt({ name: 'do-next-step', arguments: { planUlid: 't1-plan-001' } });
+        } catch {
+            threw = true;
+        }
+        assert(threw, 'should reject a non-ULID planUlid (filename stem)');
     });
 
     await client.close();

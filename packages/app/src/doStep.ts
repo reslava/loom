@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { saveDoc, resolveWeaveIdForPlan } from '../../fs/dist';
+import { saveDoc, resolveWeaveSlugForPlan } from '../../fs/dist';
 import { generateChatId, createBaseFrontmatter, AIClient, Message } from '../../core/dist';
 import { ChatDoc } from '../../core/dist';
 import { PlanDoc } from '../../core/dist/entities/plan';
@@ -33,7 +33,7 @@ export async function doStep(
     input: DoStepInput,
     deps: DoStepDeps
 ): Promise<{ chatPath: string; chatId: string }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planId);
+    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planId);
 
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planId) as PlanDoc | undefined;

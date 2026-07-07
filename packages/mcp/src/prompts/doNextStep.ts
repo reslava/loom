@@ -1,5 +1,6 @@
 import { resolveDocIdOrThrow, loadDoc } from '../../../fs/dist';
 import { handleContextResource } from '../resources/context';
+import { isPlanUlid } from '../tools/planUlid';
 
 export const promptDef = {
     name: 'do-next-step',
@@ -12,8 +13,17 @@ export const promptDef = {
 export async function handle(root: string, args: Record<string, string | undefined>) {
     const planUlid = args['planUlid'];
     if (!planUlid) throw new Error('planUlid is required');
+    // Strict, ULID-only — matches the plan-step tools' requirePlanUlid contract.
+    // A filename stem or title is rejected here; the CLI resolves any friendly
+    // reference to a pl_ ULID at its own edge (see next.ts resolvePlanUlid) before
+    // calling this prompt.
+    if (!isPlanUlid(planUlid)) {
+        throw new Error(
+            `planUlid must be a plan's stable pl_ ULID (e.g. "pl_01J…"), not a filename stem or title. Got: ${JSON.stringify(planUlid)}.`,
+        );
+    }
 
-    // Primary (agent-supplied) id → suggest-on-miss.
+    // ULID → file path.
     const { filePath } = await resolveDocIdOrThrow(root, planUlid);
 
     const plan = await loadDoc(filePath);

@@ -116,7 +116,7 @@ export function generatePermanentId(title: string, type: string, existingIds: Se
  * Format: {scope}-plan-{###} — scope is the threadId for threaded plans
  * (and the weaveId for loose plans at weave root). Counter is local to whatever
  * existingPlanIds the caller passes; pass thread-local IDs to get thread-local
- * numbering. Use resolveWeaveIdForPlan to recover the containing weave from a
+ * numbering. Use resolveWeaveSlugForPlan to recover the containing weave from a
  * planId — never split('-plan-')[0], that assumed weaveId-prefix and is wrong.
  */
 export function generatePlanId(scope: string, existingPlanIds: string[]): string {

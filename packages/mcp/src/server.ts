@@ -117,7 +117,7 @@ const CONCRETE_RESOURCES = [
 
 export const RESOURCE_TEMPLATES = [
     { uriTemplate: 'loom://docs/{docUlid}', name: 'Document', description: 'Raw markdown of any Loom document by its ULID', mimeType: 'text/plain' },
-    { uriTemplate: 'loom://context/{docUlid}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target. Two forms — ULID: loom://context/{docUlid}; slug (human-pointable): loom://context/thread/{weaveSlug}/{threadSlug}. Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/{docUlid}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target. Three forms — ULID: loom://context/{docUlid}; thread slug (human-pointable): loom://context/thread/{weaveSlug}/{threadSlug}; doc slug (human-pointable): loom://context/{weaveSlug}/{threadSlug}/{docSlug} where docSlug is idea/design/req or a filename stem like chat-001 (a trailing .md is tolerated). Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
     { uriTemplate: 'loom://plan/{planUlid}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
     { uriTemplate: 'loom://requires-load/{docUlid}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];

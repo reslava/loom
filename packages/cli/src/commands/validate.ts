@@ -11,11 +11,11 @@ interface ValidateOptions {
     verbose?: boolean;
 }
 
-export async function validateCommand(weaveId?: string, options?: ValidateOptions): Promise<void> {
+export async function validateCommand(weaveSlug?: string, options?: ValidateOptions): Promise<void> {
     try {
         const loomRoot = getActiveLoomRoot();
         const result = await validate(
-            { weaveSlug: weaveId, all: options?.all, verbose: options?.verbose },
+            { weaveSlug, all: options?.all, verbose: options?.verbose },
             { getActiveLoomRoot, buildLinkIndex, loadDoc, fs, loomRoot }
         );
 

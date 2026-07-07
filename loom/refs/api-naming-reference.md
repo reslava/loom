@@ -44,6 +44,18 @@ snake_case is the idiomatic MCP convention — it matches the snake_case tool na
 
 **The boundary maps between them.** Each MCP tool's `handle(root, args)` in `packages/mcp/src/tools/*.ts` reads the snake_case schema args and builds the camelCase app input (today: `args['weaveId']` → `input.weave`). This seam already exists; the convention just names both sides correctly. The mapping may be centralized into one mapper.
 
+## Surfaces and their consumers (which form each surface speaks)
+
+The rules above say how to *name* a value. This says which *form* a surface accepts — decided by **who consumes it**. Three classes:
+
+| Surface class | Primary consumer | Identifier form |
+|---|---|---|
+| **CLI commands** (`loom <cmd>`) | Human at a terminal | **Slug-first** — a friendly slug / filename stem / entity name; weave args are slugs (a weave *is* a slug). The CLI resolves the friendly reference to a canonical ULID **at its own edge** before calling MCP (e.g. `next.ts` → `resolvePlanUlid`). A ULID-form twin is added only where a real AI/script caller shells out to `loom` — never speculatively. |
+| **MCP agent surface** — write-path `loom_*` tools + workflow prompts (`do-next-step`) | AI agent (or the CLI, *after* its edge-resolution) | **Strict ULID** — a `*_ulid` / `planUlid` accepts the ULID and nothing else (rule 2); a stem or title is rejected, not silently resolved. |
+| **MCP human-pointable read surface** — context / read resources | Human pointing by file path | **Slug path** — `loom://context/{weaveSlug}/{threadSlug}/{docSlug}`, mirroring how a session opens with `read loom/<weave>/<thread>/chats/chat-001.md`. Slug-in / ULID-out: resolves to canonical ids internally. |
+
+**Why the CLI resolves at its own edge** rather than pushing slugs into MCP: it keeps the agent surface uniformly strict — no tool or prompt ever re-accepts a stem, which is the exact ambiguity rule 2 exists to kill — while the friendly-input convenience lives at the one boundary a human actually touches.
+
 ## The weave exception (must stay documented)
 
 A weave has **no ULID** and is addressed by `weaveSlug`. This is deliberate: a weave is currently just a thread-grouping folder, not a Loom document — no manifest, no stable identity, and giving it one now would be overengineering. If rename-survivable weave identity is ever needed, that is a separate, larger idea (a `weave.md` manifest with a `wv_` ULID + migration), out of scope for the naming convention.

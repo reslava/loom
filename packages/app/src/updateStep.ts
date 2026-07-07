@@ -1,4 +1,4 @@
-import { resolveWeaveIdForPlan } from '../../fs/dist';
+import { resolveWeaveSlugForPlan } from '../../fs/dist';
 import { runEvent } from './runEvent';
 import { PlanDoc } from '../../core/dist/entities/plan';
 import { WorkflowEvent } from '../../core/dist/events/workflowEvent';
@@ -26,7 +26,7 @@ export async function updateStep(
     input: UpdateStepInput,
     deps: UpdateStepDeps
 ): Promise<{ plan: PlanDoc }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
+    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
 
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);

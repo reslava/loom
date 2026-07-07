@@ -166,7 +166,10 @@ async function testNewCliCommands() {
     const weaveId = 'feature';
     const threadId = 'feature';
     const weavePath = path.join(loomRoot, 'loom', weaveId);
-    const planId = `${threadId}-plan-001`;
+    // Plans are ULID-addressed in the current model, and `loom next` resolves a
+    // friendly ref → pl_ ULID at the CLI edge before calling the (strict) do-next-step
+    // prompt. Seed with a real pl_ id so `next <planUlid>` exercises that path.
+    const planId = 'pl_01KWZ8NEXT0000000000000001';
 
     // Seed a thread with a design + an implementing plan whose step 2 is blocked by step 1.
     await seedThreadDesign(weavePath, threadId, 'active');
@@ -199,6 +202,13 @@ async function testNewCliCommands() {
     assert(result.exitCode === 0, `context failed: ${result.stderr}`);
     assert(result.stdout.includes('loom:context-bundle'), 'context should print a context bundle');
     console.log('    ✅ loom context prints a bundle');
+
+    // loom context <weave>/<thread>/<docSlug> — human-pointable slug-path form.
+    console.log('  • Testing `loom context` (slug-path form)...');
+    result = runLoom(`context ${weaveId}/${threadId}/design`, loomRoot);
+    assert(result.exitCode === 0, `context slug-path failed: ${result.stderr}`);
+    assert(result.stdout.includes('loom:context-bundle'), 'context slug-path should print a bundle');
+    console.log('    ✅ loom context resolves the weave/thread/docSlug slug-path form');
 
     // loom next [plan-id] — next incomplete step for a plan.
     console.log('  • Testing `loom next`...');

@@ -4,8 +4,9 @@ import { loadWeave} from '../../../fs/dist';
 import { runEvent } from '../../../app/dist/runEvent';
 import { saveDocs } from '../../../fs/dist';
 import { getActiveLoomRoot } from '../../../fs/dist';
+import { resolvePlanUlid } from '../planArg';
 
-export async function completeStepCommand(planId: string, options: { step?: string }): Promise<void> {
+export async function completeStepCommand(plan: string, options: { step?: string }): Promise<void> {
     try {
         const step = options.step ? parseInt(options.step, 10) : undefined;
         if (step === undefined || isNaN(step)) {
@@ -13,7 +14,10 @@ export async function completeStepCommand(planId: string, options: { step?: stri
         }
 
         const loomRoot = getActiveLoomRoot();
-        
+        // CLI edge: resolve the friendly <plan> ref → the plan's canonical id.
+        const planUlid = await resolvePlanUlid(plan);
+        if (!planUlid) throw new Error(`Could not resolve '${plan}' to a plan.`);
+
         // Wrapper that handles null thread
         const loadWeaveOrThrow = async (root: string, tid: string) => {
             const thread = await loadWeave(root, tid);
@@ -25,13 +29,13 @@ export async function completeStepCommand(planId: string, options: { step?: stri
             runEvent(tid, evt, { loadWeave: loadWeaveOrThrow, saveDocs, loomRoot });
 
         const result = await completeStep(
-            { planUlid: planId, step },
+            { planUlid, step },
             { loadWeave: loadWeaveOrThrow, runEvent: runEventBound, loomRoot }
         );
 
-        console.log(chalk.green(`✅ Step ${step} completed in '${planId}'`));
+        console.log(chalk.green(`✅ Step ${step} completed in '${planUlid}'`));
         if (result.autoCompleted) {
-            console.log(chalk.green(`🎉 All steps completed! Plan '${planId}' is now done.`));
+            console.log(chalk.green(`🎉 All steps completed! Plan '${planUlid}' is now done.`));
         } else {
             const nextStep = result.plan.steps.find(s => s.status !== 'done' && s.status !== 'cancelled');
             if (nextStep) {

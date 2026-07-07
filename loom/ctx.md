@@ -5,7 +5,7 @@ title: loom — Global Context
 status: active
 created: 2026-04-29
 updated: 2026-07-07
-version: 14
+version: 15
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -109,6 +109,13 @@ opt-in, content-free usage events; off by default. The VS Code extension **must 
 
 **Reducers are pure** — no IO, no async, no VS Code. Side effects run *after* the
 reducer, in `runEvent`.
+
+**Surface/naming forms (which identifier each surface speaks — by consumer):** CLI =
+**slug/human-first** (friendly refs resolved to a ULID at the CLI edge; a ULID twin only
+where a real AI caller needs it) · MCP write tools + workflow prompts = **strict ULID**
+(a `*_ulid` rejects a stem) · MCP context/read resources = **slug-path human-pointable**
+(`loom://context/{weaveSlug}/{threadSlug}/{docSlug}`). Full table:
+[refs/api-naming-reference.md](refs/api-naming-reference.md).
 
 → Deeper: [refs/architecture-reference.md](refs/architecture-reference.md) for the
 full diagram, doc-type table, and stale-detection rules; [refs/mcp-reference.md](refs/mcp-reference.md)

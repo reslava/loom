@@ -60,7 +60,7 @@ function parseSortOrder(sortStr?: string): GetStateInput['sortOrder'] {
 }
 
 export async function statusCommand(
-    weaveId?: string,
+    weaveSlug?: string,
     options?: { verbose?: boolean; json?: boolean; tokens?: boolean; filter?: string; sort?: string }
 ): Promise<void> {
     try {
@@ -80,10 +80,10 @@ export async function statusCommand(
             return;
         }
 
-        if (weaveId) {
-            const weave = state.weaves.find(w => w.id === weaveId);
+        if (weaveSlug) {
+            const weave = state.weaves.find(w => w.id === weaveSlug);
             if (!weave) {
-                console.error(chalk.red(`❌ Weave '${weaveId}' not found.`));
+                console.error(chalk.red(`❌ Weave '${weaveSlug}' not found.`));
                 process.exit(1);
             }
 

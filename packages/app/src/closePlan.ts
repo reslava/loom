@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { saveDoc, loadDoc, resolveWeaveIdForPlan } from '../../fs/dist';
+import { saveDoc, loadDoc, resolveWeaveSlugForPlan } from '../../fs/dist';
 import { today, doneFileName, planOrdinalFromFile } from '../../core/dist';
 import { DoneDoc } from '../../core/dist/entities/done';
 import { PlanDoc } from '../../core/dist/entities/plan';
@@ -33,7 +33,7 @@ export async function closePlan(
     input: ClosePlanInput,
     deps: ClosePlanDeps
 ): Promise<{ donePath: string; planId: string }> {
-    const weaveId = await resolveWeaveIdForPlan(deps.loomRoot, input.planUlid);
+    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
     const weave = await deps.loadWeave(deps.loomRoot, weaveId);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planUlid) as PlanDoc | undefined;
     if (!plan) throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'.`);

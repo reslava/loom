@@ -123,7 +123,7 @@ program
     .action(currentCommand);
 
 program
-    .command('status [weave-id]')
+    .command('status [weave]')
     .description('Show derived state of weaves')
     .option('--verbose', 'Show detailed status including plan steps')
     .option('--json', 'Output as JSON')
@@ -133,7 +133,7 @@ program
     .action(statusCommand);
 
 program
-    .command('validate [weave-id]')
+    .command('validate [weave]')
     .description('Validate document integrity')
     .option('--all', 'Validate all weaves')
     .option('--fix', 'Attempt to fix issues (not yet implemented)')
@@ -141,17 +141,17 @@ program
     .action(validateCommand);
 
 program
-    .command('refine-design <weave-id>')
+    .command('refine-design <weave>')
     .description('Fire REFINE_DESIGN event')
     .action(refineCommand);
 
 program
-    .command('start-plan <plan-id>')
+    .command('start-plan <plan>')
     .description('Fire START_PLAN event')
     .action(startPlanCommand);
 
 program
-    .command('complete-step <plan-id>')
+    .command('complete-step <plan>')
     .description('Mark a plan step as done')
     .requiredOption('--step <n>', 'Step number to complete')
     .action(completeStepCommand);
@@ -163,32 +163,32 @@ const weaveCmd = program
 weaveCmd
     .command('idea <title>')
     .description('Create a new idea document (default: creates a thread named after the title)')
-    .option('--weave <name>', 'Place the idea in a specific weave folder')
-    .option('--thread <id>', 'Thread ID (defaults to a kebab-case of the title — a new idea starts a new thread)')
+    .option('--weave <weave>', 'Place the idea in a specific weave folder')
+    .option('--thread <slug>', 'Thread slug (defaults to a kebab-case of the title — a new idea starts a new thread)')
     .action(weaveIdeaCommand);
 
 weaveCmd
-    .command('design <weave-id>')
+    .command('design <weave>')
     .description('Create a new design document from an existing idea')
     .option('--title <title>', 'Custom title for the design')
-    .option('--thread <id>', 'Create design inside this thread')
+    .option('--thread <slug>', 'Create design inside this thread')
     .action(weaveDesignCommand);
 
 weaveCmd
-    .command('plan <weave-id>')
+    .command('plan <weave>')
     .description('Create a new plan from a finalized design')
     .option('--title <title>', 'Custom title for the plan')
     .option('--goal <goal>', 'Goal description for the plan')
-    .option('--thread <id>', 'Create plan inside this thread')
+    .option('--thread <slug>', 'Create plan inside this thread')
     .action(weavePlanCommand);
 
 program
-    .command('finalize <temp-id>')
+    .command('finalize <draft>')
     .description('Finalize a draft document and generate its permanent ID')
     .action(finalizeCommand);
 
 program
-    .command('rename <old-id> <new-title>')
+    .command('rename <doc> <new-title>')
     .description('Rename a finalized document and update all references')
     .action(renameCommand);
 
@@ -208,13 +208,13 @@ resourcesCmd
     .action(resourcesReadCommand);
 
 program
-    .command('context <docId>')
+    .command('context <doc>')
     .description('Print the assembled context bundle for a doc (or thread/<weave>/<thread>)')
     .option('--mode <mode>', 'Context mode (chat|idea|design|plan|implementing|refine|promote|ctx)')
     .action(contextCommand);
 
 program
-    .command('next [plan-id]')
+    .command('next [plan]')
     .description('Print the next incomplete step + context for a plan (defaults to the active plan)')
     .action(nextCommand);
 
@@ -232,7 +232,7 @@ program
     .command('search <query>')
     .description('Search docs by id/title/content; prints id + title + snippet')
     .option('--type <type>', 'Filter by doc type (idea|design|plan|ctx|chat|done)')
-    .option('--weave <id>', 'Scope the search to a weave id')
+    .option('--weave <weave>', 'Scope the search to a weave slug')
     .action(searchCommand);
 
 program
@@ -247,7 +247,7 @@ program
     .action(blockedCommand);
 
 program
-    .command('migrate-plan-steps [docId]')
+    .command('migrate-plan-steps [doc]')
     .description('Migrate legacy plans (body-table steps) to frontmatter-native steps. Idempotent; never empties an unparseable table.')
     .option('--dry-run', 'Preview what would change without writing')
     .action((docId, options) => migratePlanStepsCommand(docId, options));
