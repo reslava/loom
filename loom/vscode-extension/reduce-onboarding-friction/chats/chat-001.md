@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 44
+last_ai_block: 46
 ---
 # reduce-friction-cli-autoinstall Chat 001
 
@@ -618,5 +618,27 @@ Answered by the code: **no reason to keep it.** `loom.install.openCliTerminal` w
 **Removed both.** Kept `loom.install.runInstall` (still used by the empty-state and the walkthrough's Initialize step). Build + typecheck green; no source references remain.
 
 (Minor leftover, not touched: the `loom.cliDetected` context key is still computed in `syncSetupContext` and is now largely unused — harmless, and I'd rather not widen this cleanup further without your nod.)
+
+Committing.
+
+## Rafa:
+
+Do `loom.cliDetected` cleanup
+
+Also we should filter telemetry 
+event command_invoked, command loom_validate
+it is producing 99% of noise
+
+I hope this can be done by touching 1 spot only
+
+## AI:
+
+Both done.
+
+**`loom.cliDetected` cleanup** — removed the `cliDetected` local + its `set('loom.cliDetected', …)` (nothing consumed the context key), the now-orphaned `isLoomCliAvailable()` function, and the `execSync` import it was the only user of. `syncSetupContext` no longer probes for a global `loom` at all — fitting, since the extension doesn't need one.
+
+**Telemetry noise** — one spot, as you hoped: `trackCommandInvoked` in `packages/app/src/telemetry/events.ts` is the sole `command_invoked` emit point, and **both** the CLI (`cli/index.ts`) and the MCP tool dispatch (`mcp/telemetryDispatch.ts`) route through it. Added `if (command === 'loom_validate') return;` there, so `loom_validate` — which the extension fires constantly via diagnostics/refresh — no longer emits `command_invoked` on either surface. Its loop-event mapping was already none, so it goes fully quiet.
+
+Verified: build green, vscode typecheck clean, full suite **18/18** (telemetry tests included). The filter ships baked into the CLI bundle + the extension's bundled server at release (your live session's server keeps the old behaviour until it restarts — expected).
 
 Committing.

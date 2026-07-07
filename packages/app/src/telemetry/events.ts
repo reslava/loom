@@ -72,5 +72,10 @@ export function trackError(t: TelemetryClient, operation: string, errorClass: st
 
 /** A tool / command fired — coarse "which capabilities are used". */
 export function trackCommandInvoked(t: TelemetryClient, command: string): void {
+    // loom_validate runs constantly (the extension's diagnostics + refresh drive it),
+    // so its command_invoked events swamp the signal — and it carries no workflow
+    // meaning. Drop it at the single emit point, which covers both the CLI and the
+    // MCP-tool paths.
+    if (command === 'loom_validate') return;
     t.track('command_invoked', { command });
 }

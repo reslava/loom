@@ -4,7 +4,6 @@ import * as path from 'path';
 // .loom/ config to decide whether to light up — this runs before the MCP client
 // exists, so it cannot go through it. Reads .loom/ config, never loom/ docs.
 import * as fs from 'fs';
-import { execSync } from 'child_process';
 import { maybeShowTelemetryDisclosure, toggleTelemetryCommand, telemetryStatusText, telemetryStatusTooltip, TELEMETRY_SETTING } from './telemetryConsent';
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
 import { RoadmapDragAndDropController } from './tree/roadmapDnd';
@@ -343,7 +342,6 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     // Context keys — drive walkthrough completion and notification targeting
     async function syncSetupContext(): Promise<void> {
         const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        const cliDetected = isLoomCliAvailable();
         const workspaceInitialized = root ? fs.existsSync(path.join(root, '.loom')) : false;
         const mcpConfigured = root ? await detectMcpConfig(root) : false;
         const mcpLive = getMCPConnected();
@@ -354,7 +352,6 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         const hasWeaves = root ? detectHasWeaves(root) : false;
 
         const set = (key: string, val: boolean) => vscode.commands.executeCommand('setContext', key, val);
-        set('loom.cliDetected', cliDetected);
         set('loom.workspaceInitialized', workspaceInitialized);
         set('loom.mcpConnected', mcpConfigured);
         set('loom.aiConfigured', aiConfigured);
@@ -528,11 +525,6 @@ async function detectMcpConfig(workspaceRoot: string): Promise<boolean> {
         } catch { /* file missing or invalid JSON — continue */ }
     }
     return false;
-}
-
-function isLoomCliAvailable(): boolean {
-    try { execSync('loom --version', { stdio: 'ignore' }); return true; }
-    catch { return false; }
 }
 
 function detectHasWeaves(workspaceRoot: string): boolean {
