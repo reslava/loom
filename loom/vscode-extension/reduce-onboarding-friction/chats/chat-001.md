@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 46
+last_ai_block: 48
 ---
 # reduce-friction-cli-autoinstall Chat 001
 
@@ -642,3 +642,15 @@ Both done.
 Verified: build green, vscode typecheck clean, full suite **18/18** (telemetry tests included). The filter ships baked into the CLI bundle + the extension's bundled server at release (your live session's server keeps the old behaviour until it restarts — expected).
 
 Committing.
+
+## Rafa:
+
+Maybe in future, if need we should investigate why 'loom_validate' is fired so many times...
+
+do-release 1.19.0
+
+## AI:
+
+Agreed — **future follow-up (captured here):** investigate *why* `loom_validate` fires so often (likely the extension re-validates on every tree refresh / file-watch tick). The telemetry filter treats the symptom; the real fix would be to debounce or gate the validate calls themselves. Not urgent — noting it so it isn't lost.
+
+Now shipping **v1.19.0** via the release flow. Committing this note first so the release starts from a clean tree, then running `/do-release 1.19.0` — synchronized CLI + extension: changelog, version bump, build + full test, tag, push, and monitor the publish workflow.
