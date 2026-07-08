@@ -110,9 +110,11 @@ Loom is **one engine** with three delivery surfaces — pick the one that fits y
 |---------|--------------|-------|
 | **VS Code extension** | Working in VS Code | Install **Loom AI** from the Marketplace — **1 click, no CLI, no Node** |
 | **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | `loom install` writes `.mcp.json` (pinned `npx`) — no global install |
-| **CLI** | Terminal, scripting, CI | `npm i -g @reslava/loom` |
+| **CLI** | Terminal, scripting, CI | `npx @reslava/loom …` (pinned; global `npm i -g` optional) |
 
-The engine is identical across all three: the extension **bundles** it and runs it on VS Code's own runtime, agents **fetch** it via `npx`, and the CLI **installs** it globally. The extension is the recommended default; the CLI/MCP path serves agents and hosts the extension can't reach. → [Architecture: delivery surfaces & audiences](./loom/refs/architecture-reference.md#delivery-surfaces--audiences)
+The engine is identical across all three: the extension **bundles** it and runs it on VS Code's own runtime, agents **fetch** it via pinned `npx`, and the CLI runs the same package (`npx`, or an optional global install for ad-hoc terminal use). The extension is the recommended default; the CLI/MCP path serves agents and hosts the extension can't reach. → [Architecture: delivery surfaces & audiences](./loom/refs/architecture-reference.md#delivery-surfaces--audiences)
+
+**1-click, always-current, zero-config.** In VS Code there's nothing to install on PATH — not even for the AI. The extension bundles the engine, the agent it launches runs that *same bundled version* (never a stale global `loom`), and updating the extension quietly brings your session rules and config current. No CLI, no version drift, no "did I re-run install?".
 
 ---
 

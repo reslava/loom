@@ -46,7 +46,7 @@ the same MCP tools.
 |---------|----------|-----------------------------|---------|
 | **VS Code extension** | A human in VS Code | **Bundled** into the VSIX (`dist/loom-mcp.js`); the extension spawns it on VS Code's own Electron-as-Node (`process.execPath` + `ELECTRON_RUN_AS_NODE=1`) | None — no global CLI, no user Node |
 | **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | **`npx`** — `loom install` writes `.mcp.json` with `npx -y @reslava/loom@<version> mcp`, pinned to the writing version | Node (the agent already has it) |
-| **CLI** | Terminal users, scripting, CI, non-VS-Code hosts | **Global install** — `npm i -g @reslava/loom` (or `npx @reslava/loom …` ad hoc) | Node |
+| **CLI** | Terminal users, scripting, CI, non-VS-Code hosts | **`npx @reslava/loom …`** (pinned, no persistent install) — `npm i -g @reslava/loom` still works for ad-hoc terminal use, but is never required and is not the MCP-server form | Node |
 
 **Design rules that follow from this:**
 - The three surfaces never diverge in behaviour — they are thin deliveries of the
@@ -59,6 +59,19 @@ the same MCP tools.
   Claude Code, Continue, JetBrains, CI). Neither is a second-class fallback.
 - The global `@reslava/loom` CLI still ships (for the CLI surface and the `npx` path);
   it is no longer a *prerequisite* of the extension.
+- **Bundle-first server delivery (post-1.19).** One server codebase, two sanctioned
+  delivery vehicles, **zero persistent global installs**. Extension-launched agents
+  (the AI buttons) bind the *bundled* server directly — `launchClaude` runs
+  `claude --strict-mcp-config --mcp-config <generated>` pointing at the same
+  `dist/loom-mcp.js` the extension itself spawns — so the agent runs the **exact
+  extension version by construction**, never the project `.mcp.json` and never a global
+  `loom`. The project `.mcp.json` is consumed **only** by a `claude` the extension
+  did *not* launch (a hand-run terminal agent, Cursor, CI); for those it carries the
+  **`npx`-pinned** server, which `loom install` self-heals to the current version on
+  every extension activation. The legacy `"command": "loom"` form (a separately-updated
+  global binary that could drift from the extension) is **retired**: never written by a
+  new install, and migrated to the npx pin on consent (`loom_install` `migrate_mcp_command`
+  / `loom install --migrate-mcp-command`).
 
 ---
 

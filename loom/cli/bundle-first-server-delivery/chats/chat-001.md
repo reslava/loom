@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 31
+last_ai_block: 48
 ---
 # bundle-first-server-delivery Chat 001
 
@@ -672,3 +672,302 @@ Steps **6–8 done ✅** — plan-002 auto-completed to `done`, and *Verify Req*
 **Verification recap:** build-all + test-all green; step-1 binding proven with a real nested `claude`; step-5 heal/migrate exercised 10/10 against the built dist; req coverage verified clean. The one thing untested-by-machine is the extension's *live* activation/notification UX (step 6) — needs an Extension Development Host run when you're ready.
 
 Committing now as the last action of this turn (bug-1 idempotency fix + the whole bundle-first feature, thread `bundle-first-server-delivery`).
+
+## Rafa:
+
+Well done!
+I will do the step-6 live extension UX and tell you...
+But we also need to update many docs before release
+main, extension and cli readmes
+loom/refs/architecture-reference.md
+any more?
+
+this has been deep design job, but in fact no added value, just architecture design, we should find a way to sell it as a real feature, any suggestion?
+
+## AI:
+
+Thanks! Two parts.
+
+## Docs to update before release
+
+Your list is right; here's the full sweep, grouped, with the ones that actually *lie* right now flagged 🔴:
+
+**Public / user-facing**
+- 🔴 `packages/cli/README.md` — the npm listing almost certainly still frames a global `npm i -g @reslava/loom` + `command:"loom"`. That's the retired form now — reframe around the `npx`-pinned config (the package still exists, it's just never a persistent global).
+- `README.md` (root) — install/setup + any `.mcp.json` example.
+- `packages/vscode/README.md` — Marketplace listing; the "how the agent connects" bit.
+- `docs/CLI_USER_GUIDE.md` — linked from getting-started; check for global-install instructions.
+
+**Refs**
+- `loom/refs/architecture-reference.md` — the **delivery surfaces & audiences** section is the core doc: it must now describe *one server codebase, two vehicles (bundle / npx pin), zero global installs*, and that extension-launched agents bind the bundle.
+- `loom/refs/mcp-reference.md` — `loom_install` gained `migrate_mcp_command`; and the server-delivery model lives here too.
+- `loom/refs/implementation-contract-reference.md` — per the doc-sync "architecture" row.
+- `loom/refs/getting-started-reference.md` — already mostly aligned ("no global loom command"), just re-verify.
+
+**The sneaky one** 🔴
+- `CLAUDE.md` (root) — its `### Claude Code config` block still shows `"command": "loom", "args": ["mcp"]` — the exact retired form. Ironic given what we just built. Update it (npx form or the dev local-path note). *The `LOOM_CLAUDE_MD` template in `installWorkspace.ts` already uses the npx form — good, but the sync test only checks rule markers, not this block, so they can drift silently.*
+
+Want me to `grep` the repo for every stale `command: "loom"` / `npm i -g` / `install -g` mention so we get an exact hit-list instead of guessing? That's the reliable way to not miss one.
+
+## "No added value" — how to sell it
+
+Honestly? Your instinct is half-right and worth respecting: **most of this is invisible plumbing**, and for a tool with zero users, hardening a drift bug nobody has reported yet is not a headline. I won't pretend it's a marquee feature. But the value *is* real — it's just **the absence of a class of confusing bugs**, which is the hardest kind of value to market. The move is to sell the *pain removed*, never the mechanism:
+
+- **"Your agent and your editor never fall out of sync."** Before: update the extension, and your AI could silently keep running an old Loom — old tools, an old session contract — and you'd never know why it started behaving differently. Now that's impossible by construction.
+- **"Updates just work."** Open a project after an update and your rules + config are silently current. No "did I re-run install?" ritual.
+- **"One click, no CLI — for real, including the AI."** v1.19 said zero-install but the *agent* still needed a global CLI/npx. Now the extension-launched agent needs nothing on PATH.
+- **"Clean installs."** (the bug-1 half) `loom install` is a true no-op when nothing changed — no phantom writes, no dirtied tree.
+
+Packaging suggestion: don't ship this as its own feature — fold it into a **trust/reliability theme** in the release notes, one line each as before/after. Title it something like **"Loom keeps itself in sync"** or **"Self-healing setup."** Reliability *is* a feature for a dev tool; it just has to be phrased as a promise ("your agent is always the version you installed"), not a changelog of internals.
+
+And the honest strategic note (you know your situation better than I do): if the goal is validation, the higher-ROI framing is to bundle this under a broader **"1-click, always-current, zero-config"** onboarding story and spend the visible energy on something a new user *sees* in the first five minutes. This work makes that story true — it just shouldn't be the story itself.
+
+Want the grep hit-list to start the doc sweep?
+
+## Rafa:
+
+I like these:
+"one click, no CLI — including the AI"
+"clean installs."
+"Loom keeps itself in sync"
+
+The most I like: "1-click, always-current, zero-config"
+
+Do grep, update docs needed
+
+## AI:
+
+Grep done, docs updated. The grep cleanly separated frozen thread history (left alone) from the authoritative surfaces. Key nuance I applied: the feature retires the global CLI **as the agent's server source** (`command:"loom"` in `.mcp.json`), *not* `npm i -g` for running `loom` by hand — so I fixed every MCP-config example + documented the new behavior, and kept legitimate human-CLI install mentions as *optional*.
+
+**Edited (8 files):**
+- `CLAUDE.md` — the `### Claude Code config` block (`command:"loom"` → the npx pin) + a note that the legacy form is retired and dogfooding uses the local-path config. 🔴 was the ironic one.
+- `loom/refs/architecture-reference.md` — new **bundle-first** design rule (extension-launched agents bind the bundled server; `.mcp.json` is only read by a *hand-launched* agent; `command:"loom"` retired, `migrate_mcp_command`); CLI delivery row reframed npx-first.
+- `loom/refs/mcp-reference.md` — "who reads this `.mcp.json`" section (only non-extension-launched agents) + self-heal + migration.
+- `packages/cli/README.md` — the "`command:"loom"` works too" caveat → it's retired/can-drift, npx pin recommended.
+- `README.md` + `packages/vscode/README.md` — the **"1-click, always-current, zero-config"** positioning (your pick) as a real paragraph, + npx-first delivery cells.
+- `demo/landing-page/README.md` — the recording `.mcp.json` (`command:"loom"` → the local-path dev config, since the demo runs your local build).
+- `docs/CLI_USER_GUIDE.md` — install section npx-first (global optional).
+
+**Left deliberately (not lies):** `CONTRIBUTING.md`'s `npm link` (dev setup), `getting-started-reference.md` + `cli-commands-reference.md` (already npx-aligned), the walkthroughs, `USER_GUIDE`/`AI_INTEGRATION` (generic `loom mcp` refs, no stale config). Frozen thread docs untouched.
+
+**One product call I made — flag for you:** I kept `npm i -g @reslava/loom` as an *optional, ad-hoc* CLI path (not forbidden), because that's not what the feature retired. If you'd rather **fully drop** global-install mentions and make `npx` the only documented CLI path, say so and I'll sweep those last cells. Otherwise this reads consistent.
+
+CLAUDE.md sync test still green (15 rule-ids, 12 invariants). Nothing committed yet — want these doc updates committed (as a `docs:` commit), or folded into the release?
+
+## Rafa:
+
+1. keep npm i -g as an optional CLI path
+
+do not commit yet until my step-6 live-UX result
+plese list me the steps to check step-6
+
+we have this repo
+chord flow
+j:/src/TESTS/test-loom v1.20.0
+
+and I can create a new one
+
+## AI:
+
+## Verifying step 6 live
+
+**Prerequisite — run the DEV build, not the Marketplace one.** In VS Code on this loom repo, press **F5** (Run Extension) → an **Extension Development Host** window opens running the freshly-built `dist/extension.js` (I already ran build-all). Do all tests by opening folders *in that host window*. (Alternatively package + install the `.vsix`, but F5 is faster.) Because the refresh is **silent**, keep a terminal with `git status` / `git diff` open in each test workspace to see what changed.
+
+⚠️ **Don't click "Update" on `loom` or `chord-flow`** — that would convert their `.mcp.json` from your local-build `command:"loom"` to the published npx pin and break your dogfooding. Use those only for the "Keep as-is" path (Test 3).
+
+### Test 1 — Activation self-refresh (IN4) — use `test-loom` (safe)
+1. In `j:/src/TESTS/test-loom`, make a Loom-owned artifact **stale**:
+   - edit `.loom/CLAUDE.md` (delete a line), and
+   - edit `.mcp.json`'s pin to an old version, e.g. `@reslava/loom@1.19.0`.
+2. Open `test-loom` in the Ext Dev Host (File → Open Folder).
+3. **Expect (no prompt):** `.loom/CLAUDE.md` restored to canonical **and** the pin bumped back to `1.20.0`, silently on activation. Confirm via `git diff`.
+4. **Idempotency:** close + reopen with nothing stale → **zero** file changes (no spurious writes).
+5. Optional: open the **"Loom MCP"** output channel to see the `loom_install` call fire.
+
+### Test 2 — Consented migration prompt (IN6/D3) — use a throwaway (or the new repo you'll create)
+1. Make a scratch workspace whose `.mcp.json` loom server is `command:"loom"` (copy test-loom and hand-edit it, or your new repo).
+2. Open it in the Ext Dev Host.
+3. **Expect a notification:** *"Loom's MCP config points at a separate `loom` CLI that can drift from the extension. Update it to the bundled version?"* → **Update** / **Keep as-is**.
+4. Click **Update** → `.mcp.json` rewritten to the npx pin (env + any other servers preserved) + a *"Loom MCP config updated"* toast. Reopen → **no** prompt (it's npx now).
+5. Reset to `command:"loom"`, reopen, click **Keep as-is** → no rewrite; reopen again → it must **not** nag (workspaceState remembers the dismissal).
+
+### Test 3 — Safe behavior on your real dogfood repos (`loom`, `chord-flow`)
+- Open each in the Ext Dev Host. The migration prompt **will** appear (both are `command:"loom"`).
+- Click **Keep as-is** → confirm nothing changes and it doesn't nag on reopen. That's the dogfooder path working as intended.
+- To silence it permanently on those, switch them to the **local-path dev config** (`command:"node", args:["<repo>/packages/vscode/dist/loom-mcp.js"]`) — non-loom shape → no prompt, and they run your local build.
+
+### Test 4 (bonus) — Launched-agent binds the bundle (steps 3–4, IN1/IN2)
+- In any Ext-Dev-Host workspace, click an AI action (Weave Chat → AI Reply, or Generate).
+- In the **"Loom AI"** terminal, confirm the command reads `claude --strict-mcp-config --mcp-config <tmpfile> …`, the agent has `mcp__loom__*` tools, and (if that `.mcp.json` had other servers) they're still present.
+
+Tell me the results — especially any prompt wording that reads wrong or any change that fires when it shouldn't — and I'll adjust before we commit.
+
+## Rafa:
+
+I prefer package + install the `.vsix` over F5
+
+### Test 1 — Activation self-refresh (IN4) 
+
+no prompt, `.loom/CLAUDE.md` restored to canonical and the pin bumped back to `1.20.0` silently on activation. 
+Loom MCP:
+[client] callTool start id=2 loom_install inFlight=2
+[client] callTool ok    id=2 loom_install durationMs=169
+close + reopen with nothing stale → **zero** file changes
+
+### Test 2 — Consented migration prompt (IN6/D3) 
+
+notification: "Loom's MCP config points at a separate `loom` CLI that can drift from the extension. Update it to the bundled version?" → Update → `.mcp.json` rewritten to the npx pin + a "Loom MCP config updated" toast. 
+Reopen → no prompt (it's npx now).
+
+Reset to `command:"loom"`, reopen, Keep as-is → no rewrite; reopen again → not nag 
+
+### Test 3 — Safe behavior on your real dogfood repos (I did it in `chord-flow`)
+
+The migration prompt appeared
+Clicked Keep as-is → nothing changes and it doesn't nag on reopen
+
+switched it to the local-path dev config → no prompt
+
+### Test 4 ERROR
+
+from extension: created weave, thread, chat, press AI reply button
+
+got error from terminal:
+```
+Rafa@HOME-PC MINGW64 /j/src/TESTS/test-loom
+$ echo "─── Loom: Chat Reply ───"
+─── Loom: Chat Reply ───
+
+Rafa@HOME-PC MINGW64 /j/src/TESTS/test-loom
+$ claude --strict-mcp-config --mcp-config 'M:/Temp/loom-mcp-1783544794504-14204.json' "$(cat 'M:/Temp/loom-prompt-1783544794504-14204.txt')"
+Error: Invalid MCP configuration:
+MCP config file not found: J:\src\TESTS\test-loom\# Loom context (pre-loaded — do NOT grep or re-read these; they are already provided below)
+
+<!-- loom:context-bundle target=ch_01KX1RTS5K3FMECEGN65N6BN6J weave_slug=test thread_ulid=th_01KX1RTKXKRGT4XB6W3RNXE0ZW mode=chat docs=2 tokens~=137 -->
+
+---
+
+### [global ctx] Global Context · id: global-ctx
+
+
+# Global Context
+
+**Read at the start of every session.** Replace this with a summary of your project's concept, architecture, and operating rules.
+
+## 1. What this project is
+
+<one paragraph overview>
+
+## 2. Architecture
+
+<key structure, layers, or components>
+
+## 3. Rules
+
+- All writes to `loom\**\*.md` go through MCP tools.
+- Chat docs are the conversation surface — reply inside them under `## AI:`.
+- After each step, state what was done and what is next, then STOP.
+
+---
+
+### [target chat] test Chat 001 · id: ch_01KX1RTS5K3FMECEGN65N6BN6J
+
+# test Chat 001
+
+## User:
+
+tell me what mcp server are you connecting
+
+---
+
+Loom chat reply task. chatId="ch_01KX1RTS5K3FMECEGN65N6BN6J". The chat document is already included in the Loom context above; you may also read the file at "j:\src\TESTS\test-loom\loom\test\test\chats\chat-001.md" with the Read tool if needed (not Bash, not loom_find_doc). Using the pre-loaded context, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="ch_01KX1RTS5K3FMECEGN65N6BN6J", role="ai", body="<your reply>". The body must be the reply text ONLY — do NOT include a "## AI:" header line; loom_append_to_chat writes the role header itself, so adding your own produces a doubled header. Emit one "📄 <title> — loaded for context" line per context doc above before replying. Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.
+```
+
+## AI:
+
+Excellent testing — Tests 1, 2, 3 all pass (self-refresh silent + idempotent, migration Update→npx with toast, Keep-as-is no-nag, dogfood repo safe, local-path config silences it). Those confirm steps 5 & 6 work live. 🎉
+
+**Test 4 was a real bug — found, fixed, verified.**
+
+Root cause: `--mcp-config` is a **variadic** flag (`<configs...>`). My command put the prompt as a bare positional *after* it — `claude --strict-mcp-config --mcp-config '<cfg>' "$(cat prompt)"` — so Claude Code greedily read the prompt as a *second config path*: *"MCP config file not found: …\# Loom context…"*. Your MINGW64 shell took the posix branch, exactly where it bit.
+
+I reproduced it against a live `claude` and confirmed the fix:
+- `--mcp-config <cfg> "Reply OK"` → *config not found: …\Reply OK* (repro)
+- `claude "<prompt>" --strict-mcp-config --mcp-config <cfg>` → `OK-BOUND` ✅ (fix)
+
+**Fix:** in `buildClaudeCommand`, the prompt now comes **first**, flags after — so the variadic has only its single config value trailing it. Applied to the posix and pwsh branches; the cmd branch already pipes the prompt via stdin (safe). Rebuilt.
+
+**Please re-test Test 4:** repackage the `.vsix` from this build + reinstall, open `test-loom` (or any repo), click an AI action, and confirm:
+1. No "MCP config file not found" error.
+2. The terminal shows `claude "$(cat …prompt…)" --strict-mcp-config --mcp-config '…cfg…'` (prompt first).
+3. The agent has `mcp__loom__*` tools and actually replies in the chat.
+
+Tests 1–3 don't need redoing. This fix folds into the pending commit (it's part of step-3's deliverable, caught in verification). Report Test 4 and, if green, I'll commit.
+
+## Rafa:
+
+### Test 4: WORKING
+
+I asked in the chat: `tell me what mcp server are you connecting`
+I clicked `AI Reply`
+
+Terminal:
+```
+❯ # Loom context (pre-loaded — do NOT grep or re-read these; they are already provided below)
+
+  <!-- loom:context-bundle target=ch_01KX1RTS5K3FMECEGN65N6BN6J weave_slug=test thread_ulid=th_01KX1RTKXKRGT4XB6W3RNXE0ZW mode=chat docs=2 tokens~=137 -->
+
+  ---
+
+  ### [global ctx] Global Context · id: global-ctx
+
+
+  # Global Context
+
+  **Read at the start of every session.** Replace this with a summary of your project's concept, architecture, and operating rules.
+
+  ## 1. What this project is
+
+  <one paragraph overview>
+
+  ## 2. Architecture
+
+  <key structure, layers, or components>
+
+  ## 3. Rules
+
+  - All writes to `loom/**/*.md` go through MCP tools.
+  - Chat docs are the conversation surface — reply inside them under `## AI:`.
+  - After each step, state what was done and what is next, then STOP.
+
+  ---
+
+  ### [target chat] test Chat 001 · id: ch_01KX1RTS5K3FMECEGN65N6BN6J
+
+  # test Chat 001
+
+  ## User:
+
+  tell me what mcp server are you connecting
+
+  ---
+
+  Loom chat reply task. chatId="ch_01KX1RTS5K3FMECEGN65N6BN6J". The chat document is already included in the Loom context above; you may also read the file at "j:\src\TESTS\test-loom\loom\test\test\chats\chat-001.md" with the Read tool if needed (not Bash, not loom_find_doc). Using the pre-loaded context, write a reply to the last user message, then use MCP tool loom_append_to_chat with id="ch_01KX1RTS5K3FMECEGN65N6BN6J", role="ai", body="<your reply>". The body must be the reply text ONLY — do NOT include a "## AI:" header line; loom_append_to_chat writes the role header itself, so adding your own produces a doubled header. Emit one "📄 <title> — loaded for context" line per context doc above before replying. Do not use loom_generate_chat_reply — sampling is unavailable. Do not invoke CLI commands via Bash.
+
+📄 Global Context — loaded for context
+📄 test Chat 001 — loaded for context
+
+Let me load the tool schema for appending to the chat.
+
+  Called loom
+
+Replied inside chat-001 — I'm connected to the single loom MCP server (stdio, npx @reslava/loom mcp, configured in .mcp.json), which backs all the loom_* tools and loom:// resources.
+```
+
+## AI:
+
+Test 4 green — no config error, the agent loaded context, called `loom_append_to_chat`, and replied. All four tests pass; steps 3–6 confirmed live.
+
+(Aside: the agent's reply *claimed* "npx @reslava/loom … from .mcp.json" — that's the model narrating from the `.mcp.json` it can see, not its real transport. It's actually bound to the **bundled** server via `--strict-mcp-config` (step-1 proved strict ignores `.mcp.json`). The model can't introspect its own launch flags, so that self-description is unreliable-but-harmless — functionality is correct. Not actionable.)
+
+Committing the pending work now: the docs sweep + the `buildClaudeCommand` prompt-first fix (found in this verification). This lands as the last action of the turn so the tree ends clean.

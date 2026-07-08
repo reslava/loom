@@ -42,6 +42,8 @@ Traditional AI chat:          Loom:
 
 That's it. The Loom engine is **bundled inside the extension** and runs on VS Code's own runtime — no `npm install`, no global `loom` command, no Node to set up. Initializing creates `.loom/` (config + the `CLAUDE.md` AI session contract), `loom/` (your doc workspace), and `.mcp.json` (so an AI agent can drive Loom too).
 
+**1-click, always-current, zero-config.** The AI agent Loom launches runs the *same bundled engine* as the extension — never a separate global `loom` that could drift — so your agent is always the version you installed. And when you update the extension, your session rules and config refresh themselves on the next open. Nothing to re-run, nothing to keep in sync.
+
 📚 **New here?** → [Getting Started](https://github.com/reslava/loom/blob/main/loom/refs/getting-started-reference.md) — install to your first idea in five minutes.
 
 ---
@@ -54,7 +56,7 @@ Loom is one engine with three delivery surfaces. Pick the one that fits — you 
 |---------|--------------|-------|
 | **VS Code extension** | You, working in VS Code | Install the extension — **1 click, no CLI** |
 | **AI agent (MCP)** | Claude Code, Cursor, Continue, any MCP host | `loom install` writes `.mcp.json` (pinned `npx`) — no global install |
-| **CLI** | Terminal, scripting, CI | `npm i -g @reslava/loom` |
+| **CLI** | Terminal, scripting, CI | `npx @reslava/loom …` (pinned; global `npm i -g` optional) |
 
 The extension is the recommended default; the CLI/MCP path serves agents and hosts the extension can't reach. → [Architecture: delivery surfaces](https://github.com/reslava/loom/blob/main/loom/refs/architecture-reference.md#delivery-surfaces--audiences)
 

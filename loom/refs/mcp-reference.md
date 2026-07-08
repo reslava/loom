@@ -201,6 +201,17 @@ project root and approve `loom`, or use `claude /mcp`; verify with
 `claude mcp list`). `DEEPSEEK_API_KEY` enables the AI-drafted done-doc in
 `loom_close_plan`; without it that tool writes a placeholder.
 
+**Who reads this `.mcp.json` (post-1.19).** Only a `claude` the Loom **extension did
+not launch** — a hand-run terminal agent, Cursor, CI. When the extension launches an
+agent (its AI buttons), it binds the agent to its **bundled** server via
+`claude --strict-mcp-config --mcp-config <generated>`, so that agent runs the exact
+extension version regardless of `.mcp.json`. The `npx` pin above is therefore the
+sync mechanism for hand-launched agents; `loom install` **self-heals** it to the
+current version on every extension activation. The legacy `"command": "loom"`
+(global-CLI) form is **retired** — `loom_install` migrates it to the npx pin on
+consent via the `migrate_mcp_command` argument (CLI: `loom install --migrate-mcp-command`),
+and otherwise leaves any non-`npx` shape (e.g. a local-path dev config) untouched.
+
 ---
 
 ## 7. Making MCP usage visible

@@ -32,10 +32,13 @@ Both are gitignored — they're regenerated each take.
    land the pricing plan at ≤3 steps.
 2. **Open `demo/landing-page/` as its own VS Code window** (not the loom repo root —
    you want a clean, empty CONTEXT tree on camera).
-3. **Add `.mcp.json`** pointing `loom` at this folder (gitignored):
+3. **Add `.mcp.json`** pointing `loom` at this folder (gitignored). Because you're
+   recording your *local build*, use the local-path dev config (not `command:"loom"`,
+   which is retired, nor the `npx` pin, which would fetch the published release):
    ```json
-   { "mcpServers": { "loom": { "type": "stdio", "command": "loom",
-     "args": ["mcp"], "env": { "LOOM_ROOT": "${workspaceFolder}" } } } }
+   { "mcpServers": { "loom": { "type": "stdio", "command": "node",
+     "args": ["<repo>/packages/vscode/dist/loom-mcp.js"],
+     "env": { "LOOM_ROOT": "${workspaceFolder}" } } } }
    ```
 4. **Confirm the allowlist works** — click an AI button once off-camera; there must
    be **no** permission prompt and **no** `--dangerously-skip-permissions` banner.

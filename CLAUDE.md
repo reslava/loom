@@ -252,8 +252,8 @@ config use `~/.claude.json` instead.
   "mcpServers": {
     "loom": {
       "type": "stdio",
-      "command": "loom",
-      "args": ["mcp"],
+      "command": "npx",
+      "args": ["-y", "@reslava/loom@<version>", "mcp"],
       "env": {
         "LOOM_ROOT": "${workspaceFolder}"
       }
@@ -261,6 +261,11 @@ config use `~/.claude.json` instead.
   }
 }
 ```
+
+This is the canonical form `loom install` writes (pinned to the installing version;
+the extension self-heals the pin on upgrade). The legacy `"command": "loom"` global-CLI
+form is **retired** — the extension offers to migrate it. For *dogfooding this repo* on
+your local build, use a local-path dev config instead (see [Dogfooding server config](#dogfooding-server-config--never-a-global-loom)).
 
 Project-scoped MCP servers require one-time approval per project — run `claude`
 interactively in the project root and approve `loom`, or use `claude /mcp`.

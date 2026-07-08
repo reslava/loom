@@ -31,19 +31,18 @@ So: you use `loom` to set up and to look at state; you talk to **Claude Code** t
 
 > **In VS Code?** You don't need the CLI — install the **Loom AI** extension and everything works in 1 click. This guide is for driving Loom from the **terminal** or a **non-VS-Code agent** (Cursor, Continue, CI). See [Three ways to run Loom](../loom/refs/architecture-reference.md#delivery-surfaces--audiences).
 
-**Install the CLI globally:**
+**Run the CLI via `npx`** — no global install needed:
 
 ```bash
-npm install -g @reslava/loom
+npx @reslava/loom install
 ```
 
-**Initialize Loom in your project**, from the project root:
+> Prefer a global command? `npm i -g @reslava/loom` still works for ad-hoc terminal
+> use (then just `loom …`). It's optional, and it's **not** the MCP-server form — that
+> is the pinned `npx` config below, which never drifts. The examples in this guide
+> write `loom …`; prefix them with `npx @reslava/loom` if you didn't install globally.
 
-```bash
-loom install
-```
-
-This creates `.loom/` (config) and `loom/` (your document workspace), writes the MCP config, and sets up **two** CLAUDE files with distinct ownership:
+This `install` step creates `.loom/` (config) and `loom/` (your document workspace), writes the MCP config, and sets up **two** CLAUDE files with distinct ownership:
 
 - **`.loom/CLAUDE.md`** — the Loom session contract. **Loom-owned**: every `loom install` re-writes it to deliver contract updates, so never edit it by hand.
 - **`CLAUDE-LOCAL.md`** (repo root) — **yours**: created once if absent and never overwritten, *not even with `--force`*. Put your project-specific AI rules here.

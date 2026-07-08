@@ -188,8 +188,12 @@ your agent launches it via the `.mcp.json` that `loom install` writes:
 ```
 
 `loom install` writes this with the version pinned, so the agent fetches the exact
-build via `npx` — no global install required. (If you did `npm i -g @reslava/loom`,
-`"command": "loom", "args": ["mcp"]` works too.)
+build via `npx` — no global install required. This pinned `npx` form is the
+recommended shape: the older `"command": "loom", "args": ["mcp"]` (a globally-installed
+`loom` binary) is **retired** as the MCP-server form — it updates on its own schedule
+and can silently drift from the extension. If you run Loom in VS Code, the extension
+migrates a legacy `command:"loom"` config to this pin for you (or run
+`loom install --migrate-mcp-command`).
 
 The server exposes Loom's documents, workflow tools, and prompts to the agent so all
 writes to `loom/**/*.md` flow through validated, event-sourced operations.

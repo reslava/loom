@@ -87,13 +87,20 @@ function getLoomTerminal(root: string): vscode.Terminal {
 // so it runs the exact server version the extension does and ignores the project
 // `.mcp.json` and any global `loom` CLI.
 function buildClaudeCommand(promptFile: string, mcpConfigFile: string): string {
+    // NOTE ordering: `--mcp-config <configs...>` is a *variadic* flag, so it greedily
+    // absorbs any bare positional that follows it — including the prompt, which then
+    // gets misread as a second config-file path ("MCP config file not found: <prompt>").
+    // The prompt positional must therefore come BEFORE the flags (or, for cmd, arrive
+    // via stdin), leaving the variadic with only its single config value after it.
     const shell = (vscode.env.shell ?? '').toLowerCase();
     if (shell.includes('powershell') || shell.includes('pwsh')) {
         const cfg = mcpConfigFile.replace(/'/g, "''");
-        return `claude --strict-mcp-config --mcp-config '${cfg}' (Get-Content -Raw -LiteralPath '${promptFile.replace(/'/g, "''")}')`;
+        return `claude (Get-Content -Raw -LiteralPath '${promptFile.replace(/'/g, "''")}') --strict-mcp-config --mcp-config '${cfg}'`;
     }
     if (shell.endsWith('cmd.exe') || shell.endsWith('\\cmd')) {
-        // cmd has no clean command substitution; fall back to stdin pipe.
+        // cmd has no clean command substitution; pipe the prompt via stdin. The flags
+        // trail with the config as the last token, so nothing is left for the variadic
+        // to over-consume.
         return `type "${promptFile}" | claude --strict-mcp-config --mcp-config "${mcpConfigFile}"`;
     }
     // bash, zsh, sh, Git Bash, fish — use forward slashes so Git Bash/MSYS
@@ -101,7 +108,7 @@ function buildClaudeCommand(promptFile: string, mcpConfigFile: string): string {
     // path. POSIX shells on real *nix accept forward slashes natively.
     const posixPrompt = promptFile.replace(/\\/g, '/');
     const posixCfg = mcpConfigFile.replace(/\\/g, '/').replace(/'/g, "'\\''");
-    return `claude --strict-mcp-config --mcp-config '${posixCfg}' "$(cat '${posixPrompt.replace(/'/g, "'\\''")}')"`;
+    return `claude "$(cat '${posixPrompt.replace(/'/g, "'\\''")}')" --strict-mcp-config --mcp-config '${posixCfg}'`;
 }
 
 export async function launchClaude(root: string, terminalName: string, prompt: string): Promise<void> {
