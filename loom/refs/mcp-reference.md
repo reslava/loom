@@ -22,13 +22,14 @@ Three docs, three questions — don't duplicate across them:
 
 - **WHERE MCP sits** in the package architecture → [architecture-reference.md](architecture-reference.md) (`cli / vscode → mcp → app → core + fs`).
 - **HOW MCP works** → this doc.
-- **WHAT tools exist right now** → the `loom://catalog` resource. It is auto-generated from the live tool registry (`packages/mcp/src/server.ts`), grouped by purpose, and therefore never drifts.
+- **WHAT the live surface is right now** (tools, resources, prompts) → the `loom://catalog` resource. It is auto-generated from the live registry (`packages/mcp/src/server.ts`), grouped by purpose, and therefore never drifts; filter one section with `?kind=tools|resources|prompts`.
 
-> **Tools are deliberately not enumerated here.** The tool registry changes often;
-> a hand-maintained table drifts the moment a tool is added or its args change.
-> `loom://catalog` owns the list. This doc names tools only as *illustrative
-> examples* of a category, and lists the **resources** and **prompts** (which are
-> few, stable, and have no catalog of their own).
+> **The surface is deliberately not enumerated here.** The registry changes often;
+> a hand-maintained table drifts the moment a tool, resource, or prompt is added or
+> its args change. `loom://catalog` owns the list — tools, resources, **and** prompts
+> alike. This doc names entries only as *illustrative examples* of a category; for the
+> live, authoritative list read `loom://catalog` (or `loom catalog [tools|resources|prompts]`
+> from a terminal).
 
 ## How MCP works
 
@@ -74,7 +75,7 @@ stable, so they are listed here in full.
 
 | URI | Returns | Use when |
 |-----|---------|----------|
-| `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) | **Before searching for a tool** — then `ToolSearch select:<exact name>` |
+| `loom://catalog` | Grouped index of the whole `loom_*` MCP surface — tools, resources, prompts (name + one-line purpose); `?kind=tools\|resources\|prompts` filters one section | **Before searching for a tool** — then `ToolSearch select:<exact name>` |
 | `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveId=&threadId=` filterable | Need a global or filtered view |
 | `loom://roadmap` | Derived cross-weave roadmap (`RoadmapView` JSON): the single topo+priority `roadmap[]`, history, diagnostics | Reason about cross-weave **blocked-on** |
 | `loom://diagnostics` | Broken links, orphaned docs, and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |

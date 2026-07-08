@@ -175,19 +175,22 @@ async function testNewCliCommands() {
     await seedThreadDesign(weavePath, threadId, 'active');
     await seedThreadPlan(weavePath, threadId, planId, 'implementing');
 
-    // loom catalog — grouped tool index from the in-process MCP server.
+    // loom catalog — grouped whole-surface index from the in-process MCP server.
     console.log('  • Testing `loom catalog`...');
     let result = runLoom('catalog', loomRoot);
     assert(result.exitCode === 0, `catalog failed: ${result.stderr}`);
     assert(result.stdout.includes('loom_do_step'), 'catalog should list a known tool');
-    console.log('    ✅ loom catalog lists tools');
+    assert(result.stdout.includes('loom://context/{docUlid}'), 'catalog should list a templated resource');
+    assert(result.stdout.includes('do-next-step'), 'catalog should list a prompt');
+    console.log('    ✅ loom catalog lists the whole surface');
 
-    // loom resources — list concrete resources.
-    console.log('  • Testing `loom resources`...');
-    result = runLoom('resources', loomRoot);
-    assert(result.exitCode === 0, `resources failed: ${result.stderr}`);
-    assert(result.stdout.includes('loom://catalog'), 'resources should list loom://catalog');
-    console.log('    ✅ loom resources lists resources');
+    // loom catalog resources — the folded resource index (was `loom resources`).
+    console.log('  • Testing `loom catalog resources`...');
+    result = runLoom('catalog resources', loomRoot);
+    assert(result.exitCode === 0, `catalog resources failed: ${result.stderr}`);
+    assert(result.stdout.includes('loom://catalog'), 'catalog resources should list loom://catalog');
+    assert(!result.stdout.includes('loom_do_step'), 'catalog resources should not include the tools section');
+    console.log('    ✅ loom catalog resources lists resources only');
 
     // loom resources read <uri> — read an arbitrary resource.
     console.log('  • Testing `loom resources read loom://summary`...');

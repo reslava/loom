@@ -182,6 +182,37 @@ async function run(): Promise<void> {
         assert(text.includes('### Query / state'), 'Query group rendered');
     });
 
+    // (a4) the combined catalog covers resources + prompts, including ALL THREE context forms
+    await test('read loom://catalog covers resources + prompts incl. all three context forms', async () => {
+        const result = await client.readResource({ uri: 'loom://catalog' });
+        const text = result.contents[0].text as string;
+        assert(text.includes('## Loom MCP resources'), 'Resources section present');
+        assert(text.includes('## Loom MCP prompts'), 'Prompts section present');
+        assert(text.includes('loom://context/{docUlid}'), 'context ULID form listed');
+        assert(text.includes('loom://context/thread/{weaveSlug}/{threadSlug}'), 'context thread-slug form listed');
+        assert(text.includes('loom://context/{weaveSlug}/{threadSlug}/{docSlug}'), 'context doc-slug form listed');
+        assert(text.includes('`do-next-step`'), 'a prompt is listed by name');
+    });
+
+    // (a5) ?kind= filters the catalog to one section
+    await test('loom://catalog?kind=resources returns the resources section only', async () => {
+        const result = await client.readResource({ uri: 'loom://catalog?kind=resources' });
+        const text = result.contents[0].text as string;
+        assert(text.includes('## Loom MCP resources'), 'resources section present');
+        assert(!text.includes('## Loom MCP tools'), 'tools section absent under ?kind=resources');
+        assert(!text.includes('## Loom MCP prompts'), 'prompts section absent under ?kind=resources');
+    });
+
+    // (a6) ListResourceTemplates advertises all three context forms (the defect: it used to
+    // advertise only the ULID form, hiding the two slug-path forms from every MCP client)
+    await test('listResourceTemplates advertises all three context forms', async () => {
+        const result = await client.listResourceTemplates();
+        const tmpls = result.resourceTemplates.map((t: any) => t.uriTemplate);
+        assert(tmpls.includes('loom://context/{docUlid}'), 'ULID form advertised');
+        assert(tmpls.includes('loom://context/thread/{weaveSlug}/{threadSlug}'), 'thread-slug form advertised');
+        assert(tmpls.includes('loom://context/{weaveSlug}/{threadSlug}/{docSlug}'), 'doc-slug form advertised');
+    });
+
     // (b) read loom://state
     await test('read loom://state returns valid state JSON', async () => {
         const result = await client.readResource({ uri: 'loom://state' });

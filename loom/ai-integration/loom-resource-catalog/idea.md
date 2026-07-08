@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWYVPSC8SC3VD4CW4RAN1XNH
 title: "A live loom:// resource catalog (sibling of loom://catalog)"
-status: draft
+status: done
 created: 2026-07-07
 updated: 2026-07-07
 version: 2

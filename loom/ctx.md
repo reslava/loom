@@ -4,8 +4,8 @@ id: loom-ctx
 title: loom — Global Context
 status: active
 created: 2026-04-29
-updated: 2026-07-07
-version: 15
+updated: 2026-07-08
+version: 16
 tags: [ctx, vision, architecture, session-start]
 parent_id: null
 requires_load: [vision, workflow]
@@ -120,7 +120,7 @@ where a real AI caller needs it) · MCP write tools + workflow prompts = **stric
 → Deeper: [refs/architecture-reference.md](refs/architecture-reference.md) for the
 full diagram, doc-type table, and stale-detection rules; [refs/mcp-reference.md](refs/mcp-reference.md)
 for the MCP surface (resources, prompts, sampling) and `loom://catalog` for the
-live tool list.
+live surface list (tools + resources + prompts).
 
 ---
 

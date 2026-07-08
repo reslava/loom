@@ -74,7 +74,7 @@ import * as setContextPrefs from './tools/setContextPrefs';
 import * as getContextPrefs from './tools/getContextPrefs';
 import * as install from './tools/install';
 import * as seedExample from './tools/seedExample';
-import { buildToolCatalog, registerToolCatalog, getToolCatalogBlock } from './catalog';
+import { buildCatalogVariants, registerCatalog, getCatalogBlock, coerceCatalogKind, type CatalogKind } from './catalog';
 import { TelemetryClient, noopTelemetry } from '../../telemetry/dist';
 import { emitToolSuccess, emitToolError } from './telemetryDispatch';
 import * as continueThread from './prompts/continueThread';
@@ -110,17 +110,25 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://diagnostics', name: 'Diagnostics', description: 'Broken links, orphaned docs', mimeType: 'application/json' },
     { uri: 'loom://summary', name: 'Summary', description: 'Project health counts', mimeType: 'application/json' },
     { uri: 'loom://roadmap', name: 'Roadmap', description: 'Derived cross-weave roadmap: future (pending/blocked, dependency+priority order), present (active/implementing), history (shipped plans), and diagnostics (cycles, dangling deps, missing thread.md)', mimeType: 'application/json' },
-    { uri: 'loom://catalog', name: 'Tool Catalog', description: 'Grouped index of all loom_* MCP tools (name + one-line purpose). Read this BEFORE searching for a tool, then ToolSearch select:<exact name>.', mimeType: 'text/markdown' },
+    { uri: 'loom://catalog', name: 'MCP Surface Catalog', description: 'Grouped index of the whole loom_* MCP surface — tools, resources, and prompts (name + one-line purpose), auto-generated from the live registry. Read this BEFORE searching for a tool, then ToolSearch select:<exact name>. Filter one section with ?kind=tools|resources|prompts.', mimeType: 'text/markdown' },
     { uri: 'loom://refs', name: 'References', description: 'Reference docs under loom/refs/ as { id, title, file } — backs the requires_load picker', mimeType: 'application/json' },
     { uri: 'loom://feedback-context', name: 'Feedback Context', description: 'Assembled feedback payload: resolved target repo (git-remote/config), non-PII usage snapshot (counts only), and the prefilled GitHub issue-form URL', mimeType: 'application/json' },
 ];
 
 export const RESOURCE_TEMPLATES = [
     { uriTemplate: 'loom://docs/{docUlid}', name: 'Document', description: 'Raw markdown of any Loom document by its ULID', mimeType: 'text/plain' },
-    { uriTemplate: 'loom://context/{docUlid}', name: 'Context Bundle', description: 'Unified context pipeline: global/weave/thread ctx + parent chain + requires_load for a target. Three forms — ULID: loom://context/{docUlid}; thread slug (human-pointable): loom://context/thread/{weaveSlug}/{threadSlug}; doc slug (human-pointable): loom://context/{weaveSlug}/{threadSlug}/{docSlug} where docSlug is idea/design/req or a filename stem like chat-001 (a trailing .md is tolerated). Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx}', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/{docUlid}', name: 'Context Bundle (by ULID)', description: 'Unified context bundle for a doc by its canonical ULID — global/weave/thread ctx + parent chain + requires_load. Append ?mode={chat|idea|design|plan|implementing|refine|promote|ctx} and/or ?loaded=id@version,… to dedupe already-held docs.', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/thread/{weaveSlug}/{threadSlug}', name: 'Context Bundle (by thread slug)', description: 'Human-pointable context bundle anchored on a thread’s primary doc — same bundle as the ULID form. Append ?mode= and/or ?loaded= as above.', mimeType: 'text/plain' },
+    { uriTemplate: 'loom://context/{weaveSlug}/{threadSlug}/{docSlug}', name: 'Context Bundle (by doc slug)', description: 'Human-pointable context bundle for a doc addressed by slug path (docSlug = idea/design/req or a filename stem like chat-001; a trailing .md is tolerated) — same bundle as the ULID form. Append ?mode= and/or ?loaded= as above.', mimeType: 'text/plain' },
     { uriTemplate: 'loom://plan/{planUlid}', name: 'Plan', description: 'Plan document with parsed steps table as JSON', mimeType: 'application/json' },
     { uriTemplate: 'loom://requires-load/{docUlid}', name: 'Requires Load', description: 'All docs listed in requires_load for a document (recursive, deduplicated)', mimeType: 'application/json' },
 ];
+
+/** Parse ?kind= off a loom://catalog URI. Absent → whole surface; invalid → throw. */
+function parseCatalogKind(uri: string): CatalogKind | undefined {
+    const url = new URL(uri.replace('loom://', 'loom://host/'));
+    return coerceCatalogKind(url.searchParams.get('kind') ?? undefined);
+}
 
 export function createLoomMcpServer(root: string, telemetry: TelemetryClient = noopTelemetry): Server {
     const server = new Server(
@@ -144,7 +152,13 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
     ];
 
     // Build the discovery catalog once from the live registry (static for this server).
-    registerToolCatalog(buildToolCatalog(TOOLS));
+    // Covers the whole surface — tools, resources, prompts — pre-rendered per ?kind=.
+    registerCatalog(buildCatalogVariants({
+        tools: TOOLS,
+        concrete: CONCRETE_RESOURCES,
+        templates: RESOURCE_TEMPLATES,
+        prompts: PROMPTS.map(p => p.promptDef),
+    }));
 
     server.setRequestHandler(ListResourcesRequestSchema, async () => ({
         resources: CONCRETE_RESOURCES,
@@ -180,8 +194,9 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
         if (uri === 'loom://roadmap') {
             return handleRoadmapResource(root, uri);
         }
-        if (uri === 'loom://catalog') {
-            return { contents: [{ uri, mimeType: 'text/markdown', text: getToolCatalogBlock() }] };
+        if (uri === 'loom://catalog' || uri.startsWith('loom://catalog?')) {
+            const kind = parseCatalogKind(uri);
+            return { contents: [{ uri, mimeType: 'text/markdown', text: getCatalogBlock(kind) }] };
         }
         if (uri.startsWith('loom://docs/')) {
             return handleDocsResource(root, uri);

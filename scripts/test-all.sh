@@ -121,6 +121,10 @@ run_test tests/api-contract-refactor.test.ts
 # the slug thread form resolves and the bundle manifest carries weave_slug + thread_ulid
 run_test tests/mcp-read-surface-naming.test.ts
 
+# Surface catalog: loom://catalog covers tools + resources (concrete/templated) + prompts;
+# ?kind= filters to one section; coerceCatalogKind rejects an invalid kind with the valid set
+run_test tests/catalog-surface.test.ts
+
 # archive-robust-move: moveTreeOrThrow is atomic-or-fail-loud — a copy-fallback that leaves
 # the source (move resolves OR throws) rolls back the copy and throws (no silent duplicate);
 # a pre-existing dest is never clobbered. Shared by archive / restore / thread-move.

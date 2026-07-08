@@ -27,7 +27,7 @@ import { weavePlanCommand } from './commands/weavePlan';
 import { finalizeCommand } from './commands/finalize';
 import { renameCommand } from './commands/rename';
 import { catalogCommand } from './commands/catalog';
-import { resourcesListCommand, resourcesReadCommand } from './commands/resources';
+import { resourcesReadCommand } from './commands/resources';
 import { contextCommand } from './commands/context';
 import { nextCommand } from './commands/next';
 import { searchCommand } from './commands/search';
@@ -193,14 +193,13 @@ program
     .action(renameCommand);
 
 program
-    .command('catalog')
-    .description('Print the grouped index of every loom_* MCP tool (loom://catalog)')
+    .command('catalog [kind]')
+    .description('Print the grouped index of the loom_* MCP surface — tools, resources, prompts (loom://catalog). Optional kind filters one section: tools|resources|prompts')
     .action(catalogCommand);
 
 const resourcesCmd = program
     .command('resources')
-    .description('List the MCP resources this Loom advertises (uri + title)')
-    .action(resourcesListCommand);
+    .description('Read MCP resources (see: resources read <uri>). The live index is `loom catalog resources`.');
 
 resourcesCmd
     .command('read <uri>')
