@@ -7,6 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { promisify } from 'util';
 import { getTelemetryEnv } from '../telemetryConsent';
+import { bundledServerSpec, buildAgentMcpConfig } from '../bundledServer';
 
 const exec = promisify(cp.exec);
 
@@ -41,6 +42,22 @@ export async function funnelAiSetup(): Promise<void> {
     }
 }
 
+/**
+ * The project `.mcp.json`'s `mcpServers` map (loom is dropped by buildAgentMcpConfig),
+ * or `{}` if the file is absent or unreadable. Because the launched agent runs with
+ * `--strict-mcp-config`, these must be merged into our generated config or the user's
+ * other MCP servers would be stripped for the launch (D1(c)).
+ */
+function readProjectMcpServers(root: string): Record<string, unknown> {
+    try {
+        const parsed = JSON.parse(fs.readFileSync(path.join(root, '.mcp.json'), 'utf8'));
+        const servers = parsed?.mcpServers;
+        return servers && typeof servers === 'object' ? servers as Record<string, unknown> : {};
+    } catch {
+        return {};
+    }
+}
+
 let _terminal: vscode.Terminal | undefined;
 
 // Always start with a fresh shell. Reusing the terminal across calls is
@@ -65,21 +82,26 @@ function getLoomTerminal(root: string): vscode.Terminal {
 // Build the shell-specific command that invokes `claude` with the prompt read
 // from a tmpfile. Using a tmpfile + command substitution avoids every shell
 // quoting pitfall (newlines, quotes, $, backticks) — the prompt never has to
-// survive a shell parse.
-function buildClaudeCommand(promptFile: string): string {
+// survive a shell parse. The launched agent is pinned to Loom's *bundled* MCP
+// server via `--strict-mcp-config --mcp-config <mcpConfigFile>` (also a tmpfile),
+// so it runs the exact server version the extension does and ignores the project
+// `.mcp.json` and any global `loom` CLI.
+function buildClaudeCommand(promptFile: string, mcpConfigFile: string): string {
     const shell = (vscode.env.shell ?? '').toLowerCase();
     if (shell.includes('powershell') || shell.includes('pwsh')) {
-        return `claude (Get-Content -Raw -LiteralPath '${promptFile.replace(/'/g, "''")}')`;
+        const cfg = mcpConfigFile.replace(/'/g, "''");
+        return `claude --strict-mcp-config --mcp-config '${cfg}' (Get-Content -Raw -LiteralPath '${promptFile.replace(/'/g, "''")}')`;
     }
     if (shell.endsWith('cmd.exe') || shell.endsWith('\\cmd')) {
         // cmd has no clean command substitution; fall back to stdin pipe.
-        return `type "${promptFile}" | claude`;
+        return `type "${promptFile}" | claude --strict-mcp-config --mcp-config "${mcpConfigFile}"`;
     }
     // bash, zsh, sh, Git Bash, fish — use forward slashes so Git Bash/MSYS
     // doesn't see backslashes as escape sequences inside the single-quoted
     // path. POSIX shells on real *nix accept forward slashes natively.
-    const posixPath = promptFile.replace(/\\/g, '/');
-    return `claude "$(cat '${posixPath.replace(/'/g, "'\\''")}')"`;
+    const posixPrompt = promptFile.replace(/\\/g, '/');
+    const posixCfg = mcpConfigFile.replace(/\\/g, '/').replace(/'/g, "'\\''");
+    return `claude --strict-mcp-config --mcp-config '${posixCfg}' "$(cat '${posixPrompt.replace(/'/g, "'\\''")}')"`;
 }
 
 export async function launchClaude(root: string, terminalName: string, prompt: string): Promise<void> {
@@ -88,11 +110,19 @@ export async function launchClaude(root: string, terminalName: string, prompt: s
         return;
     }
 
-    const promptFile = path.join(os.tmpdir(), `loom-prompt-${Date.now()}-${process.pid}.txt`);
+    const stamp = `${Date.now()}-${process.pid}`;
+    const promptFile = path.join(os.tmpdir(), `loom-prompt-${stamp}.txt`);
     fs.writeFileSync(promptFile, prompt, 'utf8');
+
+    // Pin the launched agent to the bundled server (see buildClaudeCommand). The
+    // config is generated fresh per launch from bundledServerSpec, so it can never
+    // go stale. The project .mcp.json's other servers are merged in so --strict
+    // doesn't strip them; the bundled loom always wins the `loom` key.
+    const mcpConfigFile = path.join(os.tmpdir(), `loom-mcp-${stamp}.json`);
+    fs.writeFileSync(mcpConfigFile, buildAgentMcpConfig(bundledServerSpec(root), readProjectMcpServers(root)), 'utf8');
 
     const terminal = getLoomTerminal(root);
     terminal.show();
     terminal.sendText(`echo "─── ${terminalName} ───"`);
-    terminal.sendText(buildClaudeCommand(promptFile));
+    terminal.sendText(buildClaudeCommand(promptFile, mcpConfigFile));
 }

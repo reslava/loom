@@ -86,6 +86,7 @@ program
     .command('install')
     .description('Install Loom into this workspace: creates .loom/, writes .loom/CLAUDE.md, patches CLAUDE.md, writes .mcp.json')
     .option('--force', 'Overwrite existing configuration')
+    .option('--migrate-mcp-command', 'Migrate a legacy command:"loom" server in .mcp.json to the npx pin')
     .action(installCommand);
 
 program

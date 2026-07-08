@@ -3,11 +3,11 @@ import * as fs from 'fs-extra';
 import { ConfigRegistry } from '../../../fs/dist';
 import { installWorkspace } from '../../../app/dist/installWorkspace';
 
-export async function installCommand(options: { force?: boolean }): Promise<void> {
+export async function installCommand(options: { force?: boolean; migrateMcpCommand?: boolean }): Promise<void> {
     try {
         const registry = new ConfigRegistry();
         const result = await installWorkspace(
-            { force: options.force },
+            { force: options.force, migrateMcpCommand: options.migrateMcpCommand },
             { fs, registry, cwd: process.cwd() }
         );
 

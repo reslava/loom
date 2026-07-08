@@ -10,6 +10,7 @@ export const toolDef = {
         type: 'object' as const,
         properties: {
             force: { type: 'boolean', description: 'Overwrite regenerable files (.mcp.json, ctx, settings) that already exist.' },
+            migrate_mcp_command: { type: 'boolean', description: 'Migrate a legacy command:"loom" server in an existing .mcp.json to the canonical npx pin (semantic change — pass only after user consent).' },
         },
         required: [],
     },
@@ -18,7 +19,7 @@ export const toolDef = {
 export async function handle(root: string, args: Record<string, unknown>) {
     const registry = new ConfigRegistry();
     const result = await installWorkspace(
-        { force: args['force'] as boolean | undefined },
+        { force: args['force'] as boolean | undefined, migrateMcpCommand: args['migrate_mcp_command'] as boolean | undefined },
         { fs, registry, cwd: root },
     );
     return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };

@@ -10,6 +10,12 @@ const { version: LOOM_VERSION } = require('../package.json') as { version: strin
 
 export interface InstallWorkspaceInput {
     force?: boolean;
+    /**
+     * Migrate a legacy `command:"loom"` server in an existing `.mcp.json` to the
+     * canonical npx pin. Semantic (changes which binary the agent runs), so it is
+     * gated behind explicit consent and never happens on a plain install.
+     */
+    migrateMcpCommand?: boolean;
 }
 
 export interface InstallWorkspaceDeps {
@@ -291,6 +297,75 @@ const CLAUDE_LOCAL_MD = `# Project-Local AI Rules
 `;
 
 
+/**
+ * Write `content` to `filePath` only when it differs from what's already there.
+ * Returns true if it actually wrote (file absent or byte-different), false if the
+ * existing file was already identical. Keeps `loom install` honest — an unchanged
+ * file is neither rewritten nor reported as "written" — which is also what makes a
+ * silent re-run on every activation a true no-op.
+ */
+function writeIfChanged(fsDep: typeof fs, filePath: string, content: string): boolean {
+    if (fsDep.existsSync(filePath)) {
+        if (fsDep.readFileSync(filePath, 'utf8') === content) return false;
+    }
+    fsDep.writeFileSync(filePath, content, 'utf8');
+    return true;
+}
+
+/**
+ * Silently heal a stale `@reslava/loom@<version>` pin inside an EXISTING .mcp.json —
+ * but ONLY when the file is in the exact shape `loom install` writes: a `loom` server
+ * whose command is `npx` with an `@reslava/loom@<semver>` arg. Any other shape (a
+ * hand-maintained `command:"loom"` dev config, a local-path `command:"node"` config,
+ * extra servers, added env) is left untouched. Returns true if it rewrote the pin.
+ * This is what lets an extension upgrade refresh the version a hand-launched agent
+ * npx-fetches (the only consumer of .mcp.json) without a --force that would clobber
+ * user-owned files. Within-shape version bump only → safe to run unprompted.
+ */
+function healMcpPin(fsDep: typeof fs, mcpJsonPath: string, version: string): boolean {
+    let parsed: any;
+    try {
+        parsed = JSON.parse(fsDep.readFileSync(mcpJsonPath, 'utf8'));
+    } catch {
+        return false; // unparseable — never touch
+    }
+    const loom = parsed?.mcpServers?.loom;
+    if (!loom || loom.command !== 'npx' || !Array.isArray(loom.args)) return false;
+    const idx = loom.args.findIndex(
+        (a: unknown) => typeof a === 'string' && /^@reslava\/loom@/.test(a),
+    );
+    if (idx === -1) return false; // no pinned arg — not the shape we own
+    const desired = `@reslava/loom@${version}`;
+    if (loom.args[idx] === desired) return false; // already current
+    loom.args[idx] = desired;
+    return writeIfChanged(fsDep, mcpJsonPath, JSON.stringify(parsed, null, 2));
+}
+
+/**
+ * Migrate a legacy `command:"loom"` loom server (the retired global-CLI form) to the
+ * canonical npx pin, preserving `env` and any other servers in the file. Only touches
+ * the file when the loom server is actually `command:"loom"`; every other shape is
+ * left alone. Changing which binary runs is a SEMANTIC change, so callers gate this
+ * behind explicit user consent (input.migrateMcpCommand). Returns true if it rewrote.
+ */
+function migrateMcpCommandToNpx(fsDep: typeof fs, mcpJsonPath: string, version: string, root: string): boolean {
+    let parsed: any;
+    try {
+        parsed = JSON.parse(fsDep.readFileSync(mcpJsonPath, 'utf8'));
+    } catch {
+        return false;
+    }
+    const loom = parsed?.mcpServers?.loom;
+    if (!loom || loom.command !== 'loom') return false; // only the legacy global-CLI shape
+    loom.type = loom.type ?? 'stdio';
+    loom.command = 'npx';
+    loom.args = ['-y', `@reslava/loom@${version}`, 'mcp'];
+    if (!loom.env || typeof loom.env !== 'object') {
+        loom.env = { LOOM_ROOT: root.replace(/\\/g, '/') };
+    }
+    return writeIfChanged(fsDep, mcpJsonPath, JSON.stringify(parsed, null, 2));
+}
+
 export async function installWorkspace(
     input: InstallWorkspaceInput,
     deps: InstallWorkspaceDeps
@@ -314,10 +389,13 @@ export async function installWorkspace(
         loomDirCreated = true;
     }
 
-    // Step 2: write .loom/CLAUDE.md
+    // Step 2: write .loom/CLAUDE.md — but only when it actually differs. This file
+    // is Loom-owned and rewritten on every install to deliver contract updates, yet a
+    // re-run whose contract is byte-identical must NOT rewrite the file (nor report a
+    // phantom "written"): that spurious write is what dirtied the tree and misreported
+    // on every no-op `loom install`.
     deps.fs.ensureDirSync(loomDir);
-    deps.fs.writeFileSync(loomClaudeMdPath, LOOM_CLAUDE_MD, 'utf8');
-    const claudeMdWritten = true;
+    const claudeMdWritten = writeIfChanged(deps.fs, loomClaudeMdPath, LOOM_CLAUDE_MD);
 
     // Step 3: patch root CLAUDE.md so it imports BOTH the Loom-owned contract and the
     // user-owned local-rules file. Each import is guarded independently, so a re-run
@@ -364,8 +442,18 @@ export async function installWorkspace(
     }, null, 2);
     let mcpJsonWritten = false;
     if (!deps.fs.existsSync(mcpJsonPath) || input.force) {
-        deps.fs.writeFileSync(mcpJsonPath, mcpJson, 'utf8');
-        mcpJsonWritten = true;
+        mcpJsonWritten = writeIfChanged(deps.fs, mcpJsonPath, mcpJson);
+    } else {
+        // Exists and not --force: never clobber the file (it may carry user env or
+        // other servers). Reconcile only the Loom-owned parts — silently heal a stale
+        // npx version pin (in-shape only), and, when explicitly consented, migrate a
+        // legacy command:"loom" server to the npx pin.
+        let changed = false;
+        if (input.migrateMcpCommand) {
+            changed = migrateMcpCommandToNpx(deps.fs, mcpJsonPath, LOOM_VERSION, root) || changed;
+        }
+        changed = healMcpPin(deps.fs, mcpJsonPath, LOOM_VERSION) || changed;
+        mcpJsonWritten = changed;
     }
 
     // Step 5: ensure standard loom/ subdirectories exist
@@ -375,16 +463,14 @@ export async function installWorkspace(
     deps.fs.ensureDirSync(path.join(loomDocsDir, '.archive'));
     let ctxWritten = false;
     if (!deps.fs.existsSync(ctxPath) || input.force) {
-        deps.fs.writeFileSync(ctxPath, LOOM_CTX_MD, 'utf8');
-        ctxWritten = true;
+        ctxWritten = writeIfChanged(deps.fs, ctxPath, LOOM_CTX_MD);
     }
 
     // Step 6: write .loom/settings.json
     const settingsPath = path.join(loomDir, 'settings.json');
     let settingsJsonWritten = false;
     if (!deps.fs.existsSync(settingsPath) || input.force) {
-        deps.fs.writeFileSync(settingsPath, JSON.stringify({ 'user.name': 'User:', 'ai.model': 'AI:' }, null, 2) + '\n', 'utf8');
-        settingsJsonWritten = true;
+        settingsJsonWritten = writeIfChanged(deps.fs, settingsPath, JSON.stringify({ 'user.name': 'User:', 'ai.model': 'AI:' }, null, 2) + '\n');
     }
 
     // Step 7: seed .claude/settings.local.json with an empty attribution block so

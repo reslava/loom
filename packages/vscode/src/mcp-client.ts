@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CreateMessageRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { makeAIClient } from './ai/makeAIClient';
-import { getTelemetryEnv } from './telemetryConsent';
+import { bundledServerSpec } from './bundledServer';
 
 // MCP SDK default request timeout is 60s. AI-bound tools (sampling round-trips
 // to remote LLMs) routinely exceed that on long inputs, producing
@@ -55,14 +54,16 @@ export function disposeMCP(): void {
 
 function createMCPClient(workspaceRoot: string): LoomMCPClient {
     const out = getOut();
-    // Spawn the Loom MCP server bundled into the VSIX (dist/loom-mcp.js) on VS
-    // Code's own Electron-as-Node — no global `loom` CLI, no user-installed
-    // Node. __dirname is the extension's dist/, alongside loom-mcp.js.
-    const serverEntry = path.join(__dirname, 'loom-mcp.js');
+    // Spawn the Loom MCP server bundled into the VSIX (dist/loom-mcp.js) via the
+    // shared bundledServerSpec — the single source of truth also used by the
+    // launched-agent --mcp-config, so the two can never diverge. The in-process
+    // transport inherits the full environment; spec.env layers the Loom-specific
+    // additions (ELECTRON_RUN_AS_NODE, LOOM_ROOT, telemetry) on top.
+    const spec = bundledServerSpec(workspaceRoot);
     const transport = new StdioClientTransport({
-        command: process.execPath,
-        args: [serverEntry],
-        env: { ...process.env as Record<string, string>, ELECTRON_RUN_AS_NODE: '1', LOOM_ROOT: workspaceRoot, ...getTelemetryEnv() },
+        command: spec.command,
+        args: spec.args,
+        env: { ...process.env as Record<string, string>, ...spec.env },
         stderr: 'pipe',
     });
 

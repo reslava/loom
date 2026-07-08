@@ -197,8 +197,13 @@ run_test tests/resolution-dx.test.ts
 run_test tests/create-with-body.test.ts
 
 # install-workspace: loom install establishes user-owned CLAUDE-LOCAL.md (created once,
-# never clobbered even on --force) + ensures root CLAUDE.md imports both contracts idempotently
+# never clobbered even on --force) + ensures root CLAUDE.md imports both contracts idempotently;
+# idempotent .loom/CLAUDE.md write, in-shape npx pin-heal, and flag-gated command:"loom"→npx migration
 run_test tests/install-workspace.test.ts
+
+# agent-mcp-config: the launched-agent --mcp-config builder — loom-only form, and merging
+# the user's other .mcp.json servers with the bundled loom winning the loom key
+run_test tests/agent-mcp-config.test.ts
 
 # create-plan-hardening: weavePlan rejects malformed agent calls — wire-marker body
 # leaks in goal/title, stringified/unparseable/non-array steps, missing descriptions —

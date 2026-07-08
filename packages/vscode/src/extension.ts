@@ -338,6 +338,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
 
     // Guards the onboarding notification against overlapping toasts (see below).
     let setupNotifyInFlight = false;
+    // Ensures the silent activation-time install runs at most once per session
+    // (syncSetupContext fires repeatedly via file watchers).
+    let workspaceRefreshedThisSession = false;
 
     // Context keys — drive walkthrough completion and notification targeting
     async function syncSetupContext(): Promise<void> {
@@ -454,6 +457,60 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         }
     }
 
+    // Self-refresh on activation. An already-initialized workspace never re-ran
+    // `loom install` on an extension upgrade, so the Loom-owned artifacts (.loom/CLAUDE.md
+    // contract, the .mcp.json version pin) silently froze at first-install version. Now
+    // we run install (non-force) once per session for initialized workspaces: because
+    // installWorkspace is idempotent, it writes only what actually changed — a true no-op
+    // when nothing did. Uninitialized workspaces are left to the consent notification
+    // above (we never silently create files in a repo the user hasn't opted into).
+    async function ensureWorkspaceCurrent(): Promise<void> {
+        if (workspaceRefreshedThisSession) return;
+        const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!root || !fs.existsSync(path.join(root, '.loom'))) return;
+        workspaceRefreshedThisSession = true;
+        try {
+            await getMCP(root).callTool('loom_install', {});
+            syncAndRefresh();
+            syncSetupContext();
+        } catch (e: any) {
+            // Background refresh — never nag the user; a failure just means the
+            // workspace stays as-is until the next explicit install.
+            console.error('🧵 Loom activation refresh failed:', e?.message ?? String(e));
+        }
+        void maybeOfferMcpCommandMigration(root);
+    }
+
+    // A legacy `.mcp.json` on `command: "loom"` (pre-1.19 global-CLI form) points a
+    // hand-launched agent at a separate binary that can drift from the extension.
+    // Migrating it to the npx pin changes which binary runs — a semantic change — so
+    // it is offered, never silent. Once the user says "Keep as-is" we don't nag again.
+    async function maybeOfferMcpCommandMigration(root: string): Promise<void> {
+        let isLegacy = false;
+        try {
+            const parsed = JSON.parse(fs.readFileSync(path.join(root, '.mcp.json'), 'utf8'));
+            isLegacy = parsed?.mcpServers?.loom?.command === 'loom';
+        } catch { return; }
+        if (!isLegacy) return;
+        const dismissKey = 'loom.mcpCommandMigrationDismissed';
+        if (context.workspaceState.get<boolean>(dismissKey)) return;
+        const choice = await vscode.window.showInformationMessage(
+            "Loom's MCP config points at a separate `loom` CLI that can drift from the extension. Update it to the bundled version?",
+            'Update', 'Keep as-is'
+        );
+        if (choice === 'Update') {
+            try {
+                await getMCP(root).callTool('loom_install', { migrate_mcp_command: true });
+                syncAndRefresh();
+                vscode.window.showInformationMessage('Loom MCP config updated to the bundled version.');
+            } catch (e: any) {
+                handleMcpError(e, treeProvider);
+            }
+        } else if (choice === 'Keep as-is') {
+            await context.workspaceState.update(dismissKey, true);
+        }
+    }
+
     context.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(() => syncAndRefresh())
     );
@@ -477,6 +534,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(watcher);
 
     setImmediate(() => syncAndRefresh());
+    // Refresh Loom-owned artifacts if the extension (hence bundled server) updated.
+    setImmediate(() => ensureWorkspaceCurrent());
 
     // What's New (returning users). Fires once per version, and ONLY for people
     // upgrading from an older version — a fresh install stores the version

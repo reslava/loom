@@ -174,6 +174,19 @@ npx ts-node packages/cli/src/index.ts status
 npx ts-node --project tests/tsconfig.json scripts/migrate-to-threads.ts --dry-run
 ```
 
+### Dogfooding server config — never a global `loom`
+
+Post-1.19 there is **one server codebase, two sanctioned delivery vehicles, zero persistent global installs.** When dogfooding Loom on this repo (or on Chord Flow), the launched agent / your terminal `claude` must run **your local build**, not a published release — so do **not** put `command: "loom"` in `.mcp.json` (that's the retired global-CLI form; the extension will offer to migrate it away). Two supported dev paths:
+
+- **Through the extension** (Extension Development Host or an installed dev `.vsix`): the extension binds the launched agent to its *bundled* server via `--strict-mcp-config --mcp-config`, so the agent runs whatever `build-all.sh` last produced. Nothing to configure.
+- **Standalone terminal `claude`**: point `.mcp.json` at the local built server explicitly —
+  ```json
+  { "mcpServers": { "loom": { "type": "stdio", "command": "node",
+      "args": ["<repo>/packages/vscode/dist/loom-mcp.js"],
+      "env": { "LOOM_ROOT": "<repo>" } } } }
+  ```
+  Local, explicit, rebuilt by `build-all.sh`, can't drift. (End users instead get the `npx`-pinned form, kept current by the extension's activation-time install.)
+
 ---
 
 ## Document frontmatter conventions
