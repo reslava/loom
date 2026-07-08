@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 10
+last_ai_block: 17
 ---
 # cli-surface-naming Chat 001
 
@@ -165,3 +165,33 @@ Both follow-ups done, full suite green, committing now.
 **(2) edge-resolution for `start-plan` + `complete-step`** — extracted `resolvePlanUlid` into a shared `packages/cli/src/planArg.ts` (mirrors `threadArg.ts`), now used by all three plan commands. `start-plan <plan>` and `complete-step <plan>` resolve a friendly ref (ULID · `weave/thread` · plan id/stem) → the plan's canonical id at the CLI edge, so they're as slug/human-first as `next`. `next.ts` slimmed to import the shared resolver.
 
 Verified: `build-all` clean, `test-all` green (the two new `do-next-step` tests + the context slug-path test all pass; the legacy-fixture path still works because `resolvePlanUlid` matches a plan by its id/stem).
+
+## AI:
+
+Done — thread `app/app-use-case-naming` + its idea are created (draft, priority 150 — deliberately low). Now the honest answer to *"are there more surfaces, this is never ending"*:
+
+## No — it's bounded, and the part that mattered is already done
+
+I audited it rather than guessing. Real state:
+
+| Surface (where a model/user *fills* a value) | Status |
+|---|---|
+| MCP tool schemas (`weave_slug`, `thread_ulid`, `plan_ulid`) | ✅ done (`api-contract-refactor`) |
+| MCP resource **path** placeholders + prompts | ✅ done (`mcp-read-surface-naming` + this thread) |
+| CLI args/flags | ✅ done (`cli-surface-naming`) |
+| VS Code extension **MCP call sites** | ✅ already correct — it passes `{ weave_slug, thread_ulid }` today |
+
+**The bug-causing surfaces are complete.** The `threadId`-means-slug ambiguity only bites where someone fills a value *from the name alone* — every such boundary is now aligned. It literally cannot reproduce the duplicate-thread class of bug anymore.
+
+**What's left is not "surfaces" — it's internal naming:**
+- ~150 `weaveId` locals/deps-params inside `app` use-cases → the new thread.
+- ~179 `weaveId` in the extension — but those are its *internal* tree/state locals, not API args (call sites are already right). Optional, separate.
+- **One genuine straggler:** `loom://state?weaveId=` query param (`state.ts:14`) still names a slug `weaveId`. Small — I folded it into the new idea's scope.
+
+None of that can fill a value wrong. It's readability, not correctness.
+
+## The blunt part
+
+This is internal-consistency polish on a project with **no users yet**. The new thread captures it so it's not lost, but I set it low-priority on purpose and its idea says outright: *after it, the naming initiative is closed.* If I were you I'd leave it in the backlog and spend the next cycle on something that produces a validation signal, not a cleaner variable name only you will ever read. The "never ending" feeling is a real signal — and here the truthful reading is "you're at the end of the part worth doing," not "there's an infinite tail."
+
+Nothing committed for the new thread (idea is draft).
