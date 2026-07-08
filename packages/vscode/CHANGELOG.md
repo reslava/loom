@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.20.0] - 2026-07-08
+
+### Notes
+- No functional change to the extension this release. Lockstep 1.20.0 bump with the CLI and the rest of the monorepo, whose changes are CLI/MCP-facing: `loom://catalog` now covers the whole agent surface (tools + resources + prompts), a consistent `*Ulid`/`*Slug` naming scheme across the API, and stricter `blockedBy` validation.
+
 ## [1.19.0] - 2026-07-07
 
 ### Added

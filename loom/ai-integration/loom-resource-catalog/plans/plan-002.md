@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX05QVG0ZQ343932H8E1C2S1
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.20.0
 steps:
   - id: audited-the-whole-mcp-surface-for
     order: 1

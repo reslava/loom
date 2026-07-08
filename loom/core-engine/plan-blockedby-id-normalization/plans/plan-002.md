@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWGTDV2BKCYGE8THQYVBPXT3
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.20.0
 steps:
   - id: validate-pass-through-slugs-in-resolveblockedbyids
     order: 1

@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KWZ7AN6458PW3DW3G8EE5WR0
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.20.0
 steps:
   - id: cli-internal-call-site-rename
     order: 1

@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KWYVRS94S3K18HDRSVPHNE4K
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.20.0
 steps:
   - id: resource-uri-placeholders-ulid-slug
     order: 1

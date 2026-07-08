@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-07-08
+
+### Added
+- **`loom://catalog` now maps the whole agent surface — tools, resources, *and* prompts.** The catalog used to list only `loom_*` tools; it now groups all three, with a `?kind=tools|resources|prompts` filter and a matching `loom catalog [kind]` CLI command. All three `loom://context` forms (by doc ULID, by thread slug-path `context/thread/{weaveSlug}/{threadSlug}`, and by doc slug-path `context/{weaveSlug}/{threadSlug}/{docSlug}`) are now advertised as first-class resource templates — the two slug-path forms were served but hidden from every MCP client until now.
+
+### Changed
+- **One consistent, model-legible naming scheme across the entire API.** Every reference parameter now says what it takes: a ULID reference is `*Ulid` and a folder/slug reference is `*Slug` — the ambiguous `*Id` suffix is gone. Which form a surface speaks follows its consumer: the **CLI is slug/human-first** (friendly plan and doc refs resolve to a ULID at the edge), the **MCP write tools and workflow prompts are strict ULID**, and the **MCP read/context resources are slug-path human-pointable** (e.g. `loom://context/{weaveSlug}/{threadSlug}/{docSlug}`). Resource-URI placeholders and prompt argument names were renamed to match, and the workflow prompt bodies rewritten to the current tool contract.
+- **`loom resources` list folded into `loom catalog resources`.** `loom resources read <uri>` stays as the generic resource reader.
+
+### Fixed
+- **Unknown `blockedBy` step references are rejected instead of silently stored.** A `blockedBy` entry that wasn't a valid ordinal, a known step id, or a plan id used to be persisted as a dangling edge that quietly never blocked anything. It now throws, naming the bad value and listing the valid step ids and the ordinal form. The `create_plan` / `add_step` / `update_step` schema descriptions were tightened so agents use ordinals or real step slugs instead of inventing `s1`-style ids.
+
 ## [1.19.0] - 2026-07-07
 
 ### Added
@@ -623,7 +635,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.19.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.20.0...HEAD
+[1.20.0]: https://github.com/reslava/loom/releases/tag/v1.20.0
 [1.19.0]: https://github.com/reslava/loom/releases/tag/v1.19.0
 [1.18.0]: https://github.com/reslava/loom/releases/tag/v1.18.0
 [1.17.0]: https://github.com/reslava/loom/releases/tag/v1.17.0
