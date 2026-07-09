@@ -164,7 +164,12 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
       - name: Upgrade npm for OIDC publish support
-        run: npm install -g npm@latest
+        # `npm@latest` is now v12, which drops Node 20 (this runner's version) — it
+        # requires Node >=22, so `npm install -g npm@latest` fails EBADENGINE here.
+        # Pin to the 11.x line: it supports OIDC Trusted Publishing (>=11.5.1) and
+        # still runs on Node 20. Bump this together with the runner's Node when 11.x
+        # is eventually dropped.
+        run: npm install -g npm@11
       - name: Download release artifacts
         uses: actions/download-artifact@v8
         with:
