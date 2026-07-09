@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.1] - 2026-07-09
+
+### Fixed
+- **`loom install` writes a portable `.mcp.json`.** The generated MCP config now sets `LOOM_ROOT` to the `${workspaceFolder}` placeholder instead of a resolved absolute path, so a committed `.mcp.json` is machine-agnostic — it works for every collaborator, and even when the agent is launched from a subdirectory — rather than hard-coding the path of whoever ran `loom install`. Claude Code and the VS Code MCP-host family expand it to the project root. Existing configs pick it up on `loom install --force` or the `command:"loom"` → `npx` migration.
+
 ## [1.21.0] - 2026-07-09
 
 ### Added
@@ -649,7 +654,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.21.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.21.1...HEAD
+[1.21.1]: https://github.com/reslava/loom/releases/tag/v1.21.1
 [1.21.0]: https://github.com/reslava/loom/releases/tag/v1.21.0
 [1.20.0]: https://github.com/reslava/loom/releases/tag/v1.20.0
 [1.19.0]: https://github.com/reslava/loom/releases/tag/v1.19.0

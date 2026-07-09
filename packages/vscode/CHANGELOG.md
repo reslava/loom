@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.21.1] - 2026-07-09
+
+### Fixed
+- **Initialize writes a portable `.mcp.json`.** The generated MCP config now uses the `${workspaceFolder}` placeholder for `LOOM_ROOT` instead of a hard-coded absolute path, so a committed `.mcp.json` works for every collaborator and even when the agent is launched from a subdirectory.
+
 ## [1.21.0] - 2026-07-09
 
 ### Added
