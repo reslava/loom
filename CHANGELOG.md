@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.2] - 2026-07-09
+
+### Fixed
+- **`.mcp.json` no longer breaks standalone terminal agents.** 1.21.1 set `LOOM_ROOT` to `${workspaceFolder}`, but that is a VS Code *editor* variable — a plain `claude` CLI session (or Cursor, or any non-VS-Code MCP host) can't expand it, so it arrived literally and every `loom_*` tool failed to resolve paths (with a `/mcp` "Missing environment variables: workspaceFolder" warning). The server now resolves its own workspace root by walking up from the launch directory to the nearest `.loom/`, and `loom install` writes **no** `LOOM_ROOT` at all — so a committed `.mcp.json` is portable *and* works whether the agent starts at the project root or a subdirectory. An existing `${…}` placeholder is silently healed out of `.mcp.json` on the next `loom install`, and a subdirectory launch prints a one-line note showing the resolved root.
+
 ## [1.21.1] - 2026-07-09
 
 ### Fixed
@@ -654,7 +659,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.21.1...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.21.2...HEAD
+[1.21.2]: https://github.com/reslava/loom/releases/tag/v1.21.2
 [1.21.1]: https://github.com/reslava/loom/releases/tag/v1.21.1
 [1.21.0]: https://github.com/reslava/loom/releases/tag/v1.21.0
 [1.20.0]: https://github.com/reslava/loom/releases/tag/v1.20.0

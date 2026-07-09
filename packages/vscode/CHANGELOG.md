@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.21.2] - 2026-07-09
+
+### Fixed
+- **The bundled server resolves the workspace root itself.** The extension's server — and any AI agent it launches — no longer depends on a `${workspaceFolder}` value in `.mcp.json` (a VS Code editor variable a plain terminal agent can't expand). It now finds the project root by walking up to the nearest `.loom/`, so it works from any launch directory. Opening a project silently heals a stale `${workspaceFolder}` `LOOM_ROOT` out of `.mcp.json`.
+
 ## [1.21.1] - 2026-07-09
 
 ### Fixed
