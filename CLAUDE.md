@@ -324,6 +324,16 @@ Verify with `claude mcp list`.
   - If MCP is genuinely down (rare), output `⚠️ MCP unavailable — editing file directly`, ask Rafa to disable the hook via `/hooks` for this session, and proceed only with explicit go.
 - **Treat MCP tool failures as findings, not friction.** If a `loom_*` tool returns the wrong shape, a malformed doc (missing Steps table, double type-suffix, broken frontmatter), or times out — stop, report what happened in the active chat, and let Rafa decide how to proceed. Routing around a buggy MCP tool by editing the file directly hides the bug; you've now also bypassed the very thing you were supposed to be testing.
 
+<!-- rule:human-pointer-context -->
+### Human pointer → slug-path context resource (never derive a ULID)
+
+**Whenever Rafa points you at a doc or thread by name or path — at session start _or_ at any point mid-session** — resolve it through the **slug-path human-pointable context resource**, never by hand:
+
+- doc: `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` (`docSlug` = `idea` / `design` / `req` or a filename stem like `chat-001`; add `?mode=chat` for a chat)
+- thread: `loom://context/thread/{weaveSlug}/{threadSlug}`
+
+**Never obtain the ULID yourself** with `bash` / `grep` / `Read` on the file. The returned bundle's header carries `target=…` and `thread_ulid=…` — hand those to any ULID-strict write tool or workflow prompt (`do-next-step`, `loom_do_step`, etc.). The slug-path resource *is* the slug→ULID resolver: loading context and resolving the ULID are the same read. Deriving the ULID by hand is off-contract (it bypasses MCP) **and** redundant work.
+
 <!-- rule:mcp-visibility -->
 ### MCP visibility (required)
 
@@ -349,14 +359,14 @@ This makes MCP usage visible. If you don't see these prefixes, either MCP is not
 
 When replying inside a chat doc that lives in a thread (`loom/{weave}/{thread}/chats/...`):
 
-- **First reply for this thread in the current conversation** — read the thread context (idea + design + active plan + any `requires_load` docs) before responding. Load up front, before you start diagnosing — do not answer from code and backfill the read afterward (that is the "context loaded at the wrong time" failure). Emit one visibility line per doc:
+- **First reply for this thread in the current conversation** — read the thread context (idea + design + active plan + any `requires_load` docs) before responding. Load up front, before you start diagnosing — do not answer from code and backfill the read afterward (that is the "context loaded at the wrong time" failure). Because Rafa pointed you here by path, use the **slug-path** form (per the *Human pointer → slug-path* hard rule — don't derive the chat ULID by hand). Emit one visibility line per doc:
   ```
-  📡 MCP: loom://context/{chat-id}?mode=chat
+  📡 MCP: loom://context/{weaveSlug}/{threadSlug}/{chat-stem}?mode=chat
   📄 idea.md — loaded for context
   📄 design.md — loaded for context
   📄 plan-NNN.md — loaded for context  (only if an active plan exists)
   ```
-  (The Unified Context Pipeline assembles global/weave/thread ctx + the chat's parent chain + requires_load; the chat itself is the target.)
+  (The Unified Context Pipeline assembles global/weave/thread ctx + the chat's parent chain + requires_load; the chat itself is the target. The `loom://context/{chat-ulid}?mode=chat` form is equivalent when you already hold the chat's ULID mid-session.)
 - **Same thread, no `refine` / `generate` since last reply** — context is already in the conversation transcript. Do NOT re-read. Emit only the tool-call visibility line:
   ```
   🔧 MCP: loom_append_to_chat(id="{chat-id}")
@@ -380,7 +390,7 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 2. **Load vision and workflow** — read [loom/refs/vision-reference.md](loom/refs/vision-reference.md) (north star — what Loom is for, what manual steps it replaces; ground for the vision-check rule under Collaboration style) and [loom/refs/workflow-reference.md](loom/refs/workflow-reference.md) (canonical loop, phase definitions, and transitions). Emit `🌟 vision + workflow loaded` on success.
 3. **Load the tool catalog** — read the `loom://catalog` resource so the grouped `loom_*` surface index (tools + resources + prompts) is in context *before* any tool is needed. Emit `📡 MCP: loom://catalog` then `🗂️ loom-catalog loaded — surface index ready`. This is mandatory and unconditional: it removes the "first `ToolSearch` runs blind" moment that causes the index to be skipped. Once loaded here, never `ToolSearch` for a `loom_*` tool without first consulting this index — go straight from catalog → `ToolSearch select:<exact name>`.
 4. **Load the project map** — read `loom://state?shape=summary`: the cheap weave/thread skeleton + status (a few KB), **not** the full state graph (~2 MB — every plan's every step). Emit `📡 MCP: loom://state?shape=summary` then `🧵 Active: <list of active/implementing thread IDs>`. This is the always-loaded orientation read; it replaces the old full-state read and any hand-written "active work" pointer. The map is enough to know what threads exist, their status, and where the active work is — never read the full `loom://state` at session start.
-5. **Load only the pointed thread deeply.** When Rafa pointed you at a chat/doc/thread, the pointer *is* the active-thread signal — scope the deep load to it: call the `do-next-step` prompt with that thread's active planUlid (or read `loom://context/thread/{weaveSlug}/{threadSlug}`). This bundles:
+5. **Load only the pointed thread deeply.** When Rafa pointed you at a chat/doc/thread, the pointer *is* the active-thread signal — scope the deep load to it via the **slug-path human-pointable resource** (`loom://context/{weaveSlug}/{threadSlug}/{docSlug}`, or `loom://context/thread/{weaveSlug}/{threadSlug}` for the thread's primary doc). **Never derive the thread/plan ULID by hand — the bundle header returns it** (see the *Human pointer → slug-path* hard rule under AI session rules). When the thread has an active plan, follow up with the `do-next-step` prompt using that returned `planUlid`. This bundles:
    - Thread context (idea, design, current plan, requires_load docs)
    - Next incomplete step with instructions
    - Pre-filled `loom_complete_step` call ready to execute
