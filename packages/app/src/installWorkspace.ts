@@ -3,6 +3,7 @@ import * as path from 'path';
 import { initLocal } from './init';
 import { ConfigRegistry } from '../../fs/dist';
 import { today } from '../../core/dist';
+import { isSelfHosting } from './utils/loomSettings';
 
 // Lockstep version of the Loom packages — used to pin the `.mcp.json` npx command
 // so the Claude Code agent fetches the exact version that wrote the config.
@@ -34,6 +35,11 @@ export interface InstallWorkspaceResult {
     ctxWritten: boolean;
     settingsJsonWritten: boolean;
     settingsLocalJsonWritten: boolean;
+    /**
+     * Non-null when install short-circuited without touching any file. `'self-hosting'`
+     * means `.loom/settings.json` declared `selfHosting: true` (see the guard below).
+     */
+    skipped: 'self-hosting' | null;
 }
 
 const LOOM_CLAUDE_MD = `# Loom Session Contract
@@ -400,6 +406,30 @@ export async function installWorkspace(
     deps: InstallWorkspaceDeps
 ): Promise<InstallWorkspaceResult> {
     const root = deps.cwd;
+
+    // Self-hosting guard: the Loom source repo (and forks of it) own a bespoke recursive
+    // CLAUDE.md and must never receive the generic `.loom/CLAUDE.md` template or the root
+    // CLAUDE.md import patch. When `.loom/settings.json` declares `selfHosting: true`,
+    // install is a TOTAL no-op — it writes nothing and reports `skipped: 'self-hosting'`.
+    // This sits ABOVE the `input.force` handling on purpose: `--force` must not punch
+    // through the guard. It fires for every entry point — the CLI, the `loom_install` MCP
+    // tool, and the extension's silent activation-time refresh — because they all funnel
+    // through installWorkspace.
+    if (isSelfHosting(root, deps.fs)) {
+        return {
+            path: root,
+            loomDirCreated: false,
+            claudeMdWritten: false,
+            claudeLocalMdWritten: false,
+            rootClaudeMdPatched: false,
+            mcpJsonWritten: false,
+            ctxWritten: false,
+            settingsJsonWritten: false,
+            settingsLocalJsonWritten: false,
+            skipped: 'self-hosting',
+        };
+    }
+
     const loomDir = path.join(root, '.loom');
     const loomClaudeMdPath = path.join(loomDir, 'CLAUDE.md');
     const rootClaudeMdPath = path.join(root, 'CLAUDE.md');
@@ -539,5 +569,5 @@ export async function installWorkspace(
         settingsLocalJsonWritten = true;
     }
 
-    return { path: root, loomDirCreated, claudeMdWritten, claudeLocalMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten };
+    return { path: root, loomDirCreated, claudeMdWritten, claudeLocalMdWritten, rootClaudeMdPatched, mcpJsonWritten, ctxWritten, settingsJsonWritten, settingsLocalJsonWritten, skipped: null };
 }

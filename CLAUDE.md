@@ -1,6 +1,3 @@
-@.loom/CLAUDE.md
-@CLAUDE-LOCAL.md
-
 # CLAUDE.md — REslava Loom Session Contract
 
 ## Required session-start context

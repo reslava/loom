@@ -11,6 +11,12 @@ export async function installCommand(options: { force?: boolean; migrateMcpComma
             { fs, registry, cwd: process.cwd() }
         );
 
+        if (result.skipped === 'self-hosting') {
+            console.log(chalk.yellow('🧵 self-hosting repo — skipped.'));
+            console.log(chalk.gray('   .loom/settings.json declares selfHosting: true — no files were written (--force does not override this).'));
+            return;
+        }
+
         console.log(chalk.green('🧵 Loom installed successfully.\n'));
         console.log(`   Workspace: ${result.path}`);
         console.log(`   .loom/        ${result.loomDirCreated ? chalk.green('created') : chalk.gray('already exists')}`);

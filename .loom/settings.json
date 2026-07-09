@@ -1,4 +1,5 @@
 {
   "user.name": "Rafa:",
-  "ai.model": "AI:"
+  "ai.model": "AI:",
+  "selfHosting": true
 }
