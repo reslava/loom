@@ -12,6 +12,7 @@ tags: []
 parent_id: de_01KX1CVTAQZJMAQCRP6TJPH1Q8
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.21.0
 steps:
   - id: prove-the-terminal-binding-de-risk
     order: 1

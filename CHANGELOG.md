@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-07-09
+
+### Added
+- **Your AI agent now always runs the exact Loom you have installed.** When the VS Code extension launches an AI action, the agent is bound directly to the extension's *bundled* server (via `--strict-mcp-config`), so it can't fall out of sync with the extension or run a stale global `loom`. Any other MCP servers you've configured stay available to the agent.
+- **Loom keeps itself in sync.** Opening a project after an extension update silently refreshes your Loom-owned files — the `.loom/CLAUDE.md` session contract and the `.mcp.json` version pin — with no "did I re-run install?" ritual, and without touching your own files (`CLAUDE-LOCAL.md`, `ctx.md`, settings).
+- **One-click migration off the legacy CLI config.** If your `.mcp.json` still points at a global `command: "loom"` server (the pre-1.19 form), the extension offers to update it to the pinned `npx` form; `loom install --migrate-mcp-command` does the same from the terminal.
+
+### Changed
+- **The global `loom` CLI is retired as a dependency — 1-click, always-current, zero-config.** There is now one server codebase and two delivery vehicles — the extension bundle (VS Code) and a pinned `npx @reslava/loom@<version>` (terminal / Cursor / CI) — and **zero persistent global installs**. The `@reslava/loom` npm package still ships; `npm i -g` is now optional, never required, and never the MCP-server form. READMEs, the CLI guide, and the architecture reference were swept to match.
+- **The `.mcp.json` version pin self-heals.** On activation the pinned `npx` version is bumped to the installed version — only for the canonical pinned shape; any custom or local-path config is left untouched.
+
+### Fixed
+- **`loom install` is idempotent.** A byte-identical `.loom/CLAUDE.md` is no longer rewritten on every install — it neither dirties your git tree nor reports a phantom "written" — and `--force` reports only what actually changed.
+
 ## [1.20.0] - 2026-07-08
 
 ### Added
@@ -635,7 +649,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.20.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.21.0...HEAD
+[1.21.0]: https://github.com/reslava/loom/releases/tag/v1.21.0
 [1.20.0]: https://github.com/reslava/loom/releases/tag/v1.20.0
 [1.19.0]: https://github.com/reslava/loom/releases/tag/v1.19.0
 [1.18.0]: https://github.com/reslava/loom/releases/tag/v1.18.0

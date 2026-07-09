@@ -1,5 +1,15 @@
 # Loom VS Code Extension — Changelog
 
+## [1.21.0] - 2026-07-09
+
+### Added
+- **AI actions now run the extension's own bundled Loom server.** When you click Generate / Refine / Do-Step / Chat Reply, the launched Claude agent is bound to the *same bundled server the extension uses* (via `--strict-mcp-config`), so the agent is always the exact version you have installed — never a separate global `loom` that could drift out of sync. Any other MCP servers in your `.mcp.json` stay available to the agent.
+- **Self-updating setup.** Opening a project after updating the extension silently brings your `.loom/CLAUDE.md` session rules and `.mcp.json` version pin current — no manual re-install — while leaving your own files (`CLAUDE-LOCAL.md`, `ctx.md`, settings) untouched.
+- **One-click MCP-config migration.** If your `.mcp.json` still uses the old `command: "loom"` global-CLI form, the extension offers to update it to the bundled/pinned form.
+
+### Changed
+- **No global `loom` needed for the AI either.** The agent Loom launches no longer depends on anything on your PATH — completing the "1-click, no CLI" promise for the AI path, not just the extension's own actions.
+
 ## [1.20.0] - 2026-07-08
 
 ### Notes
