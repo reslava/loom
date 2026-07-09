@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 8
+last_ai_block: 10
 ---
 # self-hosting-repo-guard-for-loom-install Chat 001
 
@@ -169,3 +169,15 @@ Not committed yet — there's a real diff pending (packages, root `CLAUDE.md`, `
 ## AI:
 
 Committing to `main` as a single feature commit: the guard (`installWorkspace.ts`, new `loomSettings.ts`, CLI reporting), the `selfHosting` flag in `.loom/settings.json`, the root `CLAUDE.md` import removal, and this thread's new docs (idea, thread, chat, plan-001 + done). The two deleted files don't appear in the diff — they were gitignored, never tracked.
+
+## AI:
+
+Good tell in that `/context` snapshot — and it actually validates the feature. Memory files still lists both deleted files:
+
+- `.loom/CLAUDE.md` — 6.5k tokens
+- `CLAUDE-LOCAL.md` — 17 tokens
+- `CLAUDE.md` (root) — 13.8k tokens
+
+That's **session-start state**: all three were auto-loaded via the root `CLAUDE.md` `@import`s *before* I deleted the files and stripped the imports this session, so they're pinned in this conversation's context and won't drop until a fresh session.
+
+The payoff shows up on the **next session** here: root `CLAUDE.md` no longer imports anything, and the two files are gone, so only the recursive contract (~13.8k) loads. This drops the generic `.loom/CLAUDE.md` template (~6.5k) that was being layered *on top* of it — that layering was the actual danger (wrong/duplicate contract), and the ~6.5k is a free side benefit. Reload the window (or start a fresh `claude`) and the Memory files list should show root `CLAUDE.md` only.
