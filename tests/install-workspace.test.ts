@@ -141,9 +141,11 @@ async function run() {
             await installWorkspace({}, { fs, registry, cwd: dir });
             const mcpPath = path.join(dir, '.mcp.json');
             const fresh = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
-            // Generated .mcp.json must be portable — the ${workspaceFolder} placeholder,
-            // never a resolved absolute machine path (Claude Code / VS Code expand it).
-            assert(fresh.mcpServers.loom.env.LOOM_ROOT === '${workspaceFolder}', 'generated .mcp.json LOOM_ROOT is the portable ${workspaceFolder}, not an absolute path');
+            // Generated .mcp.json is portable by carrying NO LOOM_ROOT at all — the
+            // server resolves its own root by walking up to .loom/. The old
+            // ${workspaceFolder} placeholder was a VS-Code-only var a terminal claude
+            // could not expand (the v1.21.1 regression).
+            assert(fresh.mcpServers.loom.env === undefined, 'generated .mcp.json writes no LOOM_ROOT env (server resolves its own root)');
             const canonicalArg = fresh.mcpServers.loom.args.find((a: string) => a.startsWith('@reslava/loom@'));
             // Corrupt to a stale version and add an unrelated server.
             fresh.mcpServers.loom.args = ['-y', '@reslava/loom@0.0.1', 'mcp'];
@@ -188,8 +190,44 @@ async function run() {
             }, null, 2), 'utf8');
             await installWorkspace({ migrateMcpCommand: true }, { fs, registry, cwd: dir2 });
             const mig2 = JSON.parse(fs.readFileSync(mcpPath2, 'utf8'));
-            assert(mig2.mcpServers.loom.env.LOOM_ROOT === '${workspaceFolder}', 'migration without prior env sets the portable ${workspaceFolder}');
-            console.log('    ✅ migration is flag-gated, preserves env, and defaults to ${workspaceFolder}');
+            assert(mig2.mcpServers.loom.env === undefined, 'migration without prior env writes no LOOM_ROOT (server resolves its own root)');
+            console.log('    ✅ migration is flag-gated, preserves env, and writes no LOOM_ROOT');
+        }
+
+        // ── test 10: silent LOOM_ROOT env-heal (placeholder stripped, concrete kept) ─
+        console.log('  • env-heal: unexpanded ${…} LOOM_ROOT stripped, concrete LOOM_ROOT untouched...');
+        {
+            const dir = await freshProject('loom-install-test-10');
+            await installWorkspace({}, { fs, registry, cwd: dir });
+            const mcpPath = path.join(dir, '.mcp.json');
+
+            // (a) A stale ${workspaceFolder} placeholder (what v1.21.1 shipped) is healed away.
+            const withPlaceholder = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            withPlaceholder.mcpServers.loom.env = { LOOM_ROOT: '${workspaceFolder}' };
+            fs.writeFileSync(mcpPath, JSON.stringify(withPlaceholder, null, 2), 'utf8');
+            const rHeal = await installWorkspace({}, { fs, registry, cwd: dir });
+            const healed = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            assert(healed.mcpServers.loom.env === undefined, 'unexpanded ${…} LOOM_ROOT stripped, emptied env dropped');
+            assert(rHeal.mcpJsonWritten === true, 'install reports .mcp.json written when the placeholder was healed');
+
+            // (b) A concrete LOOM_ROOT a user set on purpose is left untouched, and a
+            //     sibling env key survives the placeholder strip.
+            const withConcrete = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            withConcrete.mcpServers.loom.env = { LOOM_ROOT: '/real/path', KEEP: 'y' };
+            fs.writeFileSync(mcpPath, JSON.stringify(withConcrete, null, 2), 'utf8');
+            const rKeep = await installWorkspace({}, { fs, registry, cwd: dir });
+            const kept = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            assert(kept.mcpServers.loom.env.LOOM_ROOT === '/real/path', 'concrete LOOM_ROOT left untouched');
+            assert(rKeep.mcpJsonWritten === false, 'no write when LOOM_ROOT is concrete (nothing to heal)');
+
+            const withSibling = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            withSibling.mcpServers.loom.env = { LOOM_ROOT: '${workspaceFolder}', KEEP: 'y' };
+            fs.writeFileSync(mcpPath, JSON.stringify(withSibling, null, 2), 'utf8');
+            await installWorkspace({}, { fs, registry, cwd: dir });
+            const partial = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            assert(partial.mcpServers.loom.env.LOOM_ROOT === undefined, 'placeholder LOOM_ROOT stripped from a multi-key env');
+            assert(partial.mcpServers.loom.env.KEEP === 'y', 'sibling env key preserved through the strip');
+            console.log('    ✅ placeholder healed, concrete + sibling keys preserved');
         }
 
         console.log('\n✨ All install-workspace tests passed!\n');

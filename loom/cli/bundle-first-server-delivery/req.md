@@ -4,9 +4,9 @@ id: rq_01KX1DGTB0FNKX6QB6Z86JZ2HQ
 title: Bundle-first server delivery — retire the global loom CLI as a Loom dependency — Requirements
 status: locked
 created: 2026-07-08
-updated: 2026-07-08
-version: 1
-design_version: 5
+updated: 2026-07-09
+version: 2
+design_version: 6
 tags: []
 parent_id: de_01KX1CVTAQZJMAQCRP6TJPH1Q8
 requires_load: []
@@ -24,6 +24,8 @@ requires_load: []
 - `IN7` A shared `bundledServerSpec(root)` as the single source of truth for how the server is spawned, used by both `mcp-client.ts` and `launchClaude`; the pure `buildAgentMcpConfig` is unit-tested.
 - `IN8` Dogfooding convention documented (bundle via Extension Development Host / dev `.vsix`, or an explicit local-path `command:"node"` config) for the Loom repo and Chord Flow.
 - `IN9` Tests: installWorkspace pin-heal + migrate + idempotency; `buildAgentMcpConfig` loom-only (a) and merge (c); the terminal-binding unknown validated by a real launch.
+- `IN10` `.mcp.json` carries **no `LOOM_ROOT`**; the server resolves the workspace root itself via a shared `resolveLoomRoot(env, cwd)` — an explicit `LOOM_ROOT` wins **unless** it is an unexpanded `${…}` placeholder, otherwise it walks up from `cwd` to the nearest ancestor containing `.loom/`, else falls back to `cwd`. This makes the committed config portable and correct whether `claude` is launched from the project root **or a subdirectory**, replacing the VS-Code-only `${workspaceFolder}` placeholder that a standalone terminal agent cannot expand (the v1.21.1 / commit 3244bbf regression).
+- `IN11` **Silent, in-shape `LOOM_ROOT` env-heal**: a non-force `loom_install` strips an unexpanded `${…}` `LOOM_ROOT` from an existing `.mcp.json` (dropping an emptied `env`), never touching a concrete value — so already-shipped 1.21.1 configs self-heal on activation and lose the `/mcp` "Missing environment variables: workspaceFolder" warning.
 
 ### ❌ Excluded
 
@@ -34,6 +36,7 @@ requires_load: []
 - `EX5` Silent rewriting of `command:"loom"` (the migration is always user-consented).
 - `EX6` `--force` on the activation-time install (would clobber user-owned files).
 - `EX7` Touching any `.mcp.json` shape other than the two handled cases; custom/dev/local-path configs are left untouched.
+- `EX8` Writing a resolved **absolute** `LOOM_ROOT` into `.mcp.json` (rejected — not committable/portable; superseded by the walk-up resolution in `IN10`), and altering a user's **concrete** `LOOM_ROOT` value (only the unexpanded `${…}` placeholder is healed).
 
 ### ⛓ Constraints
 
@@ -45,3 +48,4 @@ requires_load: []
 - `C6` `bundledServerSpec` is the single source of truth — the in-process client transport and the launched-agent config must not diverge in how they spawn the server.
 - `C7` Build via `./scripts/build-all.sh`, test via `./scripts/test-all.sh`; new tests live in root `tests/` in the ts-node style importing `dist`.
 - `C8` The npx pin heals to the shared **lockstep** `LOOM_VERSION` (never an independent per-package version).
+- `C9` `resolveLoomRoot` lives in `packages/fs` (the IO layer — it probes the filesystem for `.loom/`) and is the **single** root resolver imported by all three server entry points (`packages/mcp/src/index.ts`, `packages/cli/src/index.ts`, `packages/vscode/src/loom-mcp-entry.ts`); none re-implements root resolution. The `LOOM_ROOT` env-heal is in-shape only (`C4` discipline) and silent (a within-shape repair, not a semantic change, so unlike `C5` it needs no consent).

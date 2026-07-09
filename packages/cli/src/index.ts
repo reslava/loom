@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createLoomMcpServer } from '../../mcp/dist/server';
+import { resolveLoomRoot, loomRootNotice } from '../../fs/dist';
 import { buildServerTelemetry, buildCliTelemetry, startTelemetrySession, flushOnExit, maybeShowCliNotice } from '../../mcp/dist/telemetryConfig';
 import {
     trackCommandInvoked,
@@ -307,7 +308,9 @@ program
     .description('Start the Loom MCP server (stdio transport)')
     .action(async () => {
         // Server is bundled in-process (see esbuild.js) — no runtime path to mcp/dist.
-        const root = process.env['LOOM_ROOT'] ?? process.cwd();
+        const { root, source } = resolveLoomRoot(process.env, process.cwd());
+        const notice = loomRootNotice(source, root, process.cwd());
+        if (notice) console.error(notice);
         const telemetry = buildServerTelemetry(pkg.version);
         startTelemetrySession(telemetry);
         const server = createLoomMcpServer(root, telemetry);

@@ -72,10 +72,7 @@ Want a coding agent (Claude Code, Cursor, …) to drive Loom directly? `loom ins
     "loom": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": {
-        "LOOM_ROOT": "${workspaceFolder}"
-      }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }

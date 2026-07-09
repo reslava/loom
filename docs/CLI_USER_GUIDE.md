@@ -63,10 +63,7 @@ Add **`.mcp.json`** to your project root:
     "loom": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": {
-        "LOOM_ROOT": "${workspaceFolder}"
-      }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }

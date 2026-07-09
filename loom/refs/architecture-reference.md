@@ -155,7 +155,7 @@ User
              └── Sampling   — server asks host agent to run LLM inference (API-key path only)
 
 Loom MCP config (Claude Code):
-  { "mcpServers": { "loom": { "command": "npx", "args": ["-y", "@reslava/loom@<version>", "mcp"], "env": { "LOOM_ROOT": "${workspaceFolder}" } } } }
+  { "mcpServers": { "loom": { "command": "npx", "args": ["-y", "@reslava/loom@<version>", "mcp"] } } }
 ```
 
 **Stage 2 — MCP is the single source of truth.** No manual `.loom/_status.md` file.

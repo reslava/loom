@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 59
+last_ai_block: 60
 ---
 # bundle-first-server-delivery Chat 001
 
@@ -1134,3 +1134,15 @@ So **Claude Code expands `${workspaceFolder}` to the project root — robustly, 
 Only affects newly-generated/migrated configs; existing users pick it up on `loom install --force` or a migration.
 
 Committing this now. It's a clean, self-contained improvement — ready to ship as **`1.21.1`** whenever you want (the CI npm fix is already on `main`, so the pipeline will go smoothly this time), or batch it with the next work. Your call on timing.
+
+## AI:
+
+**v1.21.1 is fully live.** ✅ (run: completed/success)
+
+- **npm** — `@reslava/loom@1.21.1`
+- **VS Code Marketplace** + **Open VSX** — published
+- **GitHub release** — https://github.com/reslava/loom/releases/tag/v1.21.1
+
+The pipeline ran **clean this time** — `publish-npm` ✓ in 16s (the `npm@11` fix from the last release did its job). The ~12-minute wait was just **GitHub's runner queue being slow to pick up the jobs** (`guard`/`build-test`/publish all sat queued), not a failure — once runners were assigned, the whole graph finished in ~3 minutes. Nothing to fix; that's GitHub infra latency.
+
+So the portable-`.mcp.json` fast-follow (`plan-003`) is shipped. The `bundle-first-server-delivery` thread is done end to end: idea → design → req → plan-001 (idempotency) → plan-002 (feature) → plan-003 (portability), all live across two releases (1.21.0 + 1.21.1), with the CI publish path hardened along the way.

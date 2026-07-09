@@ -256,19 +256,21 @@ config use `~/.claude.json` instead.
     "loom": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": {
-        "LOOM_ROOT": "${workspaceFolder}"
-      }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }
 ```
 
 This is the canonical form `loom install` writes (pinned to the installing version;
-the extension self-heals the pin on upgrade). The legacy `"command": "loom"` global-CLI
-form is **retired** — the extension offers to migrate it. For *dogfooding this repo* on
-your local build, use a local-path dev config instead (see [Dogfooding server config](#dogfooding-server-config--never-a-global-loom)).
+the extension self-heals the pin on upgrade). No `LOOM_ROOT` is set — the server
+resolves its own workspace root by walking up from the launch directory to the nearest
+`.loom/`, so the config is committable and works whether `claude` is launched from the
+project root or a subdirectory. (The old `LOOM_ROOT: "${workspaceFolder}"` was a
+VS-Code-only editor variable a standalone terminal `claude` cannot expand; an existing
+one is healed away on install.) The legacy `"command": "loom"` global-CLI form is
+**retired** — the extension offers to migrate it. For *dogfooding this repo* on your
+local build, use a local-path dev config instead (see [Dogfooding server config](#dogfooding-server-config--never-a-global-loom)).
 
 Project-scoped MCP servers require one-time approval per project — run `claude`
 interactively in the project root and approve `loom`, or use `claude /mcp`.

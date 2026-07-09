@@ -9,12 +9,15 @@
 // stdout is the JSON-RPC channel; only ever write diagnostics to stderr.
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createLoomMcpServer } from '../../mcp/dist/server';
+import { resolveLoomRoot, loomRootNotice } from '../../fs/dist';
 import { buildServerTelemetry, startTelemetrySession, flushOnExit } from '../../mcp/dist/telemetryConfig';
 
 const pkg = require('../package.json') as { version: string };
 
 async function main(): Promise<void> {
-    const root = process.env['LOOM_ROOT'] ?? process.cwd();
+    const { root, source } = resolveLoomRoot(process.env, process.cwd());
+    const notice = loomRootNotice(source, root, process.cwd());
+    if (notice) console.error(notice);
     // Telemetry is constructed here but stays a no-op unless a PostHog key is
     // baked into the bundle at release time (see esbuild define, step 3) and the
     // user has opted in — a key-less build can never send.

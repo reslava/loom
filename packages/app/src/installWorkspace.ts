@@ -97,14 +97,17 @@ that file is for permissions/hooks/env and ignores \`mcpServers\`):
     "loom": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": {
-        "LOOM_ROOT": "\${workspaceFolder}"
-      }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }
 \`\`\`
+
+No \`LOOM_ROOT\` is set: the server resolves its own workspace root by walking up from
+the launch directory to the nearest \`.loom/\`, so the config is committable and works
+whether \`claude\` is launched from the project root or a subdirectory. (The old
+\`LOOM_ROOT: "\${workspaceFolder}"\` was a VS-Code-only editor variable a standalone
+terminal \`claude\` cannot expand.)
 
 Project-scoped MCP servers need a one-time approval per project — run \`claude\`
 interactively in the project root and approve the \`loom\` server, or use
@@ -360,9 +363,35 @@ function migrateMcpCommandToNpx(fsDep: typeof fs, mcpJsonPath: string, version: 
     loom.type = loom.type ?? 'stdio';
     loom.command = 'npx';
     loom.args = ['-y', `@reslava/loom@${version}`, 'mcp'];
-    if (!loom.env || typeof loom.env !== 'object') {
-        loom.env = { LOOM_ROOT: '${workspaceFolder}' };
+    // No LOOM_ROOT is written — the server resolves its own root (resolveLoomRoot). A
+    // pre-existing env is preserved as-is (an unexpanded ${…} LOOM_ROOT in it is cleaned
+    // up by the env-heal in installWorkspace), we just never add one.
+    return writeIfChanged(fsDep, mcpJsonPath, JSON.stringify(parsed, null, 2));
+}
+
+/**
+ * Silently heal a broken `LOOM_ROOT` inside an EXISTING .mcp.json — ONLY when the value
+ * is an unexpanded `${…}` placeholder (e.g. the `${workspaceFolder}` that v1.21.1 wrote,
+ * a VS-Code-only editor variable a standalone terminal `claude` cannot expand). The key
+ * is deleted so the server falls back to resolveLoomRoot's walk-up; if that empties the
+ * `env` object it is dropped too. A CONCRETE `LOOM_ROOT` (a real path a user set on
+ * purpose) is never touched — only the placeholder. Like healMcpPin this is an in-shape,
+ * within-shape repair (no semantic change — the server already ignores the placeholder),
+ * so it is safe to run unprompted. Returns true if it rewrote the file.
+ */
+function healMcpLoomRootEnv(fsDep: typeof fs, mcpJsonPath: string): boolean {
+    let parsed: any;
+    try {
+        parsed = JSON.parse(fsDep.readFileSync(mcpJsonPath, 'utf8'));
+    } catch {
+        return false; // unparseable — never touch
     }
+    const loom = parsed?.mcpServers?.loom;
+    if (!loom || !loom.env || typeof loom.env !== 'object') return false;
+    const root = loom.env.LOOM_ROOT;
+    if (typeof root !== 'string' || !/\$\{.*\}/.test(root)) return false; // only the placeholder
+    delete loom.env.LOOM_ROOT;
+    if (Object.keys(loom.env).length === 0) delete loom.env; // drop an emptied env
     return writeIfChanged(fsDep, mcpJsonPath, JSON.stringify(parsed, null, 2));
 }
 
@@ -429,18 +458,19 @@ export async function installWorkspace(
 
     // Step 4: write .mcp.json at project root (skip if exists and not --force).
     // The Claude Code agent spawns its own server via npx — no global `loom` install
-    // required, pinned to this exact (lockstep) version to avoid skew. LOOM_ROOT uses
-    // the portable `${workspaceFolder}` placeholder rather than a resolved absolute
-    // path: Claude Code (verified) and the VS Code MCP-host family expand it to the
-    // project root — even when the agent is launched from a subdirectory — so the file
-    // is committable and machine-agnostic instead of hard-coding one contributor's path.
+    // required, pinned to this exact (lockstep) version to avoid skew. No `LOOM_ROOT`
+    // is written: the server resolves its own root (resolveLoomRoot) by walking up from
+    // cwd to the nearest `.loom/`, so the file is committable/machine-agnostic AND works
+    // from a subdirectory. The old `LOOM_ROOT: "${workspaceFolder}"` was a VS-Code-only
+    // editor variable a standalone terminal `claude` — this file's only real reader —
+    // cannot expand; it leaked through literally and broke path resolution (the v1.21.1
+    // regression). An unexpanded `${…}` in an existing file is healed away below.
     const mcpJson = JSON.stringify({
         mcpServers: {
             loom: {
                 type: 'stdio',
                 command: 'npx',
                 args: ['-y', `@reslava/loom@${LOOM_VERSION}`, 'mcp'],
-                env: { LOOM_ROOT: '${workspaceFolder}' },
             },
         },
     }, null, 2);
@@ -457,6 +487,7 @@ export async function installWorkspace(
             changed = migrateMcpCommandToNpx(deps.fs, mcpJsonPath, LOOM_VERSION) || changed;
         }
         changed = healMcpPin(deps.fs, mcpJsonPath, LOOM_VERSION) || changed;
+        changed = healMcpLoomRootEnv(deps.fs, mcpJsonPath) || changed;
         mcpJsonWritten = changed;
     }
 

@@ -38,8 +38,7 @@ reads and writes this memory via the Loom MCP server.
   "mcpServers": {
     "loom": {
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": { "LOOM_ROOT": "${workspaceFolder}" }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }

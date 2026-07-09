@@ -2,6 +2,7 @@
 export * from './utils/pathUtils';
 export * from './utils/workspaceUtils';
 export { moveTreeOrThrow } from './utils/moveTree';
+export { resolveLoomRoot, loomRootNotice, LoomRootSource, ResolvedLoomRoot } from './resolveLoomRoot';
 
 // Serializers
 export { loadDoc, FrontmatterParseError } from './serializers/frontmatterLoader';

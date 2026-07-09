@@ -216,8 +216,7 @@ agent — Claude Code, Cursor, Continue, Cline — can read and write Loom state
     "loom": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@reslava/loom@<version>", "mcp"],
-      "env": { "LOOM_ROOT": "${workspaceFolder}" }
+      "args": ["-y", "@reslava/loom@<version>", "mcp"]
     }
   }
 }

@@ -201,6 +201,11 @@ run_test tests/create-with-body.test.ts
 # idempotent .loom/CLAUDE.md write, in-shape npx pin-heal, and flag-gated command:"loom"→npx migration
 run_test tests/install-workspace.test.ts
 
+# resolve-loom-root: the shared server root resolver — explicit env wins, an unexpanded
+# ${…} placeholder is ignored, a subdirectory launch walks up to the nearest .loom/, and
+# no workspace degrades to cwd-fallback; plus the boot-notice text for each case
+run_test tests/resolve-loom-root.test.ts
+
 # agent-mcp-config: the launched-agent --mcp-config builder — loom-only form, and merging
 # the user's other .mcp.json servers with the bundled loom winning the loom key
 run_test tests/agent-mcp-config.test.ts
