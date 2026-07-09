@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 15
+last_ai_block: 19
 ---
 # bundle-first-server-delivery mcp bug Chat 002
 
@@ -292,3 +292,69 @@ Done — plan-004 fully implemented, built, tested, and verified live. Summary:
 **Still open (flagged earlier, NOT in this commit):** once `IN4` (silent install-on-activation) ships, opening this repo in VS Code will re-patch the root `CLAUDE.md` imports and regenerate `.loom/CLAUDE.md`. Deleting them now is only durable if `loom_install` learns to detect a self-hosting Loom repo and skip the CLAUDE-patch + template write. Want a follow-up thread/step for that?
 
 Committing now.
+
+## Rafa:
+
+I packaged and installed vsix in a 1.21.1 project
+do not delete
+      ,
+      "env": {
+        "LOOM_ROOT": "${workspaceFolder}"
+      }
+
+I downloaded the version to 
+      "args": [
+        "-y",
+        "@reslava/loom@1.20.0",
+        "mcp"
+      ],      
+
+not updated version
+not deleted "LOOM_ROOT": "${workspaceFolder}"
+
+when this is tested and fixed 
+we will do loom_quick_ship for detect a self-hosting Loom repo and skip the CLAUDE-patch + template write.
+
+## AI:
+
+Diagnosed. The heal logic is **correct end-to-end** — I reproduced it through the built CLI (same `installWorkspace` the bundled server runs) against your exact config:
+
+```
+BEFORE: "@reslava/loom@1.20.0" + "env": { "LOOM_ROOT": "${workspaceFolder}" }
+AFTER : "@reslava/loom@1.21.1"  (env removed entirely)
+```
+
+Both healed: pin bumped, placeholder stripped. So this is **not** an app bug. The extension calls that same code via `ensureWorkspaceCurrent()` (`extension.ts:467`) → `loom_install {}` on activation. Two things are gating your test:
+
+1. **Your vsix predates this fix.** The env-heal (`healMcpLoomRootEnv`) was only just committed (`db3aa26`). A vsix packaged before that has no env-strip at all — it would heal the *pin* but never touch `LOOM_ROOT`. You need to rebuild the vsix from current `main`.
+2. **The activation install is once-per-session, and only at activation.** `ensureWorkspaceCurrent` is guarded by `workspaceRefreshedThisSession` and fires once via `setImmediate` at activate. If you *installed the vsix, then manually downgraded the pin and re-added the placeholder*, the one-shot refresh already ran **before** your edits — so it won't re-heal until the next fresh activation. Also note `.mcp.json` lives at the project **root**, and the extension's watchers are `**/.loom/**` and `**/loom/**/*.md` — neither watches `.mcp.json`, so a mid-session edit to it triggers no re-heal.
+
+**So to see it work:** rebuild the vsix from current `main`, install it, then **Reload Window** (or reopen the project) *after* your manual `.mcp.json` edits. On that fresh activation the pin heals to the bundled version and the `${workspaceFolder}` env is stripped.
+
+Can you confirm your test order — was the vsix built after `db3aa26`, and did you reload the window after downgrading the pin? If it's a fresh build + reload and it *still* doesn't heal, there's a deeper extension-trigger bug and I'll instrument the activation path directly.
+
+**Design question this surfaces:** should the extension also **watch `.mcp.json`** and re-heal on drift (not just at activation)? It'd make drift self-correct mid-session (and make testing trivial), but it's a slightly wider behavior than the "heal on open" model we designed, and needs a small guard so it doesn't fight `workspaceRefreshedThisSession`. Your call — I'd lean yes (it closes a real gap), as a follow-up alongside the self-hosting-repo guard you want to quick-ship.
+
+## Rafa:
+
+I told you I already packaged vsix and installed it (line 298)
+the problem was I forgot reload window, now worked
+
+weekly limits 89%
+if we can fold in loom_quick_ship for detect a self-hosting Loom repo
+and do-release 1.21.2
+do it
+if not then do-release
+
+## AI:
+
+Good — reload was the only missing step; the heal itself is correct.
+
+**Going with do-release only — deferring the self-hosting guard.** Reasoning:
+
+- `loom_quick_ship` records *already-done* work. The self-hosting guard isn't written yet, so quick-shipping it would be a false record.
+- More importantly, it needs a real **design decision I shouldn't rush under the weekly-limit crunch**: *what is the detection signal for "this is the Loom source repo"?* Get that wrong and `loom install` skips the CLAUDE-patch / template write for a **real user's** project — a worse bug than the redundant files it's trying to avoid. Candidate signals (a `@reslava-loom/*` workspace package, a sentinel marker, the presence of `packages/app/src/installWorkspace.ts`) each have false-positive/negative trade-offs worth one careful pass + tests. Not a 10-minute fold-in.
+
+So the durable move is: **ship the LOOM_ROOT fix as 1.21.2 now** (it's complete, tested, and verified live), and treat the self-hosting guard as its own small thread next session when you're not against the limit. The deleted `.loom/CLAUDE.md` + `CLAUDE-LOCAL.md` stay gone until then; worst case a future activation-install re-creates the gitignored copies (harmless, uncommitted).
+
+Starting the 1.21.2 release now.
