@@ -27,6 +27,16 @@ dist/
 .loom/prompts/
 # Per-workspace sidebar CONTEXT overrides (local only)
 .loom/context-prefs.json
+# Dogfood install artifacts: this repo's authoritative contract is root CLAUDE.md +
+# the LOOM_CLAUDE_MD template in packages/app/src/installWorkspace.ts, so the generated
+# .loom/CLAUDE.md and the CLAUDE-LOCAL.md stub that `loom install` produces here are
+# not tracked (they're regenerated on install).
+.loom/CLAUDE.md
+/CLAUDE-LOCAL.md
+# Per-dev MCP config — carries a machine-specific LOOM_ROOT and each contributor's
+# chosen dogfood transport (local-path build vs npx). Not tracked; see the Dogfooding
+# server config note in CLAUDE.md.
+/.mcp.json
 
 # Auto-generated context summaries (optional to ignore)
 # Uncomment if you prefer to regenerate summaries rather than version them

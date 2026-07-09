@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 48
+last_ai_block: 54
 ---
 # bundle-first-server-delivery Chat 001
 
@@ -971,3 +971,101 @@ Test 4 green — no config error, the agent loaded context, called `loom_append_
 (Aside: the agent's reply *claimed* "npx @reslava/loom … from .mcp.json" — that's the model narrating from the `.mcp.json` it can see, not its real transport. It's actually bound to the **bundled** server via `--strict-mcp-config` (step-1 proved strict ignores `.mcp.json`). The model can't introspect its own launch flags, so that self-description is unreliable-but-harmless — functionality is correct. Not actionable.)
 
 Committing the pending work now: the docs sweep + the `buildClaudeCommand` prompt-first fix (found in this verification). This lands as the last action of the turn so the tree ends clean.
+
+## Rafa:
+
+note: I updated .mcp.json to local dev 
+(i restored it and reconnected mcp due to failed, this was the lines I subtituted
+```json
+      "command": "node",
+      "args": [
+        "J:/src/loom/packages/vscode/dist/loom-mcp.js]"
+      ],
+```    
+)
+
+
+this is loom repo and I noticed something strange, now there are, these 3 files unstaged:
+.loom/CLAUDE.md
+CLAUDE.md
+CLAUDE.md
+
+using same format that loom users workspaces
+I don't know if this is a mistake and dangerous 
+check it
+
+## AI:
+
+Checked it — **not dangerous, no data loss.** And your `.mcp.json` typo explains the disconnect. Two separate things:
+
+### The 3 files — safe, and expected
+
+- `git diff CLAUDE.md` = **+2 lines only** (`@.loom/CLAUDE.md` and `@CLAUDE-LOCAL.md` prepended at the top) — *"1 file changed, 3 insertions(+)"*. Your whole recursive contract body is **fully intact**; nothing was overwritten.
+- `.loom/CLAUDE.md` = the generic install template (Loom-owned). `CLAUDE-LOCAL.md` = the empty user stub. Both untracked.
+
+**What created them:** the loom repo has a `.loom/` dir, so to the extension it's a Loom workspace like any other. The activation self-refresh (step 6) ran `loom install` on it, which — per its long-standing documented behavior — prepends the two `@import` lines to root `CLAUDE.md`, writes `.loom/CLAUDE.md`, and creates `CLAUDE-LOCAL.md` once. That's exactly the *"same format as user workspaces"* you spotted — because it **is** the user-workspace install, applied to the meta-repo.
+
+**Not new today:** these same three were already in `git status` at this session's *start* — they pre-date this work. What step 6 changes is that the extension now re-applies install on every activation, so **deleting them won't stick** (next open regenerates them). That's IN4 working as designed.
+
+**Is it a mistake?** For a real user, no — root `CLAUDE.md` importing both contracts is how Loom wires the session. For the **loom repo specifically** it's hygiene noise. Recommendation:
+- **gitignore `.loom/CLAUDE.md` + `CLAUDE-LOCAL.md`** in this repo (generated files), and
+- decide deliberately about the root-`CLAUDE.md` import lines: the *committed* version doesn't have them, so every install re-adds them to your working tree — that's the perpetual diff. Either commit them (embrace dogfood) or accept the standing working-tree diff.
+
+**One legit design flag (your instinct was right to poke):** the silent activation refresh writes to a **tracked** file (root `CLAUDE.md`). For a user with a customized root `CLAUDE.md`, opening their project after an extension update can produce an unexpected git diff the first time (the prepended imports). It's idempotent and content-preserving, but "silent writes to tracked files on open" deserves a conscious call. If you'd rather be conservative, I can scope the activation refresh to touch **only** the Loom-owned `.loom/CLAUDE.md` + the pin heal, and leave root-`CLAUDE.md` patching / `CLAUDE-LOCAL.md` creation to the explicit (user-clicked) install. Say the word.
+
+### The `.mcp.json` typo
+
+That's what dropped the MCP server: **this terminal session's `claude` reads `.mcp.json`**, so a typo in your local-dev config made the server fail to spawn → disconnect. Restoring the good one reconnected it — nothing to fix on our side. (Nice reinforcement of the feature, actually: a malformed `.mcp.json` silently kills a *hand-launched* agent's server — exactly the fragility the bundle-binding removes for *extension-launched* agents, which never read `.mcp.json`.)
+
+Want me to (a) add the two gitignore entries now, and/or (b) scope the activation refresh to Loom-owned files only? Both are quick.
+
+## Rafa:
+
+Do (a) 
+If we do (b) what happen when extension is updated? root-`CLAUDE.md` patching / `CLAUDE-LOCAL.md` will never occur because no (user-clicked) install
+
+I will update .mcp.json to:
+```json
+      "command": "node",
+      "args": [
+        "J:/src/loom/packages/vscode/dist/loom-mcp.js"
+      ],
+```
+
+I tested it in Chord Flow and mcp connect with no problem
+Agree to update it to dev env?
+
+## AI:
+
+**(a) done** — added `.loom/CLAUDE.md` + `/CLAUDE-LOCAL.md` to `.gitignore`; both are gone from `git status`. What remains is root `CLAUDE.md` (the `+2` import lines). To make the tree fully clean, **commit those two import lines** — then install is a no-op and the diff is gone for good. (Reverting them won't stick: the activation self-refresh re-adds them on the next open.)
+
+**(b) — you're right that it would "never occur" on update, and that's fine. I recommend NOT doing (b).** Here's why it's a non-problem:
+
+- Root-`CLAUDE.md` patching and `CLAUDE-LOCAL.md` creation are **one-time *setup* steps**, not *refresh* steps. They happen at **first init** — the consent notification for an uninitialized workspace runs the full install — and they're **version-invariant** (the import lines and the empty stub never change across Loom versions). So there is nothing to re-apply on update; "never occurs on update" is correct behavior, not a gap. New users still get them at init.
+- And the current full-install-on-activation is **already idempotent**: for a real, set-up user the root patch is a guarded no-op (imports present → skipped), `CLAUDE-LOCAL.md` exists → skipped, ctx/settings exist → skipped. So it does **not** silently rewrite root `CLAUDE.md` on every open — only the genuinely-changed Loom-owned files (`.loom/CLAUDE.md` when the contract updates, the pin when the version bumps) get written, which is the whole point.
+- Doing (b) would add a "refresh-only" install mode (complexity) **and** an edge case (a workspace that has `.loom/` but somehow lacks the root imports would never get them backfilled) — to solve something that isn't actually broken. The only place the noise shows is *this* repo, because its committed root `CLAUDE.md` deliberately omits the imports. Gitignoring the two files + committing the imports resolves it cleanly.
+
+**Dev `.mcp.json` (`command:"node"` → `dist/loom-mcp.js`) — yes, agree**, that's the documented dogfood path, and it interacts correctly with the new logic: a `node` shape is neither pin-healed nor migration-prompted (only `npx`/`loom` shapes are), so it's left untouched. Two cautions:
+1. `.mcp.json` is **tracked**, and `J:/src/loom/packages/vscode/dist/loom-mcp.js` is your **absolute machine path** — don't commit that. Either **gitignore `.mcp.json`** in this repo (it's inherently per-dev now that `command:"loom"` is retired), or use a **workspace-relative** arg — `"args": ["packages/vscode/dist/loom-mcp.js"]` — which resolves from the repo root and stays portable/committable.
+2. After `./scripts/build-all.sh`, **restart the MCP server / reload the session** — the running `node dist/loom-mcp.js` keeps the old bundle until restarted (the stale-after-build gotcha).
+
+Want me to (i) gitignore `.mcp.json` too, and (ii) commit the `.gitignore` + the root-`CLAUDE.md` imports so this repo's tree is clean? Both quick.
+
+## Rafa:
+
+I updated .mcp.json with relative path, checked mcp server is connected OK
+If it is more secure to gitignore it, do it
+commit
+if is it all ready to
+do-release 1.21.0
+then do it
+
+## AI:
+
+Done — and yes, gitignoring `.mcp.json` was the right call: it still carries an absolute `LOOM_ROOT: "j:/src/loom"`, so tracking it would commit your machine path. I added `/.mcp.json` to `.gitignore` and `git rm --cached`'d it (your local file is untouched; it's just no longer tracked). Each contributor now keeps their own dogfood transport, per the CLAUDE.md note.
+
+**Committing this hygiene batch:** `.gitignore` (ignore `.loom/CLAUDE.md`, `CLAUDE-LOCAL.md`, `.mcp.json`), untracked `.mcp.json`, and the root `CLAUDE.md` `@import` lines (so the tree stays clean — install no-ops from here).
+
+**Release readiness — green:** feature complete and **live-verified** (Tests 1–4 in the installed `.vsix`), the launch-arg bug found+fixed, docs swept, `test-all` passing, req coverage clean. Current version is `1.20.0`; this is a minor feature → **`1.21.0`** is right.
+
+Proceeding: commit this hygiene, then run **`/do-release 1.21.0`**. I'll report the release progress as it goes.
