@@ -348,7 +348,7 @@ function healMcpPin(fsDep: typeof fs, mcpJsonPath: string, version: string): boo
  * left alone. Changing which binary runs is a SEMANTIC change, so callers gate this
  * behind explicit user consent (input.migrateMcpCommand). Returns true if it rewrote.
  */
-function migrateMcpCommandToNpx(fsDep: typeof fs, mcpJsonPath: string, version: string, root: string): boolean {
+function migrateMcpCommandToNpx(fsDep: typeof fs, mcpJsonPath: string, version: string): boolean {
     let parsed: any;
     try {
         parsed = JSON.parse(fsDep.readFileSync(mcpJsonPath, 'utf8'));
@@ -361,7 +361,7 @@ function migrateMcpCommandToNpx(fsDep: typeof fs, mcpJsonPath: string, version: 
     loom.command = 'npx';
     loom.args = ['-y', `@reslava/loom@${version}`, 'mcp'];
     if (!loom.env || typeof loom.env !== 'object') {
-        loom.env = { LOOM_ROOT: root.replace(/\\/g, '/') };
+        loom.env = { LOOM_ROOT: '${workspaceFolder}' };
     }
     return writeIfChanged(fsDep, mcpJsonPath, JSON.stringify(parsed, null, 2));
 }
@@ -427,16 +427,20 @@ export async function installWorkspace(
         claudeLocalMdWritten = true;
     }
 
-    // Step 4: write .mcp.json at project root with the real workspace path (skip if exists and not --force)
-    // The Claude Code agent spawns its own server via npx — no global `loom`
-    // install required, pinned to this exact (lockstep) version to avoid skew.
+    // Step 4: write .mcp.json at project root (skip if exists and not --force).
+    // The Claude Code agent spawns its own server via npx — no global `loom` install
+    // required, pinned to this exact (lockstep) version to avoid skew. LOOM_ROOT uses
+    // the portable `${workspaceFolder}` placeholder rather than a resolved absolute
+    // path: Claude Code (verified) and the VS Code MCP-host family expand it to the
+    // project root — even when the agent is launched from a subdirectory — so the file
+    // is committable and machine-agnostic instead of hard-coding one contributor's path.
     const mcpJson = JSON.stringify({
         mcpServers: {
             loom: {
                 type: 'stdio',
                 command: 'npx',
                 args: ['-y', `@reslava/loom@${LOOM_VERSION}`, 'mcp'],
-                env: { LOOM_ROOT: root.replace(/\\/g, '/') },
+                env: { LOOM_ROOT: '${workspaceFolder}' },
             },
         },
     }, null, 2);
@@ -450,7 +454,7 @@ export async function installWorkspace(
         // legacy command:"loom" server to the npx pin.
         let changed = false;
         if (input.migrateMcpCommand) {
-            changed = migrateMcpCommandToNpx(deps.fs, mcpJsonPath, LOOM_VERSION, root) || changed;
+            changed = migrateMcpCommandToNpx(deps.fs, mcpJsonPath, LOOM_VERSION) || changed;
         }
         changed = healMcpPin(deps.fs, mcpJsonPath, LOOM_VERSION) || changed;
         mcpJsonWritten = changed;

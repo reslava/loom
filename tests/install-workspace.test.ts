@@ -141,6 +141,9 @@ async function run() {
             await installWorkspace({}, { fs, registry, cwd: dir });
             const mcpPath = path.join(dir, '.mcp.json');
             const fresh = JSON.parse(fs.readFileSync(mcpPath, 'utf8'));
+            // Generated .mcp.json must be portable — the ${workspaceFolder} placeholder,
+            // never a resolved absolute machine path (Claude Code / VS Code expand it).
+            assert(fresh.mcpServers.loom.env.LOOM_ROOT === '${workspaceFolder}', 'generated .mcp.json LOOM_ROOT is the portable ${workspaceFolder}, not an absolute path');
             const canonicalArg = fresh.mcpServers.loom.args.find((a: string) => a.startsWith('@reslava/loom@'));
             // Corrupt to a stale version and add an unrelated server.
             fresh.mcpServers.loom.args = ['-y', '@reslava/loom@0.0.1', 'mcp'];
@@ -175,7 +178,18 @@ async function run() {
             assert(mig.mcpServers.loom.args.some((a: string) => a.startsWith('@reslava/loom@')), 'migrated args carry the npx pin');
             assert(mig.mcpServers.loom.env.EXTRA === 'x', 'migrated env preserved');
             assert(r2.mcpJsonWritten === true, 'install reports .mcp.json written on migration');
-            console.log('    ✅ migration is flag-gated and preserves env');
+
+            // Migrating a legacy command:"loom" with NO env sets the portable default.
+            const dir2 = await freshProject('loom-install-test-9b');
+            await installWorkspace({}, { fs, registry, cwd: dir2 });
+            const mcpPath2 = path.join(dir2, '.mcp.json');
+            fs.writeFileSync(mcpPath2, JSON.stringify({
+                mcpServers: { loom: { type: 'stdio', command: 'loom', args: ['mcp'] } },
+            }, null, 2), 'utf8');
+            await installWorkspace({ migrateMcpCommand: true }, { fs, registry, cwd: dir2 });
+            const mig2 = JSON.parse(fs.readFileSync(mcpPath2, 'utf8'));
+            assert(mig2.mcpServers.loom.env.LOOM_ROOT === '${workspaceFolder}', 'migration without prior env sets the portable ${workspaceFolder}');
+            console.log('    ✅ migration is flag-gated, preserves env, and defaults to ${workspaceFolder}');
         }
 
         console.log('\n✨ All install-workspace tests passed!\n');

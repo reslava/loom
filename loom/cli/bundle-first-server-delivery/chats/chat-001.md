@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 56
+last_ai_block: 59
 ---
 # bundle-first-server-delivery Chat 001
 
@@ -1093,3 +1093,44 @@ Done your way — better call. `.mcp.json` is now **portable and committed**:
 No `env` block (so `LOOM_ROOT` falls back to `process.cwd()`), relative `args` — both resolve from the repo root, so any contributor who clones, runs `build-all`, and launches `claude` from the root gets a working local-build Loom MCP out of the box. Un-ignored it (removed the `/.mcp.json` line) and re-tracked it. `.loom/CLAUDE.md` + `CLAUDE-LOCAL.md` stay ignored (generated).
 
 Committing this, then firing **`/do-release 1.21.0`**.
+
+## AI:
+
+**v1.21.0 is fully live.** ✅
+
+- **npm** — `@reslava/loom@1.21.0` published
+- **VS Code Marketplace** — `reslava.loom-vscode@1.21.0` published
+- **Open VSX** — published
+- **GitHub release** — https://github.com/reslava/loom/releases/tag/v1.21.0 (published, not draft)
+
+**One CI hiccup, diagnosed and fixed:** the first tag run failed at `publish-npm` — not transient. The workflow did `npm install -g npm@latest`, but `npm@latest` is now **v12**, which dropped Node 20 (the runner's version) → `EBADENGINE`. The extension had already published to both marketplaces; only npm + the release were pending. Fix: pinned the publish step to `npm@11` (OIDC-capable ≥11.5.1, still Node-20-compatible), pushed it to `main`, and re-ran the publish via the workflow's manual trigger (which uses `main`'s fixed file) rather than force-moving the public tag — vsce/ovsx skipped as already-published, npm published clean, and I cut the GitHub release by hand. The tag `v1.21.0` stays pointed at the clean `release:` commit; the CI fix rides on `main` for every future release.
+
+**Still open (your "decide later"):** the generated `.mcp.json` uses an absolute `LOOM_ROOT`. Not a regression, ships fine as-is; when you want it, I'll spike what Claude Code does with `${workspaceFolder}`/subdir-cwd and do the portability fix properly as a `1.21.1` fast-follow.
+
+Congrats — bundle-first server delivery is shipped. 🎉
+
+## Rafa:
+
+verify Claude Code's ${workspaceFolder}/cwd behavior
+if it is correct then fix .mcp.json 
+we could use loom_quick_ship
+
+## AI:
+
+Verified, fixed, and quick-shipped.
+
+**Verification (nested `claude -p` spikes, reading `loom://state?shape=summary` across three `.mcp.json` forms):**
+
+| Config | from repo root | from `packages/` subdir |
+|---|---|---|
+| absolute `LOOM_ROOT` (control) | 11 | 11 |
+| `${workspaceFolder}` | 11 | **11** |
+| no `env` (cwd fallback) | 11 | 11 |
+
+So **Claude Code expands `${workspaceFolder}` to the project root — robustly, even from a subdirectory** (it doesn't resolve to cwd), and it also spawns the server with cwd = project root. Both portable forms work; `${workspaceFolder}` is the winner — explicit, self-documenting, portable, robust, works across the VS Code MCP-host family, and it's *already what the install template's doc example shows*. The absolute-path write was the outlier.
+
+**Fix:** the generated `.mcp.json` now writes `"LOOM_ROOT": "${workspaceFolder}"` (verified output) instead of a resolved absolute path — at both the main install write and the `command:"loom"`→npx migration default (dropped the now-unused `root` param). Added regression tests (fresh install + migration-without-env both assert the portable placeholder). build-all + test-all green. Recorded as `plan-003` (done).
+
+Only affects newly-generated/migrated configs; existing users pick it up on `loom install --force` or a migration.
+
+Committing this now. It's a clean, self-contained improvement — ready to ship as **`1.21.1`** whenever you want (the CI npm fix is already on `main`, so the pipeline will go smoothly this time), or batch it with the next work. Your call on timing.
