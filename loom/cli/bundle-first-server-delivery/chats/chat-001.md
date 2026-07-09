@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 54
+last_ai_block: 56
 ---
 # bundle-first-server-delivery Chat 001
 
@@ -1069,3 +1069,27 @@ Done — and yes, gitignoring `.mcp.json` was the right call: it still carries a
 **Release readiness — green:** feature complete and **live-verified** (Tests 1–4 in the installed `.vsix`), the launch-arg bug found+fixed, docs swept, `test-all` passing, req coverage clean. Current version is `1.20.0`; this is a minor feature → **`1.21.0`** is right.
 
 Proceeding: commit this hygiene, then run **`/do-release 1.21.0`**. I'll report the release progress as it goes.
+
+## AI:
+
+Yep — same thing I just confirmed in the code. Two points:
+
+1. **It's harmless now that it's gitignored** — that absolute `LOOM_ROOT: "j:/src/loom"` lives only in your local, untracked `.mcp.json`. It's correct on your machine and never committed, so there's nothing to fix.
+2. **You can drop it if you want it portable.** The server resolves `process.env['LOOM_ROOT'] ?? process.cwd()` (`loom-mcp-entry.ts:17`, `mcp/index.ts:8`), so if you **omit** the `env` block entirely, it defaults to the cwd — which is the repo root whenever you launch `claude` from there. Keep the explicit path only if you sometimes launch `claude` from a subdirectory.
+
+For context: this mirrors what `installWorkspace` writes for real users — an **absolute** `LOOM_ROOT` (`root.replace(...)`), *not* `${workspaceFolder}`, because Claude Code CLI doesn't expand `${workspaceFolder}` (only VS Code's MCP host does). So your config is the correct pattern — just machine-specific, hence rightly gitignored. *(Minor doc nit for later: the `${workspaceFolder}` shown in some config examples is the VS-Code-host form; the CLI gets the resolved absolute path. Not a release blocker.)*
+
+None of this touches the published packages, so it doesn't affect the release. Tree is clean and everything's verified — **firing `/do-release 1.21.0` now.**
+
+## AI:
+
+Done your way — better call. `.mcp.json` is now **portable and committed**:
+
+```json
+{ "mcpServers": { "loom": { "type": "stdio", "command": "node",
+  "args": ["packages/vscode/dist/loom-mcp.js"] } } }
+```
+
+No `env` block (so `LOOM_ROOT` falls back to `process.cwd()`), relative `args` — both resolve from the repo root, so any contributor who clones, runs `build-all`, and launches `claude` from the root gets a working local-build Loom MCP out of the box. Un-ignored it (removed the `/.mcp.json` line) and re-tracked it. `.loom/CLAUDE.md` + `CLAUDE-LOCAL.md` stay ignored (generated).
+
+Committing this, then firing **`/do-release 1.21.0`**.

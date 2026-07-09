@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "loom": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "packages/vscode/dist/loom-mcp.js"
+      ]
+    }
+  }
+}
