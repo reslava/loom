@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX5VRFJEQ75RT4QNNJ2TAHSV
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.22.0
 steps:
   - id: tier-1a-app-internals
     order: 1

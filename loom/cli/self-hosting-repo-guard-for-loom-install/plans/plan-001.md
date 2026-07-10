@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.22.0
 steps:
   - id: added-a-self-hosting-guard-to
     order: 1

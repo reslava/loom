@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.22.0] - 2026-07-10
+
+### Added
+- **`loom install` is a safe no-op on a Loom source repo or fork.** A repo that hosts Loom's own recursive workflow — this repository, or a fork of it — carries a bespoke `CLAUDE.md` and must never be overwritten with the generic downstream `.loom/CLAUDE.md` template. Setting `"selfHosting": true` in `.loom/settings.json` now makes every `loom install` entry point (the CLI, the `loom_install` MCP tool, and the extension's activation refresh) skip installation entirely and report `self-hosting repo — skipped`. The guard sits *above* the `--force` branch, so even a forced install can't clobber a self-hosting repo's contract.
+
+### Changed
+- **Consistent `*Slug` naming now reaches the read/query surfaces.** Completing the `*Ulid`/`*Slug` sweep begun in 1.20.0, every slug-carrying parameter and output key on the consumer surfaces is now `*Slug`: the `loom://state?weaveSlug=` filter (was `?weaveId=`), and the `weaveSlug` / `threadSlug` keys in `loom://diagnostics` and `loom_get_stale_plans` output (were `weaveId` / `threadId`). Agents or scripts that read those surfaces should switch to the new names — the values and behavior are unchanged, only the names.
+- **Installed session contract: resolve a pointed-at doc through its slug-path.** The `.loom/CLAUDE.md` template gains a rule that when you point your AI agent at a Loom doc or thread by name or path, it resolves it through the slug-path context resource (`loom://context/{weaveSlug}/{threadSlug}/{docSlug}`) instead of deriving the ULID by hand — loading the context and resolving the slug→ULID become a single read. Your project picks it up on the next `loom install` or the extension's activation self-heal.
+
 ## [1.21.2] - 2026-07-09
 
 ### Fixed
@@ -659,7 +668,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.21.2...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.22.0...HEAD
+[1.22.0]: https://github.com/reslava/loom/releases/tag/v1.22.0
 [1.21.2]: https://github.com/reslava/loom/releases/tag/v1.21.2
 [1.21.1]: https://github.com/reslava/loom/releases/tag/v1.21.1
 [1.21.0]: https://github.com/reslava/loom/releases/tag/v1.21.0

@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.22.0] - 2026-07-10
+
+### Notes
+- No extension-specific change this release; lockstep 1.22.0 bump with the monorepo. The changes are CLI/MCP/contract-facing: `loom install` now safely no-ops on a Loom source repo or fork (`"selfHosting": true` in `.loom/settings.json`), and the `*Slug` naming sweep reaches the read/query surfaces (`loom://state?weaveSlug=`, `loom://diagnostics`, `loom_get_stale_plans` keys). The bundled `.loom/CLAUDE.md` template gains the "resolve a pointed-at doc through its slug-path" rule, which the extension's activation self-heal brings current in your project.
+
 ## [1.21.2] - 2026-07-09
 
 ### Fixed
