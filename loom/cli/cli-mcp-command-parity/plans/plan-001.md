@@ -2,8 +2,9 @@
 type: plan
 id: pl_01KX6WP3PCBVT9X2BCM40M5JPN
 title: CLI ⇄ MCP ⇄ Extension status-verb parity
-status: active
+status: implementing
 created: 2026-07-10
+updated: 2026-07-10
 version: 1
 design_version: 1
 tags: []
@@ -13,28 +14,28 @@ target_version: 0.1.0
 steps:
   - id: guarded-loom-set-status
     order: 1
-    status: pending
+    status: done
     description: "Add a guarded set-status use-case + MCP tool loom_set_status(doc_ulid, status): performs free label transitions (idea/design/reference draft↔active↔done; plan draft↔active) and refuses guarded ones (plan→implementing/done, req→locked) with an error naming the right tool."
     files_touched: [packages/core/src, packages/app/src, packages/mcp/src]
     blocked_by: []
     satisfies: []
   - id: trim-status-out-of-loom-update
     order: 2
-    status: pending
+    status: done
     description: Remove the status parameter from loom_update_doc (app use-case + MCP tool) so it only edits body + requires_load; grep-audit every caller that set status via update_doc and migrate it to loom_set_status.
     files_touched: [packages/app/src, packages/mcp/src]
     blocked_by: [guarded-loom-set-status]
     satisfies: []
   - id: retire-loom-finalize-doc
     order: 3
-    status: pending
+    status: done
     description: Delete the loom_finalize_doc MCP tool and its finalize app use-case (redundant with set_status). Keep loom_finalize_req — that is scope-lock, not status labeling.
     files_touched: [packages/app/src, packages/mcp/src]
     blocked_by: [guarded-loom-set-status]
     satisfies: []
   - id: cli-loom-set-status-drop-finalize
     order: 4
-    status: pending
+    status: done
     description: Add CLI 'loom set-status <slug> <status>' (resolves slug→ULID at the edge, maps to the set-status use-case). Remove CLI 'finalize'. Purge stale help text — no 'generate permanent ID', slug-addressed not ID.
     files_touched: [packages/cli/src/index.ts]
     blocked_by: [guarded-loom-set-status, retire-loom-finalize-doc]
@@ -94,10 +95,10 @@ Consolidate document status changes onto a single guarded verb (loom_set_status)
 
 | Done | # | Step | Files touched | Blocked by | Satisfies |
 |---|---|---|---|---|---|
-| 🔳 | 1 | Add a guarded set-status use-case + MCP tool loom_set_status(doc_ulid, status): performs free label transitions (idea/design/reference draft↔active↔done; plan draft↔active) and refuses guarded ones (plan→implementing/done, req→locked) with an error naming the right tool. | packages/core/src, packages/app/src, packages/mcp/src | — | — |
-| 🔳 | 2 | Remove the status parameter from loom_update_doc (app use-case + MCP tool) so it only edits body + requires_load; grep-audit every caller that set status via update_doc and migrate it to loom_set_status. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
-| 🔳 | 3 | Delete the loom_finalize_doc MCP tool and its finalize app use-case (redundant with set_status). Keep loom_finalize_req — that is scope-lock, not status labeling. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
-| 🔳 | 4 | Add CLI 'loom set-status <slug> <status>' (resolves slug→ULID at the edge, maps to the set-status use-case). Remove CLI 'finalize'. Purge stale help text — no 'generate permanent ID', slug-addressed not ID. | packages/cli/src/index.ts | guarded-loom-set-status, retire-loom-finalize-doc | — |
+| ✅ | 1 | Add a guarded set-status use-case + MCP tool loom_set_status(doc_ulid, status): performs free label transitions (idea/design/reference draft↔active↔done; plan draft↔active) and refuses guarded ones (plan→implementing/done, req→locked) with an error naming the right tool. | packages/core/src, packages/app/src, packages/mcp/src | — | — |
+| ✅ | 2 | Remove the status parameter from loom_update_doc (app use-case + MCP tool) so it only edits body + requires_load; grep-audit every caller that set status via update_doc and migrate it to loom_set_status. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
+| ✅ | 3 | Delete the loom_finalize_doc MCP tool and its finalize app use-case (redundant with set_status). Keep loom_finalize_req — that is scope-lock, not status labeling. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
+| ✅ | 4 | Add CLI 'loom set-status <slug> <status>' (resolves slug→ULID at the edge, maps to the set-status use-case). Remove CLI 'finalize'. Purge stale help text — no 'generate permanent ID', slug-addressed not ID. | packages/cli/src/index.ts | guarded-loom-set-status, retire-loom-finalize-doc | — |
 | 🔳 | 5 | Add a CLI command to create a chat (mirror loom_create_chat), so a Power-terminal / Pure-agent user can start the chat loop from the terminal. Lean name 'loom chat new'. | packages/cli/src/index.ts | — | — |
 | 🔳 | 6 | Point markStatus.ts at loom_set_status; rename commands loom.markDone/markActive → loom.setStatusDone/setStatusActive with menu labels 'Set Status: Done' / 'Set Status: Active'; remove the loom.finalize command, finalize.ts, and its menu entry. | packages/vscode/src/commands/markStatus.ts, packages/vscode/src/commands/finalize.ts, packages/vscode/src/extension.ts, packages/vscode/package.json | guarded-loom-set-status, retire-loom-finalize-doc | — |
 | 🔳 | 7 | Walk the four ways in docs/WAYS-TO-USE-LOOM.md and verify each has the CLI/MCP commands it needs to run end-to-end; record any remaining gaps as follow-ups (esp. Power terminal CLI completeness). | docs/WAYS-TO-USE-LOOM.md | cli-loom-set-status-drop-finalize, cli-create-chat-command | — |

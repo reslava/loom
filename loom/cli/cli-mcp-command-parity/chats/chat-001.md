@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 8
+last_ai_block: 10
 ---
 # cli-mcp-command-parity Chat 001
 
@@ -183,3 +183,70 @@ Neither is committed (you didn't ask, and design is still `draft`). Tree current
 I confirmed the `blockedBy` ordinals resolved to real step-id slugs (no silent drops). Plan is `active` — say *start plan* / DoStep when you want to implement, and it'll begin with step 1.
 
 Committing everything now: the `cli-mcp-command-parity` thread (idea + design + plan + this chat), the slang-idea note, and the two other new thread+idea folders.
+
+## Rafa:
+
+I started the plan
+do 1-4
+
+## AI:
+
+**Steps 1–4 done ✅** (marked in the plan + notes in `done/plan-001-done.md`).
+
+**1 — guarded `loom_set_status`:** core `decideSetStatus` (pure: allow / delegate / reject) + app `setStatus` (no version bump, idempotent) + MCP `loom_set_status` registered in the `doc` group.
+**2 — trimmed `loom_update_doc`:** status param removed (body + requires_load only); audit confirmed the only status-caller was the extension's `markStatus.ts` (step 6). This kills the latent "Mark Done on a plan bypasses `close_plan`" bug.
+**3 — retired finalize:** deleted `finalizeDoc.ts` + app `finalize.ts` + server wiring; kept `loom_finalize_req` (scope-lock).
+**4 — CLI:** added `loom set-status <doc> <status>`, deleted `loom finalize` + its stale "permanent ID" help.
+
+**Verified on the built CLI:**
+- plan → done → *refused*, points to `loom_close_plan` ✅
+- invalid status → *rejected* with the valid list ✅
+- already-active → allow + idempotent, writes nothing ✅
+- `loom finalize` → *unknown command* ✅
+- `build-all` green across all six packages.
+
+**Two things to flag:**
+1. **A concurrent edit.** While testing, `plan-001.md` showed an added `updated:` timestamp that my code did **not** produce (an isolated run writes nothing) — it appeared around your "I started the plan", so likely the extension. I `git checkout`'d the file to isolate the test, which dropped that timestamp (content/decisions untouched). `loom_start_plan` + the step-completions have since rewritten the plan anyway. Flagging per our "don't silently revert concurrent edits" rule — nothing of yours was lost, but wanted you to know.
+2. **Expected temporary half-state (by plan design).** The extension still references `loom_finalize_doc` and `loom_update_doc({status})` — so its *Mark Active/Done* and *Finalize* buttons are dead until **step 6**; CLAUDE.md/docs update in **steps 8–9**. Everything compiles; it's just mid-sweep.
+
+I did **not** commit (you asked for "do 1-4", not a commit). Tree holds: the code changes + the plan/done updates.
+
+**STOP — 1–4 complete.** Next is **step 5 — CLI create-chat** (`loom chat new`, mirror `loom_create_chat`; `packages/cli/src/index.ts` + a new command file). Say **commit** and/or **go 5** (or **do 5-10**).
+
+## Rafa:
+
+Thanks for informing me!
+
+We have a discrepancy CLI - MCP 
+
+### MCP Create
+- `loom_create_chat` — Create a new chat document in one of the two canonical chat homes.
+- `loom_create_design` — Create a new design document in a thread.
+- `loom_create_idea` — Create a new idea document in a weave (optionally in a specific thread).
+- `loom_create_plan` — Create a new plan document in a thread.
+- `loom_create_reference` — Create a new reference document in loom/refs/.
+- `loom_create_req` — Create a thread's req (requirements) doc — the authoritative include/exclude/constraints spec, one flat `req.md` per thread.
+- `loom_create_weave` — Create an empty weave folder (`loom/{weave_slug}`).
+
+### CLI Weave
+```
+loom weave -h
+Usage: loom weave [options] [command]
+
+Weave a new document
+
+Options:
+  -h, --help                display help for command
+
+Commands:
+  idea [options] <title>    Create a new idea document (default: creates a thread named
+                            after the title)
+  design [options] <weave>  Create a new design document from an existing idea
+  plan [options] <weave>    Create a new plan from a finalized design
+  help [command]            display help for command
+```
+
+this is source of confusion and this discrepancies should be resolved as we stablished in
+MCP - CLI - Extension parity / mirroring
+
+Suggestions to decide before continue?

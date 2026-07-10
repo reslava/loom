@@ -119,3 +119,4 @@ export {
 // Shared Types
 // ============================================================================
 export { Document, DocumentStatus } from './entities/document';
+export { decideSetStatus, SetStatusDecision } from './setStatus';

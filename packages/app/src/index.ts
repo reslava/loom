@@ -2,7 +2,7 @@
 // Use‑Cases — Core Workflow
 // ============================================================================
 export { completeStep, CompleteStepInput, CompleteStepDeps } from './completeStep';
-export { finalize, FinalizeInput, FinalizeDeps } from './finalize';
+export { setStatus, SetStatusInput, SetStatusDeps } from './setStatus';
 export { rename, RenameInput, RenameDeps } from './rename';
 export { runEvent, RunEventDeps } from './runEvent';
 export { validate, ValidateInput, ValidateDeps, ValidationResult } from './validate';

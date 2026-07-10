@@ -31,6 +31,7 @@ import * as createWeave from './tools/createWeave';
 import * as setPriority from './tools/setPriority';
 import * as setThreadDeps from './tools/setThreadDeps';
 import * as updateDoc from './tools/updateDoc';
+import * as setStatus from './tools/setStatus';
 import * as patchDoc from './tools/patchDoc';
 import * as appendToChat from './tools/appendToChat';
 import * as readChatTail from './tools/readChatTail';
@@ -48,7 +49,6 @@ import { createPromoteTool } from './tools/promote';
 import { createRefineIdeaTool } from './tools/refineIdea';
 import { createRefinePlanTool } from './tools/refinePlan';
 import { createRefineDesignTool } from './tools/refineDesign';
-import * as finalizeDoc from './tools/finalizeDoc';
 import * as archive from './tools/archive';
 import * as deleteItem from './tools/delete';
 import * as restore from './tools/restore';
@@ -138,7 +138,7 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
 
     const TOOLS: GroupedTool[] = [
         ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat, createWeave]),
-        ...reg('doc', [updateDoc, patchDoc, finalizeDoc, archive, restore, deleteItem, rename, renameDocFile, createPromoteTool(server)]),
+        ...reg('doc', [updateDoc, setStatus, patchDoc, archive, restore, deleteItem, rename, renameDocFile, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),
         ...reg('plan', [startPlan, completeStep, updateStep, addStep, removeStep, reorderSteps, closePlan, quickShip, recordRelease, doStep, appendDone, listPlanSteps]),

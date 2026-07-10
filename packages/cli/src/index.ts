@@ -25,7 +25,7 @@ import { completeStepCommand } from './commands/completeStep';
 import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
-import { finalizeCommand } from './commands/finalize';
+import { setStatusCommand } from './commands/setStatus';
 import { renameCommand } from './commands/rename';
 import { catalogCommand } from './commands/catalog';
 import { resourcesReadCommand } from './commands/resources';
@@ -185,9 +185,9 @@ weaveCmd
     .action(weavePlanCommand);
 
 program
-    .command('finalize <draft>')
-    .description('Finalize a draft document and generate its permanent ID')
-    .action(finalizeCommand);
+    .command('set-status <doc> <status>')
+    .description('Set a document\'s lifecycle status (draft|active|done). Guarded: a plan → implementing needs `start-plan`, a plan → done needs close (steps must be complete), a req → locked needs its finalize. <doc> is a slug, filename stem, or ULID.')
+    .action(setStatusCommand);
 
 program
     .command('rename <doc> <new-title>')
