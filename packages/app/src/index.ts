@@ -3,6 +3,7 @@
 // ============================================================================
 export { completeStep, CompleteStepInput, CompleteStepDeps } from './completeStep';
 export { setStatus, SetStatusInput, SetStatusDeps } from './setStatus';
+export { createReference, CreateReferenceInput, CreateReferenceDeps } from './createReference';
 export { rename, RenameInput, RenameDeps } from './rename';
 export { runEvent, RunEventDeps } from './runEvent';
 export { validate, ValidateInput, ValidateDeps, ValidationResult } from './validate';

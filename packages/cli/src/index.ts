@@ -22,9 +22,10 @@ import { validateCommand } from './commands/validate';
 import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
 import { completeStepCommand } from './commands/completeStep';
-import { weaveIdeaCommand } from './commands/weaveIdea';
-import { weaveDesignCommand } from './commands/weaveDesign';
-import { weavePlanCommand } from './commands/weavePlan';
+import {
+    createThreadCommand, createIdeaCommand, createDesignCommand, createPlanCommand,
+    createReqCommand, createChatCommand, createReferenceCommand, createWeaveCommand,
+} from './commands/create';
 import { setStatusCommand } from './commands/setStatus';
 import { renameCommand } from './commands/rename';
 import { catalogCommand } from './commands/catalog';
@@ -158,31 +159,60 @@ program
     .requiredOption('--step <n>', 'Step number to complete')
     .action(completeStepCommand);
 
-const weaveCmd = program
-    .command('weave')
-    .description('Weave a new document');
+// `loom create <type>` — mirrors the loom_create_* MCP tools. Thread-first: idea /
+// design / plan / req / chat require an EXISTING thread (never mint one); `create
+// thread` is the sole, explicit thread creator.
+const createCmd = program
+    .command('create')
+    .description('Create a Loom document or container (mirrors loom_create_*)');
 
-weaveCmd
-    .command('idea <title>')
-    .description('Create a new idea document (default: creates a thread named after the title)')
-    .option('--weave <weave>', 'Place the idea in a specific weave folder')
-    .option('--thread <slug>', 'Thread slug (defaults to a kebab-case of the title — a new idea starts a new thread)')
-    .action(weaveIdeaCommand);
+createCmd
+    .command('thread <weave> <slug>')
+    .description('Create a thread (its thread.md manifest + a fresh th_ ULID). The explicit, only way to make a thread.')
+    .option('--title <title>', 'Human title for the thread')
+    .action(createThreadCommand);
 
-weaveCmd
-    .command('design <weave>')
-    .description('Create a new design document from an existing idea')
+createCmd
+    .command('idea <weave> <thread> <title>')
+    .description('Create the idea doc in an existing thread (one idea per thread)')
+    .action(createIdeaCommand);
+
+createCmd
+    .command('design <weave> <thread>')
+    .description('Create the design doc in an existing thread')
     .option('--title <title>', 'Custom title for the design')
-    .option('--thread <slug>', 'Create design inside this thread')
-    .action(weaveDesignCommand);
+    .action(createDesignCommand);
 
-weaveCmd
-    .command('plan <weave>')
-    .description('Create a new plan from a finalized design')
+createCmd
+    .command('plan <weave> <thread>')
+    .description('Create a plan in an existing thread')
     .option('--title <title>', 'Custom title for the plan')
     .option('--goal <goal>', 'Goal description for the plan')
-    .option('--thread <slug>', 'Create plan inside this thread')
-    .action(weavePlanCommand);
+    .action(createPlanCommand);
+
+createCmd
+    .command('req <weave> <thread>')
+    .description('Create the req (requirements) doc in an existing thread')
+    .option('--title <title>', 'Custom title for the req')
+    .action(createReqCommand);
+
+createCmd
+    .command('chat [weave] [thread]')
+    .description('Create a chat — thread chat (needs <weave> <thread>) or a refs chat (--refs)')
+    .option('--title <title>', 'Custom title for the chat')
+    .option('--refs', 'Create a refs chat at loom/refs/chats/ instead of a thread chat')
+    .action(createChatCommand);
+
+createCmd
+    .command('reference <title>')
+    .description('Create a reference doc under loom/refs/ ({slug}-reference.md)')
+    .option('--description <text>', 'Short description stored in frontmatter')
+    .action(createReferenceCommand);
+
+createCmd
+    .command('weave <slug>')
+    .description('Create an empty weave folder (loom/{slug})')
+    .action(createWeaveCommand);
 
 program
     .command('set-status <doc> <status>')

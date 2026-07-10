@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 10
+last_ai_block: 16
 ---
 # cli-mcp-command-parity Chat 001
 
@@ -213,6 +213,14 @@ I did **not** commit (you asked for "do 1-4", not a commit). Tree holds: the cod
 
 **STOP — 1–4 complete.** Next is **step 5 — CLI create-chat** (`loom chat new`, mirror `loom_create_chat`; `packages/cli/src/index.ts` + a new command file). Say **commit** and/or **go 5** (or **do 5-10**).
 
+## AI:
+
+Committed — steps 1–4 (the `loom_set_status` refactor + finalize retirement) plus the plan/done progress are now in `main`. Tree is clean.
+
+**STOP — waiting for go.** Next is **step 5 — CLI create-chat**: add `loom chat new` (mirror `loom_create_chat`) so a Power-terminal / Pure-agent user can start the chat loop from the terminal. Files: a new `packages/cli/src/commands/` command + `packages/cli/src/index.ts`. Then steps 6 (extension menu) · 7 (four-ways audit) · 8 (parity rule → CLAUDE.md) · 9 (docs sweep) · 10 (tests + build) remain.
+
+Say **go 5** or **do 5-10**.
+
 ## Rafa:
 
 Thanks for informing me!
@@ -250,3 +258,90 @@ this is source of confusion and this discrepancies should be resolved as we stab
 MCP - CLI - Extension parity / mirroring
 
 Suggestions to decide before continue?
+
+## AI:
+
+Good catch — and it's exactly the kind of discrepancy the parity contract exists to kill. Two problems in one:
+
+1. **Verb mismatch:** MCP says `create` (`loom_create_*`); CLI says `weave` (`loom weave idea|design|plan`). Same operation, two different words — pure confusion.
+2. **Coverage gap:** CLI covers only 3 of the 7 create types (idea/design/plan). Missing: **chat, reference, req, weave-folder**.
+
+(Side note: `weave` as a *verb* also collides with `weave` the *noun* — a project folder. Another reason to drop it.)
+
+### Recommendation — Option B: a `loom create <type>` namespace
+
+Rename `loom weave …` → **`loom create …`** and complete the set:
+
+```
+loom create idea <title>          ⇄  loom_create_idea
+loom create design <weave>        ⇄  loom_create_design
+loom create plan <weave>          ⇄  loom_create_plan
+loom create chat <…>              ⇄  loom_create_chat      (new — step 5's goal)
+loom create reference <title>     ⇄  loom_create_reference (new)
+loom create req <weave> <thread>  ⇄  loom_create_req       (new)
+loom create weave <slug>          ⇄  loom_create_weave     (new)
+```
+
+Why B over the flat **Option A** (`loom create-idea`, `loom create-chat`, …):
+- **Name-mirrors MCP** — `create` + `<type>` maps 1:1 onto `loom_create_<type>`, satisfying the parity rule; the subcommand grouping is a legitimate CLI-ergonomic *form* (the rule explicitly allows form differences).
+- **Discoverable** — `loom create -h` lists the whole create family in one place.
+- **Reads naturally** — `loom create idea "Payment flow"`.
+- Flat Option A works too and is a hair closer to the literal MCP token, but 7 top-level `create-*` commands clutter `loom -h` and don't group.
+
+**Retire `loom weave` outright, no alias** (clean-migration, per how we work). CLI args stay human-first (title/slug), which is fine — the contract only mirrors *names*, not arg forms.
+
+### One completeness note
+`loom_create_thread` lives in MCP's **thread** group (not the Create group you pasted), and the CLI has no explicit thread-create either (today `create idea` implicitly makes a thread). Worth deciding whether `loom create thread` should exist too — but I'd keep that as a **follow-up**, not block this on it.
+
+### Impact on the plan
+This turns **step 5** from "add create-chat" into "**unify the CLI create surface to `loom create <type>` mirroring MCP (all 7 types), retiring `loom weave`**." Bigger, but it's the right root-cause fix and squarely the parity work. If you pick B, I'll amend step 5's description (via `loom_update_step`) to reflect it before implementing.
+
+**Decisions for you:** (1) **B** (namespace) vs **A** (flat)? (2) include `loom create thread` now or defer? Once you call it, I'll amend step 5 and proceed.
+
+## Rafa:
+
+1 B
+2 include `loom create thread` now
+
+you told me: 
+>today `create idea` implicitly makes a thread
+
+non of the create {chat, idea, design, plan} should create a thread, this is source of errors
+create a thread is other command
+
+current mcp description for 
+- `loom_create_idea` — Create a new idea document in a weave (optionally in a specific thread).
+is wrong, an idea can be only created in a specific thread and only 1
+
+amend step 5 and proceed
+note: at the end of the plan we will sweep CLI - MCP - Extension to find any remaining discrepancy
+
+## AI:
+
+Yes — strongly agree. Three reasons, and one honest caveat:
+
+1. **A thread is a real entity, not a side effect.** It has a stable `th_` ULID, a `thread.md` manifest, and roadmap metadata (priority, `depends_on`). Minting all that *implicitly* because someone jotted an idea conflates two different intents — "capture a thought" vs "commit to a workstream."
+2. **Implicit creation is a genuine error source.** `loom weave idea "Paymnet flow"` silently creates a `paymnet-flow` thread from a typo; there's no moment to catch it. Explicit `create thread` gives that moment.
+3. **It's actually the parity fix, not a new opinion.** MCP `loom_create_idea` *already requires* `thread_ulid` — the MCP write path is thread-first-explicit. The CLI's auto-create was the **divergence**. So making thread creation independent is precisely what brings CLI back in line with MCP — the exact discrepancy this thread exists to kill.
+
+**Caveat (the honest cost):** it turns the common "start a new thing" from one command into two (`create thread` then `create idea`). I think that's the right trade — explicit beats magic, and the friction is small and truthful (you *are* making two things). If we ever want a one-shot starter, it should be its **own explicit command** (say `loom start <weave> <slug> "title"` = thread + idea), never magic buried inside `create idea`. That keeps the invariant: **no hidden thread creation, ever.**
+
+I've already amended step 5 to this model — create commands (idea/design/plan/req/chat) resolve an *existing* thread and error if it's missing; `loom create thread` is the sole, explicit creator; `loom weave` is retired. Ready to implement on your **go**.
+
+## AI:
+
+**Step 5 done ✅** — the CLI create surface is unified and thread-first.
+
+- **`loom create <type>`** namespace mirrors `loom_create_*`: `thread · idea · design · plan · req · chat · reference · weave`.
+- **No implicit threads.** idea/design/plan/req/chat resolve an *existing* thread; a miss errors with `Create it first: loom create thread <weave> <slug>`. `create thread` is the sole explicit creator.
+- **`loom weave` retired**; `weaveIdea/Design/Plan.ts` + `threadArg.ts` (the auto-create seam) deleted.
+- **Shared `createReference` use-case** extracted to `app/` so CLI and MCP write byte-identical files.
+- **Fixed the wrong `loom_create_idea` description** ("in a weave (optionally in a thread)" → "in a specific thread — one per thread; requires th_ ULID; never mints a thread") and tightened its handler; sibling create tools were already thread-first.
+
+**Verified on the built CLI:** `loom create -h` lists all 8; `loom weave` is gone; end-to-end `create weave → thread (mints th_ ULID) → idea` works; missing-thread errors cleanly (no mutation); `create reference` works via the shared use-case. All scratch artifacts removed, git clean, build-all green.
+
+Not committed (you said "go", not commit). Uncommitted: the create-namespace code + the plan/done progress.
+
+**STOP.** Next is **step 6 — extension Set Status menu**: point `markStatus.ts` at `loom_set_status`, rename `loom.markDone/markActive` → `loom.setStatusDone/setStatusActive` (labels "Set Status: Done/Active"), and remove the `loom.finalize` command + `finalize.ts` + its menu entry. Files: `packages/vscode/src/commands/markStatus.ts`, `finalize.ts`, `extension.ts`, `package.json`.
+
+Say **commit** and/or **go 6** (or **do 6-11**).

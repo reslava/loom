@@ -42,9 +42,9 @@ steps:
     satisfies: []
   - id: cli-create-chat-command
     order: 5
-    status: pending
-    description: Add a CLI command to create a chat (mirror loom_create_chat), so a Power-terminal / Pure-agent user can start the chat loop from the terminal. Lean name 'loom chat new'.
-    files_touched: [packages/cli/src/index.ts]
+    status: done
+    description: "Unify the CLI create surface: introduce a `loom create <type>` namespace mirroring loom_create_* for ALL types (idea, design, plan, chat, reference, req, weave, thread), and RETIRE `loom weave`. Create commands must NEVER implicitly mint a thread — idea/design/plan/req/chat require an existing thread (resolve slug→ULID, error if missing); `loom create thread` is the explicit thread creator. Also fix the wrong MCP loom_create_idea description (\"optionally in a specific thread\" — an idea is created only in a specific thread, one per thread) and audit sibling create descriptions."
+    files_touched: [packages/cli/src/commands/create.ts, packages/cli/src/index.ts, packages/cli/src/threadArg.ts, packages/mcp/src/tools/createIdea.ts]
     blocked_by: []
     satisfies: []
   - id: extension-set-status-menu
@@ -82,6 +82,13 @@ steps:
     files_touched: [tests, scripts/test-all.sh]
     blocked_by: [guarded-loom-set-status, trim-status-out-of-loom-update, retire-loom-finalize-doc, cli-loom-set-status-drop-finalize, extension-set-status-menu]
     satisfies: []
+  - id: final-tri-surface-discrepancy-sweep-walk
+    order: 11
+    status: pending
+    description: "Final tri-surface discrepancy sweep: walk CLI vs MCP vs extension command-by-command and resolve any remaining name/coverage divergence (verb mismatches, missing twins, stale descriptions), enforcing the parity contract end-to-end."
+    files_touched: [packages/cli/src/index.ts, packages/mcp/src/server.ts, packages/vscode/package.json, loom/refs/mcp-reference.md]
+    blocked_by: [docs-sweep]
+    satisfies: []
 ---
 # CLI ⇄ MCP ⇄ Extension status-verb parity
 
@@ -99,12 +106,13 @@ Consolidate document status changes onto a single guarded verb (loom_set_status)
 | ✅ | 2 | Remove the status parameter from loom_update_doc (app use-case + MCP tool) so it only edits body + requires_load; grep-audit every caller that set status via update_doc and migrate it to loom_set_status. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
 | ✅ | 3 | Delete the loom_finalize_doc MCP tool and its finalize app use-case (redundant with set_status). Keep loom_finalize_req — that is scope-lock, not status labeling. | packages/app/src, packages/mcp/src | guarded-loom-set-status | — |
 | ✅ | 4 | Add CLI 'loom set-status <slug> <status>' (resolves slug→ULID at the edge, maps to the set-status use-case). Remove CLI 'finalize'. Purge stale help text — no 'generate permanent ID', slug-addressed not ID. | packages/cli/src/index.ts | guarded-loom-set-status, retire-loom-finalize-doc | — |
-| 🔳 | 5 | Add a CLI command to create a chat (mirror loom_create_chat), so a Power-terminal / Pure-agent user can start the chat loop from the terminal. Lean name 'loom chat new'. | packages/cli/src/index.ts | — | — |
+| ✅ | 5 | Unify the CLI create surface: introduce a `loom create <type>` namespace mirroring loom_create_* for ALL types (idea, design, plan, chat, reference, req, weave, thread), and RETIRE `loom weave`. Create commands must NEVER implicitly mint a thread — idea/design/plan/req/chat require an existing thread (resolve slug→ULID, error if missing); `loom create thread` is the explicit thread creator. Also fix the wrong MCP loom_create_idea description ("optionally in a specific thread" — an idea is created only in a specific thread, one per thread) and audit sibling create descriptions. | packages/cli/src/commands/create.ts, packages/cli/src/index.ts, packages/cli/src/threadArg.ts, packages/mcp/src/tools/createIdea.ts | — | — |
 | 🔳 | 6 | Point markStatus.ts at loom_set_status; rename commands loom.markDone/markActive → loom.setStatusDone/setStatusActive with menu labels 'Set Status: Done' / 'Set Status: Active'; remove the loom.finalize command, finalize.ts, and its menu entry. | packages/vscode/src/commands/markStatus.ts, packages/vscode/src/commands/finalize.ts, packages/vscode/src/extension.ts, packages/vscode/package.json | guarded-loom-set-status, retire-loom-finalize-doc | — |
 | 🔳 | 7 | Walk the four ways in docs/WAYS-TO-USE-LOOM.md and verify each has the CLI/MCP commands it needs to run end-to-end; record any remaining gaps as follow-ups (esp. Power terminal CLI completeness). | docs/WAYS-TO-USE-LOOM.md | cli-loom-set-status-drop-finalize, cli-create-chat-command | — |
 | 🔳 | 8 | Add the 'Tri-surface command parity (hard)' rule to CLAUDE.md (sibling of API-naming / API-refactor-scope), including the WAYS-TO-USE availability clause. Repo-specific — no rule: marker, not mirrored into the LOOM_CLAUDE_MD template. | CLAUDE.md | — | — |
 | 🔳 | 9 | Update every surface that names the old commands: README command tables (Mark Done / Finalize → Set Status), WAYS-TO-USE-LOOM.md, docs/CLI_USER_GUIDE.md, loom/refs/mcp-reference.md, loom/refs/api-naming-reference.md; document loom set-status and create-chat. | README.md, packages/cli/README.md, packages/vscode/README.md, docs/CLI_USER_GUIDE.md, loom/refs/mcp-reference.md, loom/refs/api-naming-reference.md | cli-loom-set-status-drop-finalize, extension-set-status-menu | — |
 | 🔳 | 10 | Add/adjust tests: set_status free-vs-guarded behavior (plan→done refused, points to close_plan), update_doc no longer accepts status, finalize gone. Run build-all then test-all green. | tests, scripts/test-all.sh | guarded-loom-set-status, trim-status-out-of-loom-update, retire-loom-finalize-doc, cli-loom-set-status-drop-finalize, extension-set-status-menu | — |
+| 🔳 | 11 | Final tri-surface discrepancy sweep: walk CLI vs MCP vs extension command-by-command and resolve any remaining name/coverage divergence (verb mismatches, missing twins, stale descriptions), enforcing the parity contract end-to-end. | packages/cli/src/index.ts, packages/mcp/src/server.ts, packages/vscode/package.json, loom/refs/mcp-reference.md | docs-sweep | — |
 ---
 
 ### Legend

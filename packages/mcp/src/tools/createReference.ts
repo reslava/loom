@@ -1,6 +1,5 @@
-import * as path from 'path';
-import * as fsExtra from 'fs-extra';
-import { generateDocId, stripTrailingTypeWord, today as todayStamp } from '../../../core/dist';
+import * as fs from 'fs-extra';
+import { createReference } from '../../../app/dist/createReference';
 
 export const toolDef = {
     name: 'loom_create_reference',
@@ -17,43 +16,13 @@ export const toolDef = {
 };
 
 export async function handle(root: string, args: Record<string, unknown>) {
-    const title = args['title'] as string;
-    const description = (args['description'] as string | undefined) ?? '';
-    const providedContent = args['content'] as string | undefined;
-
-    const id = generateDocId('reference');
-    const rawSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    // Strip a trailing "reference" word so a title like "API Reference" yields
-    // api-reference.md, not api-reference-reference.md (the suffix is added below).
-    const slug = stripTrailingTypeWord(rawSlug, 'reference');
-    const refsDir = path.join(root, 'loom', 'refs');
-    await fsExtra.ensureDir(refsDir);
-
-    const today = todayStamp();
-    const filePath = path.join(refsDir, `${slug}-reference.md`);
-
-    const lines = [
-        '---',
-        'type: reference',
-        `id: ${id}`,
-        `title: "${title}"`,
-        'status: active',
-        `created: ${today}`,
-        'version: 1',
-        'tags: []',
-        'parent_id: null',
-        'child_ids: []',
-        'requires_load: []',
-        `slug: ${slug}`,
-        ...(description ? [`description: "${description}"`] : []),
-        '---',
-        '',
-    ];
-
-    const body = providedContent
-        ? (providedContent.endsWith('\n') ? providedContent : `${providedContent}\n`)
-        : `# ${title}\n\n${description ? `${description}\n\n` : ''}<!-- Add reference content here -->\n`;
-    await fsExtra.writeFile(filePath, lines.join('\n') + body, 'utf8');
-
-    return { content: [{ type: 'text' as const, text: JSON.stringify({ id, filePath, slug }) }] };
+    const result = await createReference(
+        {
+            title: args['title'] as string,
+            description: args['description'] as string | undefined,
+            content: args['content'] as string | undefined,
+        },
+        { getActiveLoomRoot: () => root, fs },
+    );
+    return { content: [{ type: 'text' as const, text: JSON.stringify(result) }] };
 }
