@@ -5,9 +5,11 @@
 Loom gives AI agents structured, scoped, persistent context — so every session is as sharp
 as the first, and every decision is traceable.
 
+> 🧭 **New to Loom? [Which way is for you →](./docs/WAYS-TO-USE-LOOM.md)** — the four ways to run Loom (Guided · Power terminal · Pure agent · Automation) and how to pick yours.
+
 🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) · [Open vsx](https://open-vsx.org/extension/reslava/loom-vscode)
 
-📚 **User Guides:** [Core concepts & workflow](./docs/USER_GUIDE.md) · [VS Code Extension](./docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code](./docs/CLI_USER_GUIDE.md)
+📚 **User Guides:** [Ways to use Loom](./docs/WAYS-TO-USE-LOOM.md) · [Core concepts & workflow](./docs/USER_GUIDE.md) · [VS Code Extension](./docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code](./docs/CLI_USER_GUIDE.md)
 
 > 💬 **Feedback appreciated.** Using Loom? Tell me how it's going — I'm always looking for ways to improve it. I'd like to know what worked and what got in the way. Click the **Feedback** button in the status bar or run `loom feedback`; it opens a prefilled GitHub issue you edit before sending. Opt-in, nothing sent automatically.
 

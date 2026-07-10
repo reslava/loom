@@ -2,9 +2,11 @@
 
 **Document-native workflow for AI-assisted development.** Weave ideas into features with AI.
 
+> 🧭 **New to Loom? [Which way is for you →](https://github.com/reslava/loom/blob/main/docs/WAYS-TO-USE-LOOM.md)** — the four ways to run Loom (Guided · Power terminal · Pure agent · Automation) and how to pick yours.
+
 🔗 **Get Loom:** [GitHub repo](https://github.com/reslava/loom) · [CLI on npm](https://www.npmjs.com/package/@reslava/loom) · [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=reslava.loom-vscode) · [Open vsx](https://open-vsx.org/extension/reslava/loom-vscode)
 
-📚 **Guides:** [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
+📚 **Guides:** [Ways to use Loom](https://github.com/reslava/loom/blob/main/docs/WAYS-TO-USE-LOOM.md) · [Core concepts & workflow](https://github.com/reslava/loom/blob/main/docs/USER_GUIDE.md) · [Extension User Guide](https://github.com/reslava/loom/blob/main/docs/EXTENSION_USER_GUIDE.md) · [CLI / Claude Code Guide](https://github.com/reslava/loom/blob/main/docs/CLI_USER_GUIDE.md)
 
 ![Loom workflow demo](https://raw.githubusercontent.com/reslava/loom/main/packages/vscode/media/loom-demo-workflow.gif)
 
