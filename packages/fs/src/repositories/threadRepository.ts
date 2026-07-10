@@ -37,32 +37,32 @@ async function loadMdFiles<T extends Document>(dir: string, typeName?: string): 
 
 export async function loadThread(
     loomRoot: string,
-    weaveId: string,
-    threadId: string,
+    weaveSlug: string,
+    threadSlug: string,
     index?: LinkIndex,
     overrideThreadPath?: string,
 ): Promise<Thread> {
-    const threadPath = overrideThreadPath ?? path.join(loomRoot, 'loom', weaveId, threadId);
+    const threadPath = overrideThreadPath ?? path.join(loomRoot, 'loom', weaveSlug, threadSlug);
 
     // idea/design are per-thread singletons. Dual-read: prefer the canonical flat
     // name (idea.md/design.md), fall back to the legacy thread-prefixed name so a
     // repo reads correctly before `loom migrate-layout` runs.
     let idea: IdeaDoc | undefined;
-    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadId}-idea.md`)]
+    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadSlug}-idea.md`)]
         .find(p => fs.existsSync(p));
     if (ideaPath) {
         idea = await loadDoc(ideaPath) as IdeaDoc;
     }
 
     let design: DesignDoc | undefined;
-    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadId}-design.md`)]
+    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadSlug}-design.md`)]
         .find(p => fs.existsSync(p));
     if (designPath) {
         design = await loadDoc(designPath) as DesignDoc;
     }
 
     // req.md — the thread's authoritative include/exclude/constraints spec.
-    // Flat filename (no `${threadId}-` prefix), like ctx.md.
+    // Flat filename (no `${threadSlug}-` prefix), like ctx.md.
     let req: ReqDoc | undefined;
     const reqPath = path.join(threadPath, 'req.md');
     if (await fs.pathExists(reqPath)) {
@@ -70,7 +70,7 @@ export async function loadThread(
     }
 
     // thread.md — the thread manifest (authored th_ ULID + priority + depends_on).
-    // Flat filename (no `${threadId}-` prefix), like ctx.md and req.md.
+    // Flat filename (no `${threadSlug}-` prefix), like ctx.md and req.md.
     let manifest: ThreadDoc | undefined;
     const manifestPath = path.join(threadPath, 'thread.md');
     if (await fs.pathExists(manifestPath)) {
@@ -85,10 +85,10 @@ export async function loadThread(
     // Constraint warnings
     const rootFiles = await fs.readdir(threadPath).catch(() => [] as string[]);
     if (rootFiles.filter(isIdeaFile).length > 1) {
-        console.warn(`⚠️  [${weaveId}/${threadId}] Multiple idea docs — only one expected.`);
+        console.warn(`⚠️  [${weaveSlug}/${threadSlug}] Multiple idea docs — only one expected.`);
     }
     if (rootFiles.filter(isDesignFile).length > 1) {
-        console.warn(`⚠️  [${weaveId}/${threadId}] Multiple design docs — only one expected.`);
+        console.warn(`⚠️  [${weaveSlug}/${threadSlug}] Multiple design docs — only one expected.`);
     }
 
     const allDocs: Document[] = [
@@ -114,10 +114,10 @@ export async function loadThread(
         }
     }
 
-    return { id: threadId, weaveId, idea, design, req, manifest, plans, dones, chats, refDocs, allDocs };
+    return { id: threadSlug, weaveSlug, idea, design, req, manifest, plans, dones, chats, refDocs, allDocs };
 }
 
-export function docPathInThread(doc: Document, threadPath: string, threadId: string): string {
+export function docPathInThread(doc: Document, threadPath: string, threadSlug: string): string {
     switch (doc.type) {
         case 'idea':   return path.join(threadPath, 'idea.md');
         case 'design': return path.join(threadPath, 'design.md');
@@ -131,8 +131,8 @@ export function docPathInThread(doc: Document, threadPath: string, threadId: str
     }
 }
 
-export async function saveThread(loomRoot: string, weaveId: string, thread: Thread): Promise<void> {
-    const threadPath = path.join(loomRoot, 'loom', weaveId, thread.id);
+export async function saveThread(loomRoot: string, weaveSlug: string, thread: Thread): Promise<void> {
+    const threadPath = path.join(loomRoot, 'loom', weaveSlug, thread.id);
     for (const doc of thread.allDocs) {
         const filePath = (doc as any)._path ?? docPathInThread(doc, threadPath, thread.id);
         await saveDoc(doc, filePath);

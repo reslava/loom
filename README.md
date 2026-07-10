@@ -229,7 +229,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | Resource | What it returns |
 |----------|----------------|
 | `loom://context/{docId}` (or `loom://context/thread/{weaveSlug}/{threadUlid}`) | Unified context pipeline: global/weave/thread ctx + parent chain (idea + design + active plan) + requires_load — the complete "what am I working on" payload |
-| `loom://state?weaveId=&status=` | Full project state JSON, filterable |
+| `loom://state?weaveSlug=&status=` | Full project state JSON, filterable |
 | `loom://plan/{id}` | Plan doc with parsed steps array |
 | `loom://requires-load/{id}` | Recursively resolved context chain |
 | `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) — read it before searching for a tool, then `ToolSearch select:<name>` |

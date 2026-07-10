@@ -6,17 +6,17 @@ export async function weaveCreateCommand(treeProvider: LoomTreeProvider, treeVie
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
-    const weaveId = await vscode.window.showInputBox({
+    const weaveSlug = await vscode.window.showInputBox({
         prompt: 'Weave ID',
         placeHolder: 'e.g., payment-system',
         validateInput: v => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(v) ? null : 'Use kebab-case (lowercase, hyphens)',
     });
-    if (!weaveId) return;
+    if (!weaveSlug) return;
 
     try {
-        await getMCP(root).callTool('loom_create_weave', { weave_slug: weaveId });
+        await getMCP(root).callTool('loom_create_weave', { weave_slug: weaveSlug });
         await treeProvider.waitForRefresh();
-        const node = treeProvider.getNodeByWeaveId(weaveId);
+        const node = treeProvider.getNodeByWeaveId(weaveSlug);
         if (node) treeView.reveal(node, { select: true, focus: true, expand: false });
     } catch (e: any) {
         vscode.window.showErrorMessage(`Failed to create weave: ${e.message}`);

@@ -46,7 +46,7 @@ function buildFixture() {
     const chat = doc({ id: 'c1', type: 'chat', content: 'CHAT', requires_load: ['vision', 'ghost'] });
 
     const thread = {
-        id: 't1', weaveId: 'w1', idea, design, plans: [plan], dones: [], chats: [chat], refDocs: [],
+        id: 't1', weaveSlug: 'w1', idea, design, plans: [plan], dones: [], chats: [chat], refDocs: [],
         allDocs: [idea, design, plan, chat],
     };
     const weave = {
@@ -137,14 +137,14 @@ async function makeWorkspace() {
     await remove(TMP);
     await ensureDir(path.join(TMP, '.loom'));
     await outputFile(path.join(TMP, '.loom', 'workflow.yml'), 'version: 1\n');
-    const weaveId = 'cd-weave';
-    const weavePath = path.join(TMP, 'loom', weaveId);
-    const stem = `${weaveId}-plan-001`;
+    const weaveSlug = 'cd-weave';
+    const weavePath = path.join(TMP, 'loom', weaveSlug);
+    const stem = `${weaveSlug}-plan-001`;
     // The plan's identity is a stable pl_ ULID (strict API contract); the filename stays
     // the human plan stem. do_step / the context resource address it by the ULID.
     const planUlid = 'pl_CTXDISPATCH0000000000000001';
-    // design lives in the same thread (threadId == weaveId) so the plan bundle includes it
-    await createDesignDoc(weavePath, weaveId, { threadId: weaveId, status: 'active' });
+    // design lives in the same thread (threadSlug == weaveSlug) so the plan bundle includes it
+    await createDesignDoc(weavePath, weaveSlug, { threadSlug: weaveSlug, status: 'active' });
     await createPlanDoc(weavePath, stem, { status: 'implementing', id: planUlid } as any);
     return { root: TMP, planId: planUlid };
 }

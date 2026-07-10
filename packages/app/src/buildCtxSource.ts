@@ -16,12 +16,12 @@ export interface CtxTarget {
  * frontmatter id (`loom-ctx` / `{weave}-ctx`); the filename is the positional
  * flat `ctx.md` (ctx-naming convention).
  */
-export function ctxTarget(scope: CtxScope, weaveId: string | undefined): CtxTarget {
+export function ctxTarget(scope: CtxScope, weaveSlug: string | undefined): CtxTarget {
     if (scope === 'global') {
         return { ctxId: 'loom-ctx', relPath: 'loom/ctx.md', title: 'Loom — Global Context' };
     }
-    if (!weaveId) throw new Error('weaveId is required for weave-scoped ctx');
-    return { ctxId: `${weaveId}-ctx`, relPath: `loom/${weaveId}/ctx.md`, title: `Context Summary — ${weaveId}` };
+    if (!weaveSlug) throw new Error('weaveSlug is required for weave-scoped ctx');
+    return { ctxId: `${weaveSlug}-ctx`, relPath: `loom/${weaveSlug}/ctx.md`, title: `Context Summary — ${weaveSlug}` };
 }
 
 /** Stable content hash of the assembled source, stored as `source_hash` for idempotency. */
@@ -60,8 +60,8 @@ export function buildCtxShell(target: CtxTarget, version: number, sourceHash: st
  * - global → active/implementing weaves + their threads, one line each.
  * - weave  → the weave's primary design body + ideas + plans + done decisions/open items.
  */
-export function buildCtxSource(scope: CtxScope, weaveId: string | undefined, state: LoomState): string {
-    return scope === 'global' ? buildGlobalSource(state) : buildWeaveSource(weaveId!, state);
+export function buildCtxSource(scope: CtxScope, weaveSlug: string | undefined, state: LoomState): string {
+    return scope === 'global' ? buildGlobalSource(state) : buildWeaveSource(weaveSlug!, state);
 }
 
 function buildGlobalSource(state: LoomState): string {
@@ -80,9 +80,9 @@ function buildGlobalSource(state: LoomState): string {
     return lines.join('\n');
 }
 
-function buildWeaveSource(weaveId: string, state: LoomState): string {
-    const weave = state.weaves.find(w => w.id === weaveId);
-    if (!weave) throw new Error(`Weave not found: ${weaveId}`);
+function buildWeaveSource(weaveSlug: string, state: LoomState): string {
+    const weave = state.weaves.find(w => w.id === weaveSlug);
+    if (!weave) throw new Error(`Weave not found: ${weaveSlug}`);
 
     const primaryDesign = weave.threads.find(t => t.design)?.design;
 
@@ -113,7 +113,7 @@ function buildWeaveSource(weaveId: string, state: LoomState): string {
     }).join('\n\n') || '(none)';
 
     return [
-        `Weave: ${weaveId}`,
+        `Weave: ${weaveSlug}`,
         primaryDesign ? `Primary design: ${primaryDesign.title} (v${primaryDesign.version})` : 'Primary design: (none)',
         '',
         '=== Design document ===',

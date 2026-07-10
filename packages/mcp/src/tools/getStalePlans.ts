@@ -26,8 +26,8 @@ export async function handle(root: string, _args: Record<string, unknown>) {
             return {
                 planId: plan.id,
                 planTitle: plan.title,
-                weaveId: weave.id,
-                threadId: thread?.id,
+                weaveSlug: weave.id,
+                threadSlug: thread?.id,
                 planDesignVersion: plan.design_version,
                 currentDesignVersion: thread?.design?.version,
             };

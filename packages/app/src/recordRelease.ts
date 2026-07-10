@@ -24,13 +24,13 @@ export interface RecordReleaseDeps {
     /** Load the full Loom state (all weaves). */
     loadState: () => Promise<LoomState>;
     /** Run a workflow event against a weave (load → reduce → save). */
-    runEvent: (weaveId: string, event: WorkflowEvent) => Promise<unknown>;
+    runEvent: (weaveSlug: string, event: WorkflowEvent) => Promise<unknown>;
 }
 
 export interface StampedPlan {
     planId: string;
-    threadId: string;
-    weaveId: string;
+    threadSlug: string;
+    weaveSlug: string;
     release: string;
 }
 
@@ -78,7 +78,7 @@ export async function recordRelease(
         throw new Error('recordRelease requires a non-empty version.');
     }
     const state = await deps.loadState();
-    const { history } = buildRoadmap(state); // done plans only, with weaveId/threadId/date/release
+    const { history } = buildRoadmap(state); // done plans only, with weaveSlug/threadSlug/date/release
 
     const stamped: StampedPlan[] = [];
     const skipped: SkippedPlan[] = [];
@@ -87,8 +87,8 @@ export async function recordRelease(
             skipped.push({ planId: sp.planId, reason: 'already-stamped' });
             continue;
         }
-        await deps.runEvent(sp.weaveId, recordReleaseEvent(sp.planId, input.version));
-        stamped.push({ planId: sp.planId, threadId: sp.threadId, weaveId: sp.weaveId, release: input.version });
+        await deps.runEvent(sp.weaveSlug, recordReleaseEvent(sp.planId, input.version));
+        stamped.push({ planId: sp.planId, threadSlug: sp.threadSlug, weaveSlug: sp.weaveSlug, release: input.version });
     }
     return { stamped, skipped };
 }
@@ -127,8 +127,8 @@ export async function backfillReleases(
             skipped.push({ planId: sp.planId, reason: 'unshipped' });
             continue;
         }
-        await deps.runEvent(sp.weaveId, recordReleaseEvent(sp.planId, version));
-        stamped.push({ planId: sp.planId, threadId: sp.threadId, weaveId: sp.weaveId, release: version });
+        await deps.runEvent(sp.weaveSlug, recordReleaseEvent(sp.planId, version));
+        stamped.push({ planId: sp.planId, threadSlug: sp.threadSlug, weaveSlug: sp.weaveSlug, release: version });
     }
     return { stamped, skipped };
 }

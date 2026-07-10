@@ -22,8 +22,8 @@ export interface BackfillDeps {
 }
 
 export interface BackfillResult {
-    created: Array<{ weaveId: string; threadId: string; id?: string }>;
-    skipped: Array<{ weaveId: string; threadId: string }>;
+    created: Array<{ weaveSlug: string; threadSlug: string; id?: string }>;
+    skipped: Array<{ weaveSlug: string; threadSlug: string }>;
     dryRun: boolean;
 }
 
@@ -40,27 +40,27 @@ export async function backfillThreadManifests(
     if (!(await deps.fs.pathExists(weavesDir))) return { created, skipped, dryRun };
 
     const weaves = await deps.fs.readdir(weavesDir).catch(() => [] as string[]);
-    for (const weaveId of weaves) {
-        if (weaveId === '.archive' || weaveId === 'chats') continue;
-        const weavePath = path.join(weavesDir, weaveId);
+    for (const weaveSlug of weaves) {
+        if (weaveSlug === '.archive' || weaveSlug === 'chats') continue;
+        const weavePath = path.join(weavesDir, weaveSlug);
         const wstat = await deps.fs.stat(weavePath).catch(() => null);
         if (!wstat?.isDirectory()) continue;
 
         const threads = await deps.fs.readdir(weavePath).catch(() => [] as string[]);
-        for (const threadId of threads) {
-            if (RESERVED_SUBDIRS.has(threadId)) continue;
-            const threadPath = path.join(weavePath, threadId);
+        for (const threadSlug of threads) {
+            if (RESERVED_SUBDIRS.has(threadSlug)) continue;
+            const threadPath = path.join(weavePath, threadSlug);
             const tstat = await deps.fs.stat(threadPath).catch(() => null);
             if (!tstat?.isDirectory()) continue;
 
             if (await deps.fs.pathExists(path.join(threadPath, 'thread.md'))) {
-                skipped.push({ weaveId, threadId });
+                skipped.push({ weaveSlug, threadSlug });
                 continue;
             }
 
             // Title from the thread idea when present, else the folder slug.
-            let title = threadId;
-            const ideaPath = path.join(threadPath, `${threadId}-idea.md`);
+            let title = threadSlug;
+            const ideaPath = path.join(threadPath, `${threadSlug}-idea.md`);
             if (await deps.fs.pathExists(ideaPath)) {
                 try {
                     const idea = (await deps.loadDoc(ideaPath)) as { title?: string };
@@ -69,14 +69,14 @@ export async function backfillThreadManifests(
             }
 
             if (dryRun) {
-                created.push({ weaveId, threadId });
+                created.push({ weaveSlug, threadSlug });
                 continue;
             }
             const res = await createThread(
-                { weaveSlug: weaveId, threadSlug: threadId, title },
+                { weaveSlug: weaveSlug, threadSlug: threadSlug, title },
                 { getActiveLoomRoot: deps.getActiveLoomRoot, saveDoc: deps.saveDoc, fs: deps.fs },
             );
-            created.push({ weaveId, threadId, id: res.id });
+            created.push({ weaveSlug, threadSlug, id: res.id });
         }
     }
 

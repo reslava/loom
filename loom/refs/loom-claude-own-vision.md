@@ -45,7 +45,7 @@ When a user opens a new session and says "let's continue what we were doing", I 
 
 The single biggest change is `requires_load`. Right now, when working on a complex feature, I have to figure out myself what context I need. If I don't know a decision exists, I can't go look for it. `requires_load` inverts this: the docs themselves tell me what I need to read before touching them. It's a dependency graph for context — and it's enforced.
 
-`loom://thread-context/{weaveId}/{threadId}` gives me a bundled, curated view: idea + design + active plan + ctx summary. One call, and I have the complete picture of what we're doing in this thread. Compare this to cold orientation, which requires reading multiple files, figuring out which are current, inferring what's active, and still potentially missing something.
+`loom://context/thread/{weaveSlug}/{threadSlug}` gives me a bundled, curated view: idea + design + active plan + ctx summary. One call, and I have the complete picture of what we're doing in this thread. Compare this to cold orientation, which requires reading multiple files, figuring out which are current, inferring what's active, and still potentially missing something.
 
 `do-next-step` changes the agentic loop fundamentally. Instead of "here's the codebase, figure out what to do", it's "here's the exact step, here's the design context, here's all the referenced architecture docs, go." The ambiguity is gone. The step was approved by a human before I get to it. I know what done looks like (the step describes it). I can focus entirely on execution.
 

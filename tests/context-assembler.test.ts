@@ -34,7 +34,7 @@ function buildFixture() {
     const plan = doc({ id: 'p1', type: 'plan', status: 'implementing', design_version: 1, steps: [], content: 'PLAN' });
     const chat = doc({ id: 'c1', type: 'chat', content: 'CHAT', requires_load: ['rf-A', 'ghost'] });
 
-    const thread = { id: 't1', weaveId: 'w1', idea, design, plans: [plan], dones: [], chats: [chat], refDocs: [],
+    const thread = { id: 't1', weaveSlug: 'w1', idea, design, plans: [plan], dones: [], chats: [chat], refDocs: [],
         allDocs: [idea, design, plan, chat] };
     const weave = { id: 'w1', threads: [thread], looseFibers: [wctx], chats: [], refDocs: [vision, refA, refB],
         allDocs: [idea, design, plan, chat, wctx, vision, refA, refB] };
@@ -64,7 +64,7 @@ function buildLoadFixture() {
     const designT = doc({ id: 'd-T', type: 'design', content: 'DESIGN-T' });
     const chatT   = doc({ id: 'c-T', type: 'chat', content: 'CHAT-T', requires_load: ['r-byreq'] });
 
-    const thread = { id: 't1', weaveId: 'w1', idea: undefined, design: designT, plans: [], dones: [], chats: [chatT], refDocs: [],
+    const thread = { id: 't1', weaveSlug: 'w1', idea: undefined, design: designT, plans: [], dones: [], chats: [chatT], refDocs: [],
         allDocs: [designT, chatT] };
     const weave = { id: 'w1', threads: [thread], looseFibers: [], chats: [], refDocs: [refAlways, refDesign, refByReq],
         allDocs: [designT, chatT, refAlways, refDesign, refByReq] };
@@ -233,7 +233,7 @@ async function run() {
         const req = doc({ id: 'rq_9', type: 'req', status: 'locked', content: 'REQ-SPEC' });
         const chat = doc({ id: 'c9', type: 'chat', content: 'CHAT-9' });
         const thread = {
-            id: 't9', weaveId: 'w9', idea, req, design: undefined,
+            id: 't9', weaveSlug: 'w9', idea, req, design: undefined,
             plans: [], dones: [], chats: [chat], refDocs: [], allDocs: [idea, req, chat],
         };
         const weave = { id: 'w9', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [idea, req, chat] };
@@ -267,7 +267,7 @@ async function run() {
         const design = doc({ id: 'd-s', type: 'design', version: 1, idea_version: 1, content: 'DESIGN' });
         const chat = doc({ id: 'c-s', type: 'chat', content: 'CHAT' });
         const thread = {
-            id: 'ts', weaveId: 'ws', idea, design, req: undefined,
+            id: 'ts', weaveSlug: 'ws', idea, design, req: undefined,
             plans: [], dones: [], chats: [chat], refDocs: [], allDocs: [idea, design, chat],
         };
         const weave = { id: 'ws', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [idea, design, chat] };

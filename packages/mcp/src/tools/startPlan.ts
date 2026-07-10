@@ -20,7 +20,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
     // Resolve filename-stems / typos to the canonical plan id (with suggest-on-miss),
     // then derive the weave from the resolved path.
     const { id: planId, filePath } = await resolveDocIdOrThrow(root, planKey);
-    const weaveId = path.relative(path.join(root, 'loom'), filePath).split(path.sep)[0];
+    const weaveSlug = path.relative(path.join(root, 'loom'), filePath).split(path.sep)[0];
 
     const loadWeaveStrict = async (r: string, w: string) => {
         const result = await loadWeave(r, w);
@@ -28,7 +28,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         return result;
     };
     const deps = { loadWeave: loadWeaveStrict, saveDocs, loomRoot: root };
-    const updatedWeave = await runEvent(weaveId, { type: 'START_IMPLEMENTING_PLAN', planId } as any, deps);
+    const updatedWeave = await runEvent(weaveSlug, { type: 'START_IMPLEMENTING_PLAN', planId } as any, deps);
     const plan = updatedWeave.threads.flatMap(t => t.plans).find(p => p.id === planId);
 
     return { content: [{ type: 'text' as const, text: JSON.stringify({ planId, status: plan?.status ?? 'implementing' }) }] };

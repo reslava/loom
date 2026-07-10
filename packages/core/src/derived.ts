@@ -84,8 +84,8 @@ export type StaleReasonKind =
 export interface StaleEntry {
     docId: string;
     type: Document['type'];
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     reason: StaleReasonKind;
     /** Human-readable explanation for a surface to render. */
     detail: string;
@@ -112,7 +112,7 @@ export function staleEntries(weave: Weave): StaleEntry[] {
         // design <- idea
         if (design && idea && typeof design.idea_version === 'number' && design.idea_version < idea.version) {
             out.push({
-                docId: design.id, type: 'design', weaveId: weave.id, threadId: thread.id,
+                docId: design.id, type: 'design', weaveSlug: weave.id, threadSlug: thread.id,
                 reason: 'design_stale',
                 detail: `idea v${idea.version} > design baseline v${design.idea_version}`,
                 actionable: !isInactiveStatus(design.status) && design.status !== 'closed',
@@ -122,7 +122,7 @@ export function staleEntries(weave: Weave): StaleEntry[] {
         // req <- design
         if (req && design && typeof req.design_version === 'number' && req.design_version < design.version) {
             out.push({
-                docId: req.id, type: 'req', weaveId: weave.id, threadId: thread.id,
+                docId: req.id, type: 'req', weaveSlug: weave.id, threadSlug: thread.id,
                 reason: 'req_stale',
                 detail: `design v${design.version} > req baseline v${req.design_version}`,
                 actionable: true, // a req is never done/cancelled
@@ -134,7 +134,7 @@ export function staleEntries(weave: Weave): StaleEntry[] {
             for (const plan of plans) {
                 if (plan.design_version < design.version) {
                     out.push({
-                        docId: plan.id, type: 'plan', weaveId: weave.id, threadId: thread.id,
+                        docId: plan.id, type: 'plan', weaveSlug: weave.id, threadSlug: thread.id,
                         reason: 'plan_design_stale',
                         detail: `design v${design.version} > plan baseline v${plan.design_version}`,
                         actionable: !isInactiveStatus(plan.status),
@@ -148,7 +148,7 @@ export function staleEntries(weave: Weave): StaleEntry[] {
             for (const plan of plans) {
                 if (isReqStale(plan as { req_version?: number }, req)) {
                     out.push({
-                        docId: plan.id, type: 'plan', weaveId: weave.id, threadId: thread.id,
+                        docId: plan.id, type: 'plan', weaveSlug: weave.id, threadSlug: thread.id,
                         reason: 'plan_req_stale',
                         detail: `req v${req.version} > plan baseline v${(plan as { req_version?: number }).req_version}`,
                         actionable: !isInactiveStatus(plan.status),
@@ -190,10 +190,10 @@ export const DEFAULT_ROADMAP_PRIORITY = 1_000_000;
 
 export interface RoadmapNode {
     /** Folder slug (the human/path handle). */
-    threadId: string;
+    threadSlug: string;
     /** Stable `th_` ULID, or null when the thread has no manifest yet (pre-migration). */
     ulid: string | null;
-    weaveId: string;
+    weaveSlug: string;
     title: string;
     status: RoadmapStatus;
     /** Resolved `th_` ULIDs this thread depends on. */
@@ -209,8 +209,8 @@ export interface RoadmapNode {
 export interface ShippedPlan {
     planId: string;
     planTitle: string;
-    threadId: string;
-    weaveId: string;
+    threadSlug: string;
+    weaveSlug: string;
     /** The plan's done-doc `created` (fallback: plan.updated/created). */
     date: string;
     /** The release version this plan shipped in, or null if not yet recorded. */
@@ -221,8 +221,8 @@ export type RoadmapDiagnosticKind = 'cycle' | 'dangling_dep' | 'missing_manifest
 
 export interface RoadmapDiagnostic {
     kind: RoadmapDiagnosticKind;
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     detail: string;
     /** Involved `th_` ULIDs (dangling target, cycle edges). */
     refs?: string[];
@@ -267,12 +267,12 @@ function baseRoadmapStatus(thread: Thread): RoadmapStatus {
 const ROADMAP_CMP = (a: RoadmapNode, b: RoadmapNode): number =>
     a.priority - b.priority ||
     compareDates(a.created, b.created) ||
-    (a.threadId < b.threadId ? -1 : a.threadId > b.threadId ? 1 : 0);
+    (a.threadSlug < b.threadSlug ? -1 : a.threadSlug > b.threadSlug ? 1 : 0);
 
 /**
  * Kahn topological sort over the non-done node set. Edges run dep → node (a
  * dependency is emitted before the thread that depends on it). Among ready nodes
- * the order is `priority`, then `created`, then `threadId` (deterministic). Nodes
+ * the order is `priority`, then `created`, then `threadSlug` (deterministic). Nodes
  * left after the queue drains are in a cycle: returned in `cycleNodes` and appended
  * (priority-ordered) so the rest of the roadmap still renders.
  */
@@ -324,8 +324,8 @@ function buildHistory(state: LoomState): ShippedPlan[] {
                 shipped.push({
                     planId: plan.id,
                     planTitle: plan.title,
-                    threadId: thread.id,
-                    weaveId: weave.id,
+                    threadSlug: thread.id,
+                    weaveSlug: weave.id,
                     date,
                     release: plan.actual_release ?? null,
                 });
@@ -359,9 +359,9 @@ export function buildRoadmap(state: LoomState): RoadmapView {
             const ulid = thread.manifest?.id ?? null;
             if (ulid) baseByUlid.set(ulid, base);
             nodes.push({
-                threadId: thread.id,
+                threadSlug: thread.id,
                 ulid,
-                weaveId: weave.id,
+                weaveSlug: weave.id,
                 title: thread.manifest?.title ?? thread.idea?.title ?? thread.id,
                 status: base,
                 dependsOn: [...(thread.manifest?.depends_on ?? [])],
@@ -372,8 +372,8 @@ export function buildRoadmap(state: LoomState): RoadmapView {
             if (!thread.manifest) {
                 diagnostics.push({
                     kind: 'missing_manifest',
-                    weaveId: weave.id,
-                    threadId: thread.id,
+                    weaveSlug: weave.id,
+                    threadSlug: thread.id,
                     detail: `Thread ${weave.id}/${thread.id} has no thread.md — run \`loom migrate\`.`,
                 });
             }
@@ -389,8 +389,8 @@ export function buildRoadmap(state: LoomState): RoadmapView {
                 node.blockedOn.push(dep);
                 diagnostics.push({
                     kind: 'dangling_dep',
-                    weaveId: node.weaveId,
-                    threadId: node.threadId,
+                    weaveSlug: node.weaveSlug,
+                    threadSlug: node.threadSlug,
                     detail: `depends_on references unknown thread ${dep}`,
                     refs: [dep],
                 });
@@ -405,9 +405,9 @@ export function buildRoadmap(state: LoomState): RoadmapView {
     for (const n of cycleNodes) {
         diagnostics.push({
             kind: 'cycle',
-            weaveId: n.weaveId,
-            threadId: n.threadId,
-            detail: `Thread ${n.weaveId}/${n.threadId} is in a depends_on cycle`,
+            weaveSlug: n.weaveSlug,
+            threadSlug: n.threadSlug,
+            detail: `Thread ${n.weaveSlug}/${n.threadSlug} is in a depends_on cycle`,
             refs: n.dependsOn,
         });
     }

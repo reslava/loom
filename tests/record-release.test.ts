@@ -14,19 +14,19 @@ function plan(id: string, status: string, extra: any = {}): any {
 function done(id: string, parentId: string, created: string): any {
     return { type: 'done', id, title: id, status: 'done', parent_id: parentId, created, version: 1 };
 }
-function thread(weaveId: string, id: string, opts: any = {}): any {
+function thread(weaveSlug: string, id: string, opts: any = {}): any {
     const { manifest: m, plans = [], dones = [] } = opts;
     const allDocs = [m, ...plans, ...dones].filter(Boolean);
-    return { id, weaveId, manifest: m, plans, dones, chats: [], refDocs: [], allDocs };
+    return { id, weaveSlug, manifest: m, plans, dones, chats: [], refDocs: [], allDocs };
 }
 function weave(id: string, threads: any[]): any { return { id, threads }; }
 function state(weaves: any[]): any { return { weaves, archivedWeaves: [] }; }
 
 function capture(s: any) {
-    const events: Array<{ weaveId: string; event: any }> = [];
+    const events: Array<{ weaveSlug: string; event: any }> = [];
     const deps = {
         loadState: async () => s,
-        runEvent: async (weaveId: string, event: any) => { events.push({ weaveId, event }); },
+        runEvent: async (weaveSlug: string, event: any) => { events.push({ weaveSlug, event }); },
     };
     return { events, deps };
 }

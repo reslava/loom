@@ -11,7 +11,7 @@ const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'ai-chats', 'ctx', 'refs
 function extractThreadId(filePath: string, weavesDir: string): string | undefined {
     const rel = path.relative(weavesDir, filePath);
     const parts = rel.split(path.sep);
-    // parts[0]=weaveId, parts[1]=possible threadId, parts[2+]=rest
+    // parts[0]=weaveSlug, parts[1]=possible threadSlug, parts[2+]=rest
     if (parts.length < 3) return undefined;
     const candidate = parts[1];
     if (RESERVED_SUBDIR_NAMES.has(candidate) || candidate.endsWith('.md')) return undefined;
@@ -38,14 +38,14 @@ export async function buildLinkIndex(loomRoot: string): Promise<LinkIndex> {
         try {
             const doc = await loadDoc(filePath) as Document & { slug?: string };
             const docId = doc.id;
-            const threadId = extractThreadId(filePath, threadsDir);
+            const threadSlug = extractThreadId(filePath, threadsDir);
 
             const entry: DocumentEntry = {
                 path: filePath,
                 type: doc.type,
                 exists: true,
                 archived: filePath.includes('.archive'),
-                threadId,
+                threadSlug,
             };
 
             // Primary lookup maps
@@ -156,9 +156,9 @@ export async function updateIndexForFile(
     try {
         const doc = await loadDoc(filePath) as Document & { slug?: string };
         const id = doc.id;
-        const threadId = extractThreadId(filePath, weavesDir);
+        const threadSlug = extractThreadId(filePath, weavesDir);
 
-        index.documents.set(id, { path: filePath, type: doc.type, exists: true, archived: filePath.includes('.archive'), threadId });
+        index.documents.set(id, { path: filePath, type: doc.type, exists: true, archived: filePath.includes('.archive'), threadSlug });
         index.byId.set(id, filePath);
 
         if (doc.type === 'reference' && doc.slug) {

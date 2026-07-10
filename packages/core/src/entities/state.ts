@@ -27,7 +27,7 @@ export interface LoomState {
 
     /**
      * Archived threads — the atomic archive unit. Each is a whole thread folder moved
-     * to loom/.archive/{weave}/{thread}/ (a Thread carries its weaveId + id). Archiving
+     * to loom/.archive/{weave}/{thread}/ (a Thread carries its weaveSlug + id). Archiving
      * is thread-granular: individual docs are never archived on their own.
      */
     archivedThreads: Thread[];

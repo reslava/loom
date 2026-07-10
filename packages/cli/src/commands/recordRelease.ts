@@ -24,7 +24,7 @@ export async function recordReleaseCommand(version: string, options: { overwrite
         const result = JSON.parse(out);
         console.log(chalk.bold(`\n✅ stamped ${result.stamped.length} plan(s) with ${chalk.magenta('v' + v)}, skipped ${result.skipped.length}`));
         for (const s of result.stamped) {
-            console.log(`  ${chalk.cyan(`${s.weaveId}/${s.threadId}`)}  ${chalk.gray(s.planId)}`);
+            console.log(`  ${chalk.cyan(`${s.weaveSlug}/${s.threadSlug}`)}  ${chalk.gray(s.planId)}`);
         }
         const already = result.skipped.filter((s: any) => s.reason === 'already-stamped').length;
         if (already) console.log(chalk.gray(`  (${already} already carried a release — pass --overwrite to restamp)`));

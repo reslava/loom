@@ -17,32 +17,32 @@ export async function setupWorkspace(): Promise<string> {
     return WORKSPACE_ROOT;
 }
 
-// seedWeave: creates a weave with a single default thread (threadId = weaveId)
+// seedWeave: creates a weave with a single default thread (threadSlug = weaveSlug)
 export async function seedWeave(
     loomRoot: string,
-    weaveId: string,
+    weaveSlug: string,
     options?: { planStatus?: string; steps?: number }
 ): Promise<{ weavePath: string; threadPath: string; planId: string }> {
-    return seedWeaveWithThread(loomRoot, weaveId, weaveId, options);
+    return seedWeaveWithThread(loomRoot, weaveSlug, weaveSlug, options);
 }
 
 // seedWeaveWithThread: creates a weave with a named thread (design + plan inside thread subdir)
 export async function seedWeaveWithThread(
     loomRoot: string,
-    weaveId: string,
-    threadId: string,
+    weaveSlug: string,
+    threadSlug: string,
     options?: { planStatus?: string; steps?: number }
 ): Promise<{ weavePath: string; threadPath: string; planId: string }> {
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
-    const threadPath = path.join(weavePath, threadId);
-    // Plan IDs use weaveId prefix so use-cases can extract weaveId via planId.split('-plan-')[0]
-    const planId = `${weaveId}-plan-001`;
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+    const threadPath = path.join(weavePath, threadSlug);
+    // Plan IDs use weaveSlug prefix so use-cases can extract weaveSlug via planId.split('-plan-')[0]
+    const planId = `${weaveSlug}-plan-001`;
     const stepCount = options?.steps ?? 2;
 
     const designFm = serializeFrontmatter({
         type: 'design',
-        id: `${threadId}-design`,
-        title: `${threadId} Design`,
+        id: `${threadSlug}-design`,
+        title: `${threadSlug} Design`,
         status: 'active',
         created: '2026-04-24',
         version: 1,
@@ -52,7 +52,7 @@ export async function seedWeaveWithThread(
         requires_load: [],
     });
     await outputFile(
-        path.join(threadPath, `${threadId}-design.md`),
+        path.join(threadPath, `${threadSlug}-design.md`),
         `${designFm}\n## Overview\nTest design.\n`
     );
 
@@ -62,12 +62,12 @@ export async function seedWeaveWithThread(
     const planFm = serializeFrontmatter({
         type: 'plan',
         id: planId,
-        title: `Test Plan ${weaveId}`,
+        title: `Test Plan ${weaveSlug}`,
         status: options?.planStatus ?? 'implementing',
         created: '2026-04-24',
         version: 1,
         tags: [],
-        parent_id: `${threadId}-design`,
+        parent_id: `${threadSlug}-design`,
         child_ids: [],
         requires_load: [],
     });
@@ -84,22 +84,22 @@ ${stepsRows}
 }
 
 // seedThread: adds an additional thread (design + plan) to an existing weave directory.
-// The plan ID is {weaveId}-{threadId}-plan-001 to avoid collision with the primary thread.
+// The plan ID is {weaveSlug}-{threadSlug}-plan-001 to avoid collision with the primary thread.
 export async function seedThread(
     loomRoot: string,
-    weaveId: string,
-    threadId: string,
+    weaveSlug: string,
+    threadSlug: string,
     options?: { planStatus?: string; steps?: number }
 ): Promise<{ threadPath: string; planId: string }> {
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
-    const threadPath = path.join(weavePath, threadId);
-    const planId = `${weaveId}-${threadId}-plan-001`;
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+    const threadPath = path.join(weavePath, threadSlug);
+    const planId = `${weaveSlug}-${threadSlug}-plan-001`;
     const stepCount = options?.steps ?? 1;
 
     const designFm = serializeFrontmatter({
         type: 'design',
-        id: `${threadId}-design`,
-        title: `${threadId} Design`,
+        id: `${threadSlug}-design`,
+        title: `${threadSlug} Design`,
         status: 'active',
         created: '2026-04-24',
         version: 1,
@@ -109,8 +109,8 @@ export async function seedThread(
         requires_load: [],
     });
     await outputFile(
-        path.join(threadPath, `${threadId}-design.md`),
-        `${designFm}\n## Overview\nTest design for thread ${threadId}.\n`
+        path.join(threadPath, `${threadSlug}-design.md`),
+        `${designFm}\n## Overview\nTest design for thread ${threadSlug}.\n`
     );
 
     const stepsRows = Array.from({ length: stepCount }, (_, i) =>
@@ -119,12 +119,12 @@ export async function seedThread(
     const planFm = serializeFrontmatter({
         type: 'plan',
         id: planId,
-        title: `Test Plan ${threadId}`,
+        title: `Test Plan ${threadSlug}`,
         status: options?.planStatus ?? 'implementing',
         created: '2026-04-24',
         version: 1,
         tags: [],
-        parent_id: `${threadId}-design`,
+        parent_id: `${threadSlug}-design`,
         child_ids: [],
         requires_load: [],
     });
@@ -143,10 +143,10 @@ ${stepsRows}
 // seedLooseFiber: writes a loose .md idea doc at the weave root (not inside any thread).
 export async function seedLooseFiber(
     loomRoot: string,
-    weaveId: string,
+    weaveSlug: string,
     fiberId: string
 ): Promise<{ fiberPath: string }> {
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
     const fiberPath = path.join(weavePath, `${fiberId}.md`);
 
     const fm = serializeFrontmatter({
@@ -169,11 +169,11 @@ export async function seedLooseFiber(
 // seedDoneInThread: writes a minimal done doc inside {thread}/done/.
 export async function seedDoneInThread(
     loomRoot: string,
-    weaveId: string,
-    threadId: string,
+    weaveSlug: string,
+    threadSlug: string,
     planId: string
 ): Promise<{ donePath: string }> {
-    const donePath = path.join(loomRoot, 'loom', weaveId, threadId, 'done', `${planId}-done.md`);
+    const donePath = path.join(loomRoot, 'loom', weaveSlug, threadSlug, 'done', `${planId}-done.md`);
 
     const fm = serializeFrontmatter({
         type: 'done',

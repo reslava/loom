@@ -81,8 +81,8 @@ export async function refinePlan(
     // bumps the plan's own version but leaves the stale baseline behind, so the plan
     // stays flagged "stale" forever — the very operation meant to clear it never could.
     const threadDir = path.dirname(path.dirname(input.filePath));
-    const threadId = path.basename(threadDir);
-    const design = await parentDesignVersion(threadDir, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+    const threadSlug = path.basename(threadDir);
+    const design = await parentDesignVersion(threadDir, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
 
     const updated: PlanDoc = {
         ...doc,

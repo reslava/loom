@@ -40,7 +40,7 @@ export type Fiber = Document;
 
 export interface Thread {
     id: string;
-    weaveId: string;
+    weaveSlug: string;
     idea?: IdeaDoc;
     design?: DesignDoc;
     req?: ReqDoc;

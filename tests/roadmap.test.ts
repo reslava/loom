@@ -19,16 +19,16 @@ function plan(id: string, status: string, extra: any = {}): any {
 function done(id: string, parentId: string, created: string): any {
     return { type: 'done', id, title: id, status: 'done', parent_id: parentId, created, version: 1 };
 }
-function thread(weaveId: string, id: string, opts: any = {}): any {
+function thread(weaveSlug: string, id: string, opts: any = {}): any {
     const { manifest: m, plans = [], dones = [], idea, design } = opts;
     const allDocs = [m, idea, design, ...plans, ...dones].filter(Boolean);
-    return { id, weaveId, manifest: m, idea, design, plans, dones, chats: [], refDocs: [], allDocs };
+    return { id, weaveSlug, manifest: m, idea, design, plans, dones, chats: [], refDocs: [], allDocs };
 }
 function weave(id: string, threads: any[]): any { return { id, threads }; }
 function state(weaves: any[], archivedWeaves: any[] = []): any { return { weaves, archivedWeaves }; }
 
-function nodeBy(list: any[], threadId: string): any {
-    return list.find(n => n.threadId === threadId);
+function nodeBy(list: any[], threadSlug: string): any {
+    return list.find(n => n.threadSlug === threadSlug);
 }
 
 async function run() {
@@ -42,8 +42,8 @@ async function run() {
         ])]);
         const r = buildRoadmap(s);
         assert(r.roadmap.length === 2, 'both pending threads land in roadmap');
-        assert(r.roadmap[0].threadId === 'low', 'lower priority sorts first');
-        assert(r.roadmap[1].threadId === 'high', 'higher priority sorts second');
+        assert(r.roadmap[0].threadSlug === 'low', 'lower priority sorts first');
+        assert(r.roadmap[1].threadSlug === 'high', 'higher priority sorts second');
         console.log('  ✅ priority ordering');
     }
 
@@ -57,8 +57,8 @@ async function run() {
         const b = nodeBy(r.roadmap, 'b');
         assert(b.status === 'blocked', 'B is dependency-blocked');
         assert(b.blockedOn.includes('th_a'), 'B.blockedOn names A');
-        const ai = r.roadmap.findIndex(n => n.threadId === 'a');
-        const bi = r.roadmap.findIndex(n => n.threadId === 'b');
+        const ai = r.roadmap.findIndex(n => n.threadSlug === 'a');
+        const bi = r.roadmap.findIndex(n => n.threadSlug === 'b');
         assert(ai < bi, 'dependency A is ordered before B');
         console.log('  ✅ dependency blocked-on + topo order');
     }
@@ -112,7 +112,7 @@ async function run() {
         const s = state([weave('w', [thread('w', 'orphan', {})])]);
         const r = buildRoadmap(s);
         const missing = r.diagnostics.filter(d => d.kind === 'missing_manifest');
-        assert(missing.length === 1 && missing[0].threadId === 'orphan', 'missing-manifest diagnostic emitted');
+        assert(missing.length === 1 && missing[0].threadSlug === 'orphan', 'missing-manifest diagnostic emitted');
         assert(nodeBy(r.roadmap, 'orphan'), 'manifest-less thread still renders');
         console.log('  ✅ missing manifest diagnostic (reads never mutate)');
     }
@@ -159,9 +159,9 @@ async function run() {
         ])]);
         const r = buildRoadmap(s);
         assert(r.roadmap.length === 2, 'active + pending share one roadmap list');
-        assert(r.roadmap[0].threadId === 'pend' && r.roadmap[0].status === 'pending',
+        assert(r.roadmap[0].threadSlug === 'pend' && r.roadmap[0].status === 'pending',
             'lower-priority pending sorts first');
-        assert(r.roadmap[1].threadId === 'act' && r.roadmap[1].status === 'active',
+        assert(r.roadmap[1].threadSlug === 'act' && r.roadmap[1].status === 'active',
             'higher-priority active sorts after — despite a different status');
         console.log('  ✅ present+future interleave in one order (status is not a boundary)');
     }

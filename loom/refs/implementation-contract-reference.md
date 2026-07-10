@@ -51,7 +51,7 @@ Two implementation-side rules to keep in mind: **never import `vscode` outside
 | Surface | What it does | When to call |
 |---------|-------------|-------------|
 | `getState(deps)` | Builds link index, loads all threads, returns `LoomState` | Any read — tree view, status, validate |
-| `runEvent(threadId, event, deps)` | Loads thread → `applyEvent` → saves | Any mutation |
+| `runEvent(weaveSlug, event, deps)` | Loads weave → `applyEvent` → saves | Any mutation |
 
 `buildLinkIndex` is called **once per `getState`** call, then passed down to `loadThread`. Never call it N times.
 

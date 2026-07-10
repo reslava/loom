@@ -24,7 +24,7 @@ export async function migrateCommand(options: { dryRun?: boolean }): Promise<voi
         } else {
             console.log(chalk.bold(`\n${tag}${result.dryRun ? 'Would create' : 'Created'} ${result.created.length} thread manifest(s):`));
             for (const c of result.created) {
-                console.log(`  ${chalk.cyan(`${c.weaveId}/${c.threadId}`)}${c.id ? `  ${chalk.gray(c.id)}` : ''}`);
+                console.log(`  ${chalk.cyan(`${c.weaveSlug}/${c.threadSlug}`)}${c.id ? `  ${chalk.gray(c.id)}` : ''}`);
             }
             console.log(chalk.gray(`  (${result.skipped.length} already present)`));
         }

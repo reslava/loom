@@ -9,7 +9,7 @@ import { parentDesignVersion } from './weavePlan';
  * Use-cases for the per-thread `req` doc — the authoritative include/exclude/
  * constraints spec. A thread has exactly one `req.md` at a deterministic flat
  * path (`loom/{weave}/{thread}/req.md`), so these use-cases key on
- * weaveId + threadId rather than a doc id.
+ * weaveSlug + threadSlug rather than a doc id.
  *
  *   create  → new draft req (parented to the thread idea if present)
  *   amend   → reconcile new/changed requirements under append-only rules

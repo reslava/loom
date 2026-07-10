@@ -48,8 +48,8 @@ reads and writes this memory via the Loom MCP server.
 
 | Entry point | When to use |
 |-------------|-------------|
-| `loom://thread-context/{weaveId}/{threadId}` | Starting work on a specific thread — loads idea + design + active plan + ctx |
-| `loom://state` | Getting full project state (filterable with `?weaveId=&threadId=`) |
+| `loom://context/thread/{weaveSlug}/{threadSlug}` | Starting work on a specific thread — loads idea + design + active plan + ctx |
+| `loom://state` | Getting full project state (filterable with `?weaveSlug=&status=`) |
 | `do-next-step` prompt | Implementing the next plan step — auto-loads all required context |
 | `continue-thread` prompt | Proposing the next action on a thread |
 
@@ -64,7 +64,7 @@ and plan-step validation.
 At the start of every session:
 
 1. Read `loom/ctx.md` — global ctx: overall project state, active weaves, recent decisions.
-2. If working on a specific thread, call `loom://thread-context/{weaveId}/{threadId}`.
+2. If working on a specific thread, call `loom://context/thread/{weaveSlug}/{threadSlug}`.
 3. If implementing a plan step, use the `do-next-step` prompt — it loads all `requires_load` docs automatically.
 
 Output this block and **STOP**:

@@ -8,7 +8,7 @@ import { resolveThreadFolder } from './utils/resolveThreadFolder';
  * Use-cases for the per-thread `thread.md` manifest — the authored roadmap
  * metadata (a stable `th_` ULID identity, a soft `priority`, hard `depends_on`
  * edges). One flat `thread.md` per thread (mirrors `req.md`), so the
- * create/scaffold use-cases key on weaveId + threadId; the set-priority /
+ * create/scaffold use-cases key on weaveSlug + threadSlug; the set-priority /
  * set-deps use-cases key on the thread's `th_` ULID (what the extension holds).
  *
  *   createThread          → new manifest with a fresh th_ ULID (empty threads)
@@ -145,8 +145,8 @@ const DEFAULT_MANIFEST_BODY =
     'Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). ' +
     'The thread\'s roadmap status and history are *derived* (`buildRoadmap`), never stored here.';
 
-function manifestPathFor(loomRoot: string, weaveId: string, threadId: string): string {
-    return path.join(loomRoot, 'loom', weaveId, threadId, 'thread.md');
+function manifestPathFor(loomRoot: string, weaveSlug: string, threadSlug: string): string {
+    return path.join(loomRoot, 'loom', weaveSlug, threadSlug, 'thread.md');
 }
 
 export interface CreateThreadInput {
@@ -191,8 +191,8 @@ export async function createThread(
 }
 
 interface ScannedManifest {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     ulid: string;
     dependsOn: string[];
     filePath: string;
@@ -220,7 +220,7 @@ async function scanManifests(loomRoot: string, deps: ThreadManifestDeps): Promis
                 if (!(await deps.fs.pathExists(mp))) continue;
                 try {
                     const d = (await deps.loadDoc(mp)) as ThreadDoc;
-                    out.push({ weaveId: w, threadId: t, ulid: d.id, dependsOn: d.depends_on ?? [], filePath: mp, archived });
+                    out.push({ weaveSlug: w, threadSlug: t, ulid: d.id, dependsOn: d.depends_on ?? [], filePath: mp, archived });
                 } catch {
                     // skip malformed manifest
                 }

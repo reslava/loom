@@ -12,10 +12,10 @@ export async function restoreItemCommand(treeProvider: LoomTreeProvider, node?: 
     // Archived folders are addressed by weave/thread; an archived doc is addressed
     // by its path relative to loom/.archive/ (archived docs aren't in the live index).
     let args: Record<string, unknown>;
-    if (node.weaveId && node.threadId && !node.doc) {
-        args = { weave_slug: node.weaveId, thread_slug: node.threadId };
-    } else if (node.weaveId && !node.doc) {
-        args = { weave_slug: node.weaveId };
+    if (node.weaveSlug && node.threadSlug && !node.doc) {
+        args = { weave_slug: node.weaveSlug, thread_slug: node.threadSlug };
+    } else if (node.weaveSlug && !node.doc) {
+        args = { weave_slug: node.weaveSlug };
     } else {
         const filePath = (node.doc as any)?._path as string | undefined;
         if (!filePath) { vscode.window.showErrorMessage('Cannot determine what to restore.'); return; }

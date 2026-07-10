@@ -65,10 +65,10 @@ function makePlan(id: string, status: string) {
     };
 }
 
-function makeThread(id: string, weaveId: string, plans: any[]) {
+function makeThread(id: string, weaveSlug: string, plans: any[]) {
     return {
         id,
-        weaveId,
+        weaveSlug,
         plans,
         dones: [],
         chats: [],
@@ -84,10 +84,10 @@ async function testThreadEntity() {
     const plan2 = makePlan('state-mgmt-plan-002', 'draft');
     const thread = makeThread('state-management', 'core-engine', [plan1, plan2]);
 
-    console.log('  • thread has id and weaveId...');
+    console.log('  • thread has id and weaveSlug...');
     assert(thread.id === 'state-management', 'thread id must be set');
-    assert(thread.weaveId === 'core-engine', 'thread weaveId must be set');
-    console.log('    ✅ id and weaveId correct');
+    assert(thread.weaveSlug === 'core-engine', 'thread weaveSlug must be set');
+    console.log('    ✅ id and weaveSlug correct');
 
     console.log('  • thread has plans...');
     assert(thread.plans.length === 2, 'thread must have 2 plans');
@@ -140,7 +140,7 @@ async function testStatusExcludesCtxAndReference() {
 
     // Thread: a done plan + a perpetual ctx → still DONE (ctx excluded from every-done)
     const thread = {
-        id: 'ctx-load', weaveId: 'core-engine',
+        id: 'ctx-load', weaveSlug: 'core-engine',
         plans: [donePlan], dones: [], chats: [],
         allDocs: [donePlan, ctx],
     };
@@ -161,7 +161,7 @@ async function testStatusExcludesCtxAndReference() {
 
     // Guard: only a ctx, no deliverables → NOT a false DONE
     const ctxOnly = {
-        id: 'x', weaveId: 'core-engine',
+        id: 'x', weaveSlug: 'core-engine',
         plans: [], dones: [], chats: [],
         allDocs: [ctx],
     };

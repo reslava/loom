@@ -9,7 +9,7 @@ const TREE_MIME = 'application/vnd.loom.tree-node';
 
 // A thread is the atomic, indivisible unit — only whole threads move between weaves.
 // (Docs are never moved across threads: a thread is a chain, not a bag of docs.)
-type TreeDragPayload = { kind: 'thread'; weaveId: string; threadId: string; threadUlid?: string };
+type TreeDragPayload = { kind: 'thread'; weaveSlug: string; threadSlug: string; threadUlid?: string };
 
 /** Spacing between renumbered priorities — leaves room and keeps writes small. */
 const PRIORITY_SPACING = 10;
@@ -48,8 +48,8 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
 
         // Normal tree: drag a thread (→ another weave) or a loose-fiber doc (→ a thread).
         const ctx = (node.contextValue as string | undefined) ?? '';
-        if (ctx.startsWith('thread') && node.weaveId && node.threadId) {
-            const payload: TreeDragPayload = { kind: 'thread', weaveId: node.weaveId, threadId: node.threadId, threadUlid: node.threadUlid };
+        if (ctx.startsWith('thread') && node.weaveSlug && node.threadSlug) {
+            const payload: TreeDragPayload = { kind: 'thread', weaveSlug: node.weaveSlug, threadSlug: node.threadSlug, threadUlid: node.threadUlid };
             dataTransfer.set(TREE_MIME, new vscode.DataTransferItem(payload));
         }
     }
@@ -106,7 +106,7 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
                 const di = pos.get(dep);
                 if (di !== undefined && di > ni) {
                     vscode.window.showWarningMessage(
-                        `Can't place ${n.weaveId}/${n.threadId} before ${this.labelFor(reordered, dep)} — it depends on it.`,
+                        `Can't place ${n.weaveSlug}/${n.threadSlug} before ${this.labelFor(reordered, dep)} — it depends on it.`,
                     );
                     return;
                 }
@@ -141,18 +141,18 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
         if (!root || !target) return;
         const ctx = (target.contextValue as string | undefined) ?? '';
 
-        if (ctx !== 'weave' || !target.weaveId) {
+        if (ctx !== 'weave' || !target.weaveSlug) {
             vscode.window.showWarningMessage('Drop a thread onto a weave to move it.');
             return;
         }
-        if (target.weaveId === payload.weaveId) return;
+        if (target.weaveSlug === payload.weaveSlug) return;
         if (!payload.threadUlid) {
-            vscode.window.showWarningMessage(`Thread '${payload.weaveId}/${payload.threadId}' has no thread.md manifest — cannot move by identity.`);
+            vscode.window.showWarningMessage(`Thread '${payload.weaveSlug}/${payload.threadSlug}' has no thread.md manifest — cannot move by identity.`);
             return;
         }
         try {
             const res = await getMCP(root).callTool('loom_move_thread', {
-                from_weave_slug: payload.weaveId, thread_ulid: payload.threadUlid, to_weave_slug: target.weaveId,
+                from_weave_slug: payload.weaveSlug, thread_ulid: payload.threadUlid, to_weave_slug: target.weaveSlug,
             }) as any;
             vscode.window.showInformationMessage(`🧵 Moved thread → ${res.to}`);
             this.treeProvider.refresh();
@@ -163,6 +163,6 @@ export class RoadmapDragAndDropController implements vscode.TreeDragAndDropContr
 
     private labelFor(nodes: RoadmapNode[], ulid: string): string {
         const n = nodes.find(x => x.ulid === ulid);
-        return n ? `${n.weaveId}/${n.threadId}` : ulid;
+        return n ? `${n.weaveSlug}/${n.threadSlug}` : ulid;
     }
 }

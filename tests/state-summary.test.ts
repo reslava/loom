@@ -15,10 +15,10 @@ function plan(id: string, status: string, steps: any[] = []): any {
 function manifest(title: string, priority: number): any {
     return { type: 'thread', id: 'th_x', title, status: 'active', created: '2026-01-01', version: 1, priority, depends_on: [] };
 }
-function thread(weaveId: string, id: string, opts: any = {}): any {
+function thread(weaveSlug: string, id: string, opts: any = {}): any {
     const { manifest: m, idea, plans = [], stale = [] } = opts;
     const allDocs = [m, idea, ...plans].filter(Boolean);
-    return { id, weaveId, manifest: m, idea, plans, dones: [], chats: [], refDocs: [], allDocs, stale };
+    return { id, weaveSlug, manifest: m, idea, plans, dones: [], chats: [], refDocs: [], allDocs, stale };
 }
 function weave(id: string, threads: any[]): any {
     return { id, threads, looseFibers: [], chats: [], refDocs: [], allDocs: threads.flatMap(t => t.allDocs) };
@@ -32,8 +32,8 @@ function state(weaves: any[], summaryOverrides: any = {}): any {
     };
 }
 
-function threadOf(summary: any, weaveId: string, threadId: string): any {
-    return summary.weaves.find((w: any) => w.id === weaveId)?.threads.find((t: any) => t.id === threadId);
+function threadOf(summary: any, weaveSlug: string, threadSlug: string): any {
+    return summary.weaves.find((w: any) => w.id === weaveSlug)?.threads.find((t: any) => t.id === threadSlug);
 }
 
 async function run() {

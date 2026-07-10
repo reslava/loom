@@ -13,8 +13,8 @@ export interface SearchResult {
     id: string;
     type: string;
     title: string;
-    weaveId: string;
-    threadId?: string;
+    weaveSlug: string;
+    threadSlug?: string;
     filePath?: string;
     excerpt: string;
 }
@@ -65,8 +65,8 @@ export async function searchDocs(input: SearchDocsInput, deps: SearchDocsDeps): 
                     id: doc.id,
                     type: doc.type,
                     title: doc.title,
-                    weaveId: weave.id,
-                    threadId: thread.id,
+                    weaveSlug: weave.id,
+                    threadSlug: thread.id,
                     filePath: doc._path,
                     excerpt: excerpt(doc.content ?? '', query),
                 });
@@ -79,7 +79,7 @@ export async function searchDocs(input: SearchDocsInput, deps: SearchDocsDeps): 
                 id: doc.id,
                 type: doc.type,
                 title: doc.title,
-                weaveId: weave.id,
+                weaveSlug: weave.id,
                 filePath: doc._path,
                 excerpt: excerpt(doc.content ?? '', query),
             });

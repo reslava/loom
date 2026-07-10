@@ -113,11 +113,11 @@ export function generatePermanentId(title: string, type: string, existingIds: Se
 
 /**
  * Generates the next available plan ID, scoped by the caller's chosen prefix.
- * Format: {scope}-plan-{###} — scope is the threadId for threaded plans
- * (and the weaveId for loose plans at weave root). Counter is local to whatever
+ * Format: {scope}-plan-{###} — scope is the threadSlug for threaded plans
+ * (and the weaveSlug for loose plans at weave root). Counter is local to whatever
  * existingPlanIds the caller passes; pass thread-local IDs to get thread-local
  * numbering. Use resolveWeaveSlugForPlan to recover the containing weave from a
- * planId — never split('-plan-')[0], that assumed weaveId-prefix and is wrong.
+ * planId — never split('-plan-')[0], that assumed weaveSlug-prefix and is wrong.
  */
 export function generatePlanId(scope: string, existingPlanIds: string[]): string {
     const prefix = `${scope}-plan-`;
@@ -131,10 +131,10 @@ export function generatePlanId(scope: string, existingPlanIds: string[]): string
 
 /**
  * Generates the next available chat ID for a weave.
- * Format: {weaveId}-chat-{###}
+ * Format: {weaveSlug}-chat-{###}
  */
-export function generateChatId(weaveId: string, existingChatIds: string[]): string {
-    const prefix = `${weaveId}-chat-`;
+export function generateChatId(weaveSlug: string, existingChatIds: string[]): string {
+    const prefix = `${weaveSlug}-chat-`;
     const numbers = existingChatIds
         .map(id => id.match(/-chat-(\d+)$/)?.[1])
         .filter(Boolean)

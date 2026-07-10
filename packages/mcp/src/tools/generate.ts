@@ -63,8 +63,8 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 required: ['weave_slug', 'title', 'prompt'],
             },
             async (root, args) => {
-                const weaveId = args['weave_slug'] as string;
-                const threadId = args['thread_ulid'] as string | undefined;
+                const weaveSlug = args['weave_slug'] as string;
+                const threadSlug = args['thread_ulid'] as string | undefined;
                 const title = args['title'] as string;
                 const prompt = args['prompt'] as string;
 
@@ -75,7 +75,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await weaveIdea(
-                    { title, weaveSlug: weaveId, threadUlid: threadId },
+                    { title, weaveSlug: weaveSlug, threadUlid: threadSlug },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
 
@@ -100,14 +100,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 required: ['weave_slug', 'thread_ulid', 'title'],
             },
             async (root, args) => {
-                const weaveId = args['weave_slug'] as string;
-                const threadId = args['thread_ulid'] as string;
+                const weaveSlug = args['weave_slug'] as string;
+                const threadSlug = args['thread_ulid'] as string;
                 const title = args['title'] as string;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
                 const messages: SamplingMessage[] = [];
                 try {
-                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveSlug}/${threadSlug}`);
                     messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                 } catch { /* best-effort */ }
                 if (contextIds.length > 0) {
@@ -129,7 +129,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await weaveDesign(
-                    { weaveSlug: weaveId, title, threadUlid: threadId },
+                    { weaveSlug: weaveSlug, title, threadUlid: threadSlug },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
 
@@ -154,14 +154,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 required: ['weave_slug', 'thread_ulid', 'title'],
             },
             async (root, args) => {
-                const weaveId = args['weave_slug'] as string;
-                const threadId = args['thread_ulid'] as string;
+                const weaveSlug = args['weave_slug'] as string;
+                const threadSlug = args['thread_ulid'] as string;
                 const title = args['title'] as string;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
                 const messages: SamplingMessage[] = [];
                 try {
-                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveSlug}/${threadSlug}`);
                     messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                 } catch { /* best-effort */ }
                 if (contextIds.length > 0) {
@@ -206,7 +206,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 }));
 
                 const { id, filePath } = await weavePlan(
-                    { weaveSlug: weaveId, title, threadUlid: threadId, goal: title, steps: stepsInput },
+                    { weaveSlug: weaveSlug, title, threadUlid: threadSlug, goal: title, steps: stepsInput },
                     { loadWeave, saveDoc, loadDoc, fs: fsExtra, loomRoot: root }
                 );
 
@@ -229,8 +229,8 @@ export function createGenerateTools(server: Server): ToolModule[] {
             },
             async (root, args) => {
                 const id = args['id'] as string;
-                const weaveId = args['weave_slug'] as string | undefined;
-                const threadId = args['thread_ulid'] as string | undefined;
+                const weaveSlug = args['weave_slug'] as string | undefined;
+                const threadSlug = args['thread_ulid'] as string | undefined;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
                 // Primary (agent-supplied) id → suggest-on-miss.
@@ -239,9 +239,9 @@ export function createGenerateTools(server: Server): ToolModule[] {
 
                 const messages: SamplingMessage[] = [];
 
-                if (weaveId && threadId) {
+                if (weaveSlug && threadSlug) {
                     try {
-                        const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
+                        const ctx = await handleContextResource(root, `loom://context/thread/${weaveSlug}/${threadSlug}`);
                         messages.push(msg('user', `Thread context:\n\n${ctx.contents[0].text}`));
                     } catch { /* best-effort */ }
                 }
@@ -287,14 +287,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 required: ['weave_slug', 'thread_ulid'],
             },
             async (root, args) => {
-                const weaveId = args['weave_slug'] as string;
-                const threadId = args['thread_ulid'] as string;
+                const weaveSlug = args['weave_slug'] as string;
+                const threadSlug = args['thread_ulid'] as string;
                 const title = args['title'] as string | undefined;
                 const contextIds = Array.isArray(args['context_ids']) ? (args['context_ids'] as string[]) : [];
 
                 const messages: SamplingMessage[] = [];
                 try {
-                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveId}/${threadId}`);
+                    const ctx = await handleContextResource(root, `loom://context/thread/${weaveSlug}/${threadSlug}`);
                     messages.push(msg('user', `Thread context (the chat especially):\n\n${ctx.contents[0].text}`));
                 } catch { /* best-effort */ }
                 if (contextIds.length > 0) {
@@ -325,7 +325,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                 );
 
                 const { id, filePath } = await createReq(
-                    { weaveSlug: weaveId, threadUlid: threadId, title, content: body },
+                    { weaveSlug: weaveSlug, threadUlid: threadSlug, title, content: body },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra },
                 );
 

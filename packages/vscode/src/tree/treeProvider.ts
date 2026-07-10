@@ -18,8 +18,8 @@ import { Icons, icon, getDocumentIcon, getWeaveIcon, getThreadIcon, getPlanIcon 
 
 export interface TreeNode extends vscode.TreeItem {
     children?: TreeNode[];
-    weaveId?: string;
-    threadId?: string;
+    weaveSlug?: string;
+    threadSlug?: string;
     /** The thread's stable th_ ULID (from thread.md) — what ULID-addressed folder ops (rename/move) pass. */
     threadUlid?: string;
     doc?: Document;
@@ -93,22 +93,22 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             if (arg instanceof vscode.Uri) {
                 this.filePathToNode.set(arg.fsPath, node);
             }
-            if (node.weaveId && !node.threadId && node.contextValue === 'weave') {
-                this.weaveIdToNode.set(node.weaveId, node);
+            if (node.weaveSlug && !node.threadSlug && node.contextValue === 'weave') {
+                this.weaveIdToNode.set(node.weaveSlug, node);
             }
-            if (node.weaveId && node.threadId && (node.contextValue as string | undefined)?.startsWith('thread')) {
-                this.threadKeyToNode.set(`${node.weaveId}/${node.threadId}`, node);
+            if (node.weaveSlug && node.threadSlug && (node.contextValue as string | undefined)?.startsWith('thread')) {
+                this.threadKeyToNode.set(`${node.weaveSlug}/${node.threadSlug}`, node);
             }
             if (node.children?.length) this.buildNodeMaps(node.children, node);
         }
     }
 
-    getNodeByWeaveId(weaveId: string): TreeNode | undefined {
-        return this.weaveIdToNode.get(weaveId);
+    getNodeByWeaveId(weaveSlug: string): TreeNode | undefined {
+        return this.weaveIdToNode.get(weaveSlug);
     }
 
-    getNodeByThreadId(weaveId: string, threadId: string): TreeNode | undefined {
-        return this.threadKeyToNode.get(`${weaveId}/${threadId}`);
+    getNodeByThreadId(weaveSlug: string, threadSlug: string): TreeNode | undefined {
+        return this.threadKeyToNode.get(`${weaveSlug}/${threadSlug}`);
     }
 
     private async getRootChildren(): Promise<TreeNode[]> {
@@ -190,9 +190,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             if (viewState.showArchived) {
                 const archiveChildren: TreeNode[] = [
                     ...[...(archivedThreads ?? [])]
-                        .sort((a, b) => `${a.weaveId}/${a.id}`.localeCompare(`${b.weaveId}/${b.id}`))
+                        .sort((a, b) => `${a.weaveSlug}/${a.id}`.localeCompare(`${b.weaveSlug}/${b.id}`))
                         .map(t => this.tagArchived(
-                            { ...this.createThreadNode(t, t.weaveId), label: `${t.weaveId}/${t.id}` },
+                            { ...this.createThreadNode(t, t.weaveSlug), label: `${t.weaveSlug}/${t.id}` },
                             true,
                         )),
                     // Archived references (loom/.archive/refs) — each its own atomic unit.
@@ -230,7 +230,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 const refsNode = new vscode.TreeItem('Refs', vscode.TreeItemCollapsibleState.Collapsed);
                 refsNode.contextValue = 'refs-section';
                 refsNode.iconPath = new vscode.ThemeIcon('library');
-                nodes.push({ ...refsNode, weaveId: 'refs', children: refsChildren });
+                nodes.push({ ...refsNode, weaveSlug: 'refs', children: refsChildren });
             } else if (globalRefDocs.length > 0) {
                 nodes.push(this.createRefsSection(globalRefDocs));
             }
@@ -364,7 +364,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         // ULID → "weave/thread" label, for rendering blocked-on targets by name.
         const label = new Map<string, string>();
         for (const n of roadmap.roadmap) {
-            if (n.ulid) label.set(n.ulid, `${n.weaveId}/${n.threadId}`);
+            if (n.ulid) label.set(n.ulid, `${n.weaveSlug}/${n.threadSlug}`);
         }
         const nameOf = (u: string) => label.get(u) ?? u;
 
@@ -406,7 +406,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     }
 
     private createRoadmapNode(n: RoadmapNode, nameOf: (u: string) => string): TreeNode {
-        const node = new vscode.TreeItem(`${n.weaveId}/${n.threadId}`, vscode.TreeItemCollapsibleState.None);
+        const node = new vscode.TreeItem(`${n.weaveSlug}/${n.threadSlug}`, vscode.TreeItemCollapsibleState.None);
         const blocked = n.blockedOn.length ? `⛔ blocked on ${n.blockedOn.map(nameOf).join(', ')}` : '';
         const prio = n.priority !== DEFAULT_ROADMAP_PRIORITY ? `p${n.priority}` : '';
         node.description = [n.status, prio, blocked].filter(Boolean).join(' · ');
@@ -414,11 +414,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         node.tooltip = `${n.title} — ${n.status}${blocked ? `\n${blocked}` : ''}`;
         node.contextValue = 'roadmap-thread';
 
-        const docPath = this.resolveThreadDocPath(n.weaveId, n.threadId);
+        const docPath = this.resolveThreadDocPath(n.weaveSlug, n.threadSlug);
         if (docPath) {
             node.command = { command: 'vscode.open', title: 'Open', arguments: [vscode.Uri.file(docPath)] };
         }
-        return { ...node, weaveId: n.weaveId, threadId: n.threadId, threadUlid: n.ulid ?? undefined, roadmap: n, children: [] };
+        return { ...node, weaveSlug: n.weaveSlug, threadSlug: n.threadSlug, threadUlid: n.ulid ?? undefined, roadmap: n, children: [] };
     }
 
     private createHistoryBand(history: ShippedPlan[], grouping: HistoryGrouping, currentRelease: string | null): TreeNode {
@@ -452,7 +452,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         } else if (grouping === 'thread') {
             const byThread = new Map<string, ShippedPlan[]>();
             for (const h of history) {
-                const k = `${h.weaveId}/${h.threadId}`;
+                const k = `${h.weaveSlug}/${h.threadSlug}`;
                 if (!byThread.has(k)) byThread.set(k, []);
                 byThread.get(k)!.push(h);
             }
@@ -479,27 +479,27 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const parts = [
             ...(showRelease ? [rel] : []),
             day(h.date),
-            ...(showThread ? [`${h.weaveId}/${h.threadId}`] : []),
+            ...(showThread ? [`${h.weaveSlug}/${h.threadSlug}`] : []),
         ];
         const node = new vscode.TreeItem(h.planTitle, vscode.TreeItemCollapsibleState.None);
         node.description = parts.join(' · ');
         node.iconPath = new vscode.ThemeIcon('check-all');
         node.contextValue = 'roadmap-shipped-plan';
-        node.tooltip = `${h.planTitle}\nshipped ${rel} on ${day(h.date)} — ${h.weaveId}/${h.threadId}`;
+        node.tooltip = `${h.planTitle}\nshipped ${rel} on ${day(h.date)} — ${h.weaveSlug}/${h.threadSlug}`;
         const planPath = this.resolvePlanPath(h.planId);
         if (planPath) {
             node.command = { command: 'vscode.open', title: 'Open Plan', arguments: [vscode.Uri.file(planPath)] };
         }
-        return { ...node, weaveId: h.weaveId, threadId: h.threadId, children: [] };
+        return { ...node, weaveSlug: h.weaveSlug, threadSlug: h.threadSlug, children: [] };
     }
 
-    private findThreadInState(weaveId: string, threadId: string): Thread | undefined {
-        return this.state?.weaves.find(w => w.id === weaveId)?.threads.find(t => t.id === threadId);
+    private findThreadInState(weaveSlug: string, threadSlug: string): Thread | undefined {
+        return this.state?.weaves.find(w => w.id === weaveSlug)?.threads.find(t => t.id === threadSlug);
     }
 
     /** Best-effort path to open for a roadmap thread node: design, then idea, then manifest. */
-    private resolveThreadDocPath(weaveId: string, threadId: string): string | undefined {
-        const t = this.findThreadInState(weaveId, threadId);
+    private resolveThreadDocPath(weaveSlug: string, threadSlug: string): string | undefined {
+        const t = this.findThreadInState(weaveSlug, threadSlug);
         const doc = t?.design ?? t?.idea ?? t?.manifest;
         return (doc as any)?._path;
     }
@@ -602,7 +602,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
      * Tag an archived subtree so menus can gate on it: top-level archived items get
      * contextValue 'archived' (only Restore + Delete apply); every descendant gets
      * 'archived-child' (no actions — you restore/delete the whole archived unit).
-     * The node's weaveId/threadId/doc are left intact so the commands can act.
+     * The node's weaveSlug/threadSlug/doc are left intact so the commands can act.
      */
     private tagArchived(node: TreeNode, isTop: boolean): TreeNode {
         const tagged: TreeNode = { ...node, contextValue: isTop ? 'archived' : 'archived-child' };
@@ -625,7 +625,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ? `${primaryThread.design.title} (v${primaryThread.design.version})`
             : weave.id;
 
-        return { ...node, weaveId: weave.id, children };
+        return { ...node, weaveSlug: weave.id, children };
     }
 
     private getWeaveChildren(weave: Weave): TreeNode[] {
@@ -664,9 +664,9 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return children;
     }
 
-    private createThreadNode(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode {
+    private createThreadNode(thread: Thread, weaveSlug: string, staleIds: Set<string> = new Set()): TreeNode {
         const status = getThreadStatus(thread);
-        const children = this.getThreadChildren(thread, weaveId, staleIds);
+        const children = this.getThreadChildren(thread, weaveSlug, staleIds);
         const state = children.length > 0
             ? vscode.TreeItemCollapsibleState.Collapsed
             : vscode.TreeItemCollapsibleState.None;
@@ -686,12 +686,12 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         if (hasCtx) contextValue += '-has-ctx';
         node.contextValue = contextValue;
 
-        return { ...node, weaveId, threadId: thread.id, threadUlid: thread.manifest?.id, children };
+        return { ...node, weaveSlug, threadSlug: thread.id, threadUlid: thread.manifest?.id, children };
     }
 
-    private getThreadChildren(thread: Thread, weaveId: string, staleIds: Set<string> = new Set()): TreeNode[] {
+    private getThreadChildren(thread: Thread, weaveSlug: string, staleIds: Set<string> = new Set()): TreeNode[] {
         const children: TreeNode[] = [];
-        // Thread identity flows to EVERY descendant node (like weaveId/threadId), so a
+        // Thread identity flows to EVERY descendant node (like weaveSlug/threadSlug), so a
         // command invoked from a chat/doc/section row inside the thread — New Chat, req,
         // rename, promote — resolves the thread by its stable th_ ULID. Only the thread
         // node itself carried threadUlid before; that gap misfiled extension-created chats.
@@ -700,7 +700,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         // req is the thread's authoritative spec — render it first (chain position),
         // with a lock badge when locked.
         if (thread.req) {
-            const reqNode = this.createDocumentNode(thread.req, 'req', weaveId, thread.id, staleIds);
+            const reqNode = this.createDocumentNode(thread.req, 'req', weaveSlug, thread.id, staleIds);
             if (thread.req.status === 'locked') {
                 // Surface the structural coverage result right on the req node, so the
                 // cheapest always-on check has a visible home (not just the global
@@ -719,18 +719,18 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         }
 
         if (thread.idea) {
-            children.push(this.createDocumentNode(thread.idea, 'idea', weaveId, thread.id, staleIds));
+            children.push(this.createDocumentNode(thread.idea, 'idea', weaveSlug, thread.id, staleIds));
         }
 
         if (thread.design) {
-            children.push(this.createDocumentNode(thread.design, 'design', weaveId, thread.id, staleIds));
+            children.push(this.createDocumentNode(thread.design, 'design', weaveSlug, thread.id, staleIds));
         }
 
         if (thread.plans.length > 0) {
             children.push(this.createPlansSection(
                 thread.plans.map(p => {
                     const doneDoc = thread.dones.find(d => d.parent_id === p.id);
-                    return this.createPlanNode(p, weaveId, doneDoc, thread.id, thread.design);
+                    return this.createPlanNode(p, weaveSlug, doneDoc, thread.id, thread.design);
                 })
             ));
         }
@@ -740,22 +740,22 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         if (orphanedDones.length > 0) {
             children.push(this.createSectionNode(
                 'Done (orphaned)',
-                orphanedDones.map(d => this.createDoneDocNode(d, weaveId, thread.id))
+                orphanedDones.map(d => this.createDoneDocNode(d, weaveSlug, thread.id))
             ));
         }
 
         children.push(this.createChatsSection(
-            thread.chats.map(c => this.createChatNode(c, weaveId, thread.id)),
-            weaveId, thread.id
+            thread.chats.map(c => this.createChatNode(c, weaveSlug, thread.id)),
+            weaveSlug, thread.id
         ));
 
         const ctxDocs = thread.allDocs.filter(d => d.type === 'ctx');
         if (ctxDocs.length > 0) {
-            children.push(this.createCtxSection(ctxDocs, weaveId, thread.id));
+            children.push(this.createCtxSection(ctxDocs, weaveSlug, thread.id));
         }
 
         if (thread.refDocs && thread.refDocs.length > 0) {
-            children.push(this.createRefsSection(thread.refDocs, weaveId, thread.id));
+            children.push(this.createRefsSection(thread.refDocs, weaveSlug, thread.id));
         }
 
         // Stamp the thread's ULID across the whole subtree — nested nodes included
@@ -770,32 +770,32 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return stampThreadUlid(children);
     }
 
-    private createCtxSection(ctxDocs: Document[], weaveId?: string, threadId?: string): TreeNode {
+    private createCtxSection(ctxDocs: Document[], weaveSlug?: string, threadSlug?: string): TreeNode {
         const node = new vscode.TreeItem('Context', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'ctx-section';
         node.iconPath = new vscode.ThemeIcon('note');
-        const children = ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveId, threadId));
-        return { ...node, weaveId, threadId, children };
+        const children = ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveSlug, threadSlug));
+        return { ...node, weaveSlug, threadSlug, children };
     }
 
-    private createRefsSection(refDocs: Document[], weaveId?: string, threadId?: string): TreeNode {
+    private createRefsSection(refDocs: Document[], weaveSlug?: string, threadSlug?: string): TreeNode {
         const node = new vscode.TreeItem('References', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'refs-section';
         node.iconPath = new vscode.ThemeIcon('library');
         const children = [...refDocs]
             .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
-            .map(d => this.createDocumentNode(d, 'reference', weaveId, threadId));
-        return { ...node, weaveId, threadId, children };
+            .map(d => this.createDocumentNode(d, 'reference', weaveSlug, threadSlug));
+        return { ...node, weaveSlug, threadSlug, children };
     }
 
-    private createChatsSection(chatNodes: TreeNode[], weaveId?: string, threadId?: string): TreeNode {
+    private createChatsSection(chatNodes: TreeNode[], weaveSlug?: string, threadSlug?: string): TreeNode {
         const state = chatNodes.length > 0
             ? vscode.TreeItemCollapsibleState.Collapsed
             : vscode.TreeItemCollapsibleState.None;
         const node = new vscode.TreeItem('Chats', state);
         node.contextValue = 'chats-section';
         node.iconPath = new vscode.ThemeIcon('comment-discussion');
-        return { ...node, weaveId, threadId, children: chatNodes };
+        return { ...node, weaveSlug, threadSlug, children: chatNodes };
     }
 
     private createPlansSection(planNodes: TreeNode[]): TreeNode {
@@ -811,7 +811,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return { ...node, children };
     }
 
-    private createDocumentNode(doc: Document, baseContextValue: string, weaveId?: string, threadId?: string, staleIds?: Set<string>): TreeNode {
+    private createDocumentNode(doc: Document, baseContextValue: string, weaveSlug?: string, threadSlug?: string, staleIds?: Set<string>): TreeNode {
         const isDraft = doc.status === 'draft';
         const contextValue = isDraft ? `${baseContextValue}-temp` : baseContextValue;
         const node = new vscode.TreeItem(String(doc.title || doc.id), vscode.TreeItemCollapsibleState.None);
@@ -830,14 +830,14 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             };
         }
 
-        return { ...node, doc, weaveId, threadId, children: [] };
+        return { ...node, doc, weaveSlug, threadSlug, children: [] };
     }
 
-    private createChatNode(chat: ChatDoc, weaveId?: string, threadId?: string): TreeNode {
+    private createChatNode(chat: ChatDoc, weaveSlug?: string, threadSlug?: string): TreeNode {
         const node = new vscode.TreeItem(String(chat.title || chat.id), vscode.TreeItemCollapsibleState.None);
         node.description = chat.status;
         node.iconPath = icon(Icons.chat);
-        node.contextValue = (weaveId === 'refs' && !threadId) ? 'chat-refs' : 'chat';
+        node.contextValue = (weaveSlug === 'refs' && !threadSlug) ? 'chat-refs' : 'chat';
         node.tooltip = `chat • ${chat.status}`;
 
         const filePath = (chat as any)._path;
@@ -849,10 +849,10 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             };
         }
 
-        return { ...node, doc: chat, weaveId, threadId, children: [] };
+        return { ...node, doc: chat, weaveSlug, threadSlug, children: [] };
     }
 
-    private createPlanNode(plan: PlanDoc, weaveId?: string, doneDoc?: DoneDoc, threadId?: string, design?: DesignDoc): TreeNode {
+    private createPlanNode(plan: PlanDoc, weaveSlug?: string, doneDoc?: DoneDoc, threadSlug?: string, design?: DesignDoc): TreeNode {
         const hasDone = !!doneDoc;
         const node = new vscode.TreeItem(String(plan.title || plan.id), hasDone ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
         const doneSteps = plan.steps?.filter(s => s.status === 'done').length ?? 0;
@@ -906,11 +906,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             };
         }
 
-        const children: TreeNode[] = doneDoc ? [this.createDoneDocNode(doneDoc, weaveId, threadId)] : [];
-        return { ...node, doc: plan, weaveId, threadId, children };
+        const children: TreeNode[] = doneDoc ? [this.createDoneDocNode(doneDoc, weaveSlug, threadSlug)] : [];
+        return { ...node, doc: plan, weaveSlug, threadSlug, children };
     }
 
-    private createDoneDocNode(done: DoneDoc, weaveId?: string, threadId?: string): TreeNode {
+    private createDoneDocNode(done: DoneDoc, weaveSlug?: string, threadSlug?: string): TreeNode {
         const node = new vscode.TreeItem(String(done.title || done.id), vscode.TreeItemCollapsibleState.None);
         node.description = 'done';
         node.iconPath = new vscode.ThemeIcon('check-all');
@@ -926,6 +926,6 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             };
         }
 
-        return { ...node, doc: done, weaveId, threadId, children: [] };
+        return { ...node, doc: done, weaveSlug, threadSlug, children: [] };
     }
 }

@@ -55,17 +55,17 @@ export async function promoteToPlan(
 
     // Resolve the target: an explicit targetThreadUlid is a stable th_ ULID → folder
     // (never fabricates); a derived location already yields the folder slug.
-    let weaveId: string;
-    let threadId: string | undefined;
+    let weaveSlug: string;
+    let threadSlug: string | undefined;
     if (input.targetWeaveSlug) {
-        weaveId = input.targetWeaveSlug;
-        threadId = input.targetThreadUlid
+        weaveSlug = input.targetWeaveSlug;
+        threadSlug = input.targetThreadUlid
             ? (await resolveThreadFolder(input.targetWeaveSlug, input.targetThreadUlid, {
                 getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
             })).threadSlug
             : undefined;
     } else {
-        ({ weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot));
+        ({ weaveSlug, threadSlug } = deriveLocation(input.filePath, deps.loomRoot));
     }
 
     let title: string;
@@ -94,9 +94,9 @@ export async function promoteToPlan(
         throw new Error('promoteToPlan: no steps found. A plan must have at least one step (provide a Steps table or a numbered Steps list).');
     }
 
-    const plansDir = threadId
-        ? path.join(deps.loomRoot, 'loom', weaveId, threadId, 'plans')
-        : path.join(deps.loomRoot, 'loom', weaveId, 'plans');
+    const plansDir = threadSlug
+        ? path.join(deps.loomRoot, 'loom', weaveSlug, threadSlug, 'plans')
+        : path.join(deps.loomRoot, 'loom', weaveSlug, 'plans');
     await deps.fs.ensureDir(plansDir);
 
     const existingFiles = await deps.fs.readdir(plansDir).catch(() => [] as string[]);
@@ -109,9 +109,9 @@ export async function promoteToPlan(
     // the create_plan constant-1 bug. Falls back to the floor when promoting outside a
     // thread or before a design exists.
     let designVersion = 1;
-    if (threadId) {
-        const threadPath = path.join(deps.loomRoot, 'loom', weaveId, threadId);
-        const design = await parentDesignVersion(threadPath, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+    if (threadSlug) {
+        const threadPath = path.join(deps.loomRoot, 'loom', weaveSlug, threadSlug);
+        const design = await parentDesignVersion(threadPath, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
         if (design) designVersion = design.version;
     }
 
@@ -150,12 +150,12 @@ function parseNumberedSteps(body: string): PlanStep[] {
     return steps;
 }
 
-function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
+function deriveLocation(filePath: string, loomRoot: string): { weaveSlug: string; threadSlug?: string } {
     const rel = path.relative(path.join(loomRoot, 'loom'), filePath);
     const parts = rel.split(/[\\/]/);
     if (parts.length < 2) throw new Error(`Cannot derive weave from path: ${rel}`);
-    const weaveId = parts[0];
-    if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
-    if (parts.length >= 3) return { weaveId, threadId: parts[1] };
-    return { weaveId };
+    const weaveSlug = parts[0];
+    if (parts.length >= 3 && parts[1] === 'chats') return { weaveSlug };
+    if (parts.length >= 3) return { weaveSlug, threadSlug: parts[1] };
+    return { weaveSlug };
 }

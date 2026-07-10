@@ -7,13 +7,13 @@ import { completeStep } from '../packages/app/dist/completeStep.js';
 import { runEvent } from '../packages/app/dist/runEvent.js';
 import { serializeFrontmatter } from '../packages/core/dist/index.js';
 
-// Seed a thread-based design at {weavePath}/{threadId}/{threadId}-design.md
-async function seedThreadDesign(weavePath: string, threadId: string, status = 'active'): Promise<void> {
-    const threadPath = path.join(weavePath, threadId);
+// Seed a thread-based design at {weavePath}/{threadSlug}/{threadSlug}-design.md
+async function seedThreadDesign(weavePath: string, threadSlug: string, status = 'active'): Promise<void> {
+    const threadPath = path.join(weavePath, threadSlug);
     const fm = serializeFrontmatter({
         type: 'design',
-        id: `${threadId}-design`,
-        title: `${threadId} Design`,
+        id: `${threadSlug}-design`,
+        title: `${threadSlug} Design`,
         status,
         created: new Date().toISOString().split('T')[0],
         version: 1,
@@ -22,12 +22,12 @@ async function seedThreadDesign(weavePath: string, threadId: string, status = 'a
         child_ids: [],
         requires_load: [],
     });
-    await fs.outputFile(path.join(threadPath, `${threadId}-design.md`), `${fm}\n## Overview\nTest.\n`);
+    await fs.outputFile(path.join(threadPath, `${threadSlug}-design.md`), `${fm}\n## Overview\nTest.\n`);
 }
 
-// Seed a thread-based plan at {weavePath}/{threadId}/plans/{planId}.md
-async function seedThreadPlan(weavePath: string, threadId: string, planId: string, status = 'draft'): Promise<void> {
-    const plansDir = path.join(weavePath, threadId, 'plans');
+// Seed a thread-based plan at {weavePath}/{threadSlug}/plans/{planId}.md
+async function seedThreadPlan(weavePath: string, threadSlug: string, planId: string, status = 'draft'): Promise<void> {
+    const plansDir = path.join(weavePath, threadSlug, 'plans');
     const fm = serializeFrontmatter({
         type: 'plan',
         id: planId,
@@ -37,7 +37,7 @@ async function seedThreadPlan(weavePath: string, threadId: string, planId: strin
         version: 1,
         design_version: 1,
         tags: [],
-        parent_id: `${threadId}-design`,
+        parent_id: `${threadSlug}-design`,
         target_version: '1.0.0',
         requires_load: [],
     });
@@ -62,23 +62,23 @@ async function testCommands() {
     // (see getActiveLoomRoot), so passing this root as runLoom's cwd is all that's
     // needed — no dependency on, or pollution of, the developer's ~/looms/default.
     const loomRoot = await setupHermeticLoom('loom-commands-tests');
-    const weaveId = 'example';
-    const threadId = 'example';
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
+    const weaveSlug = 'example';
+    const threadSlug = 'example';
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
 
     // Thread-based layout: design and plan inside thread subdir
-    await seedThreadDesign(weavePath, threadId, 'active');
+    await seedThreadDesign(weavePath, threadSlug, 'active');
     console.log('    ✅ Test weave (thread layout) created');
 
     console.log('  • Testing `loom refine-design`...');
-    let result = runLoom(`refine-design ${weaveId}`, loomRoot);
+    let result = runLoom(`refine-design ${weaveSlug}`, loomRoot);
     assert(result.exitCode === 0, `refine-design failed: ${result.stderr}`);
     assert(result.stdout.includes('REFINE_DESIGN'), 'Missing REFINE_DESIGN message');
     console.log('    ✅ loom refine-design works');
 
     console.log('  • Creating test plan (thread layout)...');
-    const planId = `${threadId}-plan-001`;
-    await seedThreadPlan(weavePath, threadId, planId, 'draft');
+    const planId = `${threadSlug}-plan-001`;
+    await seedThreadPlan(weavePath, threadSlug, planId, 'draft');
     console.log('    ✅ Test plan created');
 
     console.log('  • Testing `loom start-plan`...');
@@ -91,7 +91,7 @@ async function testCommands() {
     assert(result.exitCode === 0, `complete-step failed: ${result.stderr}`);
     console.log('    ✅ loom complete-step works');
 
-    result = runLoom(`status ${weaveId} --verbose`, loomRoot);
+    result = runLoom(`status ${weaveSlug} --verbose`, loomRoot);
     assert(result.stdout.includes('1/2 steps'), 'Step progress not updated');
     console.log('    ✅ Plan progress tracked correctly');
 
@@ -107,15 +107,15 @@ async function testCompleteStepUseCase() {
     await fs.ensureDir(path.join(loomRoot, '.loom'));
     await fs.outputFile(path.join(loomRoot, '.loom', 'workflow.yml'), 'version: 1\n');
 
-    // Thread-based layout: plan in {weaveId}/{threadId}/plans/
-    const weaveId = 'cs-weave';
-    const threadId = 'cs-feature';
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
-    // Plan ID uses weaveId prefix so completeStep can extract weaveId via planId.split('-plan-')[0]
-    const planId = `${weaveId}-plan-001`;
+    // Thread-based layout: plan in {weaveSlug}/{threadSlug}/plans/
+    const weaveSlug = 'cs-weave';
+    const threadSlug = 'cs-feature';
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+    // Plan ID uses weaveSlug prefix so completeStep can extract weaveSlug via planId.split('-plan-')[0]
+    const planId = `${weaveSlug}-plan-001`;
 
-    await seedThreadDesign(weavePath, threadId, 'active');
-    await seedThreadPlan(weavePath, threadId, planId, 'implementing');
+    await seedThreadDesign(weavePath, threadSlug, 'active');
+    await seedThreadPlan(weavePath, threadSlug, planId, 'implementing');
 
 
     const loadWeaveOrThrow = async (root: string, id: string) => {
@@ -163,17 +163,17 @@ async function testNewCliCommands() {
     console.log('\n🧵 Running Tier 1+2 CLI command tests...\n');
 
     const loomRoot = await setupHermeticLoom('loom-tier12-tests');
-    const weaveId = 'feature';
-    const threadId = 'feature';
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
+    const weaveSlug = 'feature';
+    const threadSlug = 'feature';
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
     // Plans are ULID-addressed in the current model, and `loom next` resolves a
     // friendly ref → pl_ ULID at the CLI edge before calling the (strict) do-next-step
     // prompt. Seed with a real pl_ id so `next <planUlid>` exercises that path.
     const planId = 'pl_01KWZ8NEXT0000000000000001';
 
     // Seed a thread with a design + an implementing plan whose step 2 is blocked by step 1.
-    await seedThreadDesign(weavePath, threadId, 'active');
-    await seedThreadPlan(weavePath, threadId, planId, 'implementing');
+    await seedThreadDesign(weavePath, threadSlug, 'active');
+    await seedThreadPlan(weavePath, threadSlug, planId, 'implementing');
 
     // loom catalog — grouped whole-surface index from the in-process MCP server.
     console.log('  • Testing `loom catalog`...');
@@ -201,14 +201,14 @@ async function testNewCliCommands() {
 
     // loom context <docId> — assembled context bundle for a doc.
     console.log('  • Testing `loom context`...');
-    result = runLoom(`context ${threadId}-design`, loomRoot);
+    result = runLoom(`context ${threadSlug}-design`, loomRoot);
     assert(result.exitCode === 0, `context failed: ${result.stderr}`);
     assert(result.stdout.includes('loom:context-bundle'), 'context should print a context bundle');
     console.log('    ✅ loom context prints a bundle');
 
     // loom context <weave>/<thread>/<docSlug> — human-pointable slug-path form.
     console.log('  • Testing `loom context` (slug-path form)...');
-    result = runLoom(`context ${weaveId}/${threadId}/design`, loomRoot);
+    result = runLoom(`context ${weaveSlug}/${threadSlug}/design`, loomRoot);
     assert(result.exitCode === 0, `context slug-path failed: ${result.stderr}`);
     assert(result.stdout.includes('loom:context-bundle'), 'context slug-path should print a bundle');
     console.log('    ✅ loom context resolves the weave/thread/docSlug slug-path form');

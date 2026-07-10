@@ -20,8 +20,8 @@ function makeLoadWeave(loomRoot: string) {
 }
 
 function makeRunEvent(root: string) {
-    return (weaveId: string, event: any) =>
-        runEvent(weaveId, event, { loadWeave: makeLoadWeave(root), saveDocs, loomRoot: root });
+    return (weaveSlug: string, event: any) =>
+        runEvent(weaveSlug, event, { loadWeave: makeLoadWeave(root), saveDocs, loomRoot: root });
 }
 
 suite('completeStep Command (Extension Host)', () => {
@@ -30,8 +30,8 @@ suite('completeStep Command (Extension Host)', () => {
     });
 
     test('completeStep marks step done in file', async () => {
-        const weaveId = 'cmd-test-1';
-        const { planId, threadId } = seedWeave(weaveId, 'implementing', 2);
+        const weaveSlug = 'cmd-test-1';
+        const { planId, threadSlug } = seedWeave(weaveSlug, 'implementing', 2);
 
         const loomRoot = WORKSPACE_ROOT;
         const result = await completeStep(
@@ -42,16 +42,16 @@ suite('completeStep Command (Extension Host)', () => {
         assert.strictEqual(result.plan.steps[0].status, 'done', 'Step 1 must be marked done');
         assert.strictEqual(result.autoCompleted, false, 'Plan must not auto-complete after step 1 of 2');
 
-        // Plan stays in thread layout: {weavePath}/{threadId}/plans/{planId}.md
-        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveId, threadId, 'plans', `${planId}.md`);
+        // Plan stays in thread layout: {weavePath}/{threadSlug}/plans/{planId}.md
+        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveSlug, threadSlug, 'plans', `${planId}.md`);
         assert.ok(fileExists(planPath), 'Plan file must still exist in thread plans/');
         const content = fs.readFileSync(planPath, 'utf8');
         assert.ok(content.includes('✅'), 'Plan file must contain a done step marker');
     });
 
     test('completing all steps sets autoCompleted=true and plan status=done', async () => {
-        const weaveId = 'cmd-test-2';
-        const { planId, threadId } = seedWeave(weaveId, 'implementing', 1);
+        const weaveSlug = 'cmd-test-2';
+        const { planId, threadSlug } = seedWeave(weaveSlug, 'implementing', 1);
 
         const loomRoot = WORKSPACE_ROOT;
         const result = await completeStep(
@@ -63,7 +63,7 @@ suite('completeStep Command (Extension Host)', () => {
         assert.strictEqual(result.plan.status, 'done', 'Plan status must be "done"');
 
         // completeStep does NOT move the file — that is closePlan's job.
-        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveId, threadId, 'plans', `${planId}.md`);
+        const planPath = path.join(WORKSPACE_ROOT, 'loom', weaveSlug, threadSlug, 'plans', `${planId}.md`);
         assert.ok(fileExists(planPath), 'Plan file must still be in thread plans/ after auto-complete');
         const content = fs.readFileSync(planPath, 'utf8');
         assert.ok(content.includes('status: done'), 'Plan file must have status: done');

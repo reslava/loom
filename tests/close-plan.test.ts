@@ -32,8 +32,8 @@ function makeDeps(loomRoot: string) {
 
 /** Seed a pre-existing done doc, as loom_append_done would after per-step records. */
 async function seedDoneDoc(weavePath: string, planId: string, body: string) {
-    const threadId = planId.split('-plan-')[0];
-    const doneDir = path.join(weavePath, threadId, 'done');
+    const threadSlug = planId.split('-plan-')[0];
+    const doneDir = path.join(weavePath, threadSlug, 'done');
     await fs.ensureDir(doneDir);
     const donePath = path.join(doneDir, `${planId}-done.md`);
     await saveDoc(
@@ -61,17 +61,17 @@ async function testClosePlan() {
     console.log('  • closePlan: notes written verbatim, plan finalized in place...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'cp-weave';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'cp-weave';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
 
         const NOTES = 'Implemented X by editing foo.ts and bar.ts. Skipped step 3 (out of scope).';
         const result = await closePlan({ planUlid: planId, notes: NOTES }, makeDeps(loomRoot));
 
-        const threadId = planId.split('-plan-')[0];
-        const threadPath = path.join(weavePath, threadId);
+        const threadSlug = planId.split('-plan-')[0];
+        const threadPath = path.join(weavePath, threadSlug);
         // New scheme: done filename humanises to plan-NNN-done.md (mirrors the plan's ordinal),
         // regardless of the plan's id. (Done doc id stays {planId}-done — see parent_id assertion.)
         const donePath = path.join(threadPath, 'done', `plan-001-done.md`);
@@ -98,9 +98,9 @@ async function testClosePlan() {
     console.log('  • closePlan: notes appended as closing section to existing done doc...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'cp-weave2';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'cp-weave2';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, {
             status: 'done',
@@ -122,9 +122,9 @@ async function testClosePlan() {
     console.log('  • closePlan: no notes but existing done doc → finalize, leave untouched...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'cp-weave3';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'cp-weave3';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
         const donePath = await seedDoneDoc(weavePath, planId, '## Step 1 — A\n\nNotes A.');
@@ -143,9 +143,9 @@ async function testClosePlan() {
     console.log('  • closePlan: no notes and no done doc throws instead of stubbing...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'cp-weave4';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'cp-weave4';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { status: 'implementing' });
 
         let threw = false;
@@ -166,12 +166,12 @@ async function testClosePlan() {
     console.log('  • closePlan: unknown planId throws...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'cp-weave5';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
+        const weaveSlug = 'cp-weave5';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
         await fs.ensureDir(path.join(weavePath, 'plans'));
-        await fs.outputFile(path.join(weavePath, `${weaveId}-design.md`), `---
+        await fs.outputFile(path.join(weavePath, `${weaveSlug}-design.md`), `---
 type: design
-id: ${weaveId}-design
+id: ${weaveSlug}-design
 title: Design
 status: active
 created: 2026-04-23
@@ -184,7 +184,7 @@ requires_load: []
 `);
         let threw = false;
         try {
-            await closePlan({ planUlid: `${weaveId}-plan-999`, notes: 'x' }, makeDeps(loomRoot));
+            await closePlan({ planUlid: `${weaveSlug}-plan-999`, notes: 'x' }, makeDeps(loomRoot));
         } catch {
             threw = true;
         }

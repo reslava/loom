@@ -19,19 +19,19 @@ export async function validateCommand(treeProvider: LoomTreeProvider): Promise<v
     });
     if (!choice) return;
 
-    let weaveId: string | undefined;
+    let weaveSlug: string | undefined;
     if (choice === 'Specific weave') {
-        weaveId = await vscode.window.showInputBox({
+        weaveSlug = await vscode.window.showInputBox({
             prompt: 'Weave ID to validate',
             placeHolder: 'e.g., payment-system',
         });
-        if (!weaveId) return;
+        if (!weaveSlug) return;
     }
 
     try {
         const result = await getMCP(root).callTool(
             'loom_validate',
-            weaveId ? { weave_slug: weaveId } : { all: true }
+            weaveSlug ? { weave_slug: weaveSlug } : { all: true }
         ) as { results: ValidationResult[] };
 
         const issues = (result.results ?? []).filter(r => r.issues.length > 0);

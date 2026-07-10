@@ -19,19 +19,19 @@ export async function renameCommand(treeProvider: LoomTreeProvider, node?: any):
 
     try {
         if (ctx === 'weave' || ctx === 'weave-archived') {
-            const weaveId = node?.weaveId as string;
-            const newWeaveId = await vscode.window.showInputBox({ prompt: `Rename weave folder '${weaveId}' to`, value: weaveId });
-            if (!newWeaveId || newWeaveId === weaveId) return;
-            const res = await mcp.callTool('loom_rename_weave', { weave_slug: weaveId, new_weave_slug: newWeaveId }) as any;
+            const weaveSlug = node?.weaveSlug as string;
+            const newWeaveId = await vscode.window.showInputBox({ prompt: `Rename weave folder '${weaveSlug}' to`, value: weaveSlug });
+            if (!newWeaveId || newWeaveId === weaveSlug) return;
+            const res = await mcp.callTool('loom_rename_weave', { weave_slug: weaveSlug, new_weave_slug: newWeaveId }) as any;
             vscode.window.showInformationMessage(`📁 Weave renamed → ${res.to}`);
         } else if (ctx.startsWith('thread')) {
-            const weaveId = node?.weaveId as string;
-            const threadId = node?.threadId as string;
+            const weaveSlug = node?.weaveSlug as string;
+            const threadSlug = node?.threadSlug as string;
             const threadUlid = node?.threadUlid as string | undefined;
-            if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadId}' has no thread.md manifest — cannot rename by identity.`); return; }
-            const newThreadId = await vscode.window.showInputBox({ prompt: `Rename thread folder '${threadId}' to`, value: threadId });
-            if (!newThreadId || newThreadId === threadId) return;
-            const res = await mcp.callTool('loom_rename_thread', { weave_slug: weaveId, thread_ulid: threadUlid, new_thread_slug: newThreadId }) as any;
+            if (!threadUlid) { vscode.window.showErrorMessage(`Thread '${threadSlug}' has no thread.md manifest — cannot rename by identity.`); return; }
+            const newThreadId = await vscode.window.showInputBox({ prompt: `Rename thread folder '${threadSlug}' to`, value: threadSlug });
+            if (!newThreadId || newThreadId === threadSlug) return;
+            const res = await mcp.callTool('loom_rename_thread', { weave_slug: weaveSlug, thread_ulid: threadUlid, new_thread_slug: newThreadId }) as any;
             vscode.window.showInformationMessage(`🧵 Thread renamed → ${res.to}`);
         } else if (node?.doc?.id) {
             const newTitle = await vscode.window.showInputBox({ prompt: 'New title', value: node.doc.title });

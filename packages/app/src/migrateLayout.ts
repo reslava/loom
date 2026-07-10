@@ -12,12 +12,12 @@ import {
  * flat scheme (Step 1's writers already emit it for NEW docs; this brings EXISTING
  * docs into line and lets a future release drop dual-read):
  *
- *   {threadId}-idea.md      → idea.md
- *   {threadId}-design.md    → design.md
+ *   {threadSlug}-idea.md      → idea.md
+ *   {threadSlug}-design.md    → design.md
  *   {anything}-plan-NNN.md  → plan-NNN.md
  *   done docs               → plan-NNN-done.md   (ordinal from the done's own name,
  *                                                  else from its parent plan)
- *   {threadId}-chat-NNN.md  → chat-NNN.md        (bare {threadId}.md gets a fresh ordinal)
+ *   {threadSlug}-chat-NNN.md  → chat-NNN.md        (bare {threadSlug}.md gets a fresh ordinal)
  *
  * RENAME-ONLY: no doc content is touched. Identity is the frontmatter ULID and every
  * cross-reference (parent_id/child_ids/requires_load/blockedBy/depends_on) points at
@@ -268,7 +268,7 @@ export async function migrateLayout(
                 }
             }
 
-            // chats/ — {threadId}-chat-NNN.md → chat-NNN.md; bare/ordinal-less names get a fresh ordinal.
+            // chats/ — {threadSlug}-chat-NNN.md → chat-NNN.md; bare/ordinal-less names get a fresh ordinal.
             const chatsDir = path.join(threadDir, 'chats');
             const chatTargets: string[] = [];
             for (const f of await mdFiles(deps.fs, chatsDir)) {

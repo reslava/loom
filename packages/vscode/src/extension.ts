@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(
         treeView.onDidChangeSelection(e => {
             const node = e.selection[0] as TreeNode | undefined;
-            vscode.commands.executeCommand('setContext', 'loom.selectedWeaveId', node?.weaveId ?? '');
+            vscode.commands.executeCommand('setContext', 'loom.selectedWeaveId', node?.weaveSlug ?? '');
             contextSidebar.onSelectionChanged(node);
         })
     );
@@ -235,9 +235,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.refreshCtx', async (node?: TreeNode) => {
             const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
-            const weaveId = node?.weaveId;
-            const scope: 'global' | 'weave' = weaveId ? 'weave' : 'global';
-            const argsLiteral = weaveId ? `{ scope: "weave", weave_slug: "${weaveId}" }` : `{ scope: "global" }`;
+            const weaveSlug = node?.weaveSlug;
+            const scope: 'global' | 'weave' = weaveSlug ? 'weave' : 'global';
+            const argsLiteral = weaveSlug ? `{ scope: "weave", weave_slug: "${weaveSlug}" }` : `{ scope: "global" }`;
             if (await isClaudeInstalled()) {
                 await launchClaude(root, 'Loom: Refresh Ctx',
                     `Loom refresh ctx task (scope=${scope}). ctx exists at global + weave scope only. Call MCP tool loom_refresh_ctx with ${argsLiteral} to get the assembled source and the ctxId, write a concise context summary from that source, then call loom_update_doc on the returned ctxId with the summary body.`
@@ -248,7 +248,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
                     let result: any;
                     await vscode.window.withProgress(
                         { location: vscode.ProgressLocation.Notification, title: 'Loom: Preparing ctx…', cancellable: false },
-                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', weaveId ? { scope, weave_slug: weaveId } : { scope }); }
+                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', weaveSlug ? { scope, weave_slug: weaveSlug } : { scope }); }
                     );
                     treeProvider.refresh();
                     if (result?.targetPath) { const doc = await vscode.workspace.openTextDocument(result.targetPath); await vscode.window.showTextDocument(doc, { preview: false }); }
@@ -262,10 +262,10 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             const id = node?.doc?.id;
             if (!id) { vscode.window.showErrorMessage('Right-click an idea in the tree to generate a design.'); return; }
             if (await isClaudeInstalled()) {
-                const weaveId = node?.weaveId ?? '';
+                const weaveSlug = node?.weaveSlug ?? '';
                 const threadUlid = node?.threadUlid ?? '';
                 await launchClaude(root, 'Loom: Generate Design',
-                    `Loom generate design task. ideaId="${id}", weave_slug="${weaveId}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the idea, then call MCP tool loom_create_design ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}", a concise title, and content (the full design body derived from the idea). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_design, in the same single call. Do not use loom_generate_design — sampling is unavailable in Claude Code CLI.`
+                    `Loom generate design task. ideaId="${id}", weave_slug="${weaveSlug}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the idea, then call MCP tool loom_create_design ONCE with weave_slug="${weaveSlug}" thread_ulid="${threadUlid}", a concise title, and content (the full design body derived from the idea). Do NOT call loom_update_doc afterwards — pass the body in the content argument of loom_create_design, in the same single call. Do not use loom_generate_design — sampling is unavailable in Claude Code CLI.`
                 );
             } else if (hasApiKey()) {
                 try {
@@ -288,11 +288,11 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             const id = node?.doc?.id;
             if (!id) { vscode.window.showErrorMessage('Right-click a design in the tree to generate a plan.'); return; }
             if (await isClaudeInstalled()) {
-                const weaveId = node?.weaveId ?? '';
-                const threadId = node?.threadId ?? '';
+                const weaveSlug = node?.weaveSlug ?? '';
+                const threadSlug = node?.threadSlug ?? '';
                 const threadUlid = node?.threadUlid ?? '';
                 await launchClaude(root, 'Loom: Generate Plan',
-                    `Loom generate plan task. designId="${id}", weave_slug="${weaveId}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the design, and read loom://context/thread/${weaveId}/${threadId}?mode=plan for the thread's locked requirements (the req doc — appears first). Treat its Excluded items and Constraints as HARD BOUNDARIES (no steps for excluded work), cover every Included requirement, and cite the requirement ids (IN/C handles) each step advances. Then call MCP tool loom_create_plan ONCE with weave_slug="${weaveId}" thread_ulid="${threadUlid}", a concise title, a goal, and a structured steps array (each step: description, files, blockedBy, satisfies with the cited IN/C ids). Do NOT call loom_update_doc afterwards. Do not use loom_generate_plan — sampling is unavailable in Claude Code CLI.`
+                    `Loom generate plan task. designId="${id}", weave_slug="${weaveSlug}", thread_ulid="${threadUlid}". Use the loom MCP server: use MCP tool loom_find_doc with id="${id}" to read the design, and read loom://context/thread/${weaveSlug}/${threadSlug}?mode=plan for the thread's locked requirements (the req doc — appears first). Treat its Excluded items and Constraints as HARD BOUNDARIES (no steps for excluded work), cover every Included requirement, and cite the requirement ids (IN/C handles) each step advances. Then call MCP tool loom_create_plan ONCE with weave_slug="${weaveSlug}" thread_ulid="${threadUlid}", a concise title, a goal, and a structured steps array (each step: description, files, blockedBy, satisfies with the cited IN/C ids). Do NOT call loom_update_doc afterwards. Do not use loom_generate_plan — sampling is unavailable in Claude Code CLI.`
                 );
             } else if (hasApiKey()) {
                 try {

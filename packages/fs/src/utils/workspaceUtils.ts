@@ -60,13 +60,13 @@ export function getActiveLoomRoot(workspaceRoot?: string): string {
 /**
  * Resolves the absolute path to a specific weave.
  *
- * @param weaveId - The weave identifier.
+ * @param weaveSlug - The weave identifier.
  * @param workspaceRoot - Optional workspace root (used by VS Code extension).
  * @returns The absolute path to the weave directory.
  */
-export function resolveWeavePath(weaveId: string, workspaceRoot?: string): string {
+export function resolveWeavePath(weaveSlug: string, workspaceRoot?: string): string {
     const loomRoot = getActiveLoomRoot(workspaceRoot);
-    return path.join(loomRoot, 'weaves', weaveId);
+    return path.join(loomRoot, 'weaves', weaveSlug);
 }
 
 /**

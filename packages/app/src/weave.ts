@@ -5,7 +5,7 @@ import { getActiveLoomRoot } from '../../fs/dist';
 /**
  * Use-case for creating an empty weave folder. A weave has no manifest doc
  * (unlike a thread's `thread.md`), so the whole job is materialising the
- * `loom/{weaveId}` directory — but it still lives behind an app use-case so the
+ * `loom/{weaveSlug}` directory — but it still lives behind an app use-case so the
  * invariant "every `loom/` mutation goes through `app` (never raw `fs` from a
  * delivery layer)" holds for weave creation too.
  */
@@ -22,14 +22,14 @@ export interface CreateWeaveInput {
 export async function createWeave(
     input: CreateWeaveInput,
     deps: CreateWeaveDeps,
-): Promise<{ weaveId: string; filePath: string }> {
+): Promise<{ weaveSlug: string; filePath: string }> {
     const loomRoot = deps.getActiveLoomRoot();
     const weavePath = path.join(loomRoot, 'loom', input.weaveSlug);
     if (await deps.fs.pathExists(weavePath)) {
         throw new Error(`A weave already exists at loom/${input.weaveSlug}.`);
     }
     await deps.fs.ensureDir(weavePath);
-    return { weaveId: input.weaveSlug, filePath: weavePath };
+    return { weaveSlug: input.weaveSlug, filePath: weavePath };
 }
 
 /** loom/ entries that are not weaves and must never be a rename source/target. */
@@ -50,7 +50,7 @@ export interface RenameWeaveInput {
 }
 
 /**
- * Rename a weave = rename its `loom/{weaveId}` folder. A weave is a pure fs container
+ * Rename a weave = rename its `loom/{weaveSlug}` folder. A weave is a pure fs container
  * (no manifest, no title), and every cross-reference is by ULID — so the folder move
  * rewrites zero doc content. Thread `depends_on` edges (thread ULIDs) survive intact.
  */

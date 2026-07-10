@@ -115,7 +115,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         return { stepNumber: e.stepNumber, description: step.description, notes: e.notes };
     });
 
-    // Path layout: loom/{weaveId}/{threadId}/plans/{planId}.md → write to .../done/{planId}-done.md
+    // Path layout: loom/{weaveSlug}/{threadSlug}/plans/{planId}.md → write to .../done/{planId}-done.md
     const plansDir = path.dirname(planFilePath);
     const threadDir = path.dirname(plansDir);
     const doneDir = path.join(threadDir, 'done');

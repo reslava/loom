@@ -12,7 +12,7 @@ export interface ClosePlanInput {
 }
 
 export interface ClosePlanDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     fs: typeof fs;
     loomRoot: string;
@@ -33,14 +33,14 @@ export async function closePlan(
     input: ClosePlanInput,
     deps: ClosePlanDeps
 ): Promise<{ donePath: string; planId: string }> {
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planUlid) as PlanDoc | undefined;
-    if (!plan) throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'.`);
+    if (!plan) throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveSlug}'.`);
 
     const thread = weave.threads.find((t: any) => t.plans.some((p: any) => p.id === input.planUlid)) as any;
 
-    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', weaveSlug);
     const threadPath = thread ? path.join(weavePath, thread.id) : null;
     const doneDirPath = threadPath ? path.join(threadPath, 'done') : path.join(weavePath, 'done');
 

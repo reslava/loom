@@ -16,14 +16,14 @@ async function run() {
     console.log('🔁 Running req use-case tests...\n');
     await fs.remove(TMP);
     const loomRoot = TMP;
-    const weaveId = 'core-engine';
+    const weaveSlug = 'core-engine';
     // Explicitly mint the thread (no auto-scaffold); reference it by its th_ ULID.
-    const { id: threadId } = await createThread({ weaveSlug: weaveId, threadSlug: 'rdd' }, { getActiveLoomRoot: () => loomRoot, saveDoc, fs });
+    const { id: threadSlug } = await createThread({ weaveSlug: weaveSlug, threadSlug: 'rdd' }, { getActiveLoomRoot: () => loomRoot, saveDoc, fs });
 
     // ── create ──
     console.log('  • createReq writes a draft req.md at v1...');
     const created = await createReq(
-        { weaveSlug: weaveId, threadUlid: threadId, content: '### ✅ Included\n- `IN1` Thing.\n' },
+        { weaveSlug: weaveSlug, threadUlid: threadSlug, content: '### ✅ Included\n- `IN1` Thing.\n' },
         deps(loomRoot),
     );
     assert(created.filePath.endsWith(`${path.sep}req.md`), `path ends with req.md, got ${created.filePath}`);
@@ -36,13 +36,13 @@ async function run() {
     // ── duplicate create rejected ──
     console.log('  • duplicate createReq throws...');
     let threw = false;
-    try { await createReq({ weaveSlug: weaveId, threadUlid: threadId }, deps(loomRoot)); } catch { threw = true; }
+    try { await createReq({ weaveSlug: weaveSlug, threadUlid: threadSlug }, deps(loomRoot)); } catch { threw = true; }
     assert(threw, 'a second createReq for the same thread must throw');
     console.log('    ✅ duplicate rejected');
 
     // ── finalize → locked, version unchanged ──
     console.log('  • finalizeReq locks the draft (no version bump)...');
-    await finalizeReq({ weaveSlug: weaveId, threadUlid: threadId }, deps(loomRoot));
+    await finalizeReq({ weaveSlug: weaveSlug, threadUlid: threadSlug }, deps(loomRoot));
     req = await loadDoc(created.filePath);
     assert(req.status === 'locked', 'status locked after finalize');
     assert(req.version === 1, 'finalize does not bump version');
@@ -51,7 +51,7 @@ async function run() {
     // ── amend (append) → re-open draft + bump ──
     console.log('  • amendReq appends a handle, re-opens to draft, bumps version...');
     const amended = await amendReq(
-        { weaveSlug: weaveId, threadUlid: threadId, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` More.\n' },
+        { weaveSlug: weaveSlug, threadUlid: threadSlug, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` More.\n' },
         deps(loomRoot),
     );
     req = await loadDoc(created.filePath);
@@ -66,7 +66,7 @@ async function run() {
         let delThrew = false;
         try {
             // drop IN1 entirely → must throw, state unchanged
-            await amendReq({ weaveSlug: weaveId, threadUlid: threadId, content: '### ✅ Included\n- `IN2` More.\n' }, deps(loomRoot));
+            await amendReq({ weaveSlug: weaveSlug, threadUlid: threadSlug, content: '### ✅ Included\n- `IN2` More.\n' }, deps(loomRoot));
         } catch (e) {
             delThrew = e instanceof Error && e.message.includes('IN1');
         }
@@ -75,7 +75,7 @@ async function run() {
         let renumThrew = false;
         try {
             // renumber IN1 → IN9 (same text) → must throw
-            await amendReq({ weaveSlug: weaveId, threadUlid: threadId, content: '### ✅ Included\n- `IN9` Thing.\n- `IN2` More.\n' }, deps(loomRoot));
+            await amendReq({ weaveSlug: weaveSlug, threadUlid: threadSlug, content: '### ✅ Included\n- `IN9` Thing.\n- `IN2` More.\n' }, deps(loomRoot));
         } catch (e) {
             renumThrew = e instanceof Error && e.message.includes('IN1');
         }
@@ -88,8 +88,8 @@ async function run() {
 
     // ── finalize again → locked v2 (idempotent on re-call) ──
     console.log('  • finalize again locks v2 and is idempotent...');
-    await finalizeReq({ weaveSlug: weaveId, threadUlid: threadId }, deps(loomRoot));
-    await finalizeReq({ weaveSlug: weaveId, threadUlid: threadId }, deps(loomRoot)); // second call is a no-op
+    await finalizeReq({ weaveSlug: weaveSlug, threadUlid: threadSlug }, deps(loomRoot));
+    await finalizeReq({ weaveSlug: weaveSlug, threadUlid: threadSlug }, deps(loomRoot)); // second call is a no-op
     req = await loadDoc(created.filePath);
     assert(req.status === 'locked' && req.version === 2, 'locked at v2');
     console.log('    ✅ locked v2, finalize idempotent');
@@ -98,7 +98,7 @@ async function run() {
     console.log('  • weavePlan stamps req_version from the locked req...');
     {
         const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
-        const { filePath } = await weavePlan({ weaveSlug: weaveId, threadUlid: threadId, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
+        const { filePath } = await weavePlan({ weaveSlug: weaveSlug, threadUlid: threadSlug, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
         const plan: any = await loadDoc(filePath);
         assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
         console.log('    ✅ plan.req_version stamped from locked req');
@@ -108,7 +108,7 @@ async function run() {
     console.log('  • amendReq accepts retiring a handle with ~dropped...');
     {
         const dropped = await amendReq(
-            { weaveSlug: weaveId, threadUlid: threadId, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` ~dropped Retired.\n' },
+            { weaveSlug: weaveSlug, threadUlid: threadSlug, content: '### ✅ Included\n- `IN1` Thing.\n- `IN2` ~dropped Retired.\n' },
             deps(loomRoot),
         );
         req = await loadDoc(created.filePath);

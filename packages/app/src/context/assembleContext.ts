@@ -25,8 +25,8 @@ import {
 interface CatalogEntry {
     doc: Document;
     scope: Exclude<DocScope, 'target'>;
-    weaveId?: string;
-    threadId?: string;
+    weaveSlug?: string;
+    threadSlug?: string;
 }
 
 function buildCatalog(state: LoomState): Map<string, CatalogEntry> {
@@ -41,17 +41,17 @@ function buildCatalog(state: LoomState): Map<string, CatalogEntry> {
 
     for (const weave of state.weaves) {
         for (const doc of weave.looseFibers) {
-            catalog.set(doc.id, { doc, scope: 'weave', weaveId: weave.id });
+            catalog.set(doc.id, { doc, scope: 'weave', weaveSlug: weave.id });
         }
         for (const doc of weave.refDocs) {
-            catalog.set(doc.id, { doc, scope: 'weave', weaveId: weave.id });
+            catalog.set(doc.id, { doc, scope: 'weave', weaveSlug: weave.id });
         }
         for (const chat of weave.chats) {
-            catalog.set(chat.id, { doc: chat as Document, scope: 'weave', weaveId: weave.id });
+            catalog.set(chat.id, { doc: chat as Document, scope: 'weave', weaveSlug: weave.id });
         }
         for (const thread of weave.threads) {
             for (const doc of thread.allDocs) {
-                catalog.set(doc.id, { doc, scope: 'thread', weaveId: weave.id, threadId: thread.id });
+                catalog.set(doc.id, { doc, scope: 'thread', weaveSlug: weave.id, threadSlug: thread.id });
             }
         }
     }
@@ -206,9 +206,9 @@ export function assembleContext(
         }
     };
 
-    const { weaveId, threadId } = targetEntry;
-    const weave = weaveId ? state.weaves.find(w => w.id === weaveId) : undefined;
-    const thread = weave && threadId ? weave.threads.find(t => t.id === threadId) : undefined;
+    const { weaveSlug, threadSlug } = targetEntry;
+    const weave = weaveSlug ? state.weaves.find(w => w.id === weaveSlug) : undefined;
+    const thread = weave && threadSlug ? weave.threads.find(t => t.id === threadSlug) : undefined;
 
     // 2a. Global ctx
     for (const doc of state.globalDocs) {
@@ -297,16 +297,16 @@ export function assembleContext(
         totalTokens,
         manifest,
         // Thread address of the target's home thread (IN4): lets a caller issue a
-        // thread-scoped write after one context read, no second lookup. weaveId is
+        // thread-scoped write after one context read, no second lookup. weaveSlug is
         // the weave folder slug; thread.manifest.id is the authored `th_` ULID.
-        weaveSlug: weaveId,
+        weaveSlug: weaveSlug,
         threadUlid: thread?.manifest?.id,
     };
 }
 
 function staleReason(doc: Document, targetEntry: CatalogEntry, state: LoomState): string | null {
-    const weave = state.weaves.find(w => w.id === targetEntry.weaveId);
-    const thread = weave?.threads.find(t => t.id === targetEntry.threadId);
+    const weave = state.weaves.find(w => w.id === targetEntry.weaveSlug);
+    const thread = weave?.threads.find(t => t.id === targetEntry.threadSlug);
     if (!thread) return null;
 
     // Directional, version-based staleness (loom/refs/staleness-reference.md):

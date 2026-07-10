@@ -32,16 +32,16 @@ export interface ValidationResult {
 }
 
 async function validateWeave(
-    weaveId: string,
+    weaveSlug: string,
     index: LinkIndex,
     loomRoot: string,
     deps: Pick<ValidateDeps, 'loadDoc' | 'fs'>
 ): Promise<ValidationResult> {
     const issues: string[] = [];
-    const weavePath = path.join(loomRoot, 'loom', weaveId);
+    const weavePath = path.join(loomRoot, 'loom', weaveSlug);
     
     if (!await deps.fs.pathExists(weavePath)) {
-        return { id: weaveId, issues: ['Weave directory not found'] };
+        return { id: weaveSlug, issues: ['Weave directory not found'] };
     }
 
     const docs: Document[] = [];
@@ -57,7 +57,7 @@ async function validateWeave(
     }
 
     if (docs.length === 0) {
-        return { id: weaveId, issues: ['Weave is empty'] };
+        return { id: weaveSlug, issues: ['Weave is empty'] };
     }
 
     for (const doc of docs) {
@@ -92,7 +92,7 @@ async function validateWeave(
         }
     }
 
-    return { id: weaveId, issues };
+    return { id: weaveSlug, issues };
 }
 
 export async function validate(

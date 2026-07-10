@@ -21,13 +21,13 @@ export async function roadmapCommand(options: { groupByThread?: boolean; groupBy
         // ULID → "weave/thread" label, for rendering blocked-on targets by name.
         const label = new Map<string, string>();
         for (const n of r.roadmap) {
-            if (n.ulid) label.set(n.ulid, `${n.weaveId}/${n.threadId}`);
+            if (n.ulid) label.set(n.ulid, `${n.weaveSlug}/${n.threadSlug}`);
         }
         const nameOf = (u: string) => label.get(u) ?? u;
         const day = (d: string) => (d || '').slice(0, 10);
         const relTag = (h: any) => (h.release ? chalk.magenta(`[v${h.release}]`) : chalk.gray('[unversioned]'));
         const node = (n: any, extra = '') =>
-            `  ${STATUS_ICON[n.status] ?? ' '} ${chalk.cyan(`${n.weaveId}/${n.threadId}`)} ${chalk.gray(`(p${n.priority})`)} ${n.title}${extra}`;
+            `  ${STATUS_ICON[n.status] ?? ' '} ${chalk.cyan(`${n.weaveSlug}/${n.threadSlug}`)} ${chalk.gray(`(p${n.priority})`)} ${n.title}${extra}`;
 
         console.log(
             chalk.bold('\n🗺️  Roadmap') +
@@ -57,12 +57,12 @@ export async function roadmapCommand(options: { groupByThread?: boolean; groupBy
             }
             for (const [k, items] of byRel) {
                 console.log(`  ${chalk.magenta(k)}`);
-                for (const h of items) console.log(`    ${chalk.gray(day(h.date))}  ${chalk.cyan(`${h.weaveId}/${h.threadId}`)}  ${h.planTitle}`);
+                for (const h of items) console.log(`    ${chalk.gray(day(h.date))}  ${chalk.cyan(`${h.weaveSlug}/${h.threadSlug}`)}  ${h.planTitle}`);
             }
         } else if (options.groupByThread) {
             const byThread = new Map<string, any[]>();
             for (const h of r.history) {
-                const k = `${h.weaveId}/${h.threadId}`;
+                const k = `${h.weaveSlug}/${h.threadSlug}`;
                 if (!byThread.has(k)) byThread.set(k, []);
                 byThread.get(k)!.push(h);
             }
@@ -72,7 +72,7 @@ export async function roadmapCommand(options: { groupByThread?: boolean; groupBy
             }
         } else {
             for (const h of r.history) {
-                console.log(`  ${chalk.gray(day(h.date))}  ${relTag(h)}  ${chalk.cyan(`${h.weaveId}/${h.threadId}`)}  ${h.planTitle}`);
+                console.log(`  ${chalk.gray(day(h.date))}  ${relTag(h)}  ${chalk.cyan(`${h.weaveSlug}/${h.threadSlug}`)}  ${h.planTitle}`);
             }
         }
 

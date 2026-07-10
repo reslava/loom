@@ -74,10 +74,10 @@ export async function backfillDesignVersions(
         scanned++;
         try {
             // Plan path is `.../loom/{weave}/{thread}/plans/{file}.md`; the thread dir is
-            // two levels up and its basename is the threadId the design is named after.
+            // two levels up and its basename is the threadSlug the design is named after.
             const threadDir = path.dirname(path.dirname(file));
-            const threadId = path.basename(threadDir);
-            const design = await parentDesignVersion(threadDir, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+            const threadSlug = path.basename(threadDir);
+            const design = await parentDesignVersion(threadDir, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
             if (!design) continue; // weave-root / design-less plan: no baseline to repair
 
             const doc = (await deps.loadDoc(file)) as PlanDoc;

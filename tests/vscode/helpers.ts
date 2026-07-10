@@ -16,26 +16,26 @@ export function cleanWeaves(): void {
 }
 
 /**
- * Seeds a weave with a single thread (threadId = weaveId for simplicity).
+ * Seeds a weave with a single thread (threadSlug = weaveSlug for simplicity).
  * Layout:
- *   loom/{weaveId}/{threadId}/{threadId}-design.md
- *   loom/{weaveId}/{threadId}/plans/{planId}.md
- * planId uses weaveId prefix (critical invariant: planId.split('-plan-')[0] == weaveId).
+ *   loom/{weaveSlug}/{threadSlug}/{threadSlug}-design.md
+ *   loom/{weaveSlug}/{threadSlug}/plans/{planId}.md
+ * planId uses weaveSlug prefix (critical invariant: planId.split('-plan-')[0] == weaveSlug).
  */
 export function seedWeave(
-    weaveId: string,
+    weaveSlug: string,
     planStatus = 'implementing',
     stepCount = 2
-): { planId: string; weavePath: string; threadId: string; threadPath: string } {
-    const weavePath = path.join(WORKSPACE_ROOT, 'loom', weaveId);
-    const threadId = weaveId;
-    const threadPath = path.join(weavePath, threadId);
-    const planId = `${weaveId}-plan-001`;
+): { planId: string; weavePath: string; threadSlug: string; threadPath: string } {
+    const weavePath = path.join(WORKSPACE_ROOT, 'loom', weaveSlug);
+    const threadSlug = weaveSlug;
+    const threadPath = path.join(weavePath, threadSlug);
+    const planId = `${weaveSlug}-plan-001`;
 
     fs.mkdirSync(threadPath, { recursive: true });
     fs.writeFileSync(
-        path.join(threadPath, `${threadId}-design.md`),
-        `---\ntype: design\nid: ${threadId}-design\ntitle: "${weaveId} Design"\nstatus: active\ncreated: 2026-04-23\nversion: 1\ntags: []\nparent_id: null\nchild_ids: ["${planId}"]\nrequires_load: []\n---\n\n## Overview\nTest design.\n`
+        path.join(threadPath, `${threadSlug}-design.md`),
+        `---\ntype: design\nid: ${threadSlug}-design\ntitle: "${weaveSlug} Design"\nstatus: active\ncreated: 2026-04-23\nversion: 1\ntags: []\nparent_id: null\nchild_ids: ["${planId}"]\nrequires_load: []\n---\n\n## Overview\nTest design.\n`
     );
 
     const rows = Array.from({ length: stepCount }, (_, i) =>
@@ -44,15 +44,15 @@ export function seedWeave(
     fs.mkdirSync(path.join(threadPath, 'plans'), { recursive: true });
     fs.writeFileSync(
         path.join(threadPath, 'plans', `${planId}.md`),
-        `---\ntype: plan\nid: ${planId}\ntitle: "Test Plan ${weaveId}"\nstatus: ${planStatus}\ncreated: 2026-04-23\nversion: 1\ntags: []\nparent_id: ${threadId}-design\nchild_ids: []\nrequires_load: []\n---\n\n## Steps\n\n| Done | # | Step | Files touched | Blocked by |\n|------|---|------|---------------|------------|\n${rows}\n`
+        `---\ntype: plan\nid: ${planId}\ntitle: "Test Plan ${weaveSlug}"\nstatus: ${planStatus}\ncreated: 2026-04-23\nversion: 1\ntags: []\nparent_id: ${threadSlug}-design\nchild_ids: []\nrequires_load: []\n---\n\n## Steps\n\n| Done | # | Step | Files touched | Blocked by |\n|------|---|------|---------------|------------|\n${rows}\n`
     );
 
-    return { planId, weavePath, threadId, threadPath };
+    return { planId, weavePath, threadSlug, threadPath };
 }
 
-export function seedDoneDoc(weaveId: string, planId: string): void {
-    const threadId = weaveId;
-    const threadPath = path.join(WORKSPACE_ROOT, 'loom', weaveId, threadId);
+export function seedDoneDoc(weaveSlug: string, planId: string): void {
+    const threadSlug = weaveSlug;
+    const threadPath = path.join(WORKSPACE_ROOT, 'loom', weaveSlug, threadSlug);
     const doneDir = path.join(threadPath, 'done');
     fs.mkdirSync(doneDir, { recursive: true });
 

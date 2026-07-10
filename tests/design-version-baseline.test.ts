@@ -17,22 +17,22 @@ import { backfillDesignVersions } from '../packages/app/dist/backfillDesignVersi
 const TMP = path.join(os.tmpdir(), 'loom-design-version-baseline-tests');
 const WEAVE = 'core-engine';
 
-function threadDir(root: string, threadId: string): string {
-    return path.join(root, 'loom', WEAVE, threadId);
+function threadDir(root: string, threadSlug: string): string {
+    return path.join(root, 'loom', WEAVE, threadSlug);
 }
 
 /** Write (or overwrite, to bump) a thread's design doc at the given version. */
-async function writeDesign(root: string, threadId: string, version: number): Promise<string> {
-    const dir = threadDir(root, threadId);
+async function writeDesign(root: string, threadSlug: string, version: number): Promise<string> {
+    const dir = threadDir(root, threadSlug);
     await fs.ensureDir(dir);
-    const id = `ds_${threadId}`;
+    const id = `ds_${threadSlug}`;
     const doc: any = {
         type: 'design', id, title: 'D', status: 'active',
         created: '2026-06-01', version, tags: [], parent_id: null, requires_load: [],
         role: 'primary', target_release: null, actual_release: null,
         content: '# D\n\ndesign body',
     };
-    await saveDoc(doc, path.join(dir, `${threadId}-design.md`));
+    await saveDoc(doc, path.join(dir, `${threadSlug}-design.md`));
     return id;
 }
 

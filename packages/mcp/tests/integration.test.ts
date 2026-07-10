@@ -420,7 +420,7 @@ async function run(): Promise<void> {
         const res = await client.readResource({ uri: 'loom://diagnostics' });
         const data = JSON.parse(res.contents[0].text as string);
         assert(Array.isArray(data.reqCoverage), 'diagnostics includes a reqCoverage array');
-        const entry = data.reqCoverage.find((e: any) => e.weaveId === 'tw' && e.threadId === 't1');
+        const entry = data.reqCoverage.find((e: any) => e.weaveSlug === 'tw' && e.threadSlug === 't1');
         assert(!!entry, 'tw/t1 should have a coverage entry (req locked; plan cites no req)');
         assert(entry.uncovered.includes('IN1'), `IN1 should be uncovered, got ${JSON.stringify(entry?.uncovered)}`);
     });
@@ -429,7 +429,7 @@ async function run(): Promise<void> {
     await test('loom://state attaches per-thread reqCoverage with IN1 uncovered', async () => {
         // Filtered read → always recomputes (bypasses the unfiltered cache), so the
         // just-locked req on tw/t1 is reflected.
-        const res = await client.readResource({ uri: 'loom://state?weaveId=tw' });
+        const res = await client.readResource({ uri: 'loom://state?weaveSlug=tw' });
         const state = JSON.parse(res.contents[0].text as string);
         const weave = state.weaves.find((w: any) => w.id === 'tw');
         const thread = weave?.threads.find((t: any) => t.id === 't1');

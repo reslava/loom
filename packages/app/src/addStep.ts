@@ -19,8 +19,8 @@ export interface AddStepInput {
 }
 
 export interface AddStepDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
-    runEvent: (weaveId: string, event: WorkflowEvent) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
+    runEvent: (weaveSlug: string, event: WorkflowEvent) => Promise<any>;
     loomRoot: string;
 }
 
@@ -32,12 +32,12 @@ export async function addStep(
         throw new Error('addStep requires step.description.');
     }
 
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
 
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
     if (!plan) {
-        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveSlug}'`);
     }
 
     const step: NewStep = {
@@ -49,14 +49,14 @@ export async function addStep(
         ...(input.step.detail !== undefined ? { detail: input.step.detail } : {}),
     };
 
-    await deps.runEvent(weaveId, {
+    await deps.runEvent(weaveSlug, {
         type: 'ADD_STEP',
         planId: input.planUlid,
         step,
         ...(input.position !== undefined ? { position: input.position } : {}),
     } as WorkflowEvent);
 
-    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     return { plan: updatedPlan };
 }

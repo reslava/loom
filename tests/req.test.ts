@@ -78,7 +78,7 @@ async function run() {
         const doneIdea = { ...base, type: 'idea', id: 'id_x', title: 'I', status: 'done' };
         const lockedReq = { ...base, type: 'req', id: 'rq_x', title: 'R', status: 'locked' };
         const thread = {
-            id: 't', weaveId: 'w', idea: doneIdea, req: lockedReq,
+            id: 't', weaveSlug: 'w', idea: doneIdea, req: lockedReq,
             plans: [], dones: [], chats: [], refDocs: [], allDocs: [doneIdea, lockedReq],
         };
         assert(getThreadStatus(thread as any) === 'DONE', 'a perpetual locked req must not block DONE');
@@ -103,7 +103,7 @@ async function run() {
         const donePlan: any = { type: 'plan', id: 'pd', status: 'done', req_version: 1, design_version: 1, version: 1 };
         const weave: any = {
             id: 'w', threads: [{
-                id: 't', weaveId: 'w', idea, design, req: lockedReqV2,
+                id: 't', weaveSlug: 'w', idea, design, req: lockedReqV2,
                 plans: [activePlan, donePlan], dones: [], chats: [], refDocs: [], allDocs: [idea, design, activePlan, donePlan],
             }],
         };

@@ -13,11 +13,11 @@ export async function promoteToDesignCommand(treeProvider: LoomTreeProvider, nod
 
     const toolArgs: Record<string, unknown> = { source_ulid: sourceId, targetType: 'design' };
 
-    const targetWeaveId = node?.weaveId ?? await vscode.window.showInputBox({ prompt: 'Target weave slug', placeHolder: 'e.g., my-feature' });
+    const targetWeaveId = node?.weaveSlug ?? await vscode.window.showInputBox({ prompt: 'Target weave slug', placeHolder: 'e.g., my-feature' });
     if (!targetWeaveId) return;
     toolArgs['target_weave_slug'] = targetWeaveId;
 
-    let targetThreadSlug = node?.threadId;
+    let targetThreadSlug = node?.threadSlug;
     if (!targetThreadSlug) {
         const input = await vscode.window.showInputBox({ prompt: 'Target thread slug (leave blank for weave-level)', placeHolder: 'e.g., auth-flow' });
         if (input === undefined) return;

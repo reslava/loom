@@ -5,8 +5,8 @@ import { LinkIndex } from '../../core/dist';
 
 export interface BlockedStep {
     planId: string;
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     stepId: string;
     stepNumber: number;
     stepDescription: string;
@@ -36,8 +36,8 @@ export async function getBlockedSteps(deps: GetBlockedStepsDeps): Promise<Blocke
                     if (isStepBlocked(step, plan, index)) {
                         blocked.push({
                             planId: plan.id,
-                            weaveId: weave.id,
-                            threadId: thread.id,
+                            weaveSlug: weave.id,
+                            threadSlug: thread.id,
                             stepId: step.id,
                             stepNumber: step.order,
                             stepDescription: step.description,

@@ -16,8 +16,8 @@ const fsDeps = {
 } as any;
 
 function makeRunEvent(loomRoot: string) {
-    return (weaveId: string, event: any) =>
-        runEvent(weaveId, event, { loadWeave: loadWeave as any, saveDocs, loomRoot });
+    return (weaveSlug: string, event: any) =>
+        runEvent(weaveSlug, event, { loadWeave: loadWeave as any, saveDocs, loomRoot });
 }
 
 function makeLoadWeave(loomRoot: string) {

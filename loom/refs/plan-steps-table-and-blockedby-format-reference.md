@@ -29,7 +29,7 @@ Create a plan with **`loom_create_plan`**, passing `goal` (prose) + a structured
 
 ```jsonc
 {
-  "weaveId": "...", "threadId": "...", "title": "...",
+  "weave_slug": "...", "thread_ulid": "...", "title": "...",
   "goal": "One paragraph: what this plan implements and why.",
   "steps": [
     { "description": "First step", "files": ["a.ts"], "satisfies": ["IN1"], "detail": "- bullet…" },

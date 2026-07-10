@@ -17,8 +17,8 @@ export interface UpdateStepInput {
 }
 
 export interface UpdateStepDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
-    runEvent: (weaveId: string, event: WorkflowEvent) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
+    runEvent: (weaveSlug: string, event: WorkflowEvent) => Promise<any>;
     loomRoot: string;
 }
 
@@ -26,12 +26,12 @@ export async function updateStep(
     input: UpdateStepInput,
     deps: UpdateStepDeps
 ): Promise<{ plan: PlanDoc }> {
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
 
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
     if (!plan) {
-        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveSlug}'`);
     }
 
     const patch = {
@@ -44,9 +44,9 @@ export async function updateStep(
         throw new Error('Nothing to update — provide at least one of description, files, blockedBy, satisfies. (title/detail are body prose — use loom_patch_doc.)');
     }
 
-    await deps.runEvent(weaveId, { type: 'UPDATE_STEP', planId: input.planUlid, stepId: input.stepId, patch } as WorkflowEvent);
+    await deps.runEvent(weaveSlug, { type: 'UPDATE_STEP', planId: input.planUlid, stepId: input.stepId, patch } as WorkflowEvent);
 
-    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     return { plan: updatedPlan };
 }

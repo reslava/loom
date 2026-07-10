@@ -33,7 +33,7 @@ export interface WeavePlanInput {
 }
 
 export interface WeavePlanDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     loadDoc: typeof loadDoc;
     fs: typeof fs;
@@ -51,11 +51,11 @@ export interface WeavePlanDeps {
  */
 export async function parentDesignVersion(
     threadPath: string,
-    threadId: string,
+    threadSlug: string,
     deps: { loadDoc: typeof loadDoc; fs: typeof fs },
 ): Promise<{ version: number; id: string } | undefined> {
-    // Dual-read: canonical design.md first, legacy {threadId}-design.md second.
-    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadId}-design.md`)]
+    // Dual-read: canonical design.md first, legacy {threadSlug}-design.md second.
+    const designPath = [path.join(threadPath, 'design.md'), path.join(threadPath, `${threadSlug}-design.md`)]
         .find(p => fs.existsSync(p));
     if (!designPath) return undefined;
     const design = (await deps.loadDoc(designPath)) as DesignDoc;
@@ -69,11 +69,11 @@ export async function parentDesignVersion(
  */
 export async function parentIdeaVersion(
     threadPath: string,
-    threadId: string,
+    threadSlug: string,
     deps: { loadDoc: typeof loadDoc; fs: typeof fs },
 ): Promise<{ version: number; id: string } | undefined> {
-    // Dual-read: canonical idea.md first, legacy {threadId}-idea.md second.
-    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadId}-idea.md`)]
+    // Dual-read: canonical idea.md first, legacy {threadSlug}-idea.md second.
+    const ideaPath = [path.join(threadPath, 'idea.md'), path.join(threadPath, `${threadSlug}-idea.md`)]
         .find(p => fs.existsSync(p));
     if (!ideaPath) return undefined;
     const idea = (await deps.loadDoc(ideaPath)) as IdeaDoc;

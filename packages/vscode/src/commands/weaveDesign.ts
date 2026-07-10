@@ -9,20 +9,20 @@ export async function weaveDesignCommand(treeProvider: LoomTreeProvider, treeVie
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
-    const weaveId = node?.weaveId ?? await vscode.window.showInputBox({ prompt: 'Weave ID', placeHolder: 'e.g., payment-system' });
-    if (!weaveId) return;
+    const weaveSlug = node?.weaveSlug ?? await vscode.window.showInputBox({ prompt: 'Weave ID', placeHolder: 'e.g., payment-system' });
+    if (!weaveSlug) return;
 
-    let threadId = node?.threadId;
-    if (!threadId) {
-        threadId = await vscode.window.showInputBox({ prompt: 'Thread slug', placeHolder: 'e.g., state-management' }) || undefined;
+    let threadSlug = node?.threadSlug;
+    if (!threadSlug) {
+        threadSlug = await vscode.window.showInputBox({ prompt: 'Thread slug', placeHolder: 'e.g., state-management' }) || undefined;
     }
-    if (!threadId) { vscode.window.showErrorMessage('A thread is required — a design lives in a thread.'); return; }
+    if (!threadSlug) { vscode.window.showErrorMessage('A thread is required — a design lives in a thread.'); return; }
 
     const title = await vscode.window.showInputBox({ prompt: 'Design title (optional)', placeHolder: 'Leave blank to use idea title or thread slug' }) || undefined;
 
     try {
-        const threadUlid = await ensureThreadUlid(root, weaveId, node, threadId);
-        const result = await getMCP(root).callTool('loom_create_design', { weave_slug: weaveId, thread_ulid: threadUlid, title }) as any;
+        const threadUlid = await ensureThreadUlid(root, weaveSlug, node, threadSlug);
+        const result = await getMCP(root).callTool('loom_create_design', { weave_slug: weaveSlug, thread_ulid: threadUlid, title }) as any;
         vscode.window.showInformationMessage(`🧵 Design woven: ${result.id}`);
         revealDocAfterCreate(treeProvider, treeView, result?.filePath);
     } catch (e: any) {

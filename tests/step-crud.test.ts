@@ -220,7 +220,7 @@ async function run() {
         };
         const deps = {
             loadWeave: loadWeaveStrict,
-            runEvent: (weaveId: string, event: any) => runEvent(weaveId, event, { loadWeave: loadWeaveStrict, saveDocs, loomRoot: root }),
+            runEvent: (weaveSlug: string, event: any) => runEvent(weaveSlug, event, { loadWeave: loadWeaveStrict, saveDocs, loomRoot: root }),
             loomRoot: root,
         };
 

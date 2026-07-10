@@ -5,7 +5,7 @@ export interface DocumentEntry {
     type: DocumentType;
     exists: boolean;
     archived: boolean;
-    threadId?: string;
+    threadSlug?: string;
 }
 
 export interface StepBlocker {

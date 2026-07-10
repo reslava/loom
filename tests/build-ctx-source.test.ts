@@ -15,7 +15,7 @@ function makeState() {
     const design = doc({ type: 'design', id: 't1-design', title: 'T1 Design', status: 'active', version: 2, content: 'DESIGN BODY HERE' });
     const plan = { ...doc({ type: 'plan', id: 't1-plan-001', title: 'P1', status: 'implementing' }), steps: [{ order: 1, status: 'done' }, { order: 2, status: 'pending' }] };
     const done = doc({ type: 'done', id: 't1-plan-001-done', title: 'P1 Done', status: 'done', parent_id: 't1-plan-001', content: '## What\n- decided A\n- decided B\n## Open items\n- open X' });
-    const thread = { id: 't1', weaveId: 'demo', idea, design, plans: [plan], dones: [done], chats: [], refDocs: [], allDocs: [idea, design, plan, done] };
+    const thread = { id: 't1', weaveSlug: 'demo', idea, design, plans: [plan], dones: [done], chats: [], refDocs: [], allDocs: [idea, design, plan, done] };
     const weave = { id: 'demo', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [idea, design, plan, done] };
     return {
         loomRoot: '/fake', mode: 'mono', loomName: '(local)', globalDocs: [], globalChats: [],

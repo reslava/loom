@@ -31,20 +31,20 @@ export function createRefreshCtxTool() {
         },
         handle: async (root: string, args: Record<string, unknown>) => {
             const scope = args['scope'] as 'global' | 'weave';
-            const weaveId = args['weave_slug'] as string | undefined;
+            const weaveSlug = args['weave_slug'] as string | undefined;
             if (scope !== 'global' && scope !== 'weave') {
                 throw new Error(`Invalid scope "${scope}" — expected "global" or "weave"`);
             }
-            if (scope === 'weave' && !weaveId) {
+            if (scope === 'weave' && !weaveSlug) {
                 throw new Error('weave_slug is required when scope = "weave"');
             }
 
             const registry = new ConfigRegistry();
             const state = await getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs: fsExtra, workspaceRoot: root });
 
-            const source = buildCtxSource(scope, weaveId, state);
+            const source = buildCtxSource(scope, weaveSlug, state);
             const sourceHash = computeSourceHash(source);
-            const target = ctxTarget(scope, weaveId);
+            const target = ctxTarget(scope, weaveSlug);
 
             const loomRoot = getActiveLoomRoot(root);
             const filePath = path.join(loomRoot, target.relPath);

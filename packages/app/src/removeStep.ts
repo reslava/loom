@@ -8,8 +8,8 @@ export interface RemoveStepInput {
 }
 
 export interface RemoveStepDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
-    runEvent: (weaveId: string, event: WorkflowEvent) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
+    runEvent: (weaveSlug: string, event: WorkflowEvent) => Promise<any>;
     loomRoot: string;
 }
 
@@ -21,12 +21,12 @@ export async function removeStep(
     input: RemoveStepInput,
     deps: RemoveStepDeps
 ): Promise<{ plan: PlanDoc; strippedBlockers: string[] }> {
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
 
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
     if (!plan) {
-        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveSlug}'`);
     }
 
     // Which surviving steps reference the removed step as a blocker? Their references
@@ -35,9 +35,9 @@ export async function removeStep(
         .filter((s: any) => s.id !== input.stepId && Array.isArray(s.blockedBy) && s.blockedBy.includes(input.stepId))
         .map((s: any) => s.id);
 
-    await deps.runEvent(weaveId, { type: 'REMOVE_STEP', planId: input.planUlid, stepId: input.stepId } as WorkflowEvent);
+    await deps.runEvent(weaveSlug, { type: 'REMOVE_STEP', planId: input.planUlid, stepId: input.stepId } as WorkflowEvent);
 
-    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     return { plan: updatedPlan, strippedBlockers };
 }

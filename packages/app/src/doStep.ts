@@ -12,7 +12,7 @@ export interface DoStepInput {
 }
 
 export interface DoStepDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     fs: typeof fs;
     aiClient: AIClient;
@@ -33,11 +33,11 @@ export async function doStep(
     input: DoStepInput,
     deps: DoStepDeps
 ): Promise<{ chatPath: string; chatId: string }> {
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planId);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planId);
 
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: PlanDoc) => p.id === input.planId) as PlanDoc | undefined;
-    if (!plan) throw new Error(`Plan '${input.planId}' not found in weave '${weaveId}'.`);
+    if (!plan) throw new Error(`Plan '${input.planId}' not found in weave '${weaveSlug}'.`);
 
     const selectedSteps = input.steps
         .map(n => plan.steps.find(s => s.order === n))
@@ -70,7 +70,7 @@ export async function doStep(
 
     const aiResponse = await deps.aiClient.complete(messages);
 
-    const weavePath = path.join(deps.loomRoot, 'loom', weaveId);
+    const weavePath = path.join(deps.loomRoot, 'loom', weaveSlug);
     const chatsDir = path.join(weavePath, 'chats');
     await deps.fs.ensureDir(chatsDir);
 
@@ -79,7 +79,7 @@ export async function doStep(
         .filter((f: string) => f.match(/-chat(-\d+)?\.md$/))
         .map((f: string) => f.replace(/\.md$/, ''));
 
-    const chatId = generateChatId(weaveId, existingChatIds);
+    const chatId = generateChatId(weaveSlug, existingChatIds);
     const stepLabel = input.steps.length === 1 ? `Step ${input.steps[0]}` : `Steps ${input.steps.join(', ')}`;
     const title = `${plan.title} — ${stepLabel}`;
 

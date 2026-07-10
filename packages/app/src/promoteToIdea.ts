@@ -53,17 +53,17 @@ export async function promoteToIdea(
 
     // Resolve the target: an explicit targetThreadUlid is a stable th_ ULID → folder
     // (never fabricates); a derived location already yields the folder slug.
-    let weaveId: string;
-    let threadId: string | undefined;
+    let weaveSlug: string;
+    let threadSlug: string | undefined;
     if (input.targetWeaveSlug) {
-        weaveId = input.targetWeaveSlug;
-        threadId = input.targetThreadUlid
+        weaveSlug = input.targetWeaveSlug;
+        threadSlug = input.targetThreadUlid
             ? (await resolveThreadFolder(input.targetWeaveSlug, input.targetThreadUlid, {
                 getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
             })).threadSlug
             : undefined;
     } else {
-        ({ weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot));
+        ({ weaveSlug, threadSlug } = deriveLocation(input.filePath, deps.loomRoot));
     }
 
     let title: string;
@@ -80,30 +80,30 @@ export async function promoteToIdea(
         ({ title, body } = parseTitleAndBody(reply));
     }
 
-    const targetDir = threadId
-        ? path.join(deps.loomRoot, 'loom', weaveId, threadId)
-        : path.join(deps.loomRoot, 'loom', weaveId);
+    const targetDir = threadSlug
+        ? path.join(deps.loomRoot, 'loom', weaveSlug, threadSlug)
+        : path.join(deps.loomRoot, 'loom', weaveSlug);
     await deps.fs.ensureDir(targetDir);
 
     let ideaFilename: string;
     let filePath: string;
-    if (threadId) {
+    if (threadSlug) {
         // Thread-level: canonical filename is the flat singleton idea.md (one per thread).
         filePath = path.join(targetDir, singletonFileName('idea'));
         // Dual-read the singleton guard: refuse if either the flat or legacy idea exists.
-        const legacyIdea = path.join(targetDir, `${threadId}-idea.md`);
+        const legacyIdea = path.join(targetDir, `${threadSlug}-idea.md`);
         if ((await deps.fs.pathExists(filePath)) || (await deps.fs.pathExists(legacyIdea))) {
-            throw new Error(`Thread '${threadId}' already has an idea. Refine the existing one instead.`);
+            throw new Error(`Thread '${threadSlug}' already has an idea. Refine the existing one instead.`);
         }
     } else {
         // Weave-root doc: use kebab-of-title to allow multiple
         const existingFiles = await deps.fs.readdir(targetDir).catch(() => [] as string[]);
         const ideaFiles = existingFiles.filter(f => f.endsWith('-idea.md'));
-        ideaFilename = generateIdeaId(title, weaveId, ideaFiles);
+        ideaFilename = generateIdeaId(title, weaveSlug, ideaFiles);
         filePath = path.join(targetDir, `${ideaFilename}.md`);
     }
 
-    const idScope = threadId ?? weaveId;
+    const idScope = threadSlug ?? weaveSlug;
     const ideaId = generateDocId('idea');
     const frontmatter = createBaseFrontmatter('idea', ideaId, title, idScope);
     const ideaDoc: IdeaDoc = {
@@ -118,27 +118,27 @@ export async function promoteToIdea(
     return { filePath, title };
 }
 
-function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
+function deriveLocation(filePath: string, loomRoot: string): { weaveSlug: string; threadSlug?: string } {
     const rel = path.relative(path.join(loomRoot, 'loom'), filePath);
     const parts = rel.split(/[\\/]/);
     if (parts.length < 2) throw new Error(`Cannot derive weave from path: ${rel}`);
-    const weaveId = parts[0];
+    const weaveSlug = parts[0];
     // loom/{weave}/chats/file → weave-level chat (no thread)
-    if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
+    if (parts.length >= 3 && parts[1] === 'chats') return { weaveSlug };
     // loom/{weave}/{thread}/chats/file or loom/{weave}/{thread}/{anything}
-    if (parts.length >= 3) return { weaveId, threadId: parts[1] };
+    if (parts.length >= 3) return { weaveSlug, threadSlug: parts[1] };
     // loom/{weave}/file (weave-root doc)
-    return { weaveId };
+    return { weaveSlug };
 }
 
-function generateIdeaId(title: string, weaveId: string, existingFiles: string[]): string {
+function generateIdeaId(title: string, weaveSlug: string, existingFiles: string[]): string {
     const kebab = title
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
         .trim()
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
-    const base = `${weaveId}-${kebab}-idea`;
+    const base = `${weaveSlug}-${kebab}-idea`;
     const taken = new Set(existingFiles.map(f => f.replace(/\.md$/, '')));
     if (!taken.has(base)) return base;
     let n = 2;

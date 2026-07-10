@@ -52,17 +52,17 @@ export async function promoteToDesign(
 
     // Resolve the target: an explicit targetThreadUlid is a stable th_ ULID → folder
     // (never fabricates); a derived location already yields the folder slug.
-    let weaveId: string;
-    let threadId: string | undefined;
+    let weaveSlug: string;
+    let threadSlug: string | undefined;
     if (input.targetWeaveSlug) {
-        weaveId = input.targetWeaveSlug;
-        threadId = input.targetThreadUlid
+        weaveSlug = input.targetWeaveSlug;
+        threadSlug = input.targetThreadUlid
             ? (await resolveThreadFolder(input.targetWeaveSlug, input.targetThreadUlid, {
                 getActiveLoomRoot: () => deps.loomRoot, loadDoc: deps.loadDoc, fs: deps.fs,
             })).threadSlug
             : undefined;
     } else {
-        ({ weaveId, threadId } = deriveLocation(input.filePath, deps.loomRoot));
+        ({ weaveSlug, threadSlug } = deriveLocation(input.filePath, deps.loomRoot));
     }
 
     let title: string;
@@ -82,25 +82,25 @@ export async function promoteToDesign(
         ({ title, body } = parseTitleAndBody(reply));
     }
 
-    const targetDir = threadId
-        ? path.join(deps.loomRoot, 'loom', weaveId, threadId)
-        : path.join(deps.loomRoot, 'loom', weaveId);
+    const targetDir = threadSlug
+        ? path.join(deps.loomRoot, 'loom', weaveSlug, threadSlug)
+        : path.join(deps.loomRoot, 'loom', weaveSlug);
     await deps.fs.ensureDir(targetDir);
 
     let designFilename: string;
     let filePath: string;
-    if (threadId) {
+    if (threadSlug) {
         // Thread-level: canonical filename is the flat singleton design.md (one per thread).
         filePath = path.join(targetDir, singletonFileName('design'));
         // Dual-read the singleton guard: refuse if either the flat or legacy design exists.
-        const legacyDesign = path.join(targetDir, `${threadId}-design.md`);
+        const legacyDesign = path.join(targetDir, `${threadSlug}-design.md`);
         if ((await deps.fs.pathExists(filePath)) || (await deps.fs.pathExists(legacyDesign))) {
-            throw new Error(`Thread '${threadId}' already has a design. Refine the existing one instead.`);
+            throw new Error(`Thread '${threadSlug}' already has a design. Refine the existing one instead.`);
         }
     } else {
         // Weave-root doc: kebab-of-title
         const existingFiles = await deps.fs.readdir(targetDir).catch(() => [] as string[]);
-        designFilename = generateDesignId(title, weaveId, existingFiles);
+        designFilename = generateDesignId(title, weaveSlug, existingFiles);
         filePath = path.join(targetDir, `${designFilename}.md`);
     }
 
@@ -118,24 +118,24 @@ export async function promoteToDesign(
     return { filePath, title };
 }
 
-function deriveLocation(filePath: string, loomRoot: string): { weaveId: string; threadId?: string } {
+function deriveLocation(filePath: string, loomRoot: string): { weaveSlug: string; threadSlug?: string } {
     const rel = path.relative(path.join(loomRoot, 'loom'), filePath);
     const parts = rel.split(/[\\/]/);
     if (parts.length < 2) throw new Error(`Cannot derive weave from path: ${rel}`);
-    const weaveId = parts[0];
-    if (parts.length >= 3 && parts[1] === 'chats') return { weaveId };
-    if (parts.length >= 3) return { weaveId, threadId: parts[1] };
-    return { weaveId };
+    const weaveSlug = parts[0];
+    if (parts.length >= 3 && parts[1] === 'chats') return { weaveSlug };
+    if (parts.length >= 3) return { weaveSlug, threadSlug: parts[1] };
+    return { weaveSlug };
 }
 
-function generateDesignId(title: string, weaveId: string, existingFiles: string[]): string {
+function generateDesignId(title: string, weaveSlug: string, existingFiles: string[]): string {
     const kebab = title
         .toLowerCase()
         .replace(/[^\w\s-]/g, '')
         .trim()
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
-    const base = `${weaveId}-${kebab}-design`;
+    const base = `${weaveSlug}-${kebab}-design`;
     const taken = new Set(existingFiles.map(f => f.replace(/\.md$/, '')));
     if (!taken.has(base)) return base;
     let n = 2;

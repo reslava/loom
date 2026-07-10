@@ -12,7 +12,7 @@ export async function chatNewCommand(
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
     const selectedNode = node ?? treeView.selection[0] as TreeNode | undefined;
-    const weaveId = selectedNode?.weaveId;
+    const weaveSlug = selectedNode?.weaveSlug;
     const threadUlid = selectedNode?.threadUlid;
     const titleInput = await vscode.window.showInputBox({ prompt: 'Chat title (optional)', placeHolder: 'Leave blank to use default' });
     if (titleInput === undefined) return;
@@ -20,7 +20,7 @@ export async function chatNewCommand(
 
     try {
         const toolArgs: Record<string, unknown> = { title };
-        if (weaveId) { toolArgs['weave_slug'] = weaveId; }
+        if (weaveSlug) { toolArgs['weave_slug'] = weaveSlug; }
         if (threadUlid) { toolArgs['thread_ulid'] = threadUlid; }
         const result = await getMCP(root).callTool('loom_create_chat', toolArgs) as any;
         if (result?.filePath) {

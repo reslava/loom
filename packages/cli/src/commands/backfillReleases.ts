@@ -62,7 +62,7 @@ export async function backfillReleasesCommand(options: { dryRun?: boolean; overw
         const result = JSON.parse(out);
         console.log(chalk.bold(`\n✅ stamped ${result.stamped.length} plan(s), skipped ${result.skipped.length}`));
         for (const s of result.stamped) {
-            console.log(`  ${chalk.magenta('v' + s.release)}  ${chalk.cyan(`${s.weaveId}/${s.threadId}`)}  ${chalk.gray(s.planId)}`);
+            console.log(`  ${chalk.magenta('v' + s.release)}  ${chalk.cyan(`${s.weaveSlug}/${s.threadSlug}`)}  ${chalk.gray(s.planId)}`);
         }
         const already = result.skipped.filter((s: any) => s.reason === 'already-stamped').length;
         const unshipped = result.skipped.filter((s: any) => s.reason === 'unshipped').length;

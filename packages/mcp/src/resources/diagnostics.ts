@@ -12,8 +12,8 @@ interface DiagnosticIssue {
 }
 
 interface ReqCoverageIssue {
-    weaveId: string;
-    threadId: string;
+    weaveSlug: string;
+    threadSlug: string;
     /** Included requirement ids no plan step cites. */
     uncovered: string[];
     /** Steps citing an Excluded id. */
@@ -57,8 +57,8 @@ export async function handleDiagnosticsResource(root: string) {
             const cov = checkReqCoverage(parsed, steps);
             if (cov.uncovered.length || cov.excludedViolations.length || cov.unknownCitations.length) {
                 reqCoverage.push({
-                    weaveId: weave.id,
-                    threadId: thread.id,
+                    weaveSlug: weave.id,
+                    threadSlug: thread.id,
                     uncovered: cov.uncovered.map(i => i.id),
                     excludedViolations: cov.excludedViolations,
                     unknownCitations: cov.unknownCitations,

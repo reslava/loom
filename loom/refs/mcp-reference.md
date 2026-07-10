@@ -76,7 +76,7 @@ stable, so they are listed here in full.
 | URI | Returns | Use when |
 |-----|---------|----------|
 | `loom://catalog` | Grouped index of the whole `loom_*` MCP surface — tools, resources, prompts (name + one-line purpose); `?kind=tools\|resources\|prompts` filters one section | **Before searching for a tool** — then `ToolSearch select:<exact name>` |
-| `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveId=&threadId=` filterable | Need a global or filtered view |
+| `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveSlug=&status=` filterable | Need a global or filtered view |
 | `loom://roadmap` | Derived cross-weave roadmap (`RoadmapView` JSON): the single topo+priority `roadmap[]`, history, diagnostics | Reason about cross-weave **blocked-on** |
 | `loom://diagnostics` | Broken links, orphaned docs, and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |
 | `loom://summary` | Health counts (weaves, threads, plans, open steps) | Quick status |

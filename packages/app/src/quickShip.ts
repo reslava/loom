@@ -30,7 +30,7 @@ export interface QuickShipInput {
 }
 
 export interface QuickShipDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     saveDocs: typeof saveDocs;
     loadDoc: typeof loadDoc;
@@ -126,8 +126,8 @@ export async function quickShip(
     });
 
     // 3. Complete every step. Completing the last step auto-finishes the plan (→ done).
-    const boundRunEvent = (weaveId: string, event: WorkflowEvent) =>
-        runEvent(weaveId, event, {
+    const boundRunEvent = (weaveSlug: string, event: WorkflowEvent) =>
+        runEvent(weaveSlug, event, {
             loadWeave: deps.loadWeave,
             saveDocs: deps.saveDocs,
             loomRoot: deps.loomRoot,

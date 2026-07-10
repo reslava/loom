@@ -12,12 +12,12 @@ function stubClient(reply: string): any {
 }
 
 // Build a frontmatter-native plan fixture: step 1 done (IN1), step 2 pending (IN2).
-async function makePlan(loomRoot: string, threadId: string): Promise<string> {
-    const plansDir = path.join(loomRoot, 'loom', 'core-engine', threadId, 'plans');
+async function makePlan(loomRoot: string, threadSlug: string): Promise<string> {
+    const plansDir = path.join(loomRoot, 'loom', 'core-engine', threadSlug, 'plans');
     await fs.ensureDir(plansDir);
-    const fp = path.join(plansDir, `${threadId}-plan-001.md`);
+    const fp = path.join(plansDir, `${threadSlug}-plan-001.md`);
     const doc: any = {
-        type: 'plan', id: `${threadId}-plan-001`, title: 'P', status: 'implementing',
+        type: 'plan', id: `${threadSlug}-plan-001`, title: 'P', status: 'implementing',
         created: '2026-06-09T00:00:00.000Z', version: 1, design_version: 1, tags: [],
         parent_id: null, requires_load: [], target_version: '0.1.0',
         _stepsFromFrontmatter: true,

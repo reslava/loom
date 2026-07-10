@@ -6,8 +6,8 @@ export interface StaleDoc {
     id: string;
     type: string;
     title: string;
-    weaveId: string;
-    threadId?: string;
+    weaveSlug: string;
+    threadSlug?: string;
     reason: string;
 }
 
@@ -46,7 +46,7 @@ export async function getStaleDocs(
     }
 
     // Group entries by doc so a doc stale for >1 reason is listed once (stable count).
-    const byDoc = new Map<string, { id: string; type: string; weaveId: string; threadId?: string; reasons: string[] }>();
+    const byDoc = new Map<string, { id: string; type: string; weaveSlug: string; threadSlug?: string; reasons: string[] }>();
     for (const weave of state.weaves) {
         for (const e of staleEntries(weave)) {
             if (!includeDone && !e.actionable) continue;
@@ -55,7 +55,7 @@ export async function getStaleDocs(
             if (existing) {
                 existing.reasons.push(reasonText);
             } else {
-                byDoc.set(e.docId, { id: e.docId, type: e.type, weaveId: e.weaveId, threadId: e.threadId, reasons: [reasonText] });
+                byDoc.set(e.docId, { id: e.docId, type: e.type, weaveSlug: e.weaveSlug, threadSlug: e.threadSlug, reasons: [reasonText] });
             }
         }
     }
@@ -64,8 +64,8 @@ export async function getStaleDocs(
         id: g.id,
         type: g.type,
         title: docById.get(g.id)?.title ?? g.id,
-        weaveId: g.weaveId,
-        threadId: g.threadId,
+        weaveSlug: g.weaveSlug,
+        threadSlug: g.threadSlug,
         reason: g.reasons.join('; '),
     }));
 }

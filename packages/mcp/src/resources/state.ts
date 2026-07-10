@@ -11,7 +11,7 @@ type WeaveStatus = typeof VALID_STATUSES[number];
 export async function handleStateResource(root: string, uri: string) {
     const startedAt = Date.now();
     const url = new URL(uri.replace('loom://', 'loom://host/'));
-    const weaveId = url.searchParams.get('weaveId') ?? undefined;
+    const weaveSlug = url.searchParams.get('weaveSlug') ?? undefined;
     const statusParam = url.searchParams.get('status') ?? undefined;
     const includeParam = url.searchParams.get('include') ?? undefined;
     const shapeParam = url.searchParams.get('shape') ?? undefined;
@@ -23,9 +23,9 @@ export async function handleStateResource(root: string, uri: string) {
             .filter((s): s is WeaveStatus => (VALID_STATUSES as readonly string[]).includes(s))
         : undefined;
 
-    const weaveFilter = (weaveId || (status && status.length > 0))
+    const weaveFilter = (weaveSlug || (status && status.length > 0))
         ? {
-            ...(weaveId ? { idPattern: weaveId } : {}),
+            ...(weaveSlug ? { idPattern: weaveSlug } : {}),
             ...(status && status.length > 0 ? { status } : {}),
         }
         : undefined;

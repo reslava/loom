@@ -60,8 +60,8 @@ export async function refineDesign(
     // Re-baseline the staleness marker: a refine brings the design up to the current
     // idea, so re-stamp idea_version to the live idea version (else it stays "stale").
     const threadDir = path.dirname(input.filePath);
-    const threadId = path.basename(threadDir);
-    const idea = await parentIdeaVersion(threadDir, threadId, { loadDoc: deps.loadDoc, fs: deps.fs });
+    const threadSlug = path.basename(threadDir);
+    const idea = await parentIdeaVersion(threadDir, threadSlug, { loadDoc: deps.loadDoc, fs: deps.fs });
 
     const refined = designReducer(doc, { type: 'REFINE_DESIGN' });
     const updated: DesignDoc = {

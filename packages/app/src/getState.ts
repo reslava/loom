@@ -31,7 +31,7 @@ export interface GetStateInput {
 
 export interface GetStateDeps {
     getActiveLoomRoot: (wsRoot?: string) => string;
-    loadWeave: (loomRoot: string, weaveId: string, index?: any, overrideWeavePath?: string) => Promise<Weave | null>;
+    loadWeave: (loomRoot: string, weaveSlug: string, index?: any, overrideWeavePath?: string) => Promise<Weave | null>;
     buildLinkIndex: (loomRoot: string) => Promise<any>;
     registry: ConfigRegistry;
     fs: typeof fs;
@@ -165,7 +165,7 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
     for (const weave of filteredWeaves) {
         const entries = staleEntries(weave);
         for (const thread of weave.threads) {
-            thread.stale = entries.filter(e => e.threadId === thread.id && e.actionable);
+            thread.stale = entries.filter(e => e.threadSlug === thread.id && e.actionable);
         }
         const stalePlanIds = new Set<string>();
         for (const e of entries) {

@@ -22,10 +22,10 @@ function parseResult(res: any) {
 }
 
 async function donePathFor(weavePath: string, planId: string) {
-    const threadId = planId.split('-plan-')[0];
+    const threadSlug = planId.split('-plan-')[0];
     // New scheme: done filename humanises to plan-NNN-done.md (mirrors the plan's ordinal).
     const ord = planId.match(/-plan-(\d+)$/)?.[1] ?? '001';
-    return path.join(weavePath, threadId, 'done', `plan-${ord}-done.md`);
+    return path.join(weavePath, threadSlug, 'done', `plan-${ord}-done.md`);
 }
 
 async function run() {
@@ -35,9 +35,9 @@ async function run() {
     console.log('  • append_done: single { stepNumber, notes } creates done doc...');
     {
         const root = await makeLoomRoot();
-        const weaveId = 'ad-weave1';
-        const weavePath = path.join(root, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ad-weave1';
+        const weavePath = path.join(root, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [
@@ -61,9 +61,9 @@ async function run() {
     console.log('  • append_done: batch `steps` array writes all sections in one call...');
     {
         const root = await makeLoomRoot();
-        const weaveId = 'ad-weave2';
-        const weavePath = path.join(root, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ad-weave2';
+        const weavePath = path.join(root, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [
@@ -100,9 +100,9 @@ async function run() {
     console.log('  • append_done: re-recording a step replaces its section and bumps version...');
     {
         const root = await makeLoomRoot();
-        const weaveId = 'ad-weave3';
-        const weavePath = path.join(root, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ad-weave3';
+        const weavePath = path.join(root, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Only step', status: 'pending' }],
@@ -125,9 +125,9 @@ async function run() {
     console.log('  • append_done: unknown step number throws, no partial write...');
     {
         const root = await makeLoomRoot();
-        const weaveId = 'ad-weave4';
-        const weavePath = path.join(root, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ad-weave4';
+        const weavePath = path.join(root, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Real step', status: 'pending' }],
@@ -150,9 +150,9 @@ async function run() {
     console.log('  • append_done: missing stepNumber and steps throws...');
     {
         const root = await makeLoomRoot();
-        const weaveId = 'ad-weave5';
-        const weavePath = path.join(root, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ad-weave5';
+        const weavePath = path.join(root, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { id: PLAN_ULID,
             status: 'implementing',
             steps: [{ order: 1, description: 'Real step', status: 'pending' }],

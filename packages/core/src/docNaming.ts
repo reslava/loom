@@ -19,8 +19,8 @@
  *   reference → {slug}.md
  *
  * Dual-read (transition strategy A): the recognisers below ALSO match the legacy
- * names ({threadId}-idea.md, {threadId}-design.md, {threadId}-plan-NNN.md,
- * {threadId}-chat-NNN.md, {planId}-done.md) so a repo can be read correctly before
+ * names ({threadSlug}-idea.md, {threadSlug}-design.md, {threadSlug}-plan-NNN.md,
+ * {threadSlug}-chat-NNN.md, {planId}-done.md) so a repo can be read correctly before
  * `loom migrate-layout` normalises it. Writers always emit the new scheme.
  */
 

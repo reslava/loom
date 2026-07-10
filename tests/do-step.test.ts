@@ -45,9 +45,9 @@ async function testDoStep() {
     console.log('  • doStep: chat doc created with ## Rafa: + ## AI: structure...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'ds-weave';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ds-weave';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
 
@@ -71,9 +71,9 @@ async function testDoStep() {
     console.log('  • doStep: chat doc parent_id links to plan...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'ds-weave2';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ds-weave2';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
 
@@ -88,9 +88,9 @@ async function testDoStep() {
     console.log('  • doStep: multiple steps included in user message...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'ds-weave3';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ds-weave3';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
 
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
 
@@ -120,14 +120,14 @@ async function testDoStep() {
     console.log('  • doStep: invalid planId throws...');
     {
         const loomRoot = await makeLoomRoot();
-        const weaveId = 'ds-weave4';
-        const weavePath = path.join(loomRoot, 'loom', weaveId);
-        const planId = `${weaveId}-plan-001`;
+        const weaveSlug = 'ds-weave4';
+        const weavePath = path.join(loomRoot, 'loom', weaveSlug);
+        const planId = `${weaveSlug}-plan-001`;
         await createPlanDoc(weavePath, planId, { status: 'implementing' } as any);
 
         let threw = false;
         try {
-            await doStep({ planId: `${weaveId}-plan-999`, steps: [1] }, makeDeps(loomRoot));
+            await doStep({ planId: `${weaveSlug}-plan-999`, steps: [1] }, makeDeps(loomRoot));
         } catch {
             threw = true;
         }

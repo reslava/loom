@@ -9,7 +9,7 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) return;
 
-    const label = (node.label as string) || node.doc?.id || node.threadId || node.weaveId || 'item';
+    const label = (node.label as string) || node.doc?.id || node.threadSlug || node.weaveSlug || 'item';
 
     // An archived doc (a reference under .archive/) isn't in the live index — delete it
     // by its path under loom/.archive/. Live docs delete by id; folders (live or archived
@@ -21,10 +21,10 @@ export async function deleteItemCommand(treeProvider: LoomTreeProvider, node?: T
         args = { archived_rel_path: filePath.slice(archivePrefix.length) };
     } else if (node.doc?.id) {
         args = { doc_ulid: node.doc.id };
-    } else if (node.weaveId && node.threadId) {
-        args = { weave_slug: node.weaveId, thread_slug: node.threadId };
-    } else if (node.weaveId) {
-        args = { weave_slug: node.weaveId };
+    } else if (node.weaveSlug && node.threadSlug) {
+        args = { weave_slug: node.weaveSlug, thread_slug: node.threadSlug };
+    } else if (node.weaveSlug) {
+        args = { weave_slug: node.weaveSlug };
     } else {
         vscode.window.showErrorMessage('Cannot determine what to delete.');
         return;

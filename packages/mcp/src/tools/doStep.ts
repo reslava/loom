@@ -74,12 +74,12 @@ export async function handle(root: string, args: Record<string, unknown>) {
         nextStep = pendingSteps[0];
     }
 
-    // Derive weaveId/threadId from path: loom/{weaveId}/{threadId}/plans/{planId}.md
+    // Derive weaveSlug/threadSlug from path: loom/{weaveSlug}/{threadSlug}/plans/{planId}.md
     const plansDir = path.dirname(planFilePath);
     const threadDir = path.dirname(plansDir);
     const weaveDir = path.dirname(threadDir);
-    const threadId = path.basename(threadDir);
-    const weaveId = path.basename(weaveDir);
+    const threadSlug = path.basename(threadDir);
+    const weaveSlug = path.basename(weaveDir);
 
     // Context Dispatcher (model C). Two dedupe controls, both routed through the one
     // injection door (the loom://context resource → assembleContext):
@@ -130,8 +130,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const brief = {
         planId,
         planTitle: planDoc.title,
-        weaveId,
-        threadId,
+        weaveSlug,
+        threadSlug,
         stepNumber: nextStep.order,
         stepDescription: nextStep.description,
         filesToTouch: nextStep.files_touched,

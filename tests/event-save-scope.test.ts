@@ -59,7 +59,7 @@ async function run() {
             ],
         };
         const thread: any = {
-            id: 't', weaveId: 'w', idea: undefined, design: undefined,
+            id: 't', weaveSlug: 'w', idea: undefined, design: undefined,
             plans: [planA, planB], dones: [], chats: [], refDocs: [], allDocs: [planA, planB],
         };
         const weave: any = { id: 'w', threads: [thread], looseFibers: [], chats: [], refDocs: [], allDocs: [planA, planB] };

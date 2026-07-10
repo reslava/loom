@@ -9,8 +9,8 @@ export interface CompleteStepInput {
 }
 
 export interface CompleteStepDeps {
-    loadWeave: (loomRoot: string, weaveId: string) => Promise<any>;
-    runEvent: (weaveId: string, event: WorkflowEvent) => Promise<any>;
+    loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
+    runEvent: (weaveSlug: string, event: WorkflowEvent) => Promise<any>;
     loomRoot: string;
 }
 
@@ -18,14 +18,14 @@ export async function completeStep(
     input: CompleteStepInput,
     deps: CompleteStepDeps
 ): Promise<{ plan: PlanDoc; autoCompleted: boolean }> {
-    const weaveId = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
+    const weaveSlug = await resolveWeaveSlugForPlan(deps.loomRoot, input.planUlid);
     const stepIndex = input.step - 1;
 
-    const weave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const weave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const plan = weave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid);
 
     if (!plan) {
-        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveId}'`);
+        throw new Error(`Plan '${input.planUlid}' not found in weave '${weaveSlug}'`);
     }
 
     if (plan.status !== 'implementing') {
@@ -40,9 +40,9 @@ export async function completeStep(
         throw new Error(`Step ${input.step} is already completed.`);
     }
 
-    await deps.runEvent(weaveId, { type: 'COMPLETE_STEP', planId: input.planUlid, stepIndex } as WorkflowEvent);
+    await deps.runEvent(weaveSlug, { type: 'COMPLETE_STEP', planId: input.planUlid, stepIndex } as WorkflowEvent);
 
-    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveId);
+    const updatedWeave = await deps.loadWeave(deps.loomRoot, weaveSlug);
     const updatedPlan = updatedWeave.threads.flatMap((t: any) => t.plans).find((p: any) => p.id === input.planUlid)!;
     const autoCompleted = updatedPlan.status === 'done';
 

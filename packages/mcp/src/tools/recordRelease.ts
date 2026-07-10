@@ -44,8 +44,8 @@ export async function handle(root: string, args: Record<string, unknown>) {
     const registry = new ConfigRegistry();
     const deps = {
         loadState: () => getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root }),
-        runEvent: (weaveId: string, event: any) =>
-            runEvent(weaveId, event, { loadWeave: loadWeaveStrict, saveDocs, loomRoot: root }),
+        runEvent: (weaveSlug: string, event: any) =>
+            runEvent(weaveSlug, event, { loadWeave: loadWeaveStrict, saveDocs, loomRoot: root }),
     };
 
     const version = args['version'] as string | undefined;

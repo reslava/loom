@@ -53,7 +53,7 @@ interface ThreadSummary {
 **Input:**
 ```typescript
 interface GetThreadInput {
-    threadId: string;
+    threadSlug: string;
 }
 ```
 
@@ -73,7 +73,7 @@ interface ListDesignsInput {
     filter?: {
         status?: DesignStatus[];
         role?: 'primary' | 'supporting';
-        threadId?: string;
+        threadSlug?: string;
     };
 }
 ```
@@ -82,7 +82,7 @@ interface ListDesignsInput {
 ```typescript
 interface DesignSummary {
     id: string;
-    threadId: string;
+    threadSlug: string;
     title: string;
     status: DesignStatus;
     role: 'primary' | 'supporting';
@@ -100,7 +100,7 @@ interface DesignSummary {
 interface ListPlansInput {
     filter?: {
         status?: PlanStatus[];
-        threadId?: string;
+        threadSlug?: string;
         staled?: boolean;
     };
 }
@@ -110,7 +110,7 @@ interface ListPlansInput {
 ```typescript
 interface PlanSummary {
     id: string;
-    threadId: string;
+    threadSlug: string;
     title: string;
     status: PlanStatus;
     designVersion: number;
@@ -130,7 +130,7 @@ interface PlanSummary {
 interface ListIdeasInput {
     filter?: {
         status?: IdeaStatus[];
-        threadId?: string;
+        threadSlug?: string;
     };
 }
 ```
@@ -139,7 +139,7 @@ interface ListIdeasInput {
 ```typescript
 interface IdeaSummary {
     id: string;
-    threadId: string;
+    threadSlug: string;
     title: string;
     status: IdeaStatus;
 }
@@ -153,7 +153,7 @@ interface IdeaSummary {
 ```typescript
 interface ListContextsInput {
     filter?: {
-        threadId?: string;
+        threadSlug?: string;
         type?: 'summary' | 'checkpoint'; // derived from source_version presence
     };
 }
@@ -163,7 +163,7 @@ interface ListContextsInput {
 ```typescript
 interface ContextSummary {
     id: string;
-    threadId: string;
+    threadSlug: string;
     title: string;
     status: CtxStatus;
     sourceVersion?: number; // present for summaries
@@ -178,13 +178,13 @@ interface ContextSummary {
 
 **Purpose:** Return all steps that are currently blocked, with their blockers.
 
-**Input:** None (or optional `threadId` filter).
+**Input:** None (or optional `threadSlug` filter).
 
 **Output:**
 ```typescript
 interface BlockedStepInfo {
     planId: string;
-    threadId: string;
+    threadSlug: string;
     stepOrder: number;
     stepDescription: string;
     blockedBy: string[];
@@ -195,7 +195,7 @@ interface BlockedStepInfo {
 
 **Purpose:** Return all plans marked as `staled` (design version mismatch).
 
-**Input:** None (or optional `threadId` filter).
+**Input:** None (or optional `threadSlug` filter).
 
 **Output:** `PlanSummary[]` (with `staled: true`).
 
@@ -207,13 +207,13 @@ interface BlockedStepInfo {
 
 **Purpose:** Return the next unblocked, incomplete step for each active plan. This helps users know exactly what to work on.
 
-**Input:** None (or optional `threadId` filter).
+**Input:** None (or optional `threadSlug` filter).
 
 **Output:**
 ```typescript
 interface NextAction {
     planId: string;
-    threadId: string;
+    threadSlug: string;
     stepOrder: number;
     stepDescription: string;
 }

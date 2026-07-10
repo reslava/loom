@@ -118,11 +118,11 @@ export class ContextSidebarProvider implements vscode.TreeDataProvider<SectionIt
                 mode,
             };
         }
-        if (node.weaveId && node.threadId) {
+        if (node.weaveSlug && node.threadSlug) {
             // Thread node → anchor on the thread's primary doc (resolved server-side).
             return {
-                uri: `loom://context/thread/${node.weaveId}/${node.threadId}?mode=chat&format=json`,
-                targetId: `${node.weaveId}/${node.threadId}`,
+                uri: `loom://context/thread/${node.weaveSlug}/${node.threadSlug}?mode=chat&format=json`,
+                targetId: `${node.weaveSlug}/${node.threadSlug}`,
                 mode: 'chat',
             };
         }
