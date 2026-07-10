@@ -141,8 +141,13 @@ run_test tests/design-version-baseline.test.ts
 # reasons fire, ideas are never stale, actionable excludes done docs, extension set == `loom stale` set
 run_test tests/stale-parity.test.ts
 
-# version-on-content: loom_update_doc bumps version/updated ONLY on a content edit (status-only
-# and identical-content updates do not bump) — so marking a parent done never cascades staleness
+# set-status decision: decideSetStatus is the pure guard — free labels allowed, plan->done/
+# implementing + req->locked delegate to their owning tool, invalid status/type rejected
+run_test tests/set-status.test.ts
+
+# version-on-content: loom_update_doc bumps version/updated ONLY on a content edit; it now
+# rejects a status-only call (status moved to loom_set_status, which also does not bump) —
+# so marking a parent done never cascades staleness
 run_test tests/version-on-content.test.ts
 
 # staleness baselines: a design stamps idea_version from the live idea; a req parents to the

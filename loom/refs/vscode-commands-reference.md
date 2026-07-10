@@ -95,8 +95,8 @@ All commands are under the **Loom** category (`Ctrl+Shift+P` → type `Loom:`). 
 | Start Plan | `loom.startPlan` |
 | Complete Step | `loom.completeStep` |
 | Close Plan | `loom.closePlan` |
-| Mark Done | `loom.markDone` |
-| Mark Active | `loom.markActive` |
+| Set Status: Done | `loom.setStatusDone` |
+| Set Status: Active | `loom.setStatusActive` |
 | Validate | `loom.validate` |
 
 ### Document management
@@ -128,7 +128,7 @@ Right-clicking a node in the Threads view exposes actions by node type:
 |------|---------|
 | **Weave** | New Weave, Weave Thread, Validate, Rename, Archive, Delete |
 | **Thread** | Weave Idea / Design / Plan, Weave Chat |
-| **Idea** | Refine Idea, Generate Design, Promote to Design / Plan, Add References, Mark Done/Active, Rename, Archive, Delete |
+| **Idea** | Refine Idea, Generate Design, Promote to Design / Plan, Add References, Set Status: Done/Active, Rename, Archive, Delete |
 | **Design** | Refine Design, Generate Plan, Weave Plan, Promote to Plan, Add References, … |
 | **Plan** (draft/active) | Start Plan |
 | **Plan** (implementing) | Do Step(s), Complete Step, Refine Plan, Close Plan |

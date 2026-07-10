@@ -103,20 +103,24 @@ List blocked steps across all `implementing` plans, with the blockers for each s
 
 ## Documents (manual CRUD)
 
-### `loom weave idea <title> [--weave <name>] [--thread <id>] [--loose]`
-Create an idea document. By default creates a thread named from the title; `--weave` places it in a specific weave, `--thread` sets an explicit thread ID, `--loose` creates a loose fiber at the weave root.
+### `loom create <type>` — mirrors `loom_create_*`
 
-### `loom weave design <weave-id> [--title <t>] [--thread <id>]`
-Create a design from an existing idea.
+Thread-first: every doc lives in an **existing** thread (make it first with `loom create thread`); create commands **never** mint a thread implicitly.
 
-### `loom weave plan <weave-id> [--title <t>] [--goal <g>] [--thread <id>]`
-Create a plan from a finalized design.
+- `loom create thread <weave> <slug> [--title <t>]` — create a thread (its `thread.md` + a fresh `th_` ULID). The sole, explicit thread creator.
+- `loom create idea <weave> <thread> <title>` — create the idea doc in an existing thread (one idea per thread).
+- `loom create design <weave> <thread> [--title <t>]` — create the design doc in an existing thread.
+- `loom create plan <weave> <thread> [--title <t>] [--goal <g>]` — create a plan in an existing thread.
+- `loom create req <weave> <thread> [--title <t>]` — create the req doc in an existing thread.
+- `loom create chat [weave] [thread] [--title <t>] [--refs]` — create a thread chat (needs `<weave> <thread>`) or a refs chat (`--refs`).
+- `loom create reference <title> [--description <d>]` — create a reference doc under `loom/refs/`.
+- `loom create weave <slug>` — create an empty weave folder.
 
-### `loom finalize <temp-id>`
-Finalize a draft document and generate its permanent ID.
+### `loom set-status <doc> <status>` — mirrors `loom_set_status`
+Set a document's lifecycle status (`draft` / `active` / `done`). Guarded: a plan → implementing needs `loom start-plan`, a plan → done is *earned* by completing steps (not settable here), a req → locked needs its finalize. `<doc>` is a slug, filename stem, or ULID.
 
 ### `loom rename <old-id> <new-title>`
-Rename a finalized document and update references to it.
+Rename a document and update references to it.
 
 ---
 

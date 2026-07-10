@@ -16,17 +16,19 @@ async function setDocStatus(
     if (!docId) { vscode.window.showErrorMessage('Select a document node first.'); return; }
 
     try {
-        await getMCP(root).callTool('loom_update_doc', { id: docId, status });
+        // The single guarded status verb. It refuses transitions a dedicated tool owns
+        // (e.g. a plan → done needs Close Plan) with a clear message — surface it as-is.
+        await getMCP(root).callTool('loom_set_status', { doc_ulid: docId, status });
         treeProvider.refresh();
     } catch (e: any) {
-        vscode.window.showErrorMessage(`Failed to mark ${status}: ${e.message}`);
+        vscode.window.showErrorMessage(`Failed to set status "${status}": ${e.message}`);
     }
 }
 
-export function markDoneCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
+export function setStatusDoneCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
     return setDocStatus(treeProvider, treeView, node, 'done');
 }
 
-export function markActiveCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
+export function setStatusActiveCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
     return setDocStatus(treeProvider, treeView, node, 'active');
 }

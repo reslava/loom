@@ -107,7 +107,7 @@ same grouping `loom://catalog` renders):
 | Group | What it covers | Example tool |
 |-------|----------------|--------------|
 | **create** | New idea / design / plan / req / reference / chat | `loom_create_idea` |
-| **doc** | Body / frontmatter edits, finalize, archive, rename, promote | `loom_update_doc`, `loom_patch_doc` |
+| **doc** | Body / requires_load edits, set status, archive, rename, promote | `loom_update_doc`, `loom_set_status`, `loom_patch_doc` |
 | **refine** | Sampling-based rewrite of a stale idea / design / plan | `loom_refine_design` |
 | **generate** | Sampling-based first-draft generation | `loom_generate_plan` |
 | **plan** | Step lifecycle: start, complete, add/remove/reorder/update steps, do-step brief, append-done, close | `loom_do_step`, `loom_complete_step` |

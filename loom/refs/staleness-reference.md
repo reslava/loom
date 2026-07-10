@@ -82,13 +82,13 @@ Staleness is created by a parent's **version** advancing, and cleared by the chi
 | refine design | `design.version++`, re-stamp `idea_version` | req, plans | the design's own (`design_stale`) |
 | amend req | `req.version++`, re-stamp `design_version` | plans | the req's own (`req_stale`) |
 | refine plan | re-stamp `design_version` + `req_version` | — | the plan's own (both) |
-| **mark done / finalize (status only)** | **no version/`updated` change** | nothing | — |
+| **set status (mark done / activate, status only)** | **no version/`updated` change** | nothing | — |
 
 The chain reconciles in order: *edit idea → design stale → refine design → req stale → refine req → plans stale → refine plans.* Each hop is explicit.
 
 ### version & `updated` change ONLY on a content edit
 
-A status transition (mark done, finalize draft→active) or a `requires_load`-only edit is **lifecycle**, not a spec change — it must **not** bump `version` or `updated`. Otherwise a finished parent would cascade false staleness to its children. `version` means "spec revision."
+A status transition via set-status (mark done, activate draft→active) or a `requires_load`-only edit is **lifecycle**, not a spec change — it must **not** bump `version` or `updated`. Otherwise a finished parent would cascade false staleness to its children. `version` means "spec revision."
 
 ## Anti-patterns (explicitly rejected)
 

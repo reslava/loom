@@ -283,14 +283,14 @@
         "icon": "$(discard)"
       },
       {
-        "command": "loom.markDone",
-        "title": "Mark Done",
+        "command": "loom.setStatusDone",
+        "title": "Set Status: Done",
         "category": "Loom",
         "icon": "$(pass-filled)"
       },
       {
-        "command": "loom.markActive",
-        "title": "Mark Active",
+        "command": "loom.setStatusActive",
+        "title": "Set Status: Active",
         "category": "Loom",
         "icon": "$(circle-large-outline)"
       },
@@ -804,12 +804,12 @@
           "group": "edit@0"
         },
         {
-          "command": "loom.markDone",
+          "command": "loom.setStatusDone",
           "when": "view == loom.threads && viewItem =~ /^(idea|design|plan|chat|reference)/",
           "group": "edit@1"
         },
         {
-          "command": "loom.markActive",
+          "command": "loom.setStatusActive",
           "when": "view == loom.threads && viewItem =~ /^(idea|design|plan|chat|reference)/",
           "group": "edit@2"
         },

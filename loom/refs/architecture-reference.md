@@ -91,7 +91,7 @@ CLI (packages/cli)          VSCode (packages/vscode)
                                 ▼
          Application Layer (app)
          Use-cases: weaveIdea, weaveDesign, weavePlan,
-         finalize, rename, startPlan, completeStep,
+         setStatus, rename, startPlan, completeStep,
          closePlan, chatNew, promoteToDesign, etc.
          Query use-cases: searchDocs, getStaleDocs,
          getBlockedSteps (shared by MCP tools + CLI)

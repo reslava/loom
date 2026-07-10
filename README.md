@@ -244,7 +244,8 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 |------|-------------|
 | `loom_complete_step` | Mark a plan step done (idempotent) |
 | `loom_create_idea / design / plan / chat` | Create Loom documents |
-| `loom_update_doc` | Rewrite doc content, preserve frontmatter |
+| `loom_update_doc` | Rewrite doc body / requires_load, preserve frontmatter |
+| `loom_set_status` | Set a doc's lifecycle status (guarded: plan→done needs close, req→locked needs finalize) |
 | `loom_promote` | idea → design → plan, chat → idea |
 | `loom_refresh_ctx` | Regenerate ctx summary via AI sampling |
 | `loom_get_stale_docs` | List docs stale against an upstream parent's version (`all: true` adds done/historical) |
@@ -409,8 +410,9 @@ npm install -g @reslava/loom
 cd my-project
 loom install
 
-# Create your first idea
-loom weave idea "Add Dark Mode" --weave ui
+# Create your first thread, then its idea (create is thread-first)
+loom create thread ui dark-mode --title "Dark Mode"
+loom create idea ui dark-mode "Add Dark Mode"
 
 # Check project state
 loom status

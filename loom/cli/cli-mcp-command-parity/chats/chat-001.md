@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 16
+last_ai_block: 19
 ---
 # cli-mcp-command-parity Chat 001
 
@@ -345,3 +345,27 @@ Not committed (you said "go", not commit). Uncommitted: the create-namespace cod
 **STOP.** Next is **step 6 — extension Set Status menu**: point `markStatus.ts` at `loom_set_status`, rename `loom.markDone/markActive` → `loom.setStatusDone/setStatusActive` (labels "Set Status: Done/Active"), and remove the `loom.finalize` command + `finalize.ts` + its menu entry. Files: `packages/vscode/src/commands/markStatus.ts`, `finalize.ts`, `extension.ts`, `package.json`.
 
 Say **commit** and/or **go 6** (or **do 6-11**).
+
+## AI:
+
+**Steps 6–11 done — plan complete (auto-closed to `done`).**
+
+- **6 — Extension:** `markStatus.ts` → `loom_set_status`; commands/labels → `Set Status: Done/Active`; `loom.finalize` + `finalize.ts` removed. (Needs a Reload Window to go live.)
+- **7 — Four-ways audit:** ①②④ fully covered; **③ Pure agent** has a real gap (no CLI twins for human tree-management ops) — recorded.
+- **8 — CLAUDE.md:** added the **Tri-surface command parity (hard)** rule (sibling of the API rules; repo-specific, no marker, so no template mirror / no sync-test impact).
+- **9 — Docs sweep:** every live surface updated (README ×3, WAYS-TO-USE, CLI guide, refs: cli-commands/mcp/vscode-commands/architecture/staleness). Historical loom docs + CHANGELOG left as records.
+- **10 — Tests:** new `set-status.test.ts` (guard) + migrated `version-on-content` (update_doc rejects status; set_status doesn't bump version) + migrated `id-management` (create/set-status). **build-all + test-all green** (incl. MCP integration 23/23).
+- **11 — Final sweep:** status + create surfaces aligned. One remaining cluster (human tree-management CLI twins missing → breaks way ③) was **too big to fold in**, so it's tracked as a follow-up: **`cli/cli-management-command-parity`** (idea written) with the full discrepancy table + the `rename`/`retitle` and extension-`weave` naming cleanups.
+
+**Net:** one guarded status verb across all three surfaces, `finalize` gone, `loom create <type>` thread-first mirroring `loom_create_*`, `loom weave` retired, the parity contract codified, docs swept, tests green.
+
+**Not committed yet** (you said "commit then do 6-11" — that commit was step 5). The tree holds all of 6–11: extension + CLAUDE.md + docs/refs + tests + the plan/done progress + the new follow-up thread. Say **commit** and I'll land it (I'd suggest one commit for 6–11, and I can split the follow-up thread into its own `chore` commit if you prefer).
+
+## Rafa:
+
+commit 
+then follow up thread into its own `chore` commit
+
+## AI:
+
+Committing in two: first the plan 6–11 changeset (extension + CLAUDE.md + docs/refs + tests + this thread's plan/done/chat), then the new `cli-management-command-parity` follow-up thread as its own `chore` commit. This closes out `plan-001` — the CLI ⇄ MCP ⇄ extension status-verb parity + create-surface unification are done and green; the remaining human tree-management CLI gap is now a tracked follow-up.

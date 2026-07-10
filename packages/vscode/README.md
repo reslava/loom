@@ -145,7 +145,7 @@ A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave
 |--------|-------------|
 | *Start Plan* / *Close Plan* | Move a plan to `implementing` / finish it |
 | *Complete Step* | Mark the current step ✅ without running the AI |
-| *Mark Done* / *Mark Active* | Flip a doc's status |
+| *Set Status: Done* / *Set Status: Active* | Set a doc's lifecycle status |
 | *Rename* / *Archive* / *Delete* | Inline doc management from the tree |
 | *Validate* | Check a weave for broken links and stale docs |
 

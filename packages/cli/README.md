@@ -144,10 +144,15 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 
 | Command | Description |
 |---------|-------------|
-| `loom weave idea <title> [--weave <weave>] [--thread <slug>] [--loose]` | Create an idea document. |
-| `loom weave design <weave> [--title <t>] [--thread <slug>]` | Create a design from an existing idea. |
-| `loom weave plan <weave> [--title <t>] [--goal <g>] [--thread <slug>]` | Create a plan from a finalized design. |
-| `loom finalize <draft>` | Finalize a draft document (status `draft` → `active`). The ULID `id` is unchanged — there is no temp→permanent step. |
+| `loom create thread <weave> <slug> [--title <t>]` | Create a thread (the sole, explicit thread creator). |
+| `loom create idea <weave> <thread> <title>` | Create the idea doc in an existing thread. |
+| `loom create design <weave> <thread> [--title <t>]` | Create the design doc in an existing thread. |
+| `loom create plan <weave> <thread> [--title <t>] [--goal <g>]` | Create a plan in an existing thread. |
+| `loom create req <weave> <thread> [--title <t>]` | Create the req doc in an existing thread. |
+| `loom create chat [weave] [thread] [--title <t>] [--refs]` | Create a thread chat, or a refs chat with `--refs`. |
+| `loom create reference <title> [--description <d>]` | Create a reference doc under `loom/refs/`. |
+| `loom create weave <slug>` | Create an empty weave folder. |
+| `loom set-status <doc> <status>` | Set a doc's lifecycle status (`draft`/`active`/`done`). Guarded — plan→done needs step completion, req→locked its finalize. |
 | `loom rename <doc> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
 
 ### Workflow events

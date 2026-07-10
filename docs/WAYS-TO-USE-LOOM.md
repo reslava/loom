@@ -103,8 +103,8 @@ an agent in a terminal and talk to it. The session lasts as long as you want.
 **Starting a thread this way — the chat-driven loop.** The usual entry point is a chat you and
 the agent think in together:
 
-1. **You create a chat** and write the thread's starting point (today via the extension; a
-   `loom` CLI command for this is on the roadmap).
+1. **You create a chat** and write the thread's starting point — from the terminal with
+   `loom create chat <weave> <thread>`, or via the extension.
 2. **You point the agent at it:** *"read `ai-integration/ways-to-use-loom/chat-001`."*
 3. **The agent loads the thread context** (the `loom://context/...` bundle — global/weave ctx +
    parent chain) so it answers from state, not from zero.

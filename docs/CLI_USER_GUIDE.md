@@ -20,7 +20,7 @@
 
 In the terminal, Loom has two distinct surfaces — don't confuse them:
 
-- **The `loom` CLI** — for **setup, inspection, and manual document CRUD**: `loom install`, `loom status`, `loom validate`, `loom weave …`, etc. The CLI does **not** run the AI.
+- **The `loom` CLI** — for **setup, inspection, and manual document CRUD**: `loom install`, `loom status`, `loom validate`, `loom create …`, etc. The CLI does **not** run the AI.
 - **An MCP agent (Claude Code)** — this is where the **AI work** happens. The agent connects to the Loom **MCP server** (`loom mcp`) and uses Loom's tools (`loom_create_idea`, `loom_do_step`, `loom_complete_step`, …) and resources (`loom://context/…`) to read and advance your documents.
 
 So: you use `loom` to set up and to look at state; you talk to **Claude Code** to actually move the workflow forward.
@@ -148,10 +148,12 @@ Setup, inspection, and manual CRUD. (The AI is driven through your MCP agent —
 
 | Command | Description |
 |---------|-------------|
-| `loom weave idea <title> [--weave <w>] [--thread <id>] [--loose]` | Create an idea (new thread by default). |
-| `loom weave design <weave-id> [--thread <id>] [--title <t>]` | Create a design from an existing idea. |
-| `loom weave plan <weave-id> [--thread <id>] [--goal <g>] [--title <t>]` | Create a plan from a finalized design. |
-| `loom finalize <id>` | Finalize a draft doc (`draft → active`). |
+| `loom create thread <weave> <slug> [--title <t>]` | Create a thread (the sole, explicit thread creator — create commands never mint one). |
+| `loom create idea <weave> <thread> <title>` | Create the idea doc in an existing thread. |
+| `loom create design <weave> <thread> [--title <t>]` | Create the design doc in an existing thread. |
+| `loom create plan <weave> <thread> [--title <t>] [--goal <g>]` | Create a plan in an existing thread. |
+| `loom create req\|chat\|reference\|weave …` | Create the other doc/container types (mirrors `loom_create_*`). |
+| `loom set-status <doc> <status>` | Set a doc's lifecycle status (`draft`/`active`/`done`); guarded transitions delegate. |
 | `loom rename <id> <new-title>` | Rename a doc's title (identity is a stable ULID; the filename is flat and doesn't change). |
 
 ### Workflow events

@@ -11,7 +11,6 @@ import { ViewStateManager } from './view/viewStateManager';
 import { weaveIdeaCommand } from './commands/weaveIdea';
 import { weaveDesignCommand } from './commands/weaveDesign';
 import { weavePlanCommand } from './commands/weavePlan';
-import { finalizeCommand } from './commands/finalize';
 import { generateReqCommand, finalizeReqCommand, amendReqCommand, verifyReqCommand } from './commands/req';
 import { renameCommand, renameFileCommand } from './commands/rename';
 import { refineCommand } from './commands/refine';
@@ -34,7 +33,7 @@ import { refineIdeaCommand } from './commands/refineIdea';
 import { refinePlanCommand } from './commands/refinePlan';
 import { doStepCommand } from './commands/doStep';
 import { closePlanCommand } from './commands/closePlan';
-import { markDoneCommand, markActiveCommand } from './commands/markStatus';
+import { setStatusDoneCommand, setStatusActiveCommand } from './commands/markStatus';
 import { restoreItemCommand } from './commands/restoreItem';
 import { createReferenceCommand } from './commands/createReference';
 import { addRequiresLoadCommand } from './commands/addRequiresLoad';
@@ -170,7 +169,6 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.weaveDesign', (node?: TreeNode) => weaveDesignCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.weavePlan', (node?: TreeNode) => weavePlanCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.finalize', (node?: TreeNode) => finalizeCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.generateReq', (node?: TreeNode) => generateReqCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.finalizeReq', (node?: TreeNode) => finalizeReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.amendReq', (node?: TreeNode) => amendReqCommand(treeProvider, node)),
@@ -227,8 +225,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.closePlan', (node?: TreeNode) => closePlanCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.delete', (node?: TreeNode) => deleteItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.archive', (node?: TreeNode) => archiveItemCommand(treeProvider, node)),
-        vscode.commands.registerCommand('loom.markDone', (node?: TreeNode) => markDoneCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.markActive', (node?: TreeNode) => markActiveCommand(treeProvider, treeView, node)),
+        vscode.commands.registerCommand('loom.setStatusDone', (node?: TreeNode) => setStatusDoneCommand(treeProvider, treeView, node)),
+        vscode.commands.registerCommand('loom.setStatusActive', (node?: TreeNode) => setStatusActiveCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.restoreItem', (node?: TreeNode) => restoreItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.createReference', () => createReferenceCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.addRequiresLoad', (node?: TreeNode) => addRequiresLoadCommand(node)),
