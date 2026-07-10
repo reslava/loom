@@ -5,6 +5,15 @@ maps the ways you can run Loom, gives a real example of each, and helps you pick
 that fits how you work. Whichever door you use, you're editing the **same** `loom/` doc
 graph — so you can mix and switch freely.
 
+## Contents
+
+- [Two users](#two-users)
+- [Two axes](#two-axes)
+- [The four recipes](#the-four-recipes)
+- [Pick your way](#pick-your-way)
+- [How the architecture serves this](#how-the-architecture-serves-this)
+- [Patterns for the persistent agent](#patterns-for-the-persistent-agent)
+
 ---
 
 ## Two users
@@ -91,6 +100,24 @@ an agent in a terminal and talk to it. The session lasts as long as you want.
 > your go writes it with `loom_create_plan`. You keep going — implement steps, refine a doc —
 > in the same session, watching the tree update as it writes.
 
+**Starting a thread this way — the chat-driven loop.** The usual entry point is a chat you and
+the agent think in together:
+
+1. **You create a chat** and write the thread's starting point (today via the extension; a
+   `loom` CLI command for this is on the roadmap).
+2. **You point the agent at it:** *"read `ai-integration/ways-to-use-loom/chat-001`."*
+3. **The agent loads the thread context** (the `loom://context/...` bundle — global/weave ctx +
+   parent chain) so it answers from state, not from zero.
+4. **The agent replies inside the chat** with `loom_append_to_chat` — the reply persists in the
+   doc, not just the terminal scrollback.
+5. **You reply in the chat doc** with your next thought.
+6. **You say "reply."**
+7. **The agent reads just your new turn** with `loom_read_chat_tail` (the turns since its last
+   reply, not the whole chat) and appends its answer — back to step 5.
+
+That loop — chat → point → load → reply → repeat — is how a thread gets thought through before
+anything is formalized into an idea or design.
+
 ### ③ Pure agent — terminal-only, any MCP host
 
 **For:** terminal purists and non-VS-Code editors (Cursor, Continue, …). The truest test of
@@ -151,10 +178,10 @@ with a terminal agent, and a `loom validate` in CI are all reading and writing t
 
 ---
 
-## Patterns for the persistent agent (②/③)
+## Patterns for the persistent agent
 
-A long-lived agent session gives you some useful freedom. Two patterns worth knowing — both
-already fit Loom's model, nothing special to configure:
+A long-lived agent session (ways ② and ③) gives you some useful freedom. Two patterns worth
+knowing — both already fit Loom's model, nothing special to configure:
 
 - **Borrow context from another thread.** Mid-work on thread-A, ask the agent to read another
   thread's idea to recall why a past decision was made — *"read `core-engine/staleness-model`'s

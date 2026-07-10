@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 7
+last_ai_block: 9
 ---
 # ways-to-use-loom Chat 001
 
@@ -228,3 +228,94 @@ Shipped. What landed:
 - **`loom_quick_ship`** recorded it as one DONE `plan-001` in this thread (2 steps) — it's now in roadmap history.
 
 Committing everything (idea, design, guide, README pointers, this chat, the done plan) as the last action of the turn.
+
+## Rafa:
+
+Wire a link into the existing USER_GUIDE.md / EXTENSION_USER_GUIDE.md cross-references
+
+You told me you can do:
+- eyeball the rendered guide, do it (curiosity: what that really means, what can you see / analise? )
+
+### Add an example
+
+In generated doc docs/WAYS-TO-USE-LOOM.md
+section `### ② Power terminal...` (line 81)
+
+we shoud add an example of the usual starting thread workflow:
+1. user create a chat (currently I use extension, we need to implement correspondin Loom CLI command, see bellow) and write the start point of the thread
+2. user point AI Agent: read loom/{weaveSlug}/{threadSlug}/chat-001.md
+3. AI load thread context 
+4. AI reply using loom_append_to_chat
+5. User reply in chat doc
+6. User point to AI: reply
+7. AI read user reply via loom_read_chat_tail
+
+### Follow up tasks
+
+1. Loom slang, specially focused for `② Power terminal` users
+Currently I use `reply` when I want you read my reply in a chat doc and append your reply.
+I saw sometimes you doubt what really means `reply`
+I think we need to define a canonical terminology or protocol, a loom language to makes User <-> AI collaboration easy and secure via stablishing `loom word` point only one -> `loom cli / loom mcp tool,resource`
+Of course, we only define words sland for most used workflows that could imply doubts
+
+some exanples:
+read `{weaveSlug}/{threadSlug}/{docSlug}` -> `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` 
+reply -> `loom_read_chat_tail`, `loom_append_to_chat` 
+do quick -> `loom_quick_ship`
+
+if we do not implement this, we have 2 options:
+- user needs to know CLI and MCP commands (have catalog for them)
+- or AI should adivine what command to use per each user call
+
+What do you think?
+If you agree, spin up a thread + idea
+
+2. Loom CLI & MCP commands: CLI is behind MCP development
+we have no command to weave a chat (beginning has no frontmatter, no need)
+we have stale commands like:
+`loom finalize <draft>` Finalize a draft document and generate its permanent ID (this is pre ULID)
+I see this stale command is also in MCP:
+`loom_finalize_doc` — Finalize a draft document: sets status to "active"
+
+I wonder if we still need `draft` state at all (this was needed pre ULID) or we could create docs in `active` state directly.
+
+spin up a thread + idea to update CLI (sync with MCP) & MCP and for needed commands
+
+3. Loom has an extra add value. In any Loom project the owners, collaborators and everyone can know and tracj the whole history of all decisions taken, all features, ideas, designs, plans, done notes, etc.
+Using Loom you will never miss a detail, without it you only have codebase and some docs if you are a responsible develper, but for sure you will miss a lot of details and decisions and this will be much bigger if you use AI chat windows as main vehicle to drive the dev
+
+We should include a paragraph for this value in main README or somewhere
+Agree?
+Spin up a thread + idea
+
+## AI:
+
+Done with the concrete edits, and spun up the three follow-up threads. Breakdown:
+
+### Cross-ref links (done)
+- `docs/USER_GUIDE.md` — added a 🧭 pointer to *Ways to Use Loom* above the "pick your guide" list.
+- `docs/EXTENSION_USER_GUIDE.md` — extended the top callout: "the extension is the ① Guided way; for the others see Ways to Use Loom."
+
+### Power terminal example (done)
+Added the **chat-driven starting-thread loop** to §② as a 7-step example (create chat → point AI at it → AI loads context → AI appends reply → you reply → you say "reply" → AI reads your turn via `loom_read_chat_tail`). It ends by naming that loop as how a thread gets thought through before it's formalized.
+
+### "Eyeball the rendered guide" — the honest answer to your curiosity
+What I *can't* do: literally see pixels. What "eyeball" means for me is **reading the markdown source and reasoning about how it renders** — heading hierarchy, whether the ASCII matrix survives, table alignment, link targets, formatting consistency. (If you ever want a *true* visual, I can render an `.md`/`.html` to a shareable Artifact and screenshot it — say the word.) My review pass on `WAYS-TO-USE-LOOM.md`:
+- ✅ The matrix and the architecture diagram are both inside ``` code fences, so the box-drawing won't collapse on GitHub — this was the one real render risk and it's safe.
+- ✅ Decision table well-formed; cross-links resolve; em-dash/middot usage consistent.
+- 🔸 Minor/optional: the other guides open with a **Contents** list; this one doesn't. Fine at this length, but I can add a short ToC if you want parity.
+- 🔸 §② now mixes a blockquote example and a numbered-list example — intentional (two different example shapes), not a defect.
+
+### Follow-ups — my take + what I created
+
+**1. Loom slang protocol — I agree, and it's a good one.** The core value: one word → one deterministic CLI/MCP action, killing exactly the "what does *reply* mean?" hesitation you noticed. Two nuances I baked into the idea: (a) a loom word maps to a *fixed sequence*, not always one tool (`reply` = read-tail **then** append); (b) it needs **two homes** — a user-facing slang table **and** a rule in the AI session contract (CLAUDE.md/launch prompts), because the contract layer is what actually stops the AI guessing. Scoped it to high-frequency, ambiguity-prone words only. → `ai-integration/loom-slang-protocol` (idea written).
+
+**2. CLI ⇄ MCP parity + the `draft` question — thread created, but one part is a decision for you.** The mechanical parts are clear: add a create-chat CLI command (the missing twin that blocks the terminal chat loop), audit other gaps, and fix the pre-ULID `loom finalize` help text. **But "do we still need `draft`?" is an architecture decision, so I did NOT resolve it — I recommend keeping it.** My reasoning, in the idea: ULID killed the *"finalize to generate an ID"* story (that framing should die), **but `draft → active` isn't an ID mechanism — it's the human *review gate*** ("AI generated this; not yet approved"). It drives the tree's unreviewed signal and the Finalize button. It's already bypassed where meaningless (quick_ship → done, chats have no status). So: kill the stale framing, keep the state. → `cli/cli-mcp-command-parity` (idea written). **This is the one I'd like your call on before it goes further.**
+
+**3. Decision-history value — strong agree.** This is a genuinely *differentiated* value (a direct consequence of "docs are the database") and it's underplayed. The idea frames it as a with/without contrast: without Loom you have code + whatever docs a disciplined dev wrote (and far worse if an AI chat window was the vehicle — that history evaporates); with Loom the entire decision trail is a durable, greppable repo artifact. → `ai-integration/decision-history-value` (idea written).
+
+### Notes
+- All three ideas are `draft`. I placed the two positioning/protocol threads in `ai-integration` (next to `ways-to-use-loom`) and the CLI one in `cli` — placements are a judgment call, trivially moved if you'd rather.
+- I did **not** commit this turn (you didn't ask). The tree now holds: the two guide edits, the Power-terminal example, and the three new thread+idea folders. Say **commit** and I'll land it all.
+
+**Your call needed on:** the `draft`-state decision (keep vs create-active-directly) before the CLI thread advances.

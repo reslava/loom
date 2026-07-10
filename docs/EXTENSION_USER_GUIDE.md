@@ -1,6 +1,8 @@
 # Loom — VS Code Extension User Guide
 
 > **New to Loom?** Read **[Core concepts & workflow](USER_GUIDE.md)** first — it explains weaves, threads, the chat → idea → design → req → plan → done loop, and how context works. This guide covers only what's specific to driving Loom with the **VS Code extension**: setup, the panel, the buttons, and the CONTEXT view.
+>
+> The extension is the **① Guided** way to run Loom. For the other ways — driving a persistent terminal agent, going extension-free, or scripting the CLI in CI — see **[Ways to Use Loom](WAYS-TO-USE-LOOM.md)**.
 
 ---
 

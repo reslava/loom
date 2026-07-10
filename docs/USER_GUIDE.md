@@ -4,6 +4,8 @@ Loom turns your project into a structured collaboration surface between you and 
 
 This is the **shared core guide** — the concepts, the workflow, and (most importantly) how to give the AI the right context. It applies no matter how you drive Loom.
 
+> 🧭 **Not sure how you want to run Loom?** [**Ways to Use Loom**](WAYS-TO-USE-LOOM.md) maps the four ways (Guided · Power terminal · Pure agent · Automation) and helps you pick one before you dive in.
+
 **Pick the guide for how you use Loom:**
 
 - 🧩 **[Extension User Guide](EXTENSION_USER_GUIDE.md)** — you drive Loom with buttons in the VS Code panel.
