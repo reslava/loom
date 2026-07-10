@@ -4,12 +4,12 @@ id: th_01KWFV92NXEWNDQWHKKX0SN5Y2
 title: Clean legacy-read — drop dual-read + rename weave.looseFibers
 status: active
 created: 2026-07-01
-updated: 2026-07-07
+updated: 2026-07-10
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 70
+priority: 60
 depends_on: []
 ---
 # Clean legacy-read — drop dual-read + rename weave.looseFibers

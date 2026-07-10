@@ -4,12 +4,12 @@ id: th_01KV93ZE1BMA09BC58T6PCXJWG
 title: Single table-driven layer-imports guard for all package dependency rules
 status: active
 created: 2026-06-16
-updated: 2026-07-07
+updated: 2026-07-10
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 80
+priority: 70
 depends_on: []
 ---
 # Single table-driven layer-imports guard for all package dependency rules
