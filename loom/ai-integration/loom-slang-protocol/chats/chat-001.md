@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 22
+last_ai_block: 23
 ---
 # loom-slang-protocol Chat 001
 
@@ -417,3 +417,16 @@ Two things worth pinning so the word meanings don't drift:
 Net: worth capturing as a documented **"quick-fix lane"** example (a short recipe in `loom-slang-reference.md` or WAYS-TO-USE), and worth deciding point 1 before we advertise it. Not blocking anything today. Want me to spin a small follow-up thread for the quick-fix lane, or fold a one-paragraph example into the slang reference?
 
 Committing the slang-protocol work now.
+
+## AI:
+
+Spun up the follow-up thread: **`ai-integration/quick-fix-lane`** (depends on this thread) with an idea, `id_01KX97GGP1DTB9QKKR2K739X2J`. It captures:
+
+- The end-to-end lane (chat → `read` → fix → `do quick, docs done, commit`) built entirely on the shipped slang.
+- Why it matters — the "Loom feels heavy for tiny work" adoption lever, at ~zero build cost.
+- The one decision to lock: **`do quick` record-only (A, recommended) vs. implement-then-record (B)**.
+- Success criteria = a documented quick-fix-lane recipe + the `do quick` semantics decision + confirming comma-chained slang.
+
+It's a **documentation + decision** thread, not new code. When you want to take it forward, point me at `ai-integration/quick-fix-lane/idea` and we'll settle A-vs-B, then it's a quick `docs done`-style write into the reference.
+
+The new thread is untracked — say the word if you want it committed (`chore` or folded into the roadmap).
