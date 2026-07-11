@@ -13,6 +13,7 @@ graph — so you can mix and switch freely.
 - [Pick your way](#pick-your-way)
 - [How the architecture serves this](#how-the-architecture-serves-this)
 - [Patterns for the persistent agent](#patterns-for-the-persistent-agent)
+- [Loom slang](#loom-slang)
 
 ---
 
@@ -205,3 +206,27 @@ Both respect Loom's core discipline: **one thread = one slice of work, with fres
 injected when a session starts, and the session closed when the thread is done and committed.**
 The freedom is in *reading across* threads and *choosing* which thread to work — not in blurring
 a thread's scope.
+
+---
+
+## Loom slang
+
+When you drive a persistent agent (ways **② Power terminal** and **③ Pure agent**), a few **loom
+words** each map to exactly one action, so you don't spell out the tool every time. Each fires
+**only in its context** — outside it, the word is ordinary English and nothing happens.
+
+| Say… | When | The AI does |
+|------|------|-------------|
+| `read {weave}/{thread}/{doc}` | you point at a doc | loads the `loom://context/…` bundle for it |
+| `reply` | a chat doc is open | reads just your new turn (`loom_read_chat_tail`) and appends its answer in the chat |
+| `do quick` | after some work to record | records it as a done plan (`quick-ship`) |
+| `do step {N}` | a plan is implementing | implements step N, records it, marks ✅ — then stops for your `go` |
+| `do steps {N,M}` / `do steps {N-Z}` | a plan is implementing | implements that set/range without stopping between steps |
+| `do plan` | a plan is implementing | implements every pending step |
+| `docs done` | a thread's authored docs are finished | marks its idea, design, and chats done (never plans — reports any plan with open steps) |
+
+The **`do …`** words are the *execute* family; `read` and `reply` stand alone because they already
+live in the chat flow. Slang exists only for words that are ambiguous or expand to a multi-step
+chain — anything with a self-naming command (`set-status`, `rename`, `archive`, `roadmap`, …) you
+just say by name. Full mapping, trigger contexts, and the rules behind each word:
+[loom-slang-reference.md](../loom/refs/loom-slang-reference.md).

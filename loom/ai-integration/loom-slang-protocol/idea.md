@@ -2,7 +2,7 @@
 type: idea
 id: id_01KX6HQR682WRGN3QZS447E47R
 title: Loom slang — a canonical User→AI verb protocol
-status: draft
+status: done
 created: 2026-07-10
 updated: 2026-07-10
 version: 2

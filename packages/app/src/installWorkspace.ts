@@ -214,6 +214,20 @@ For a chat at weave root (loose fiber, no thread), load the parent doc(s) the ch
 
 The "is this thread already in transcript?" decision lives **in the AI**, not in the MCP server — the server is stateless across calls and cannot see the LLM transcript.
 
+<!-- rule:loom-slang -->
+### Loom slang — canonical User→AI verbs
+
+A small set of **loom words** map deterministically to one action, so the user never spells out the tool and the AI never guesses from phrasing. Each fires **only in its trigger context** — outside it the word is ordinary English. Full mappings, triggers, chains, and rejections live in the workspace's \`loom/refs/loom-slang-reference.md\` if present; the essentials:
+
+- \`read {weaveSlug}/{threadSlug}/{docSlug}\` — load \`loom://context/...\` for that doc (\`?mode=chat\` for a chat).
+- \`reply\` *(a chat doc is active)* — \`loom_read_chat_tail\` → compose → \`loom_append_to_chat\`.
+- \`do quick\` — \`loom_quick_ship\`.
+- \`do step {N}\` *(implementing plan)* — resolve the ordinal N to its step id, \`loom_do_step\` → implement → \`loom_append_done\` → \`loom_complete_step\`, then **STOP** (stop-rule 1).
+- \`do steps {N,M}\` / \`do steps {N-Z}\` / \`do plan\` *(implementing plan)* — that chain per step, run through without stopping between (the stop-rule 1 explicit-authorization exception; rules 2 & 3 still interrupt).
+- \`docs done\` — \`set-status done\` on the thread's idea + design + chats; **never** plans (report any plan with pending steps); \`req\` stays \`locked\`.
+
+Slang covers only ambiguous or multi-step verbs; a capability with a self-naming command you run by that name. No single-letter aliases.
+
 ---
 
 <!-- rule:session-start -->
