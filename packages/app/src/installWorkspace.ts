@@ -221,7 +221,9 @@ A small set of **loom words** map deterministically to one action, so the user n
 
 - \`read {weaveSlug}/{threadSlug}/{docSlug}\` — load \`loom://context/...\` for that doc (\`?mode=chat\` for a chat).
 - \`reply\` *(a chat doc is active)* — \`loom_read_chat_tail\` → compose → \`loom_append_to_chat\`.
-- \`do quick\` — \`loom_quick_ship\`.
+- \`do quick\` — \`loom_quick_ship\` (record already-done work; never writes code).
+- \`code quick\` *(a source-code change was agreed in the active chat)* — implement it → build + test + verify → \`loom_quick_ship\`. Any source touch — or a **test-gated contract file** (a file your project's tests validate, e.g. an agent-contract file checked by a sync test) — is \`code quick\`, because the record owes a test run.
+- \`write quick\` *(a docs/prose-only change was agreed)* — implement it → \`loom_quick_ship\`, **no build/test** (a read-through is the check).
 - \`do step {N}\` *(implementing plan)* — resolve the ordinal N to its step id, \`loom_do_step\` → implement → \`loom_append_done\` → \`loom_complete_step\`, then **STOP** (stop-rule 1).
 - \`do steps {N,M}\` / \`do steps {N-Z}\` / \`do plan\` *(implementing plan)* — that chain per step, run through without stopping between (the stop-rule 1 explicit-authorization exception; rules 2 & 3 still interrupt).
 - \`docs done\` — \`set-status done\` on the thread's idea + design + chats; **never** plans (report any plan with pending steps); \`req\` stays \`locked\`.

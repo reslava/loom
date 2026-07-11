@@ -220,13 +220,32 @@ words** each map to exactly one action, so you don't spell out the tool every ti
 | `read {weave}/{thread}/{doc}` | you point at a doc | loads the `loom://context/…` bundle for it |
 | `reply` | a chat doc is open | reads just your new turn (`loom_read_chat_tail`) and appends its answer in the chat |
 | `do quick` | after some work to record | records it as a done plan (`quick-ship`) |
+| `code quick` | a code change was agreed in the chat | implements it, builds + tests + verifies, then records it (`quick-ship`) |
+| `write quick` | a docs/prose-only change was agreed | implements it, then records it — no build/test |
 | `do step {N}` | a plan is implementing | implements step N, records it, marks ✅ — then stops for your `go` |
 | `do steps {N,M}` / `do steps {N-Z}` | a plan is implementing | implements that set/range without stopping between steps |
 | `do plan` | a plan is implementing | implements every pending step |
 | `docs done` | a thread's authored docs are finished | marks its idea, design, and chats done (never plans — reports any plan with open steps) |
 
-The **`do …`** words are the *execute* family; `read` and `reply` stand alone because they already
-live in the chat flow. Slang exists only for words that are ambiguous or expand to a multi-step
-chain — anything with a self-naming command (`set-status`, `rename`, `archive`, `roadmap`, …) you
-just say by name. Full mapping, trigger contexts, and the rules behind each word:
+The **`do …`** words are the plan-execute family; the **`… quick`** words (`do quick` / `code quick` /
+`write quick`) are the low-ceremony quick-fix lane; `read` and `reply` stand alone because they
+already live in the chat flow. Slang exists only for words that are ambiguous or expand to a
+multi-step chain — anything with a self-naming command (`set-status`, `rename`, `archive`,
+`roadmap`, …) you just say by name. You can **comma-chain** words to run them in sequence
+(`code quick, docs done, commit`). Full mapping, trigger contexts, and the rules behind each word:
 [loom-slang-reference.md](../loom/refs/loom-slang-reference.md).
+
+### The quick-fix lane — a whole small task in one line
+
+Loom's full loop (idea → design → plan → steps) is overkill for a five-minute fix. For small
+tasks a persistent agent + slang collapses the whole thing into a short chat — no plan required:
+
+1. **Chat** the problem — *"find the root cause of this UI bug."*
+2. **`read {weave}/{thread}/{doc}`** — point the agent at the chat; it loads context and replies with the root cause.
+3. **`code quick`** (or **`write quick`** for a docs-only change) — the agent implements the fix, builds + tests it, and records it as a one-shot done plan.
+4. **`docs done, commit`** — mark the chat done and commit.
+
+Comma-chain the tail — **`code quick, docs done, commit`** — and the fix lands, gets recorded, and
+is committed from a single line. It's the lightest way to get small work into Loom's durable
+history; see the reference for the `code quick` vs `write quick` split (source vs prose, i.e.
+whether a build/test run is owed).
