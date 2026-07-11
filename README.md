@@ -139,6 +139,25 @@ docs.
 
 ---
 
+## The decision trail is part of the repo
+
+Code tells you *what* was built. It almost never tells you *why* — which alternatives were
+weighed, what got rejected, what a constraint was quietly protecting against. That reasoning
+usually lives in one person's head or in an AI chat window, and both are gone by the time the next
+person asks. The chat window is the worst case: ephemeral, unsearchable, discarded the moment the
+tab closes.
+
+In Loom the reasoning *is* the repo. Every idea, design, req, plan, done-note — and the chats that
+produced them — is markdown, versioned in git next to the code it explains. The whole decision
+history is a first-class, greppable artifact: an owner, a new collaborator, or you-in-six-months
+can trace any decision back to the conversation that made it. You keep the *why*, not just the
+*what*.
+
+> This is distinct from the **auditable context** above: that tells you why the *AI* answered as it
+> did; this tells you why the *project* decided as it did.
+
+---
+
 ## How Loom decides what the AI sees
 
 **This is the part of Loom that matters most — and the part most tools don't have.** The loop

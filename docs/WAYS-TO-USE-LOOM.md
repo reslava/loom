@@ -27,6 +27,10 @@ Loom exists to make that collaboration durable: markdown documents are the share
 database both users read and write. Everything below is just *how the human drives the AI*
 and *how the human sees the graph*.
 
+Because that shared database *is* the repo, the project also keeps its whole **decision history** —
+every idea, design, plan, and the chats behind them, versioned in git. See
+[The decision trail is part of the repo](../README.md#the-decision-trail-is-part-of-the-repo).
+
 ---
 
 ## Two axes

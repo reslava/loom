@@ -2,7 +2,7 @@
 type: idea
 id: id_01KX6HRNBJB751WJTNAZN3NTEA
 title: Surface Loom's decision-history value in positioning docs
-status: draft
+status: done
 created: 2026-07-10
 version: 1
 tags: []
