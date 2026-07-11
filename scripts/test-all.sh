@@ -66,6 +66,10 @@ run_test tests/plan-reducer.test.ts
 # Step 4: CLI commands + completeStep use-case
 run_test tests/commands.test.ts
 
+# CLI twins of the human tree-management tools (archive/restore/delete/move-thread/
+# set-priority/set-thread-deps/close-plan/quick-ship/promote)
+run_test tests/cli-tree-management.test.ts
+
 # CLI in-process MCP client helper: round-trips loom://catalog over in-memory transport
 run_test tests/cli-mcp-client.test.ts
 

@@ -131,6 +131,12 @@ agent; you orient yourself with the CLI instead of a tree.
 > thread — do the next step."* It reads `loom://context/...`, implements, records the done note,
 > and marks the step — no extension, same doc graph.
 
+You are not limited to reading and stepping: every NO-AI tree operation the extension exposes as
+a button has a CLI twin, so the whole doc graph is manageable from the terminal —
+`loom archive` / `loom restore` / `loom delete` (guarded, `--yes` to skip the prompt),
+`loom move-thread`, `loom set-priority`, `loom set-thread-deps`, `loom close-plan`,
+`loom quick-ship`, and `loom promote <doc> <type> --body-file <path>`.
+
 ### ④ Automation / CI — scripted CLI, no AI
 
 **For:** keeping the doc graph honest in pipelines. No AI, non-interactive.

@@ -45,6 +45,15 @@ import { backfillStalenessBaselinesCommand } from './commands/backfillStalenessB
 import { recordReleaseCommand } from './commands/recordRelease';
 import { resolveUlidCommand, resolvePathCommand } from './commands/resolve';
 import { feedbackCommand } from './commands/feedback';
+import { archiveCommand } from './commands/archive';
+import { restoreCommand } from './commands/restore';
+import { deleteCommand } from './commands/delete';
+import { moveThreadCommand } from './commands/moveThread';
+import { setPriorityCommand } from './commands/setPriority';
+import { setThreadDepsCommand } from './commands/setThreadDeps';
+import { closePlanCommand } from './commands/closePlan';
+import { quickShipCommand } from './commands/quickShip';
+import { promoteCommand } from './commands/promote';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -223,6 +232,67 @@ program
     .command('rename <doc> <new-title>')
     .description('Rename a finalized document and update all references')
     .action(renameCommand);
+
+// Human tree-management ops — CLI twins of the loom_* tools (way ③ Pure agent).
+program
+    .command('archive [weave] [thread]')
+    .description('Archive a thread/weave folder (recoverable via restore). --doc <ulid> archives a single loom/refs doc.')
+    .option('--doc <ulid>', 'Archive an individual loom/refs doc by ULID')
+    .action(archiveCommand);
+
+program
+    .command('restore [weave] [thread]')
+    .description('Restore an archived thread/weave folder (inverse of archive). --archived <rel-path> restores a single doc.')
+    .option('--archived <relPath>', "A single archived doc's path relative to loom/.archive/")
+    .action(restoreCommand);
+
+program
+    .command('delete [weave] [thread]')
+    .description('Permanently delete a doc (--doc <ulid>), archived refs doc (--archived <rel-path>), or thread/weave folder. Irreversible — prompts unless --yes.')
+    .option('--doc <ulid>', 'Delete a document by ULID')
+    .option('--archived <relPath>', 'Delete an archived refs doc by its path relative to loom/.archive/')
+    .option('-y, --yes', 'Skip the confirmation prompt')
+    .action(deleteCommand);
+
+program
+    .command('move-thread <weave> <thread> <target-weave>')
+    .description('Move a thread folder to another weave (its ULID + depends_on edges travel with it)')
+    .action(moveThreadCommand);
+
+program
+    .command('set-priority <weave> <thread> <priority>')
+    .description("Set a thread's soft roadmap priority (lower = earlier; never overrides a hard dependency)")
+    .action(setPriorityCommand);
+
+program
+    .command('set-thread-deps <weave> <thread> [deps...]')
+    .description("Set a thread's hard depends_on edges (th_ ULIDs or weave/thread slugs; no deps clears). Refused on a cycle.")
+    .action(setThreadDepsCommand);
+
+program
+    .command('close-plan <plan>')
+    .description('Finalize a completed plan (FINISH_PLAN transition). --notes <text> is written verbatim into the done doc.')
+    .option('--notes <text>', 'Closing notes written verbatim into the done doc')
+    .action(closePlanCommand);
+
+program
+    .command('quick-ship <weave> [thread]')
+    .description('Record already-done work as one fresh DONE plan. Repeatable --step becomes done steps; target a thread or --new-thread <slug>.')
+    .option('--step <desc>', 'A completed step (repeatable)', (v: string, acc: string[]) => acc.concat(v), [] as string[])
+    .option('--steps-file <path>', 'JSON array of step strings (merged with --step)')
+    .option('--notes <text>', 'Optional done-doc notes')
+    .option('--new-thread <slug>', 'Mint a new thread (kebab-case) to hold the done plan')
+    .option('--new-thread-title <title>', 'Human title for the new thread')
+    .action(quickShipCommand);
+
+program
+    .command('promote <doc> <type>')
+    .description('Promote a doc to a new type (idea|design|plan), linked to the source. Requires --body-file (the terminal has no AI sampling).')
+    .option('--body-file <path>', 'File whose contents become the new doc body (required)')
+    .option('--title <title>', 'Title for the new doc (defaults to source title)')
+    .option('--weave <slug>', 'Target weave slug (required when promoting a global-level chat)')
+    .option('--thread <ulid>', 'Target thread ULID within the target weave')
+    .action(promoteCommand);
 
 program
     .command('catalog [kind]')

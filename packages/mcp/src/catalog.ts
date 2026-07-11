@@ -58,7 +58,7 @@ const GROUP_ORDER = ['create', 'refine', 'generate', 'plan', 'req', 'chat', 'doc
 const GROUP_TITLES: Record<string, string> = {
     create: 'Create',
     refine: 'Refine',
-    generate: 'Generate (sampling fallback)',
+    generate: 'Generate (AI sampling)',
     plan: 'Plan / steps',
     req: 'Requirements',
     chat: 'Chat',

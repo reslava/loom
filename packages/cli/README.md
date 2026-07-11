@@ -155,6 +155,22 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 | `loom set-status <doc> <status>` | Set a doc's lifecycle status (`draft`/`active`/`done`). Guarded — plan→done needs step completion, req→locked its finalize. |
 | `loom rename <doc> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
 
+### Tree management (manual CRUD)
+
+The CLI twins of the extension's tree buttons — so way ③ (Pure agent) can manage the whole doc graph from the terminal.
+
+| Command | Description |
+|---------|-------------|
+| `loom archive [weave] [thread] [--doc <ulid>]` | Archive a thread/weave folder under `loom/.archive/` (recoverable). `--doc` archives a single `loom/refs` doc. |
+| `loom restore [weave] [thread] [--archived <rel-path>]` | Restore an archived folder (inverse of `archive`), or a single archived doc by its `.archive/`-relative path. |
+| `loom delete [weave] [thread] [--doc <ulid>] [--archived <rel-path>] [-y]` | **Permanently** delete a doc or thread/weave folder. Irreversible — prompts on a TTY unless `--yes`. Prefer `archive`. |
+| `loom move-thread <weave> <thread> <target-weave>` | Move a thread folder to another weave; its ULID and `depends_on` edges travel with it. |
+| `loom set-priority <weave> <thread> <priority>` | Set a thread's soft roadmap priority (lower = earlier; never overrides a hard dependency). |
+| `loom set-thread-deps <weave> <thread> [deps...]` | Set a thread's hard `depends_on` edges (`th_` ULIDs or `weave/thread` slugs; no deps clears). Refused on a cycle. |
+| `loom close-plan <plan> [--notes <text>]` | Finalize a completed plan (`FINISH_PLAN`). `--notes` is written verbatim into the done doc. |
+| `loom quick-ship <weave> [thread] --step "<desc>" [--step …] [--steps-file <json>] [--notes <t>] [--new-thread <slug>] [--new-thread-title <t>]` | Record already-done work as one fresh DONE plan. Each `--step` becomes a done step. |
+| `loom promote <doc> <type> --body-file <path> [--title <t>] [--weave <slug>] [--thread <ulid>]` | Promote a doc to `idea`/`design`/`plan`, linked to the source. Content-supplied (`--body-file`) — the terminal has no AI sampling. |
+
 ### Workflow events
 
 | Command | Description |

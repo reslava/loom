@@ -2,9 +2,10 @@
 type: idea
 id: id_01KX726T6ETMPSAK6TCZA35M06
 title: CLI parity for human tree-management ops (Pure-agent completeness)
-status: draft
+status: done
 created: 2026-07-10
-version: 1
+updated: 2026-07-11
+version: 3
 tags: []
 parent_id: null
 requires_load: []
@@ -34,7 +35,7 @@ Close the remaining **CLI ⇄ MCP** coverage gap surfaced by the `cli-mcp-comman
 ## Naming mismatches to clean up in the same pass
 
 - **`rename` vs `retitle`** — CLI `loom rename <doc> <new-title>` maps to MCP `loom_retitle` (title change), while MCP *also* has `loom_rename_reference_file` (filename). The verbs don't line up across surfaces; reconcile per the tri-surface parity rule.
-- **Extension AI-launch buttons still say `weave`** — `loom.weaveIdea/weaveDesign/weavePlan` *generate* (AI) a doc, which is semantically distinct from `create` (empty doc). Decide whether these become `generate*` (clearer) now that `create` is the doc-creation verb — a verb-consistency cleanup, not a behavior change.
+- **Extension doc-create buttons are mislabeled `weave`** — `loom.weaveIdea/weaveDesign/weavePlan` each call `loom_create_idea/design/plan` with **no content** (verified in the command handlers: title/goal only, no AI, no sampling). They are plain **empty-doc creates**, *not* AI `generate`. Rename them `loom.createIdea/createDesign/createPlan` to mirror the CLI `loom create <type>` namespace and the `loom_create_*` tools, and normalize `loom.weaveCreate` → `loom.createWeave` in the same pass (verb-first consistency). Pure rename — no behavior change. (`generate` stays the verb for the AI-sampling authoring path; `weave` is a noun, never a verb.)
 
 ## Why it matters
 
@@ -44,7 +45,7 @@ Close the remaining **CLI ⇄ MCP** coverage gap surfaced by the `cli-mcp-comman
 ## Success criteria
 
 - Every human tree-management op above has a slug/human-first `loom <verb>` command mirroring its MCP tool name.
-- The `rename`/`retitle` and extension `weave`/`create`(generate) naming is reconciled per the tri-surface parity rule.
+- The `rename`/`retitle` (CLI retitles under a `rename` verb) and extension `weave*` → `create*` naming is reconciled per the tri-surface parity rule.
 - Way ③ in `docs/WAYS-TO-USE-LOOM.md` is fully runnable from the terminal (re-audit).
 
 ## Non-goals
