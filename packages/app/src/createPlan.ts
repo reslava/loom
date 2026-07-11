@@ -20,7 +20,7 @@ export interface PlanStepInput {
     detail?: string;
 }
 
-export interface WeavePlanInput {
+export interface CreatePlanInput {
     weaveSlug: string;
     title?: string;
     goal?: string;
@@ -32,7 +32,7 @@ export interface WeavePlanInput {
     threadUlid?: string;
 }
 
-export interface WeavePlanDeps {
+export interface CreatePlanDeps {
     loadWeave: (loomRoot: string, weaveSlug: string) => Promise<any>;
     saveDoc: typeof saveDoc;
     loadDoc: typeof loadDoc;
@@ -166,9 +166,9 @@ function buildStructuredSteps(stepsInput: PlanStepInput[]): PlanStep[] {
     }));
 }
 
-export async function weavePlan(
-    input: WeavePlanInput,
-    deps: WeavePlanDeps
+export async function createPlan(
+    input: CreatePlanInput,
+    deps: CreatePlanDeps
 ): Promise<{ id: string; filePath: string }> {
     // Validate the agent's input at the use-case boundary so every delivery layer
     // (CLI, MCP, extension) inherits the guard: reject wire-marker body leaks and

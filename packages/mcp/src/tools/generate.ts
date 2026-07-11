@@ -2,9 +2,9 @@ import * as fsExtra from 'fs-extra';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { getActiveLoomRoot, saveDoc, loadDoc, findDocumentById, resolveDocIdOrThrow, loadWeave } from '../../../fs/dist';
 import { Document } from '../../../core/dist';
-import { weaveIdea } from '../../../app/dist/weaveIdea';
-import { weaveDesign } from '../../../app/dist/weaveDesign';
-import { weavePlan } from '../../../app/dist/weavePlan';
+import { createIdea } from '../../../app/dist/createIdea';
+import { createDesign } from '../../../app/dist/createDesign';
+import { createPlan } from '../../../app/dist/createPlan';
 import { createReq } from '../../../app/dist/req';
 import { handleContextResource } from '../resources/context';
 import { requestSampling, SamplingMessage } from '../sampling';
@@ -74,7 +74,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     'You are a Loom document author. Write concise, focused Loom idea documents.'
                 );
 
-                const { id, filePath } = await weaveIdea(
+                const { id, filePath } = await createIdea(
                     { title, weaveSlug: weaveSlug, threadUlid: threadSlug },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
@@ -128,7 +128,7 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     'You are a Loom document author. Write detailed, structured Loom design documents.'
                 );
 
-                const { id, filePath } = await weaveDesign(
+                const { id, filePath } = await createDesign(
                     { weaveSlug: weaveSlug, title, threadUlid: threadSlug },
                     { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs: fsExtra }
                 );
@@ -198,14 +198,14 @@ export function createGenerateTools(server: Server): ToolModule[] {
                     steps = [{ order: 1, description: `Generated plan:\n\n${generated}` }];
                 }
 
-                // Hand the generated steps to weavePlan as structured data (not a markdown
+                // Hand the generated steps to createPlan as structured data (not a markdown
                 // table), so the plan is born frontmatter-native and Loom owns the table.
                 const stepsInput = steps.map((s) => ({
                     description: s.description ?? '',
                     satisfies: Array.isArray(s.satisfies) ? s.satisfies : [],
                 }));
 
-                const { id, filePath } = await weavePlan(
+                const { id, filePath } = await createPlan(
                     { weaveSlug: weaveSlug, title, threadUlid: threadSlug, goal: title, steps: stepsInput },
                     { loadWeave, saveDoc, loadDoc, fs: fsExtra, loomRoot: root }
                 );

@@ -4,7 +4,7 @@ import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
 import { isPlanStale } from '../packages/core/dist/index.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { promoteToPlan } from '../packages/app/dist/promoteToPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { refinePlan } from '../packages/app/dist/refinePlan.js';
@@ -54,7 +54,7 @@ async function run() {
     console.log('  • create_plan stamps the live design version...');
     const tcreateUlid = (await createThread({ weaveSlug: WEAVE, threadSlug: 'tcreate' }, { getActiveLoomRoot: () => root, saveDoc, fs })).id;
     const createDesignId = await writeDesign(root, 'tcreate', 3);
-    const { filePath: createPath } = await weavePlan(
+    const { filePath: createPath } = await createPlan(
         { weaveSlug: WEAVE, threadUlid: tcreateUlid, goal: 'g', steps: [{ description: 's1' }] },
         planDeps(root),
     );

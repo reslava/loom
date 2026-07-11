@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
 import { PlanDoc } from '../../core/dist';
-import { parentDesignVersion } from './weavePlan';
+import { parentDesignVersion } from './createPlan';
 
 /**
  * `backfill-design-versions` migration — repair plans whose `design_version` baseline

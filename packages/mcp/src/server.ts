@@ -80,9 +80,9 @@ import { emitToolSuccess, emitToolError } from './telemetryDispatch';
 import * as continueThread from './prompts/continueThread';
 import * as doNextStep from './prompts/doNextStep';
 import * as refineDesign from './prompts/refineDesign';
-import * as weaveIdea from './prompts/weaveIdea';
-import * as weaveDesign from './prompts/weaveDesign';
-import * as weavePlan from './prompts/weavePlan';
+import * as generateIdea from './prompts/generateIdea';
+import * as generateDesign from './prompts/generateDesign';
+import * as generatePlan from './prompts/generatePlan';
 import * as validateState from './prompts/validateState';
 
 // A registered tool: its wire definition + handler, tagged with a discovery `group`.
@@ -100,7 +100,7 @@ function reg(group: string, mods: ToolModule[]): GroupedTool[] {
 }
 
 const PROMPTS = [
-    continueThread, doNextStep, refineDesign, weaveIdea, weaveDesign, weavePlan, validateState,
+    continueThread, doNextStep, refineDesign, generateIdea, generateDesign, generatePlan, validateState,
 ];
 
 const CONCRETE_RESOURCES = [

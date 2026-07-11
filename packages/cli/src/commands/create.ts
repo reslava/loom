@@ -3,9 +3,9 @@ import * as fs from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc, loadWeave } from '../../../fs/dist';
 import { resolveThreadUlid } from '../../../app/dist/utils/resolveThreadFolder';
 import { createThread } from '../../../app/dist/thread';
-import { weaveIdea } from '../../../app/dist/weaveIdea';
-import { weaveDesign } from '../../../app/dist/weaveDesign';
-import { weavePlan } from '../../../app/dist/weavePlan';
+import { createIdea } from '../../../app/dist/createIdea';
+import { createDesign } from '../../../app/dist/createDesign';
+import { createPlan } from '../../../app/dist/createPlan';
 import { chatNew } from '../../../app/dist/chatNew';
 import { createReq } from '../../../app/dist/req';
 import { createWeave } from '../../../app/dist/weave';
@@ -46,7 +46,7 @@ export async function createThreadCommand(weave: string, thread: string, options
 export async function createIdeaCommand(weave: string, thread: string, title: string): Promise<void> {
     try {
         const threadUlid = await requireThreadUlid(weave, thread);
-        const result = await weaveIdea(
+        const result = await createIdea(
             { title, weaveSlug: weave, threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs },
         );
@@ -58,7 +58,7 @@ export async function createIdeaCommand(weave: string, thread: string, title: st
 export async function createDesignCommand(weave: string, thread: string, options: { title?: string }): Promise<void> {
     try {
         const threadUlid = await requireThreadUlid(weave, thread);
-        const result = await weaveDesign(
+        const result = await createDesign(
             { weaveSlug: weave, title: options.title, threadUlid },
             { getActiveLoomRoot, saveDoc, loadDoc, fs },
         );
@@ -72,7 +72,7 @@ export async function createPlanCommand(weave: string, thread: string, options: 
     try {
         const loomRoot = getActiveLoomRoot();
         const threadUlid = await requireThreadUlid(weave, thread);
-        const result = await weavePlan(
+        const result = await createPlan(
             { weaveSlug: weave, title: options.title, goal: options.goal, threadUlid },
             { loadWeave, saveDoc, loadDoc, fs, loomRoot },
         );

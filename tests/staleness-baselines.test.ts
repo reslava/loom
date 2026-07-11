@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { saveDoc, loadDoc } from '../packages/fs/dist/index.js';
-import { weaveDesign } from '../packages/app/dist/weaveDesign.js';
+import { createDesign } from '../packages/app/dist/createDesign.js';
 import { createReq } from '../packages/app/dist/req.js';
 import { createThread } from '../packages/app/dist/thread.js';
 
@@ -32,7 +32,7 @@ async function run() {
 
     // ── design stamps idea_version + parents to the idea ──
     console.log('  • design stamps idea_version from the live idea...');
-    const { filePath: designPath } = await weaveDesign({ weaveSlug: 'w', threadUlid }, deps);
+    const { filePath: designPath } = await createDesign({ weaveSlug: 'w', threadUlid }, deps);
     const design: any = await loadDoc(designPath);
     assert(design.idea_version === 2, `design.idea_version === 2, got ${design.idea_version}`);
     assert(design.parent_id === 'id_test', `design parented to the idea, got ${design.parent_id}`);

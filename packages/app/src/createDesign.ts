@@ -11,7 +11,7 @@ import { DesignDoc, IdeaDoc } from '../../core/dist';
 import { getUserName } from './utils/chatNames';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
-export interface WeaveDesignInput {
+export interface CreateDesignInput {
     weaveSlug: string;
     title?: string;
     threadUlid?: string;
@@ -19,7 +19,7 @@ export interface WeaveDesignInput {
     content?: string;
 }
 
-export interface WeaveDesignDeps {
+export interface CreateDesignDeps {
     getActiveLoomRoot: typeof getActiveLoomRoot;
     saveDoc: typeof saveDoc;
     loadDoc: typeof loadDoc;
@@ -37,7 +37,7 @@ interface IdeaInfo {
 /**
  * Finds any idea document in the weave directory (temporary or finalized).
  */
-async function findIdeaFile(weavePath: string, deps: WeaveDesignDeps): Promise<IdeaInfo | null> {
+async function findIdeaFile(weavePath: string, deps: CreateDesignDeps): Promise<IdeaInfo | null> {
     const entries = await deps.fs.readdir(weavePath, { withFileTypes: true });
     for (const entry of entries) {
         if (!entry.isFile() || !entry.name.endsWith('-idea.md')) continue;
@@ -65,7 +65,7 @@ async function findIdeaFile(weavePath: string, deps: WeaveDesignDeps): Promise<I
  */
 async function finalizeIdea(
     ideaPath: string,
-    deps: WeaveDesignDeps
+    deps: CreateDesignDeps
 ): Promise<{ newId: string; title: string }> {
     const idea = await deps.loadDoc(ideaPath) as IdeaDoc;
 
@@ -89,9 +89,9 @@ async function finalizeIdea(
  * If an idea exists in the weave, it is used as the parent (and auto‑finalized if temporary).
  * If no idea exists, the design is created with no parent.
  */
-export async function weaveDesign(
-    input: WeaveDesignInput,
-    deps: WeaveDesignDeps
+export async function createDesign(
+    input: CreateDesignInput,
+    deps: CreateDesignDeps
 ): Promise<{ id: string; filePath: string; autoFinalized: boolean }> {
     const loomRoot = deps.getActiveLoomRoot();
 

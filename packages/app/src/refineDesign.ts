@@ -3,7 +3,7 @@ import * as fsExtra from 'fs-extra';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, DesignDoc, designReducer } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
-import { parentIdeaVersion } from './weavePlan';
+import { parentIdeaVersion } from './createPlan';
 
 export interface RefineDesignInput {
     filePath: string;

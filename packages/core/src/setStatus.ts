@@ -26,7 +26,7 @@ const VALID_STATUSES: Record<string, readonly string[]> = {
     ctx: ['draft', 'active', 'done', 'cancelled'],
     req: ['draft', 'locked'],
     reference: ['active', 'archived'],
-    chat: ['active', 'archived'],
+    chat: ['active', 'done', 'archived'],
     done: ['done'],
     thread: ['active'],
 };

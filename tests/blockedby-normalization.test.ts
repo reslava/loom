@@ -3,12 +3,12 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 
 // Integration coverage for the blockedBy ordinal→slug normalization wired into
-// both write paths: loom_create_plan (weavePlan.buildStructuredSteps) and the
+// both write paths: loom_create_plan (createPlan.buildStructuredSteps) and the
 // ADD_STEP / UPDATE_STEP reducers. The pure resolver is unit-tested separately in
 // resolve-blockedby-ids.test.ts; this proves the wiring persists slug ids.
 
@@ -42,7 +42,7 @@ async function run() {
     const base = { weaveSlug: 'demo', threadUlid };
 
     // 1. Create path: numeric blockedBy ordinals persist as stable slug ids.
-    const created = await weavePlan({
+    const created = await createPlan({
         ...base, goal: 'Normalize.',
         steps: [
             { description: 'Alpha', title: 'alpha' },
@@ -57,7 +57,7 @@ async function run() {
     console.log('  ✓ create: ordinal blockedBy persisted as slug ids');
 
     // 2. Create path: slug + plan-id entries pass through untouched.
-    const created2 = await weavePlan({
+    const created2 = await createPlan({
         ...base, goal: 'Passthrough.',
         steps: [
             { description: 'One', title: 'one' },
@@ -70,7 +70,7 @@ async function run() {
 
     // 3. Create path: an out-of-range ordinal hard-errors (no fragile plan is born).
     await rejects(
-        () => weavePlan({ ...base, goal: 'x', steps: [{ description: 'Only', title: 'only', blockedBy: ['5'] }] } as any, deps),
+        () => createPlan({ ...base, goal: 'x', steps: [{ description: 'Only', title: 'only', blockedBy: ['5'] }] } as any, deps),
         'ordinal "5"',
         'create out-of-range ordinal',
     );
@@ -79,7 +79,7 @@ async function run() {
     // 3b. Create path: a well-formed but unknown slug ("s1" guess) hard-errors — it is
     // NOT silently persisted as a dangling edge (the recurrence this plan closes).
     await rejects(
-        () => weavePlan({ ...base, goal: 'x', steps: [
+        () => createPlan({ ...base, goal: 'x', steps: [
             { description: 'First', title: 'first' },
             { description: 'Second', title: 'second', blockedBy: ['s1'] },
         ] } as any, deps),

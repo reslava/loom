@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../../fs/dist';
-import { weaveIdea } from '../../../app/dist/weaveIdea';
+import { createIdea } from '../../../app/dist/createIdea';
 
 export const toolDef = {
     name: 'loom_create_idea',
@@ -24,7 +24,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
         title: args['title'] as string,
         content: args['content'] as string | undefined,
     };
-    const result = await weaveIdea(input, {
+    const result = await createIdea(input, {
         getActiveLoomRoot: () => getActiveLoomRoot(root),
         saveDoc,
         loadDoc,

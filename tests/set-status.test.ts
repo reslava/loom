@@ -16,6 +16,9 @@ function run() {
         ['design', 'active'], ['design', 'done'],
         ['plan', 'active'], ['plan', 'draft'],
         ['reference', 'active'],
+        // chat has a terminal `done` label (restored — a chat could always be marked
+        // done before; the regression dropped it from the valid set). active/archived too.
+        ['chat', 'active'], ['chat', 'done'], ['chat', 'archived'],
     ];
     for (const [type, status] of allowed) {
         const d = decideSetStatus(type, status);

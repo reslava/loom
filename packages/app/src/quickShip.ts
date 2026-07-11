@@ -1,7 +1,7 @@
 import * as fs from 'fs-extra';
 import { loadWeave, saveDoc, saveDocs, loadDoc } from '../../fs/dist';
 import { WorkflowEvent } from '../../core/dist/events/workflowEvent';
-import { weavePlan } from './weavePlan';
+import { createPlan } from './createPlan';
 import { completeStep } from './completeStep';
 import { closePlan } from './closePlan';
 import { createThread } from './thread';
@@ -102,7 +102,7 @@ export async function quickShip(
         descriptions.length === 1
             ? descriptions[0]
             : `Quick-ship record of ${descriptions.length} completed changes.`;
-    const { id: planId, filePath } = await weavePlan(
+    const { id: planId, filePath } = await createPlan(
         {
             weaveSlug: input.weaveSlug,
             threadUlid: threadUlid,

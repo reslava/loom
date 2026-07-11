@@ -130,7 +130,7 @@ The MCP resource is the delivery point. It calls `getState()`, reads any per-wor
 It has **two addressing forms**:
 
 - `loom://context/{docId}?mode={mode}` — anchor on a specific document.
-- `loom://context/thread/{weaveSlug}/{threadSlug}?mode={mode}` — anchor on a thread's primary doc (`design ?? idea ?? active plan ?? first doc`). This is the form thread-level callers use (weave-design / weave-plan / continue-thread / generate / refresh-ctx); chat-reply and do-step use the doc form (`{chatId}` / `{planId}`).
+- `loom://context/thread/{weaveSlug}/{threadSlug}?mode={mode}` — anchor on a thread's primary doc (`design ?? idea ?? active plan ?? first doc`). This is the form thread-level callers use (generate-design / generate-plan / continue-thread / generate / refresh-ctx); chat-reply and do-step use the doc form (`{chatId}` / `{planId}`).
 
 ### Operation modes
 
@@ -169,7 +169,7 @@ All settled during the design discussion and the Phase 1 build:
 6. **Missing `requires_load` target → visible placeholder** (`⚠️ requires_load target missing: <id>`) + a diagnostic — never a silent skip.
 7. **Serialisation = agent-agnostic markdown** with per-doc provenance headers (not JSON-in-prompt, not a temp file).
 8. **Migration = replace immediately, zero legacy** — `loom://thread-context` and `threadContext.ts` were deleted, not aliased; all callers migrated.
-9. **Thread addressing form** — `loom://context/thread/{weaveSlug}/{threadSlug}` was added to the new resource so thread-level callers (weave-design / weave-plan / continue-thread / generate / refresh-ctx) migrate cleanly without each resolving a target doc. (Approved as the clean, no-legacy path.)
+9. **Thread addressing form** — `loom://context/thread/{weaveSlug}/{threadSlug}` was added to the new resource so thread-level callers (generate-design / generate-plan / continue-thread / generate / refresh-ctx) migrate cleanly without each resolving a target doc. (Approved as the clean, no-legacy path.)
 10. **Plan body mini-table removed** — `generatePlanBody` no longer emits the `Created / Status / Design / Target` header table; those live in frontmatter (single source of truth) and the duplicated table only drifted (e.g. a static `Status: DRAFT` left on a done plan).
 
 ## Implementation status & known gaps

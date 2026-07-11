@@ -87,9 +87,9 @@ The agent then has access to all Loom tools (`loom_create_idea`, `loom_do_step`,
 ## The loop
 
 1. **Chat** — open a chat doc, think out loud with the AI (*AI Reply*).
-2. **Idea** — create one with *New Idea* and flesh it out with *Refine Idea*, or *Promote* a chat straight to an idea.
-3. **Design** — click *New Design* to define how to build it.
-4. **Plan** — click *New Plan* to get a concrete step-by-step implementation list.
+2. **Idea** — create one with *Create Idea* and flesh it out with *Refine Idea*, or *Promote* a chat straight to an idea.
+3. **Design** — click *Create Design* to define how to build it.
+4. **Plan** — click *Create Plan* to get a concrete step-by-step implementation list.
 5. **Implement** — click *Do Step* to have the AI implement the next step, record what was done, and mark it complete.
 
 Each stage produces a Markdown document visible in the Loom panel. Nothing disappears between sessions.
@@ -134,8 +134,8 @@ A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave
 
 | Button | What it does |
 |--------|-------------|
-| *New Idea / Design / Plan* | Create an idea, design, or plan doc on a thread |
-| *Weave Chat* | Start a new chat doc on a thread |
+| *Create Idea / Design / Plan* | Create an idea, design, or plan doc on a thread |
+| *Create Chat* | Start a new chat doc on a thread |
 | *Promote to Idea / Design / Plan / Reference* | Turn a chat or doc into the next doc type in one click |
 | *Create Reference* / *Add References…* | Add a `loom/refs/` doc, or wire one into a doc's `requires_load` |
 

@@ -1,7 +1,7 @@
 import { handleContextResource } from '../resources/context';
 
 export const promptDef = {
-    name: 'weave-plan',
+    name: 'generate-plan',
     description: 'Load thread context and return a prompt for drafting a Loom implementation plan. The agent calls loom_create_plan with goal + a structured steps array.',
     arguments: [
         { name: 'weaveSlug', description: 'Weave folder slug', required: true },

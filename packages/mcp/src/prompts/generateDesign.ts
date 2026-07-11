@@ -1,7 +1,7 @@
 import { handleContextResource } from '../resources/context';
 
 export const promptDef = {
-    name: 'weave-design',
+    name: 'generate-design',
     description: 'Load thread context and return a prompt for drafting a Loom design document. The agent passes the body via `content` on loom_create_design.',
     arguments: [
         { name: 'weaveSlug', description: 'Weave folder slug', required: true },

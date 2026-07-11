@@ -4,9 +4,9 @@ import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
 import { serializeFrontmatter } from '../packages/core/dist/index.js';
-import { weaveIdea } from '../packages/app/dist/weaveIdea.js';
-import { weaveDesign } from '../packages/app/dist/weaveDesign.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createIdea } from '../packages/app/dist/createIdea.js';
+import { createDesign } from '../packages/app/dist/createDesign.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { promoteToIdea } from '../packages/app/dist/promoteToIdea.js';
 import { promoteToPlan } from '../packages/app/dist/promoteToPlan.js';
@@ -43,7 +43,7 @@ async function run() {
     const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
 
     // 1. create idea with body → born at version 1, status draft, body present.
-    const ideaRes = await weaveIdea({ title: 'Body Idea', weaveSlug: 'demo', threadUlid, content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
+    const ideaRes = await createIdea({ title: 'Body Idea', weaveSlug: 'demo', threadUlid, content: '# Body Idea\n\nHand-written body.' }, ideaDeps as any);
     const idea: any = await loadDoc(ideaRes.filePath);
     assert(idea.content.includes('Hand-written body.'), 'idea has the provided body');
     assert(idea.version === 1, `idea born at version 1 (got ${idea.version})`);
@@ -51,7 +51,7 @@ async function run() {
     console.log('  ✓ create idea with body → v1, draft, body present');
 
     // 2. create design with body (thread) → v1, draft, body present.
-    const designRes = await weaveDesign({ weaveSlug: 'demo', threadUlid, content: '# Body Design\n\nDesign body here.' }, designDeps as any);
+    const designRes = await createDesign({ weaveSlug: 'demo', threadUlid, content: '# Body Design\n\nDesign body here.' }, designDeps as any);
     const design: any = await loadDoc(designRes.filePath);
     assert(design.content.includes('Design body here.'), 'design has the provided body');
     assert(design.version === 1 && design.status === 'draft', 'design born at v1, draft');
@@ -60,7 +60,7 @@ async function run() {
     // 3. create plan with STRUCTURED steps → born frontmatter-native (steps in YAML, generated body).
     // (Plans are structured-only — the legacy content→table-parse create path was removed in favor
     // of Loom owning the steps table; idea/design/reference still take a free-form `content` body.)
-    const nativeRes = await weavePlan({
+    const nativeRes = await createPlan({
         weaveSlug: 'demo', threadUlid, goal: 'Build the widget.',
         steps: [
             { description: 'First step', files: ['a.ts'], satisfies: ['IN1'], detail: '- do the first thing' },

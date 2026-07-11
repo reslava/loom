@@ -5,7 +5,7 @@ import { assert } from './test-utils.ts';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 import { parseChatBlocks, lastAiBlockIndex, tailAfterBlock, appendChatBlock, serializeFrontmatter } from '../packages/core/dist/index.js';
 import { loadWeave, saveDoc, loadDoc } from '../packages/fs/dist/index.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { handle as patchDocHandle } from '../packages/mcp/dist/tools/patchDoc.js';
 import { handle as readChatTailHandle } from '../packages/mcp/dist/tools/readChatTail.js';
@@ -151,7 +151,7 @@ async function run() {
 
         // a frontmatter-native plan with a Goal marker + a step row marker
         const { id: demoThreadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
-        const planRes = await weavePlan(
+        const planRes = await createPlan(
             { weaveSlug: 'demo', threadUlid: demoThreadUlid, goal: 'GOALMARKER build the widget.', steps: [{ description: 'STEPMARKER do the thing' }] } as any,
             { loadWeave, saveDoc, loadDoc, fs, loomRoot: root } as any,
         );

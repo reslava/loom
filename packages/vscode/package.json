@@ -62,7 +62,7 @@
       },
       {
         "view": "loom.threads",
-        "contents": "No weaves yet.\n\nA weave groups related work (idea → design → plan → done).\n\n[New Weave](command:loom.createWeave)\n\nNew to Loom? See the whole shape at once:\n\n[Start with an example](command:loom.seedExample)",
+        "contents": "No weaves yet.\n\nA weave groups related work (idea → design → plan → done).\n\n[Create Weave](command:loom.createWeave)\n\nNew to Loom? See the whole shape at once:\n\n[Start with an example](command:loom.seedExample)",
         "when": "loom.workspaceInitialized && !loom.hasWeaves"
       }
     ],
@@ -93,7 +93,7 @@
       },
       {
         "command": "loom.createWeave",
-        "title": "New Weave",
+        "title": "Create Weave",
         "category": "Loom",
         "icon": {
           "light": "media/icons/weave.svg",
@@ -102,7 +102,7 @@
       },
       {
         "command": "loom.threadCreate",
-        "title": "Weave Thread",
+        "title": "Create Thread",
         "category": "Loom",
         "icon": {
           "light": "media/icons/thread.svg",
@@ -126,7 +126,7 @@
       },
       {
         "command": "loom.createIdea",
-        "title": "New Idea",
+        "title": "Create Idea",
         "category": "Loom",
         "icon": {
           "light": "media/icons/idea.svg",
@@ -135,7 +135,7 @@
       },
       {
         "command": "loom.createDesign",
-        "title": "New Design",
+        "title": "Create Design",
         "category": "Loom",
         "icon": {
           "light": "media/icons/design.svg",
@@ -144,7 +144,7 @@
       },
       {
         "command": "loom.createPlan",
-        "title": "New Plan",
+        "title": "Create Plan",
         "category": "Loom",
         "icon": {
           "light": "media/icons/plan.svg",
@@ -263,7 +263,7 @@
       },
       {
         "command": "loom.chatNew",
-        "title": "Weave Chat",
+        "title": "Create Chat",
         "category": "Loom",
         "icon": {
           "light": "media/icons/chat.svg",
@@ -513,7 +513,7 @@
           {
             "id": "firstWeave",
             "title": "Create your first weave",
-            "description": "Group your work into a weave — or seed a ready‑made example to see the shape.\n[New Weave](command:loom.createWeave)\n[Start with an example](command:loom.seedExample)",
+            "description": "Group your work into a weave — or seed a ready‑made example to see the shape.\n[Create Weave](command:loom.createWeave)\n[Start with an example](command:loom.seedExample)",
             "completionEvents": [
               "onContext:loom.hasWeaves"
             ],

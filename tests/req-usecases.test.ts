@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
-import { createReq, amendReq, finalizeReq, weavePlan } from '../packages/app/dist/index.js';
+import { createReq, amendReq, finalizeReq, createPlan } from '../packages/app/dist/index.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { saveDoc, loadDoc, loadWeave } from '../packages/fs/dist/index.js';
 
@@ -94,11 +94,11 @@ async function run() {
     assert(req.status === 'locked' && req.version === 2, 'locked at v2');
     console.log('    ✅ locked v2, finalize idempotent');
 
-    // ── weavePlan stamps req_version from the locked req (req-staleness baseline) ──
-    console.log('  • weavePlan stamps req_version from the locked req...');
+    // ── createPlan stamps req_version from the locked req (req-staleness baseline) ──
+    console.log('  • createPlan stamps req_version from the locked req...');
     {
         const planDeps: any = { loadWeave, saveDoc, loadDoc, fs, loomRoot };
-        const { filePath } = await weavePlan({ weaveSlug: weaveSlug, threadUlid: threadSlug, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
+        const { filePath } = await createPlan({ weaveSlug: weaveSlug, threadUlid: threadSlug, title: 'P', steps: [{ description: 'do a thing' }] }, planDeps);
         const plan: any = await loadDoc(filePath);
         assert(plan.req_version === 2, `plan should stamp req_version 2 from the locked req, got ${plan.req_version}`);
         console.log('    ✅ plan.req_version stamped from locked req');

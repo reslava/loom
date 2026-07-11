@@ -9,7 +9,7 @@ import { IdeaDoc } from '../../core/dist';
 import { loadDoc } from '../../fs/dist';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
-export interface WeaveIdeaInput {
+export interface CreateIdeaInput {
     title: string;
     weaveSlug?: string;
     threadUlid?: string;
@@ -17,16 +17,16 @@ export interface WeaveIdeaInput {
     content?: string;
 }
 
-export interface WeaveIdeaDeps {
+export interface CreateIdeaDeps {
     getActiveLoomRoot: typeof getActiveLoomRoot;
     saveDoc: typeof saveDoc;
     loadDoc: typeof loadDoc;
     fs: typeof fs;
 }
 
-export async function weaveIdea(
-    input: WeaveIdeaInput,
-    deps: WeaveIdeaDeps
+export async function createIdea(
+    input: CreateIdeaInput,
+    deps: CreateIdeaDeps
 ): Promise<{ id: string; filePath: string }> {
     const weaveName = input.weaveSlug || toKebabCaseId(input.title);
 

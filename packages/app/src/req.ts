@@ -3,7 +3,7 @@ import * as fsExtra from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc } from '../../fs/dist';
 import { generateDocId, createBaseFrontmatter, ReqDoc, IdeaDoc, DesignDoc, parseReq, diffReqHandles, today } from '../../core/dist';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
-import { parentDesignVersion } from './weavePlan';
+import { parentDesignVersion } from './createPlan';
 
 /**
  * Use-cases for the per-thread `req` doc — the authoritative include/exclude/

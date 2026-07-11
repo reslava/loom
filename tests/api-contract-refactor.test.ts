@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { createThread } from '../packages/app/dist/thread.js';
-import { weaveIdea } from '../packages/app/dist/weaveIdea.js';
+import { createIdea } from '../packages/app/dist/createIdea.js';
 import { chatNew } from '../packages/app/dist/chatNew.js';
 import { resolveThreadFolder, resolveThreadUlid } from '../packages/app/dist/utils/resolveThreadFolder.js';
 import { saveDoc, loadDoc } from '../packages/fs/dist/index.js';
@@ -35,7 +35,7 @@ async function run() {
         );
         assert(/^th_/.test(threadUlid), `createThread returns a th_ ULID, got ${threadUlid}`);
 
-        const { filePath } = await weaveIdea(
+        const { filePath } = await createIdea(
             { title: 'My Idea', weaveSlug: 'wv', threadUlid },
             { getActiveLoomRoot: () => root, saveDoc, loadDoc, fs } as any,
         );
@@ -59,7 +59,7 @@ async function run() {
         const bogusUlid = 'th_01UNKNOWN0000000000000000';
         let threw = false;
         try {
-            await weaveIdea(
+            await createIdea(
                 { title: 'Orphan', weaveSlug: 'wv', threadUlid: bogusUlid },
                 { getActiveLoomRoot: () => root, saveDoc, loadDoc, fs } as any,
             );

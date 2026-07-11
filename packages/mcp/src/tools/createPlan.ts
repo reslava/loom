@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import { loadWeave, saveDoc, loadDoc } from '../../../fs/dist';
-import { weavePlan } from '../../../app/dist/weavePlan';
+import { createPlan } from '../../../app/dist/createPlan';
 
 export const toolDef = {
     name: 'loom_create_plan',
@@ -40,12 +40,12 @@ export async function handle(root: string, args: Record<string, unknown>) {
         threadUlid: args['thread_ulid'] as string,
         title: args['title'] as string | undefined,
         goal: args['goal'] as string | undefined,
-        // Pass through unparsed — weavePlan's coerceSteps validates/parses at the
+        // Pass through unparsed — createPlan's coerceSteps validates/parses at the
         // app boundary (a malformed call can deliver this JSON-encoded as a string).
         steps: args['steps'] as any[] | string | undefined,
         parentUlid: args['parent_ulid'] as string | undefined,
     };
-    const result = await weavePlan(input, {
+    const result = await createPlan(input, {
         loadWeave,
         saveDoc,
         loadDoc,

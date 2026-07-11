@@ -5,7 +5,7 @@ import { assert } from './test-utils.ts';
 import { planReducer } from '../packages/core/dist/reducers/planReducer.js';
 import { rekeyDetailSections } from '../packages/core/dist/index.js';
 import { loadWeave, saveDocs, loadDoc, saveDoc } from '../packages/fs/dist/index.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 import { runEvent } from '../packages/app/dist/runEvent.js';
 import { addStep } from '../packages/app/dist/addStep.js';
@@ -201,7 +201,7 @@ async function run() {
         await fs.ensureDir(path.join(root, 'loom', 'demo'));
         const { id: threadUlid } = await createThread({ weaveSlug: 'demo', threadSlug: 'demo' }, { getActiveLoomRoot: () => root, saveDoc, fs });
 
-        const created = await weavePlan(
+        const created = await createPlan(
             {
                 weaveSlug: 'demo', threadUlid, goal: 'build it', title: 'Demo Plan',
                 steps: [

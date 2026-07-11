@@ -138,9 +138,9 @@ here in full.
 | `continue-thread` | `weaveSlug`, `threadSlug` | Reviews thread state, suggests next action |
 | `refine-design` | `designUlid` | Reviews a design doc, suggests refinements |
 | `validate-state` | — | Reviews diagnostics (incl. roadmap cycles/dangling deps) and identifies issues |
-| `weave-idea` | `weaveSlug`, `prompt` (`threadSlug` optional) | Drafts an idea from a description (sampling) |
-| `weave-design` | `weaveSlug`, `threadSlug` | Transitions idea → design (sampling) |
-| `weave-plan` | `weaveSlug`, `threadSlug` | Generates a plan from a design (sampling) |
+| `generate-idea` | `weaveSlug`, `prompt` (`threadSlug` optional) | Drafts an idea from a description (sampling) |
+| `generate-design` | `weaveSlug`, `threadSlug` | Transitions idea → design (sampling) |
+| `generate-plan` | `weaveSlug`, `threadSlug` | Generates a plan from a design (sampling) |
 
 ---
 

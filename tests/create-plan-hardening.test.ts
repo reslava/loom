@@ -3,7 +3,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import { assert } from './test-utils.ts';
 import { loadDoc, loadWeave, saveDoc } from '../packages/fs/dist/index.js';
-import { weavePlan } from '../packages/app/dist/weavePlan.js';
+import { createPlan } from '../packages/app/dist/createPlan.js';
 import { createThread } from '../packages/app/dist/thread.js';
 
 const TMP = path.join(os.tmpdir(), 'loom-create-plan-hardening-tests');
@@ -39,7 +39,7 @@ async function run() {
     // 1. Body leak — the observed failure: wire markers in `goal` must hard-error,
     //    not serialize into the body. (steps undefined here, exactly as observed.)
     await rejects(
-        () => weavePlan({ ...base, goal: 'Do the thing.</goal><parameter name="steps">[{"description":"x"}]' } as any, deps),
+        () => createPlan({ ...base, goal: 'Do the thing.</goal><parameter name="steps">[{"description":"x"}]' } as any, deps),
         'wire markers',
         'goal body-leak',
     );
@@ -48,14 +48,14 @@ async function run() {
 
     // 2. Same guard on title.
     await rejects(
-        () => weavePlan({ ...base, title: 'Plan</goal>', goal: 'ok' } as any, deps),
+        () => createPlan({ ...base, title: 'Plan</goal>', goal: 'ok' } as any, deps),
         'wire markers',
         'title body-leak',
     );
     console.log('  ✓ wire-marker leak in title → throws');
 
     // 3. Stringified steps that ARE valid JSON → coerced, not dropped to [].
-    const coerced = await weavePlan({
+    const coerced = await createPlan({
         ...base, goal: 'Build it.',
         steps: JSON.stringify([{ description: 'First' }, { description: 'Second' }]),
     } as any, deps);
@@ -65,7 +65,7 @@ async function run() {
 
     // 4. Stringified steps that are NOT valid JSON → hard error (never silent []).
     await rejects(
-        () => weavePlan({ ...base, goal: 'x', steps: '[{description: broken' } as any, deps),
+        () => createPlan({ ...base, goal: 'x', steps: '[{description: broken' } as any, deps),
         'unparseable',
         'unparseable steps string',
     );
@@ -73,7 +73,7 @@ async function run() {
 
     // 5. steps not an array (object) → error.
     await rejects(
-        () => weavePlan({ ...base, goal: 'x', steps: { description: 'nope' } } as any, deps),
+        () => createPlan({ ...base, goal: 'x', steps: { description: 'nope' } } as any, deps),
         'must be an array',
         'non-array steps',
     );
@@ -82,14 +82,14 @@ async function run() {
     // 6. A step missing its description → error (schema `required` is not runtime-enforced
     //    when args bypass host validation; coerceSteps catches it).
     await rejects(
-        () => weavePlan({ ...base, goal: 'x', steps: [{ title: 'no desc' }] } as any, deps),
+        () => createPlan({ ...base, goal: 'x', steps: [{ title: 'no desc' }] } as any, deps),
         'non-empty "description"',
         'step without description',
     );
     console.log('  ✓ step missing description → throws');
 
     // 7. Happy path still works: structured array, clean goal → well-formed plan.
-    const ok = await weavePlan({
+    const ok = await createPlan({
         ...base, goal: 'Ship it.', steps: [{ description: 'Only step' }],
     } as any, deps);
     const okPlan: any = await loadDoc(ok.filePath);

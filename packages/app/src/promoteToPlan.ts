@@ -3,7 +3,7 @@ import * as path from 'path';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, ChatDoc, IdeaDoc, DesignDoc, PlanDoc, PlanStep, createBaseFrontmatter, generateDocId, parseStepsTable, slugifyStepId, nextOrdinal, planFileName } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
-import { parentDesignVersion } from './weavePlan';
+import { parentDesignVersion } from './createPlan';
 import { resolveThreadFolder } from './utils/resolveThreadFolder';
 
 export interface PromoteToPlanInput {

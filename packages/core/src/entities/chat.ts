@@ -1,6 +1,6 @@
 import { BaseDoc } from './base';
 
-export type ChatStatus = 'active' | 'archived';
+export type ChatStatus = 'active' | 'done' | 'archived';
 
 export interface ChatDoc extends BaseDoc<ChatStatus> {
     type: 'chat';

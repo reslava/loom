@@ -3,7 +3,7 @@ import * as fsExtra from 'fs-extra';
 import { loadDoc, saveDoc } from '../../fs/dist';
 import { AIClient, PlanDoc, PlanStep, parseStepsTable, today } from '../../core/dist';
 import { buildSummarizationMessages, parseTitleAndBody } from './utils/aiSummarization';
-import { parentDesignVersion } from './weavePlan';
+import { parentDesignVersion } from './createPlan';
 
 export interface RefinePlanInput {
     filePath: string;

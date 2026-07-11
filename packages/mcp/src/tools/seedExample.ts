@@ -2,8 +2,8 @@ import * as fs from 'fs-extra';
 import { getActiveLoomRoot, saveDoc, loadDoc, loadWeave } from '../../../fs/dist';
 import { createWeave } from '../../../app/dist/weave';
 import { createThread } from '../../../app/dist/thread';
-import { weaveIdea } from '../../../app/dist/weaveIdea';
-import { weavePlan } from '../../../app/dist/weavePlan';
+import { createIdea } from '../../../app/dist/createIdea';
+import { createPlan } from '../../../app/dist/createPlan';
 
 // Composes the existing app create use-cases (mcp → app) to seed one tiny,
 // obviously-a-demo weave→thread→idea→plan so a brand-new workspace shows the
@@ -49,12 +49,12 @@ export async function handle(root: string, _args: Record<string, unknown>) {
     );
     const threadUlid: string = thread.id;
 
-    const idea: any = await weaveIdea(
+    const idea: any = await createIdea(
         { weaveSlug, threadUlid, title: 'Example: how a Loom thread fits together', content: IDEA_BODY },
         { getActiveLoomRoot: () => getActiveLoomRoot(root), saveDoc, loadDoc, fs },
     );
 
-    const plan: any = await weavePlan(
+    const plan: any = await createPlan(
         {
             weaveSlug,
             threadUlid,

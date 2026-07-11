@@ -7,9 +7,9 @@ export { createReference, CreateReferenceInput, CreateReferenceDeps } from './cr
 export { rename, RenameInput, RenameDeps } from './rename';
 export { runEvent, RunEventDeps } from './runEvent';
 export { validate, ValidateInput, ValidateDeps, ValidationResult } from './validate';
-export { weaveIdea, WeaveIdeaInput, WeaveIdeaDeps } from './weaveIdea';
-export { weaveDesign, WeaveDesignInput, WeaveDesignDeps } from './weaveDesign';
-export { weavePlan, WeavePlanInput, WeavePlanDeps } from './weavePlan';
+export { createIdea, CreateIdeaInput, CreateIdeaDeps } from './createIdea';
+export { createDesign, CreateDesignInput, CreateDesignDeps } from './createDesign';
+export { createPlan, CreatePlanInput, CreatePlanDeps } from './createPlan';
 export { quickShip, QuickShipInput, QuickShipDeps, QuickShipResult } from './quickShip';
 export { refineDesign, RefineDesignInput, RefineDesignDeps } from './refineDesign';
 export {

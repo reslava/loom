@@ -7,9 +7,9 @@ import { RESOURCE_TEMPLATES } from '../packages/mcp/dist/server';
 import { promptDef as continueThread } from '../packages/mcp/dist/prompts/continueThread';
 import { promptDef as doNextStep } from '../packages/mcp/dist/prompts/doNextStep';
 import { promptDef as refineDesign } from '../packages/mcp/dist/prompts/refineDesign';
-import { promptDef as weaveIdea } from '../packages/mcp/dist/prompts/weaveIdea';
-import { promptDef as weaveDesign } from '../packages/mcp/dist/prompts/weaveDesign';
-import { promptDef as weavePlan } from '../packages/mcp/dist/prompts/weavePlan';
+import { promptDef as generateIdea } from '../packages/mcp/dist/prompts/generateIdea';
+import { promptDef as generateDesign } from '../packages/mcp/dist/prompts/generateDesign';
+import { promptDef as generatePlan } from '../packages/mcp/dist/prompts/generatePlan';
 
 /**
  * mcp-read-surface-naming: the MCP read surface speaks the Slug/Ulid contract.
@@ -33,7 +33,7 @@ async function run() {
 
     // ── Guard: no *Id prompt-arg name ──
     console.log('  • no *Id prompt-arg names...');
-    const prompts = [continueThread, doNextStep, refineDesign, weaveIdea, weaveDesign, weavePlan] as Array<{
+    const prompts = [continueThread, doNextStep, refineDesign, generateIdea, generateDesign, generatePlan] as Array<{
         name: string;
         arguments?: Array<{ name: string }>;
     }>;

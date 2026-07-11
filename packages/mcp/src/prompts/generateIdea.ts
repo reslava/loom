@@ -1,5 +1,5 @@
 export const promptDef = {
-    name: 'weave-idea',
+    name: 'generate-idea',
     description: 'Return a structured prompt for drafting a Loom idea document from a user description. The agent writes the body and passes it via `content` on loom_create_idea.',
     arguments: [
         { name: 'weaveSlug', description: 'Target weave folder slug', required: true },
