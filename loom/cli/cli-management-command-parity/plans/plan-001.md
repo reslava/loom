@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX84P2MMQTQ32M0WYWBZP9J6
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.23.0
 steps:
   - id: archive-restore
     order: 1

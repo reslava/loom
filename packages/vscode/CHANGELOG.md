@@ -1,5 +1,11 @@
 # Loom VS Code Extension — Changelog
 
+## [1.23.0] - 2026-07-11
+
+### Changed
+- **One "Create" verb for the doc buttons.** The doc-create commands were misnamed `weave*` even though they create empty docs (they don't AI-generate): **Weave Idea/Design/Plan** are now **New Idea/Design/Plan**, matching the existing **New Weave**, and the extension adopts **Create** as its single doc-create label verb across the menus, welcome view, and walkthrough. Behavior is unchanged.
+- **A "Set Status: Done/Active" menu.** Document status changes now go through the guarded `loom_set_status` verb. The old **Mark Done** / finalize command is removed in favor of the explicit Set Status menu.
+
 ## [1.22.0] - 2026-07-10
 
 ### Notes

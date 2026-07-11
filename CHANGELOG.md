@@ -10,6 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-07-11
+
+### Added
+- **A unified `loom create <type>` command.** One thread-first namespace replaces the old `loom weave idea|design|plan`, mirroring `loom_create_*` across all eight doc types — `loom create thread|idea|design|plan|req|chat|reference|weave`. It never creates a thread implicitly: `idea`/`design`/`plan`/`req`/`chat` resolve an *existing* thread and error with a "create it first" hint on a miss, and `loom create thread` is the sole explicit thread creator.
+- **The extension-free "Pure agent" way is now complete — full tree management from the terminal.** Nine new slug/human-first CLI commands close the gap where a doc op had an MCP tool and an extension button but no terminal twin: `archive`, `restore`, `delete` (TTY-guarded, `--yes` to bypass), `move-thread`, `set-priority`, `set-thread-deps`, `close-plan`, `quick-ship`, and `promote --body-file`. The whole document graph is now manageable without the VS Code extension.
+- **`loom set-status <doc> <status>` — one guarded verb for document status.** A single command (mirroring the new `loom_set_status` tool) handles free label transitions; guarded ones (a plan going to `implementing`/`done`, a req to `locked`) delegate to their owning tool instead of being silently allowed.
+- **Loom slang — a canonical set of User→AI verbs.** A documented vocabulary that maps deterministically to one action so you never spell out the tool: `read {path}`, `reply`, `do quick`, `do step {N}`, `do steps {N,M}`/`{N-Z}`, `do plan`, `docs done`, and the quick-fix pair `code quick` (implements a source change, runs build+test+verify, then records) / `write quick` (docs-only change, records with no build/test). See [`loom-slang-reference.md`](loom/refs/loom-slang-reference.md).
+- **"Ways to Use Loom" guide** ([`docs/WAYS-TO-USE-LOOM.md`](docs/WAYS-TO-USE-LOOM.md)) — the canonical map of how to run Loom: two users, the control-surface × AI-session-model matrix, and four named recipes (Guided, Power terminal, Pure agent, Automation).
+
+### Changed
+- **One verb model end to end: create / generate / promote.** `create` = an empty doc, `generate` = AI-authored, `promote` = a linked transform. The `weave{Idea,Design,Plan}` use-cases were renamed to `create*`, the `weave-*` authoring prompts to `generate-*` (mirroring `loom_generate_*`), and the extension adopted **Create** as its single doc-create label verb. Pure naming; no behavior change, no aliases.
+- **`loom rename` now retitles a doc, and `rename` is a namespace.** `loom rename <doc> <title>` actually retitled, so it is now `loom retitle` (mirroring `loom_retitle`); `loom rename` names a namespace mirroring `loom_rename_*` — `loom rename thread|weave|reference`.
+- **Status changes flow through one path.** `loom_update_doc` no longer accepts a `status` field (body + `requires_load` only), and the extension gains a **Set Status: Done/Active** menu. The redundant pre-ULID `loom finalize` command and `loom_finalize_doc` use-case are retired (`loom_finalize_req` is kept).
+
+### Fixed
+- **Chats can be marked done again.** `done` was dropped as a valid chat status in an earlier refactor; the regression is restored so chats are mark-done-able as before.
+- **A plan can no longer be marked done behind `close_plan`'s back.** Because `loom_update_doc` accepted a raw `status`, a plan could be flipped to `done` bypassing `loom_close_plan`. Removing `status` from `loom_update_doc` closes that latent bypass — the plan→done transition now goes only through its guarded tool.
+
 ## [1.22.0] - 2026-07-10
 
 ### Added
@@ -668,7 +686,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.22.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.23.0...HEAD
+[1.23.0]: https://github.com/reslava/loom/releases/tag/v1.23.0
 [1.22.0]: https://github.com/reslava/loom/releases/tag/v1.22.0
 [1.21.2]: https://github.com/reslava/loom/releases/tag/v1.21.2
 [1.21.1]: https://github.com/reslava/loom/releases/tag/v1.21.1

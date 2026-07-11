@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX8AACPZR3ZAP15QF74GJCYY
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.23.0
 steps:
   - id: app-use-cases-weave-create
     order: 1

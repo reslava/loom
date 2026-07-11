@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX9090H4YC377XX8TT1SEVFM
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.23.0
 steps:
   - id: added-readme-section-the-decision-trail
     order: 1

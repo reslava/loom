@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX6E14S7PZRWWG5H64K1ZVAV
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.23.0
 steps:
   - id: wrote-docs-ways-to-use-loom
     order: 1
