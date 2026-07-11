@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 10
+last_ai_block: 12
 ---
 # cli-management-command-parity Chat 001
 
@@ -246,3 +246,25 @@ Plan A done — all 9 steps ✅, plan auto-transitioned to `done`. Done record i
 Committing now, folding in the `catalog.ts` label fix.
 
 Plan B (verb reconciliation) is still `draft` and untouched — say the word when you want it.
+
+## Rafa:
+
+I started plan B
+do whole plan B
+commit
+
+## AI:
+
+Plan B done — all 6 steps ✅, plan auto-`done`. Done record in `done/plan-002-done.md`. The whole `cli-management-command-parity` thread is now implemented.
+
+**The verb space is reconciled:**
+- CLI: `loom rename <doc> <title>` (which really *retitled*) → **`loom retitle`**; `rename` is now a namespace — **`loom rename thread|weave|reference`** — mirroring `loom_rename_*` and the `loom create <type>` shape.
+- Extension: **`weave{Idea,Design,Plan,Create}` → `create{Idea,Design,Plan,Weave}`** (handler files `git mv`'d, functions, command ids, package.json). Behavior unchanged — they still call `loom_create_*`.
+
+**One label decision I made (whole-plan authorization):** the button *titles* went `Weave Idea/Design/Plan` → **`New Idea/Design/Plan`**, matching the existing **`New Weave`** title, rather than `Create Idea`. Reasoning: consistency with the button already in the tree, and "New X" is VS Code's house convention. The *command ids* are `create*` (mirroring the API); the *labels* are `New *`. Flagging in case you'd prefer literal `Create *` labels — trivial to switch.
+
+**New guard:** `tests/cli-mcp-parity.test.ts` — enumerates the live tool surface (`loom catalog tools`), and fails if any `loom_*` tool is neither mapped to a CLI twin nor a documented single-audience exception. 59 tools today, all classified. This is the drift catcher: a future tool with no CLI twin and no exception fails CI.
+
+**Regression caught + fixed:** `id-management.test.ts` still called `loom rename` → switched to `retitle`. Full suite green; CLI + extension typecheck clean.
+
+Committing now.

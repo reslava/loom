@@ -5,7 +5,7 @@ import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 import { revealDocAfterCreate } from './revealDoc';
 import { ensureThreadUlid } from './ensureThreadUlid';
 
-export async function weaveIdeaCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
+export async function createIdeaCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 

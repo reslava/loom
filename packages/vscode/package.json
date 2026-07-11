@@ -62,7 +62,7 @@
       },
       {
         "view": "loom.threads",
-        "contents": "No weaves yet.\n\nA weave groups related work (idea → design → plan → done).\n\n[New Weave](command:loom.weaveCreate)\n\nNew to Loom? See the whole shape at once:\n\n[Start with an example](command:loom.seedExample)",
+        "contents": "No weaves yet.\n\nA weave groups related work (idea → design → plan → done).\n\n[New Weave](command:loom.createWeave)\n\nNew to Loom? See the whole shape at once:\n\n[Start with an example](command:loom.seedExample)",
         "when": "loom.workspaceInitialized && !loom.hasWeaves"
       }
     ],
@@ -92,7 +92,7 @@
         "icon": "$(pulse)"
       },
       {
-        "command": "loom.weaveCreate",
+        "command": "loom.createWeave",
         "title": "New Weave",
         "category": "Loom",
         "icon": {
@@ -125,8 +125,8 @@
         }
       },
       {
-        "command": "loom.weaveIdea",
-        "title": "Weave Idea",
+        "command": "loom.createIdea",
+        "title": "New Idea",
         "category": "Loom",
         "icon": {
           "light": "media/icons/idea.svg",
@@ -134,8 +134,8 @@
         }
       },
       {
-        "command": "loom.weaveDesign",
-        "title": "Weave Design",
+        "command": "loom.createDesign",
+        "title": "New Design",
         "category": "Loom",
         "icon": {
           "light": "media/icons/design.svg",
@@ -143,8 +143,8 @@
         }
       },
       {
-        "command": "loom.weavePlan",
-        "title": "Weave Plan",
+        "command": "loom.createPlan",
+        "title": "New Plan",
         "category": "Loom",
         "icon": {
           "light": "media/icons/plan.svg",
@@ -513,7 +513,7 @@
           {
             "id": "firstWeave",
             "title": "Create your first weave",
-            "description": "Group your work into a weave — or seed a ready‑made example to see the shape.\n[New Weave](command:loom.weaveCreate)\n[Start with an example](command:loom.seedExample)",
+            "description": "Group your work into a weave — or seed a ready‑made example to see the shape.\n[New Weave](command:loom.createWeave)\n[Start with an example](command:loom.seedExample)",
             "completionEvents": [
               "onContext:loom.hasWeaves"
             ],
@@ -557,7 +557,7 @@
           "group": "navigation@01"
         },
         {
-          "command": "loom.weaveCreate",
+          "command": "loom.createWeave",
           "when": "view == loom.threads && loom.workspaceInitialized && !loom.roadmapEnabled",
           "group": "navigation@1"
         },
@@ -639,17 +639,17 @@
           "group": "edit@0"
         },
         {
-          "command": "loom.weaveIdea",
+          "command": "loom.createIdea",
           "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-idea/)",
           "group": "inline@1"
         },
         {
-          "command": "loom.weaveDesign",
+          "command": "loom.createDesign",
           "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-design/)",
           "group": "inline@2"
         },
         {
-          "command": "loom.weavePlan",
+          "command": "loom.createPlan",
           "when": "view == loom.threads && (viewItem =~ /^thread/ || viewItem == design)",
           "group": "inline@3"
         },
@@ -674,7 +674,7 @@
           "group": "inline@2"
         },
         {
-          "command": "loom.weaveCreate",
+          "command": "loom.createWeave",
           "when": "view == loom.threads && viewItem =~ /^weave/",
           "group": "create@1"
         },
@@ -689,17 +689,17 @@
           "group": "create@3"
         },
         {
-          "command": "loom.weaveIdea",
+          "command": "loom.createIdea",
           "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-idea/)",
           "group": "create@1"
         },
         {
-          "command": "loom.weaveDesign",
+          "command": "loom.createDesign",
           "when": "view == loom.threads && viewItem =~ /^thread/ && !(viewItem =~ /has-design/)",
           "group": "create@2"
         },
         {
-          "command": "loom.weavePlan",
+          "command": "loom.createPlan",
           "when": "view == loom.threads && (viewItem =~ /^thread/ || viewItem == design)",
           "group": "create@3"
         },

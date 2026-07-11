@@ -5,7 +5,7 @@ import { handleMcpError } from '../mcpErrorUtils';
 import { revealDocAfterCreate } from './revealDoc';
 import { ensureThreadUlid } from './ensureThreadUlid';
 
-export async function weavePlanCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
+export async function createDesignCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>, node?: TreeNode): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
@@ -16,16 +16,14 @@ export async function weavePlanCommand(treeProvider: LoomTreeProvider, treeView:
     if (!threadSlug) {
         threadSlug = await vscode.window.showInputBox({ prompt: 'Thread slug', placeHolder: 'e.g., state-management' }) || undefined;
     }
-    if (!threadSlug) { vscode.window.showErrorMessage('A thread is required — a plan lives in a thread.'); return; }
+    if (!threadSlug) { vscode.window.showErrorMessage('A thread is required — a design lives in a thread.'); return; }
 
-    const parentUlid = node?.doc?.type === 'design' ? node.doc.id : undefined;
-    const title = await vscode.window.showInputBox({ prompt: 'Plan title (optional)', placeHolder: 'Leave blank to use thread slug' }) || undefined;
-    const goal = await vscode.window.showInputBox({ prompt: 'Goal (optional)', placeHolder: 'Brief description of what this plan implements' }) || undefined;
+    const title = await vscode.window.showInputBox({ prompt: 'Design title (optional)', placeHolder: 'Leave blank to use idea title or thread slug' }) || undefined;
 
     try {
         const threadUlid = await ensureThreadUlid(root, weaveSlug, node, threadSlug);
-        const result = await getMCP(root).callTool('loom_create_plan', { weave_slug: weaveSlug, thread_ulid: threadUlid, title, goal, parent_ulid: parentUlid }) as any;
-        vscode.window.showInformationMessage(`🧵 Plan woven: ${result.id}`);
+        const result = await getMCP(root).callTool('loom_create_design', { weave_slug: weaveSlug, thread_ulid: threadUlid, title }) as any;
+        vscode.window.showInformationMessage(`🧵 Design woven: ${result.id}`);
         revealDocAfterCreate(treeProvider, treeView, result?.filePath);
     } catch (e: any) {
         handleMcpError(e, treeProvider);

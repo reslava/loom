@@ -70,6 +70,9 @@ run_test tests/commands.test.ts
 # set-priority/set-thread-deps/close-plan/quick-ship/promote)
 run_test tests/cli-tree-management.test.ts
 
+# Tri-surface parity guard: every loom_* tool has a CLI twin or a documented exception
+run_test tests/cli-mcp-parity.test.ts
+
 # CLI in-process MCP client helper: round-trips loom://catalog over in-memory transport
 run_test tests/cli-mcp-client.test.ts
 

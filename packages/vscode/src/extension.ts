@@ -8,9 +8,9 @@ import { maybeShowTelemetryDisclosure, toggleTelemetryCommand, telemetryStatusTe
 import { LoomTreeProvider, TreeNode } from './tree/treeProvider';
 import { RoadmapDragAndDropController } from './tree/roadmapDnd';
 import { ViewStateManager } from './view/viewStateManager';
-import { weaveIdeaCommand } from './commands/weaveIdea';
-import { weaveDesignCommand } from './commands/weaveDesign';
-import { weavePlanCommand } from './commands/weavePlan';
+import { createIdeaCommand } from './commands/createIdea';
+import { createDesignCommand } from './commands/createDesign';
+import { createPlanCommand } from './commands/createPlan';
 import { generateReqCommand, finalizeReqCommand, amendReqCommand, verifyReqCommand } from './commands/req';
 import { renameCommand, renameFileCommand } from './commands/rename';
 import { refineCommand } from './commands/refine';
@@ -21,7 +21,7 @@ import { showGroupingSelector, showHistoryGroupingSelector } from './commands/gr
 import { setTextFilter, toggleArchived, setStatusFilter, statusFilterLabel } from './commands/filter';
 import { chatNewCommand } from './commands/chatNew';
 import { chatReplyCommand } from './commands/chatReply';
-import { weaveCreateCommand } from './commands/weaveCreate';
+import { createWeaveCommand } from './commands/createWeave';
 import { threadCreateCommand } from './commands/threadCreate';
 import { deleteItemCommand } from './commands/deleteItem';
 import { archiveItemCommand } from './commands/archiveItem';
@@ -164,11 +164,11 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.reconnectMcp', () => { disposeMCP(); syncAndRefresh(); }),
         vscode.commands.registerCommand('loom.sendFeedback', () => sendFeedbackCommand()),
         vscode.commands.registerCommand('loom.toggleTelemetry', () => toggleTelemetryCommand()),
-        vscode.commands.registerCommand('loom.weaveCreate', () => weaveCreateCommand(treeProvider, treeView)),
+        vscode.commands.registerCommand('loom.createWeave', () => createWeaveCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.threadCreate', (node?: TreeNode) => threadCreateCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.weaveIdea', (node?: TreeNode) => weaveIdeaCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.weaveDesign', (node?: TreeNode) => weaveDesignCommand(treeProvider, treeView, node)),
-        vscode.commands.registerCommand('loom.weavePlan', (node?: TreeNode) => weavePlanCommand(treeProvider, treeView, node)),
+        vscode.commands.registerCommand('loom.createIdea', (node?: TreeNode) => createIdeaCommand(treeProvider, treeView, node)),
+        vscode.commands.registerCommand('loom.createDesign', (node?: TreeNode) => createDesignCommand(treeProvider, treeView, node)),
+        vscode.commands.registerCommand('loom.createPlan', (node?: TreeNode) => createPlanCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.generateReq', (node?: TreeNode) => generateReqCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.finalizeReq', (node?: TreeNode) => finalizeReqCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.amendReq', (node?: TreeNode) => amendReqCommand(treeProvider, node)),

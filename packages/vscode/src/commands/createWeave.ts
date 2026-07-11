@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { getMCP } from '../mcp-client';
 import { LoomTreeProvider, TreeNode } from '../tree/treeProvider';
 
-export async function weaveCreateCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>): Promise<void> {
+export async function createWeaveCommand(treeProvider: LoomTreeProvider, treeView: vscode.TreeView<TreeNode>): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 

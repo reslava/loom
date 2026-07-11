@@ -153,7 +153,7 @@ handshake **in-process** (no subprocess, no JSON-RPC by hand); the query command
 | `loom create reference <title> [--description <d>]` | Create a reference doc under `loom/refs/`. |
 | `loom create weave <slug>` | Create an empty weave folder. |
 | `loom set-status <doc> <status>` | Set a doc's lifecycle status (`draft`/`active`/`done`). Guarded — plan→done needs step completion, req→locked its finalize. |
-| `loom rename <doc> <new-title>` | Rename a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. |
+| `loom retitle <doc> <new-title>` | Change a document's **title** only. The ULID `id` and all cross-references (by ULID) are untouched. (Was `loom rename`; `rename` now owns folder/file slug renames.) |
 
 ### Tree management (manual CRUD)
 
@@ -164,6 +164,9 @@ The CLI twins of the extension's tree buttons — so way ③ (Pure agent) can ma
 | `loom archive [weave] [thread] [--doc <ulid>]` | Archive a thread/weave folder under `loom/.archive/` (recoverable). `--doc` archives a single `loom/refs` doc. |
 | `loom restore [weave] [thread] [--archived <rel-path>]` | Restore an archived folder (inverse of `archive`), or a single archived doc by its `.archive/`-relative path. |
 | `loom delete [weave] [thread] [--doc <ulid>] [--archived <rel-path>] [-y]` | **Permanently** delete a doc or thread/weave folder. Irreversible — prompts on a TTY unless `--yes`. Prefer `archive`. |
+| `loom rename thread <weave> <thread> <new-slug>` | Rename a thread's folder slug (its `th_` ULID + all docs/backlinks untouched). |
+| `loom rename weave <slug> <new-slug>` | Rename a weave folder (directory only; every cross-reference is by ULID). |
+| `loom rename reference <slug> <new-slug>` | Rename a reference doc's filename slug (filename + `slug` frontmatter in lockstep). |
 | `loom move-thread <weave> <thread> <target-weave>` | Move a thread folder to another weave; its ULID and `depends_on` edges travel with it. |
 | `loom set-priority <weave> <thread> <priority>` | Set a thread's soft roadmap priority (lower = earlier; never overrides a hard dependency). |
 | `loom set-thread-deps <weave> <thread> [deps...]` | Set a thread's hard `depends_on` edges (`th_` ULIDs or `weave/thread` slugs; no deps clears). Refused on a cycle. |

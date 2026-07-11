@@ -27,7 +27,8 @@ import {
     createReqCommand, createChatCommand, createReferenceCommand, createWeaveCommand,
 } from './commands/create';
 import { setStatusCommand } from './commands/setStatus';
-import { renameCommand } from './commands/rename';
+import { retitleCommand } from './commands/retitle';
+import { renameThreadCommand, renameWeaveCommand, renameReferenceCommand } from './commands/rename';
 import { catalogCommand } from './commands/catalog';
 import { resourcesReadCommand } from './commands/resources';
 import { contextCommand } from './commands/context';
@@ -229,9 +230,30 @@ program
     .action(setStatusCommand);
 
 program
-    .command('rename <doc> <new-title>')
-    .description('Rename a finalized document and update all references')
-    .action(renameCommand);
+    .command('retitle <doc> <new-title>')
+    .description("Change a document's title only. The ULID id and all cross-references (by ULID) are untouched. (Was `loom rename`.)")
+    .action(retitleCommand);
+
+// `loom rename <thing>` — folder/file slug renames, mirroring loom_rename_* tools.
+// A document *title* change is `loom retitle`.
+const renameCmd = program
+    .command('rename')
+    .description('Rename a folder/file slug: thread | weave | reference (mirrors loom_rename_*). For a doc title, use `loom retitle`.');
+
+renameCmd
+    .command('thread <weave> <thread> <new-slug>')
+    .description("Rename a thread's folder slug (its th_ ULID + all docs/backlinks are untouched)")
+    .action(renameThreadCommand);
+
+renameCmd
+    .command('weave <slug> <new-slug>')
+    .description('Rename a weave folder (directory only; every cross-reference is by ULID)')
+    .action(renameWeaveCommand);
+
+renameCmd
+    .command('reference <slug> <new-slug>')
+    .description("Rename a reference doc's filename slug (updates filename + slug frontmatter in lockstep)")
+    .action(renameReferenceCommand);
 
 // Human tree-management ops — CLI twins of the loom_* tools (way ③ Pure agent).
 program

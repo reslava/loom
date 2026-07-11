@@ -41,7 +41,7 @@ async function testIdManagement() {
     assert(finalizedDoc.includes('status: active'), 'Status should be active after set-status');
     console.log(`    ✅ Filename + ULID preserved, status active`);
 
-    console.log('  • Testing `loom rename` changes the title only (id + filename stable)...');
+    console.log('  • Testing `loom retitle` changes the title only (id + filename stable)...');
 
     const designPath = path.join(weavePath, 'reference-test-design.md');
     await createDesignDoc(weavePath, 'reference-test', { role: 'primary', status: 'active' });
@@ -53,8 +53,8 @@ async function testIdManagement() {
     );
     await fs.outputFile(designPath, updatedContent);
 
-    result = runLoom(`rename ${tempId} "Renamed Title"`, loomRoot);
-    assert(result.exitCode === 0, `rename failed: ${result.stderr}`);
+    result = runLoom(`retitle ${tempId} "Renamed Title"`, loomRoot);
+    assert(result.exitCode === 0, `retitle failed: ${result.stderr}`);
 
     // Identity is permanent: rename must NOT change the id, only the title.
     assert(result.stdout.includes(`ID (unchanged): ${tempId}`), 'Rename should not change the id');
@@ -82,7 +82,7 @@ async function testIdManagement() {
 
     // Draft title rename is allowed now: identity is the permanent ULID and the filename
     // is decoupled from the title, so there's nothing provisional to protect.
-    result = runLoom(`rename ${draftId} "Renamed Draft"`, loomRoot);
+    result = runLoom(`retitle ${draftId} "Renamed Draft"`, loomRoot);
     assert(result.exitCode === 0, `renaming a draft should succeed: ${result.stderr}`);
     assert(result.stdout.includes(`ID (unchanged): ${draftId}`), 'draft rename must keep the id');
     console.log('    ✅ Draft documents renamable, id preserved');
