@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 12
+last_ai_block: 15
 ---
 # cli-management-command-parity Chat 001
 
@@ -268,3 +268,40 @@ Plan B done — all 6 steps ✅, plan auto-`done`. Done record in `done/plan-002
 **Regression caught + fixed:** `id-management.test.ts` still called `loom rename` → switched to `retitle`. Full suite green; CLI + extension typecheck clean.
 
 Committing now.
+
+## Rafa:
+
+I already pushed
+
+About label decision `new` vs `create`. I prefer `create` becuase point user right into the CLI and MCP related command. But also you mentioned that `new` VS Code's house convention. So I am not sure what to pick.
+You picked `new` and maybe this is not crucial at all.
+What do you think?
+
+### We still have gaps pending
+
+app use-case functions and MCP prompt names (packages/app/.../weaveIdea, prompts/weaveIdea) — the AI-authoring path are still pending of renaming, correct?
+
+sping up a thread, idea for all pending gaps
+
+## AI:
+
+**Label `new` vs `create`:** you're right, go **`create`** — and I'll own that my `new` pick was the weaker call. My reasoning was a generic VS Code convention ("New File"), but Loom has its *own* tri-surface parity rule that says mirror the verb across CLI ⇄ MCP ⇄ extension. `Create Idea` mirrors `loom create idea` / `loom_create_idea`; `New Idea` mirrors nothing. Loom's own rule should beat the generic convention. So: `Create Idea/Design/Plan`, and flip the existing `New Weave` → `Create Weave` too so the whole tree speaks one verb (otherwise it's half-New/half-Create). Not crucial, but "free consistency" — worth doing. I'm folding it into the new thread's gap list rather than a separate micro-commit.
+
+**Pending gaps — yes, correct.** The parity thread reconciled the *command* surface but left the `weave` verb in the **authoring path** below it:
+1. **App use-cases** `weaveIdea/weaveDesign/weavePlan` (`packages/app`) — these implement **create** (empty/with-body doc, no AI), so the name lies. Rename → `create*` + sweep all call sites (MCP create tools, CLI create cmds, tests). Internal hygiene.
+2. **MCP prompts** `weave-idea/design/plan` — the AI-*authoring* prompts, and they're **model-facing** (an agent picks a prompt by name). This is the one real **decision**: rename → `generate-*` (mirror `loom_generate_*` + the {generate} verb), or keep `weave-*` as the deliberate authoring verb? Worth settling before touching them.
+3. **Extension labels** — the `Create` sweep from the label decision above (incl. `New Weave`, and `Weave Thread`/`Weave Chat`).
+
+Spinning up the thread + idea now to capture all of it. I'm filing it in the **`cli`** weave as the continuation of this reconciliation — trivially movable with `loom move-thread` (which we just built) if you'd rather it sit under app/ai-integration. I'll write the idea and **stop before design**, since gap #2 is a decision to discuss.
+
+## AI:
+
+Done — new thread + idea:
+- Thread `cli/authoring-verb-consistency` (`th_01KX89HDMDZFDDSTPQ8M5BV4TJ`, priority 15)
+- Idea `id_01KX89J3K13JQ37K8CF45P845Z` (draft) — captures all three gaps: (1) app use-cases `weave*`→`create*`, (2) MCP prompt verb decision, (3) extension `Create` label sweep incl. `New Weave`/`Weave Thread`/`Weave Chat`.
+
+**My lean on the one decision (gap #2 — MCP prompt verb):** go **(a) `generate-*`**. Those prompts *draft docs via AI* — the exact same `{generate}` operation as the `loom_generate_*` tools. Naming them `generate-idea/design/plan` means one verb for the whole AI-authoring path (prompt + tool), matching the workflow vocabulary; keeping `weave-*` leaves a second name for the same thing. It's a breaking rename of a model-facing prompt name, but we have no external users, so a clean cutover is fine. Not locking it — your call, since it's the design-shaping decision here.
+
+Not committed this turn (you didn't ask) — the new `thread.md` + `idea.md` and this chat are sitting uncommitted; say `commit` whenever.
+
+STOP — idea's ready. Want to settle the (a)/(b) prompt-verb decision and move to a design, or adjust the idea first?
