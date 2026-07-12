@@ -2,7 +2,7 @@
 type: chat
 id: ch_01KXC7Q5S2GPA9GF85AWDEW6Y9
 title: doc-graph-reports — plan-006 Chat 005
-status: active
+status: done
 created: 2026-07-12
 version: 1
 tags: []

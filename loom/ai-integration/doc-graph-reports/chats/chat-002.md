@@ -1,8 +1,8 @@
 ---
 type: chat
 id: ch_01KXAZM8Z2NE6SW34YR6TFJC5K
-title: Doc-graph reports — plan-002 A+B plan-003 C Chat 002
-status: active
+title: doc-graph reports — plan-002 A+B plan-003 C Chat 002
+status: done
 created: 2026-07-12
 updated: 2026-07-12
 version: 1
@@ -11,7 +11,7 @@ parent_id: null
 requires_load: []
 last_ai_block: 13
 ---
-# Doc-graph reports — plan-002 A+B plan-003 C Chat 002
+# doc-graph reports — plan-002 A+B plan-003 C Chat 002
 
 ## Rafa:
 
