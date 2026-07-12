@@ -1,4 +1,4 @@
-import { getReportKind, reportKindSlugs, selectReportDocs, ReportFilters, ReportSelection } from '../../../core/dist';
+import { getReportKind, reportKindSlugs, selectReportDocs, ReportFilters, ReportSelection, ReportSort } from '../../../core/dist';
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex, ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
@@ -16,15 +16,16 @@ export const promptDef = {
         { name: 'from', description: 'Optional inclusive lower bound on doc created date (YYYY-MM-DD).', required: false },
         { name: 'to', description: 'Optional inclusive upper bound on doc created date (YYYY-MM-DD).', required: false },
         { name: 'full', description: 'Disable the token budget — send the full slice with no degradation (doc-set kinds only; can be large/costly).', required: false },
+        { name: 'sort', description: 'Keep-full ordering when budget-degraded: "recency" (newest docs stay full) or "oldest" (foundational docs stay full). Defaults per kind. Ignored with full=true.', required: false },
     ],
 };
 
-/** Render a selectReportDocs result as an agent-readable markdown slice. */
-function renderSelection(sel: ReportSelection): string {
+/** Render a selectReportDocs result as an agent-readable markdown slice. Exported for tests. */
+export function renderSelection(sel: ReportSelection): string {
     const m = sel.manifest;
     const coverage =
         `Coverage manifest: counts=${JSON.stringify(m.counts)} · tiers=${JSON.stringify(m.tiers)} · ` +
-        `${m.emittedChars} of ${m.fullChars} chars emitted · budget=${Number.isFinite(m.maxChars) ? m.maxChars : 'unlimited'} · budgeted=${m.budgeted}` +
+        `${m.emittedChars} of ${m.fullChars} chars emitted · budget=${Number.isFinite(m.maxChars) ? m.maxChars : 'unlimited'} · budgeted=${m.budgeted} · sort=${m.sort}` +
         (Object.keys(m.filters).length ? ` · filters=${JSON.stringify(m.filters)}` : '');
     const lines: string[] = [
         `Source slice — ${m.totalDocs} doc(s) selected for kind "${m.kind}" (types: ${m.docTypes.join(', ') || '—'}).`,
@@ -40,12 +41,26 @@ function renderSelection(sel: ReportSelection): string {
             `docs as if you read them in full, and note which areas are covered only at summary or ` +
             `reference depth.`,
         );
+        // Primary fix — lead with the ordering / full-slice levers, which directly control
+        // WHICH docs keep full bodies (the better fixes for a designs/architecture run that
+        // dropped foundational docs). ctx is demoted to a secondary opt-in below.
+        const kept = m.sort === 'recency' ? 'newest' : 'oldest/foundational';
+        const dropped = m.sort === 'recency' ? 'oldest/foundational' : 'newest';
+        const flip: ReportSort = m.sort === 'recency' ? 'oldest' : 'recency';
+        const flipKeeps = flip === 'oldest' ? 'foundational (oldest)' : 'newest';
+        lines.push(
+            `TO KEEP MORE DOCS FULL — this run used sort="${m.sort}", so the ${kept} docs kept full ` +
+            `bodies and the ${dropped} docs were degraded. Re-run with \`--sort ${flip}\` to keep the ` +
+            `${flipKeeps} docs full instead, or \`--full\` to keep the ENTIRE slice full (higher token ` +
+            `cost). These are the direct fixes when a designs/architecture report dropped foundational docs.`,
+        );
         if (m.oversizedWeavesWithoutCtx.length) {
             lines.push(
-                `SUGGESTION — these weaves had docs degraded by the budget but have no ctx to ` +
-                `summarize with: ${m.oversizedWeavesWithoutCtx.join(', ')}. Generating a ctx for ` +
-                `them (e.g. \`loom refresh ctx\` scoped to the weave) would give better summaries ` +
-                `on the next run. (Informational — no ctx is generated automatically.)`,
+                `Secondary option — these weaves had degraded docs and no ctx to summarize with: ` +
+                `${m.oversizedWeavesWithoutCtx.join(', ')}. A ctx would improve summaries next run, but ` +
+                `note that \`loom refresh ctx\` (scoped to a weave) writes a PERSISTENT loom/{weave}/ctx.md ` +
+                `— a standing doc loaded thereafter, NOT an ephemeral one-run summary — so opt into it ` +
+                `deliberately. (Informational — no ctx is generated automatically.)`,
             );
         }
     }
@@ -74,6 +89,13 @@ export async function handle(root: string, args: Record<string, string | undefin
     };
     // --full: unlimited budget (no degradation). Doc-set kinds only; roadmap kinds ignore it.
     const maxChars = args['full'] === 'true' ? Infinity : undefined;
+    // Keep-full ordering (recency|oldest). Undefined = let the kind default decide. Validate
+    // defensively — the MCP prompt is a public surface, not only reached via the CLI edge.
+    const sortArg = args['sort'];
+    if (sortArg !== undefined && sortArg !== 'recency' && sortArg !== 'oldest') {
+        throw new Error(`Invalid sort "${sortArg}". Use "recency" or "oldest".`);
+    }
+    const sort = sortArg as ReportSort | undefined;
 
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
@@ -95,7 +117,7 @@ export async function handle(root: string, args: Record<string, string | undefin
             state = await getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root });
             setCachedState(state);
         }
-        const selection = selectReportDocs(state, kind, filters, maxChars);
+        const selection = selectReportDocs(state, kind, filters, maxChars, sort);
         sliceText = renderSelection(selection);
         sourcesHint = '[the ids of the docs listed in the slice above]';
     }

@@ -9,6 +9,14 @@
  * loom/ai-integration/loom-ai-analysis. Slice 1 ships only `project-overview`
  * (selection = roadmap passthrough, so `docTypes` is empty).
  */
+/**
+ * Keep-full ordering under the budget: which docs keep their full body when the slice
+ * exceeds `maxChars`. `recency` keeps the NEWEST docs full (degrades the oldest tail);
+ * `oldest` keeps the OLDEST/foundational docs full (degrades the newest tail). This only
+ * changes the RELEVANCE order used for tier allocation — the OUTPUT stays chronological.
+ */
+export type ReportSort = 'recency' | 'oldest';
+
 export interface ReportKind {
     slug: string;
     title: string;
@@ -24,6 +32,14 @@ export interface ReportKind {
      * reference-only — no AI, so it stays pure and free.
      */
     maxChars?: number;
+    /**
+     * Optional per-kind default keep-full ordering under the budget. Single-doc-type kinds
+     * (ideas/designs/plans/dones) and `architecture` default to `oldest` so foundational
+     * docs stay full; analytical kinds (decisions/drift-audit/security) and roadmap-sourced
+     * kinds default to `recency`. Falls back to `DEFAULT_REPORT_SORT`; a caller may override
+     * per-run via `selectReportDocs`' `sort` param.
+     */
+    defaultSort?: ReportSort;
 }
 
 /**
@@ -33,6 +49,12 @@ export interface ReportKind {
  * to them.
  */
 export const DEFAULT_REPORT_MAX_CHARS = 60000;
+
+/**
+ * Default keep-full ordering when neither the caller nor the kind specifies one. `recency`
+ * matches the original budget behavior (newest docs keep full bodies).
+ */
+export const DEFAULT_REPORT_SORT: ReportSort = 'recency';
 
 export const REPORT_KINDS: Record<string, ReportKind> = {
     'project-overview': {
@@ -73,6 +95,8 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         // ctx included as an orientation input (a scope/global summary) — summary-friendly.
         docTypes: ['design', 'reference', 'ctx'],
         scopeHint: 'cross-weave',
+        // Foundational (lowest-layer, oldest) designs matter most for architecture — keep them full.
+        defaultSort: 'oldest',
         promptFraming: [
             'Produce an **architecture report** from the design and reference docs in the slice below. Cover:',
             '',
@@ -89,6 +113,8 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         title: 'Decisions',
         docTypes: ['chat', 'design'],
         scopeHint: 'cross-weave',
+        // Analytical: recent rationale is usually the most relevant — keep newest full.
+        defaultSort: 'recency',
         promptFraming: [
             'Produce a **decisions ("why") report** from the chat and design docs in the slice below — the rationale that does NOT live in code. For each significant decision:',
             '',
@@ -104,6 +130,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         title: 'Design-vs-Done Drift Audit',
         docTypes: ['design', 'done'],
         scopeHint: 'cross-weave',
+        defaultSort: 'recency',
         promptFraming: [
             'Produce a **design-vs-done drift audit** from the slice below: compare what the **design** docs specified against what the **done** docs record was actually implemented. For each thread with both:',
             '',
@@ -119,6 +146,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         title: 'Security & Weakness',
         docTypes: ['design', 'done', 'reference'],
         scopeHint: 'cross-weave',
+        defaultSort: 'recency',
         promptFraming: [
             'Produce a **security & weakness report** from the design, done, and reference docs in the slice below. Look for:',
             '',
@@ -139,6 +167,8 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         docTypes: ['idea', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
+        // Single-doc-type complete report — foundational (oldest) docs stay full.
+        defaultSort: 'oldest',
         promptFraming: [
             'Produce an **ideas report** — everything the project set out to build — from the idea docs in the slice below. Cover:',
             '',
@@ -155,6 +185,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         docTypes: ['design', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
+        defaultSort: 'oldest',
         promptFraming: [
             'Produce a **designs report** — the project\'s full design corpus — from the design docs in the slice below. Cover:',
             '',
@@ -171,6 +202,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         docTypes: ['plan', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
+        defaultSort: 'oldest',
         promptFraming: [
             'Produce a **plans report** — all planned work — from the plan docs in the slice below. Cover:',
             '',
@@ -187,6 +219,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         docTypes: ['done', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
+        defaultSort: 'oldest',
         promptFraming: [
             'Produce a **shipped report** — everything actually implemented — from the done docs in the slice below. Cover:',
             '',

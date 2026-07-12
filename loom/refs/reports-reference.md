@@ -59,25 +59,29 @@ Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the
 | `--since <YYYY-MM-DD>` | include only docs created on/after this date |
 | `--until <YYYY-MM-DD>` | include only docs created on/before this date |
 | `--full` | disable the token budget — send the FULL slice, no degradation (prints an estimated-size warning; a no-op for roadmap kinds) |
+| `--sort <recency\|oldest>` | keep-full ordering when the slice is budget-degraded: `recency` = newest docs stay full; `oldest` = oldest/foundational stay full. Defaults per kind (see below). Ignored with `--full` (nothing degrades) |
 | `--run` | launch a headless Claude agent to synthesize + save the report end-to-end, instead of printing the brief |
 
-**Token budget & tiered degradation.** `selectReportDocs` bounds the slice to a per-kind char budget (default 60k; single-doc-type kinds 150k; `--full` = unlimited). When the full slice exceeds budget, docs degrade by **recency** (most recent keep full bodies):
+**Token budget & tiered degradation.** `selectReportDocs` bounds the slice to a per-kind char budget (default 60k; single-doc-type kinds 150k; `--full` = unlimited). When the full slice exceeds budget, docs degrade by a **selectable keep-full ordering** (`--sort`):
 
 1. **full** — full body;
 2. **summary** — a deterministic excerpt (H1 + section headings + first lines) or an existing scope **ctx** — never a model call;
 3. **reference** — an id/title/type/created marker only.
 
-The coverage manifest records `fullChars` vs `emittedChars`, per-tier counts, and — when a degraded weave has no ctx — a suggestion to generate one. The prompt tells the report its own coverage so it states it honestly.
+Only the *relevance* order used for tier allocation flips with `--sort`; the **output stays chronological** either way. The coverage manifest records `fullChars` vs `emittedChars`, per-tier counts, the effective `sort`, and — when a degraded weave has no ctx — a suggestion (led by `--sort`/`--full`, ctx as a secondary opt-in). The prompt tells the report its own coverage so it states it honestly.
 
-> **Recency caveat.** Degradation is recency-first, so a whole-project or whole-weave run keeps the *newest* docs full and drops the *oldest* — good for "what changed lately", but it degrades the *foundational* docs in a `designs`/`architecture` run. For showcase-quality completeness, scope with `--weave` / `--since`, or use `--full`.
+**Per-kind `defaultSort`.** Single-doc-type kinds (`ideas`/`designs`/`plans`/`dones`) and `architecture` default to **`oldest`** — foundational docs stay full, the right shape for a design/architecture read. Analytical kinds (`decisions`/`drift-audit`/`security`) and roadmap kinds default to **`recency`** — recent rationale/activity is most relevant. Override per run with `--sort`.
+
+> **Ordering note.** `recency` keeps the *newest* docs full (good for "what changed lately"); `oldest` keeps the *foundational* docs full (good for a `designs`/`architecture` showcase). For a whole-project/whole-weave run pick the ordering that matches the lens, scope with `--weave`/`--since`, or use `--full` for the complete set.
 
 ## Showcase candidates
 
-Curated list of generated reports good enough to feature in READMEs / docs — Loom's own history **and** Chord Flow's. Regenerate **weave-scoped** for the showcase: whole-project runs skew to the newest thread because relevance = recency.
+Curated list of generated reports good enough to feature in READMEs / docs — Loom's own history **and** Chord Flow's. Regenerate **weave-scoped** for the showcase, and for `designs`/`architecture` use the default (or explicit) `--sort oldest` so the foundational docs stay full.
 
 | Status | Report | Id | Note |
 |--------|--------|----|------|
-| ✅ candidate | Core Engine — Designs (2026-07-12) | `rp_01KXC1HB5W…` | weave-scoped `designs`; grounded corpus overview (foundational designs dropped by recency — regen `--full` for the complete set) |
+| ✅ candidate | Core Engine — Designs (foundational-first) (2026-07-12) | `rp_01KXC9GHQQ…` | weave-scoped `designs --sort oldest`; keeps the 22 foundational designs full (10 newest → reference) — the better showcase shape. Supersedes the recency run below |
+| ↩ superseded | Core Engine — Designs (2026-07-12) | `rp_01KXC1HB5W…` | earlier recency run; foundational designs dropped to reference — kept for the before/after contrast |
 | ✅ candidate | Loom — Project Overview (2026-07-12) | `rp_01KXB088…` | roadmap-based; "useful payoff" |
 | ❌ rejected | Loom — Decisions (recent, budget-scoped) | `rp_01KXBPQV3F…` | recency-front-loaded whole-project run; regenerate weave-scoped |
 

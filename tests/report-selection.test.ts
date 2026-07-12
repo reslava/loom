@@ -1,5 +1,6 @@
 import { assert } from './test-utils.ts';
 import { selectReportDocs, getReportKind, deterministicExcerpt } from '../packages/core/dist';
+import { renderSelection } from '../packages/mcp/dist/prompts/report';
 
 // Pure unit tests for selectReportDocs — no filesystem, no CLI. Build a minimal
 // LoomState-shaped fixture and assert deterministic selection: type ∈ kind.docTypes,
@@ -224,6 +225,74 @@ async function run() {
         const roomy = selectReportDocs(s5, decisions, {}, big.length * 2 + 1000); // nothing degrades
         assert(!roomy.manifest.budgeted && roomy.manifest.oversizedWeavesWithoutCtx.length === 0, 'no degradation → empty hint');
         console.log('  ✅ budget: oversized-weave-without-ctx hint');
+    }
+
+    // --- Keep-full ordering (recency vs oldest) --------------------------------------
+    // Reuse budgetState (d1 oldest … d3 newest, equal sizes) and the mid budget that fits
+    // exactly one full + one summary.
+    const midBudget = bodyLen + exLen + 10;
+
+    // 14. sort='oldest' is the inverse of recency: the OLDEST doc keeps its full body, the
+    //     NEWEST degrades to reference. Output stays chronological; manifest records the sort.
+    {
+        const recency = selectReportDocs(budgetState, decisions, {}, midBudget, 'recency');
+        const oldest = selectReportDocs(budgetState, decisions, {}, midBudget, 'oldest');
+        const rt = Object.fromEntries(recency.docs.map(d => [d.id, d.tier]));
+        const ot = Object.fromEntries(oldest.docs.map(d => [d.id, d.tier]));
+        assert(rt['d3'] === 'full' && rt['d1'] === 'reference', 'recency: newest full, oldest reference');
+        assert(ot['d1'] === 'full' && ot['d3'] === 'reference', 'oldest: oldest full, newest reference (inverse of recency)');
+        assert(ot['d2'] === 'summary', 'oldest: middle doc still degrades to summary');
+        assert(oldest.docs.map(d => d.id).join(',') === 'd1,d2,d3', 'oldest: OUTPUT order stays chronological');
+        assert(recency.manifest.sort === 'recency' && oldest.manifest.sort === 'oldest', 'manifest records the effective sort');
+        console.log('  ✅ sort: oldest keeps oldest full (inverse of recency), chronological output, manifest.sort');
+    }
+
+    // 15. Per-kind defaultSort is applied when no explicit sort is passed: `designs`→oldest
+    //     (foundational stays full), `decisions`→recency (newest stays full). Same fixture.
+    {
+        assert(getReportKind('designs')!.defaultSort === 'oldest', 'designs kind defaults to oldest');
+        assert(getReportKind('decisions')!.defaultSort === 'recency', 'decisions kind defaults to recency');
+        const designs = getReportKind('designs')!; // design + ctx; budgetState has 3 designs
+        const byDesigns = selectReportDocs(budgetState, designs, {}, midBudget);
+        const byDecisions = selectReportDocs(budgetState, decisions, {}, midBudget);
+        assert(byDesigns.manifest.sort === 'oldest' && Object.fromEntries(byDesigns.docs.map(d => [d.id, d.tier]))['d1'] === 'full',
+            'designs (defaultSort oldest) keeps the oldest design full');
+        assert(byDecisions.manifest.sort === 'recency' && Object.fromEntries(byDecisions.docs.map(d => [d.id, d.tier]))['d3'] === 'full',
+            'decisions (defaultSort recency) keeps the newest doc full');
+        console.log('  ✅ sort: per-kind defaultSort applied (designs→oldest, decisions→recency)');
+    }
+
+    // 16. An explicit sort param overrides the kind default (both directions).
+    {
+        const designs = getReportKind('designs')!;   // default oldest
+        const overridden = selectReportDocs(budgetState, designs, {}, midBudget, 'recency');
+        assert(overridden.manifest.sort === 'recency' && Object.fromEntries(overridden.docs.map(d => [d.id, d.tier]))['d3'] === 'full',
+            'explicit recency overrides designs default oldest → newest full');
+        const decisionsOldest = selectReportDocs(budgetState, decisions, {}, midBudget, 'oldest'); // default recency
+        assert(decisionsOldest.manifest.sort === 'oldest' && Object.fromEntries(decisionsOldest.docs.map(d => [d.id, d.tier]))['d1'] === 'full',
+            'explicit oldest overrides decisions default recency → oldest full');
+        console.log('  ✅ sort: explicit param overrides the kind default');
+    }
+
+    // 17. Reworded budget suggestion (MCP prompt): leads with --sort/--full, ctx demoted to a
+    //     secondary opt-in that flags the PERSISTENT weave ctx.md caveat.
+    {
+        const big = linesBody('Big', 400);
+        const s6 = state([
+            weave('wb', [thread('wb', 'tb', { design: docB('design', 'd-wb1', '2026-02-01', big) }),
+                         thread('wb', 'tc', { design: docB('design', 'd-wb2', '2026-03-01', big) })]), // no ctx → hint fires
+        ]);
+        const degraded = selectReportDocs(s6, decisions, {}, 800); // both designs degrade
+        assert(degraded.manifest.budgeted && degraded.manifest.oversizedWeavesWithoutCtx.length > 0, 'fixture actually degrades a ctx-less weave');
+        const text = renderSelection(degraded);
+        assert(text.includes('TO KEEP MORE DOCS FULL') && text.includes('--sort') && text.includes('--full'),
+            'suggestion LEADS with the --sort / --full levers');
+        assert(text.includes('Secondary option') && text.includes('PERSISTENT'),
+            'ctx demoted to a secondary opt-in that flags the persistent weave ctx.md');
+        assert(text.indexOf('TO KEEP MORE DOCS FULL') < text.indexOf('Secondary option'),
+            'the --sort/--full lever comes before the ctx suggestion');
+        assert(text.includes('sort=recency'), 'coverage manifest line surfaces the effective sort');
+        console.log('  ✅ prompt: reworded suggestion leads with --sort/--full, ctx secondary + persistent caveat');
     }
 
     console.log('\n✅ selectReportDocs tests passed');

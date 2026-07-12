@@ -1,5 +1,5 @@
 import { LoomState } from './entities/state';
-import { ReportKind, DEFAULT_REPORT_MAX_CHARS } from './reportKinds';
+import { ReportKind, ReportSort, DEFAULT_REPORT_MAX_CHARS, DEFAULT_REPORT_SORT } from './reportKinds';
 
 /**
  * Deterministic doc-selection for reports — the pure keystone of the report feature.
@@ -13,8 +13,11 @@ import { ReportKind, DEFAULT_REPORT_MAX_CHARS } from './reportKinds';
  * `loom://roadmap` for them.)
  *
  * Token budget (C-2): a whole-project `decisions`/`security` report can be hundreds of KB.
- * When the full slice exceeds `maxChars`, docs degrade in tiers by relevance (most recent
- * first keep full bodies):
+ * When the full slice exceeds `maxChars`, docs degrade in tiers by relevance. The keep-full
+ * ordering is selectable (`sort`): `recency` keeps the NEWEST docs full (the tail degrades),
+ * `oldest` keeps the OLDEST/foundational docs full — resolved from the `sort` param →
+ * `kind.defaultSort` → `DEFAULT_REPORT_SORT`. Only the RELEVANCE order used for tier
+ * allocation changes; the OUTPUT stays chronological. Tiers:
  *   - **full** — full body, for the docs that fit the budget;
  *   - **summary** — a deterministic summary for the rest: an existing ctx doc for that
  *     scope if present, else a fixed excerpt (H1 + section headings + first N lines);
@@ -60,6 +63,8 @@ export interface ReportManifest {
     totalDocs: number;
     /** The char budget in effect for this run. */
     maxChars: number;
+    /** The keep-full ordering in effect for this run (resolved param → kind default → global default). */
+    sort: ReportSort;
     /** Total chars of ALL selected docs' FULL bodies, before any budget degradation. */
     fullChars: number;
     /** Total chars actually emitted after budget degradation (≈ ≤ maxChars once budgeted). */
@@ -148,7 +153,10 @@ export function selectReportDocs(
     kind: ReportKind,
     filters: ReportFilters = {},
     maxChars?: number,
+    sort?: ReportSort,
 ): ReportSelection {
+    // Keep-full ordering: explicit param wins, else the kind's default, else the global default.
+    const effectiveSort: ReportSort = sort ?? kind.defaultSort ?? DEFAULT_REPORT_SORT;
     const wantTypes = new Set(kind.docTypes);
     const weaveFilter = filters.weaves && filters.weaves.length ? new Set(filters.weaves) : null;
     const threadFilter = filters.threads && filters.threads.length ? new Set(filters.threads) : null;
@@ -220,13 +228,18 @@ export function selectReportDocs(
     if (!budgeted) {
         for (const d of collected) tierById.set(d.id, { tier: 'full', body: d.rawBody });
     } else {
-        // Relevance order: most recent first, tie-broken by id — recent docs keep full
-        // bodies; the tail degrades. Greedy packing against a single char budget: try full,
-        // then a deterministic summary, then a reference marker. Deterministic: fixed order
-        // + fixed sizes ⇒ identical tiers on every run.
-        const byRelevance = [...collected].sort((a, b) =>
-            a.created > b.created ? -1 : a.created < b.created ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
-        );
+        // Relevance order drives which docs keep full bodies: `recency` = newest first (the
+        // oldest tail degrades), `oldest` = oldest first (the newest tail degrades). Tie-broken
+        // by id (ascending) in both modes for stability. Greedy packing against a single char
+        // budget: try full, then a deterministic summary, then a reference marker. Deterministic:
+        // fixed order + fixed sizes ⇒ identical tiers on every run.
+        const byRelevance = [...collected].sort((a, b) => {
+            if (a.created !== b.created) {
+                const aOlder = a.created < b.created;
+                return effectiveSort === 'oldest' ? (aOlder ? -1 : 1) : (aOlder ? 1 : -1);
+            }
+            return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
         let used = 0;
         for (const d of byRelevance) {
             if (used + d.rawBody.length <= budget) {
@@ -298,6 +311,7 @@ export function selectReportDocs(
             counts,
             totalDocs: docs.length,
             maxChars: budget,
+            sort: effectiveSort,
             fullChars,
             emittedChars,
             budgeted,

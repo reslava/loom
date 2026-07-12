@@ -17,9 +17,13 @@ import { connectLocalMcp } from '../mcpClient';
  */
 export async function reportCommand(
     kind: string,
-    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; run?: boolean },
+    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; sort?: string; run?: boolean },
 ): Promise<void> {
     try {
+        // Validate --sort at the CLI edge before doing any work.
+        if (options.sort !== undefined && options.sort !== 'recency' && options.sort !== 'oldest') {
+            throw new Error(`Invalid --sort "${options.sort}". Use "recency" (newest docs stay full) or "oldest" (foundational docs stay full).`);
+        }
         const root = getActiveLoomRoot();
         const client = await connectLocalMcp(root);
         let brief: string;
@@ -30,6 +34,7 @@ export async function reportCommand(
             if (options.since) args.from = options.since;
             if (options.until) args.to = options.until;
             if (options.full) args.full = 'true';
+            if (options.sort) args.sort = options.sort;
             brief = await client.getPrompt('report', args);
         } finally {
             await client.close();
