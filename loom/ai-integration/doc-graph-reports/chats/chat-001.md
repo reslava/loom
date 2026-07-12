@@ -1,16 +1,17 @@
 ---
 type: chat
 id: ch_01KXAJTVQQQ365TZBGCW9HA9VF
-title: loom-ai-analysis Chat 001
+title: Doc-graph reports — plan-001 project-overview Chat 001
 status: done
 created: 2026-07-12
+updated: 2026-07-12
 version: 1
 tags: []
 parent_id: null
 requires_load: []
 last_ai_block: 26
 ---
-# loom-ai-analysis Chat 001
+# Doc-graph reports — plan-001 project-overview Chat 001
 
 ## Rafa:
 
