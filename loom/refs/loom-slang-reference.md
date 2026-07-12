@@ -29,13 +29,13 @@ Two collision-safe execution families:
 - **`do {target}` — plan execution.** `do step`, `do steps`, `do plan` operate on an *active plan's steps*. "do" is never an accidental bare English word, so it is a safe home for execution verbs.
 - **`{act} quick` — the quick-fix lane.** `do quick`, `code quick`, `write quick`. The trailing `quick` marks the low-ceremony, **plan-less** lane — a small task driven straight from a chat, with no idea/design/plan ceremony. The **leading verb declares the act that precedes the record**: `do` (nothing — the work is already done), `write` (a docs/prose change), `code` (a source-code change). `do quick` is the pivot the two families share.
 
-`read` and `reply` stand alone because they already live in the natural chat flow.
+`read` and `reply` stand alone because they already live in the natural chat flow — and they **fuse**: reading a chat doc that has an unanswered user turn *implies* `reply`, so pointing the AI at a live chat both loads it and answers it in one word (see the `read` row and the chain below).
 
 ## Canonical vocabulary
 
 | Word | Fires when… | Maps to | Kind |
 |------|-------------|---------|------|
-| `read {weaveSlug}/{threadSlug}/{docSlug}` | a slug path follows the word | `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` (add `?mode=chat` for a chat) — CLI: `loom context <path>` | pointer to existing command |
+| `read {weaveSlug}/{threadSlug}/{docSlug}` | a slug path follows the word | `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` (add `?mode=chat` for a chat) — CLI: `loom context <path>`. **If the target is a chat doc with a pending user turn, `read` implies `reply`** — it flows straight into the `reply` chain. | pointer (→ chain for a pending chat) |
 | `reply` | a chat doc is the active context | `loom_read_chat_tail` → *[compose]* → `loom_append_to_chat` | chain |
 | `do quick` | you just did some work to record | `loom_quick_ship(...)` — CLI: `loom quick-ship` | pointer to existing command |
 | `code quick` | a **source-code** change was agreed in the active chat but not yet applied | *[implement the code change]* → build + test + verify → `loom_quick_ship(...)` | chain |
@@ -50,6 +50,15 @@ Outside its trigger context each word is ordinary English and no action fires �
 **Chaining.** Slang words can be **comma-chained** and run in sequence, left to right — e.g. `code quick, docs done, commit`. Each word still fires only in its own trigger context.
 
 ## The chains, explicit
+
+**`read {path}`** *(pointer — but fuses into `reply` for a live chat)*
+```
+loom://context/{weaveSlug}/{threadSlug}/{docSlug}   → load the bundle (?mode=chat for a chat)
+   ↓ if the target is a CHAT doc AND it has a pending user turn
+       (a ## {User}: block after the last ## AI:)
+   → read implies reply: continue into the reply chain below
+```
+Only a chat with an *unanswered* user turn triggers the implied reply. Reading a chat whose last turn is already `## AI:`, or reading any non-chat doc (idea / design / plan / req), stays **load-only** — there is nothing to answer.
 
 **`reply`** *(a chat doc is active)*
 ```

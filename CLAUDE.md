@@ -386,7 +386,7 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 
 A small set of **loom words** map deterministically to one action, so Rafa never spells out the tool and you never guess from phrasing. Each fires **only in its trigger context** — outside it the word is ordinary English and nothing fires. The canonical table (exact mappings, triggers, chains, rejections) is [loom/refs/loom-slang-reference.md](loom/refs/loom-slang-reference.md); treat it as authoritative.
 
-- `read {weaveSlug}/{threadSlug}/{docSlug}` — load `loom://context/...` for that doc (`?mode=chat` for a chat).
+- `read {weaveSlug}/{threadSlug}/{docSlug}` — load `loom://context/...` for that doc (`?mode=chat` for a chat). **If the target is a chat doc with a pending `## Rafa:` turn (one after the last `## AI:`), `read` implies `reply`** — flow straight into the reply chain. Reading a non-chat doc, or a chat whose last turn is already `## AI:`, stays load-only.
 - `reply` *(a chat doc is active)* — `loom_read_chat_tail` → compose → `loom_append_to_chat`.
 - `do quick` — `loom_quick_ship` (record already-done work; never writes code).
 - `code quick` *(a source-code change was agreed in the active chat)* — implement it → `./scripts/build-all.sh` + `./scripts/test-all.sh` + verify → `loom_quick_ship`. Any source touch — or a **test-gated contract file** (e.g. `CLAUDE.md`, gated by `claude-md-sync.test.ts`) — is `code quick`, because the record owes a test run.

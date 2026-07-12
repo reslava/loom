@@ -219,7 +219,7 @@ The "is this thread already in transcript?" decision lives **in the AI**, not in
 
 A small set of **loom words** map deterministically to one action, so the user never spells out the tool and the AI never guesses from phrasing. Each fires **only in its trigger context** — outside it the word is ordinary English. Full mappings, triggers, chains, and rejections live in the workspace's \`loom/refs/loom-slang-reference.md\` if present; the essentials:
 
-- \`read {weaveSlug}/{threadSlug}/{docSlug}\` — load \`loom://context/...\` for that doc (\`?mode=chat\` for a chat).
+- \`read {weaveSlug}/{threadSlug}/{docSlug}\` — load \`loom://context/...\` for that doc (\`?mode=chat\` for a chat). **If the target is a chat doc with a pending user turn (one after the last \`## AI:\`), \`read\` implies \`reply\`** — flow straight into the reply chain. Reading a non-chat doc, or a chat whose last turn is already \`## AI:\`, stays load-only.
 - \`reply\` *(a chat doc is active)* — \`loom_read_chat_tail\` → compose → \`loom_append_to_chat\`.
 - \`do quick\` — \`loom_quick_ship\` (record already-done work; never writes code).
 - \`code quick\` *(a source-code change was agreed in the active chat)* — implement it → build + test + verify → \`loom_quick_ship\`. Any source touch — or a **test-gated contract file** (a file your project's tests validate, e.g. an agent-contract file checked by a sync test) — is \`code quick\`, because the record owes a test run.
