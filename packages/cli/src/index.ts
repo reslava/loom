@@ -40,6 +40,7 @@ import { migratePlanStepsCommand } from './commands/migratePlanSteps';
 import { migrateCommand } from './commands/migrate';
 import { migrateLayoutCommand } from './commands/migrateLayout';
 import { roadmapCommand } from './commands/roadmap';
+import { reportCommand } from './commands/report';
 import { backfillReleasesCommand } from './commands/backfillReleases';
 import { backfillDesignVersionsCommand } from './commands/backfillDesignVersions';
 import { backfillStalenessBaselinesCommand } from './commands/backfillStalenessBaselines';
@@ -393,6 +394,12 @@ program
     .option('--group-by-thread', 'Group history by thread')
     .option('--group-by-release', 'Group history by release version')
     .action((options) => roadmapCommand({ groupByThread: options.groupByThread, groupByRelease: options.groupByRelease }));
+
+program
+    .command('report <kind>')
+    .description('Generate an analytical report from the Loom doc graph (slice 1: "project-overview" over the roadmap). Prints a brief; the running agent synthesizes and persists via loom_create_report.')
+    .option('--weave <slug>', 'Scope/persist the report to a single weave (omit for a cross-weave roadmap report)')
+    .action((kind, options) => reportCommand(kind, { weave: options.weave }));
 
 program
     .command('record-release <version>')

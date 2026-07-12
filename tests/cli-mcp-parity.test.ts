@@ -20,6 +20,9 @@ const EXCEPTIONS: Record<string, string> = {
     loom_append_done: 'agent-only workflow',
     loom_patch_doc: 'agent-only doc-body edit',
     loom_update_doc: 'agent-only doc-body edit',
+    // The agent persists a synthesized report via this tool; humans use `loom report`
+    // (the brief-returning shim), which does not create — so no CLI twin.
+    loom_create_report: 'agent-only report persist (human uses `loom report`)',
     // Plan-step authoring (agent/extension compose steps; not a way-③ tree op).
     loom_add_step: 'plan-step authoring (agent/extension)',
     loom_remove_step: 'plan-step authoring (agent/extension)',

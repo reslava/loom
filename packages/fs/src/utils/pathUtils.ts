@@ -2,7 +2,10 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'yaml';
 
-const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'chats', 'ctx', 'refs', '.archive']);
+// `reports` holds standalone report-artifact snapshots (weave-scoped:
+// loom/{weave}/reports/) — deliberately NOT a thread and NOT part of the doc graph
+// (see loom-ai-analysis storage decision A), so it is reserved here too.
+const RESERVED_SUBDIR_NAMES = new Set(['plans', 'done', 'chats', 'ctx', 'refs', 'reports', '.archive']);
 
 /**
  * Returns thread subdirectory names within a weave folder.
@@ -26,7 +29,9 @@ export async function findMarkdownFiles(dir: string): Promise<string[]> {
     
     for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory() && entry.name !== '.archive') {
+        // Skip `reports/` — report artifacts are not graph nodes (storage decision A),
+        // so they never enter the link index, diagnostics, or id-uniqueness scans.
+        if (entry.isDirectory() && entry.name !== '.archive' && entry.name !== 'reports') {
             result.push(...await findMarkdownFiles(fullPath));
         } else if (entry.isFile() && entry.name.endsWith('.md')) {
             result.push(fullPath);

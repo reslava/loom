@@ -15,6 +15,7 @@ const TYPE_PREFIX: Record<DocumentType, string> = {
     reference: 'rf_',
     req:       'rq_',
     thread:    'th_',
+    report:    'rp_',
 };
 
 const ULID_PATTERN = /^([a-z]{2}_)([0-9A-Z]{26})$/;

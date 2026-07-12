@@ -70,6 +70,7 @@ import * as doStep from './tools/doStep';
 import * as appendDone from './tools/appendDone';
 import * as listPlanSteps from './tools/listPlanSteps';
 import * as createReference from './tools/createReference';
+import * as createReport from './tools/createReport';
 import * as setContextPrefs from './tools/setContextPrefs';
 import * as getContextPrefs from './tools/getContextPrefs';
 import * as install from './tools/install';
@@ -84,6 +85,7 @@ import * as generateIdea from './prompts/generateIdea';
 import * as generateDesign from './prompts/generateDesign';
 import * as generatePlan from './prompts/generatePlan';
 import * as validateState from './prompts/validateState';
+import * as report from './prompts/report';
 
 // A registered tool: its wire definition + handler, tagged with a discovery `group`.
 // `group` is a sibling of `toolDef` (never sent over the wire in ListTools) and is the
@@ -100,7 +102,7 @@ function reg(group: string, mods: ToolModule[]): GroupedTool[] {
 }
 
 const PROMPTS = [
-    continueThread, doNextStep, refineDesign, generateIdea, generateDesign, generatePlan, validateState,
+    continueThread, doNextStep, refineDesign, generateIdea, generateDesign, generatePlan, validateState, report,
 ];
 
 const CONCRETE_RESOURCES = [
@@ -137,7 +139,7 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
     );
 
     const TOOLS: GroupedTool[] = [
-        ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createChat, createWeave]),
+        ...reg('create', [createIdea, createDesign, createPlan, createReq, createReference, createReport, createChat, createWeave]),
         ...reg('doc', [updateDoc, setStatus, patchDoc, archive, restore, deleteItem, rename, renameDocFile, createPromoteTool(server)]),
         ...reg('refine', [createRefineIdeaTool(server), createRefinePlanTool(server), createRefineDesignTool(server)]),
         ...reg('generate', createGenerateTools(server)),

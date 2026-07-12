@@ -51,6 +51,10 @@ run_test tests/req.test.ts
 # req coverage: pure structural check (uncovered / excluded-violation / unknown citation)
 run_test tests/req-coverage.test.ts
 
+# report artifacts (storage decision A): standalone loom/reports/ snapshots, rp_ id,
+# minimal frontmatter + Provenance body, invisible to LoomState + link index (no phantom weave/thread)
+run_test tests/reports.test.ts
+
 # req handle integrity: diffReqHandles refuses renumber/delete, allows append + ~dropped
 run_test tests/req-diff.test.ts
 

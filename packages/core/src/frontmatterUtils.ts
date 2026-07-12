@@ -151,6 +151,9 @@ const ORDERED_KEYS = [
     'last_ai_block',
     // ctx-specific
     'source_hash',
+    // report-specific (snapshot artifacts; see loom/ai-integration/loom-ai-analysis)
+    'kind',
+    'generated_at',
 ];
 
 // The structured step fields persisted to frontmatter (snake_case, the canonical

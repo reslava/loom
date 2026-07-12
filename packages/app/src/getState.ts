@@ -60,7 +60,11 @@ export async function getState(deps: GetStateDeps, input?: GetStateInput): Promi
         for (const entry of entries) {
             const entryPath = path.join(weavesDir, entry);
             const stat = await deps.fs.stat(entryPath);
-            if (stat.isDirectory() && entry !== '.archive') {
+            // `reports/` is the report-artifact home (loom/reports/), NOT a weave —
+            // reports are standalone snapshot artifacts deliberately kept out of
+            // LoomState (see loom-ai-analysis storage decision A). Skip it here so a
+            // top-level reports dir is never misread as a phantom weave.
+            if (stat.isDirectory() && entry !== '.archive' && entry !== 'reports') {
                 if (entry === 'chats') {
                     // Global chats directory — load chat docs directly
                     const chatFiles = (await deps.fs.readdir(entryPath)).filter((f: string) => f.endsWith('.md'));
