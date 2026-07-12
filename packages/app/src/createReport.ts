@@ -58,19 +58,26 @@ export async function createReport(
     const date = todayStamp();
     const generatedAt = nowIso();
 
+    // The filename appends `({date})`, so a title that already ends in a date would
+    // double it (e.g. "Overview (2026-07-12) (2026-07-12) - …"). Strip a trailing
+    // `(YYYY-MM-DD)` from the title before using it — the prompt asks for a date-less
+    // title, this is the belt-and-suspenders for a title that carries one anyway. The
+    // date already lives in `created` / `generated_at`, so the title never needs it.
+    const cleanTitle = title.replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, '').trim() || title;
+
     const reportsDir = input.weaveSlug
         ? path.join(loomRoot, 'loom', input.weaveSlug, 'reports')
         : path.join(loomRoot, 'loom', 'reports');
     await deps.fs.ensureDir(reportsDir);
 
-    const fileStem = safeFileStem(`${title} (${date}) - ${kind} report`);
+    const fileStem = safeFileStem(`${cleanTitle} (${date}) - ${kind} report`);
     const filePath = path.join(reportsDir, `${fileStem}.md`);
 
     const frontmatter = [
         '---',
         'type: report',
         `id: ${id}`,
-        `title: "${title.replace(/"/g, '\\"')}"`,
+        `title: "${cleanTitle.replace(/"/g, '\\"')}"`,
         'status: active',
         `created: ${date}`,
         'version: 1',

@@ -73,6 +73,19 @@ async function run() {
     assert(!index.byId.has(res2.id), 'weave-scoped report id absent from link index');
     console.log('  ✅ reports absent from link index (excluded from graph / diagnostics / requires_load)');
 
+    // 5. A title that already carries a trailing date must NOT double it in the
+    //    filename (the pattern appends `({date})`), and the stored title is de-dated —
+    //    the date already lives in created / generated_at.
+    const res3 = await createReport(
+        { kind: 'project-overview', title: 'Dated Overview (2026-07-12)', content: 'body' },
+        { getActiveLoomRoot: () => loomRoot, fs },
+    );
+    const dateCount = (path.basename(res3.filePath).match(/\d{4}-\d{2}-\d{2}/g) || []).length;
+    assert(dateCount === 1, `filename carries exactly one date, got ${dateCount}: ${path.basename(res3.filePath)}`);
+    const raw3 = await fs.readFile(res3.filePath, 'utf8');
+    assert(/^title: "Dated Overview"$/m.test(raw3), 'stored title is de-dated (trailing date stripped)');
+    console.log('  ✅ dated title de-duped in filename + frontmatter');
+
     await fs.remove(loomRoot);
     console.log('\n✅ report-artifact tests passed');
 }

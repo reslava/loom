@@ -397,9 +397,10 @@ program
 
 program
     .command('report <kind>')
-    .description('Generate an analytical report from the Loom doc graph (slice 1: "project-overview" over the roadmap). Prints a brief; the running agent synthesizes and persists via loom_create_report.')
+    .description('Generate an analytical report from the Loom doc graph (slice 1: "project-overview" over the roadmap). Prints a brief for your AI agent; pass --run to launch Claude and generate + save it end-to-end.')
     .option('--weave <slug>', 'Scope/persist the report to a single weave (omit for a cross-weave roadmap report)')
-    .action((kind, options) => reportCommand(kind, { weave: options.weave }));
+    .option('--run', 'Launch a Claude agent (headless) to synthesize the report and save it via loom_create_report, instead of printing the brief')
+    .action((kind, options) => reportCommand(kind, { weave: options.weave, run: options.run }));
 
 program
     .command('record-release <version>')

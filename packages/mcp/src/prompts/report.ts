@@ -40,7 +40,7 @@ export async function handle(root: string, args: Record<string, string | undefin
     const persist = [
         'When the report is written, persist it by calling loom_create_report with:',
         `- kind="${kind.slug}"`,
-        '- title="<a concise report title>"',
+        '- title="<a concise report title WITHOUT a date — the date is appended to the filename automatically>"',
         '- content="<the full report markdown you wrote>"',
         weaveSlug ? `- weave_slug="${weaveSlug}"` : '- (omit weave_slug — this is a cross-weave/roadmap report)',
         '- sources=["loom://roadmap"]',
