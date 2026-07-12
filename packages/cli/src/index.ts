@@ -397,10 +397,15 @@ program
 
 program
     .command('report <kind>')
-    .description('Generate an analytical report from the Loom doc graph (slice 1: "project-overview" over the roadmap). Prints a brief for your AI agent; pass --run to launch Claude and generate + save it end-to-end.')
-    .option('--weave <slug>', 'Scope/persist the report to a single weave (omit for a cross-weave roadmap report)')
+    .description('Generate an analytical report from the Loom doc graph (kinds: project-overview, release-notes, architecture, decisions, drift-audit, security). Prints a brief for your AI agent; pass --run to launch Claude and generate + save it end-to-end.')
+    .option('--weave <slug>', 'Scope/persist the report to a single weave (omit for a cross-weave report)')
+    .option('--thread <slug>', 'Scope the report to a single thread')
+    .option('--since <date>', 'Only include docs created on/after this date (YYYY-MM-DD)')
+    .option('--until <date>', 'Only include docs created on/before this date (YYYY-MM-DD)')
     .option('--run', 'Launch a Claude agent (headless) to synthesize the report and save it via loom_create_report, instead of printing the brief')
-    .action((kind, options) => reportCommand(kind, { weave: options.weave, run: options.run }));
+    .action((kind, options) => reportCommand(kind, {
+        weave: options.weave, thread: options.thread, since: options.since, until: options.until, run: options.run,
+    }));
 
 program
     .command('record-release <version>')

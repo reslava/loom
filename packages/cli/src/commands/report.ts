@@ -15,7 +15,10 @@ import { connectLocalMcp } from '../mcpClient';
  * (no argv-length limit, robust for a large roadmap slice) and inherit stdout so the
  * user sees the agent synthesize + persist end-to-end. Slice 1: kind "project-overview".
  */
-export async function reportCommand(kind: string, options: { weave?: string; run?: boolean }): Promise<void> {
+export async function reportCommand(
+    kind: string,
+    options: { weave?: string; thread?: string; since?: string; until?: string; run?: boolean },
+): Promise<void> {
     try {
         const root = getActiveLoomRoot();
         const client = await connectLocalMcp(root);
@@ -23,6 +26,9 @@ export async function reportCommand(kind: string, options: { weave?: string; run
         try {
             const args: Record<string, string> = { kind };
             if (options.weave) args.weaveSlug = options.weave;
+            if (options.thread) args.threadSlug = options.thread;
+            if (options.since) args.from = options.since;
+            if (options.until) args.to = options.until;
             brief = await client.getPrompt('report', args);
         } finally {
             await client.close();

@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 10
+last_ai_block: 13
 ---
 # loom-ai-analysis Chat 002
 
@@ -163,3 +163,48 @@ Which launch shape? Then I finish step 3 + the build/verify (step 4) and the pla
 Both the frictions you hit in this session are now fixed at the root.
 
 Uncommitted this round: plan-002 code (createReport, report prompt, CLI) + its plan/done docs + these chat turns + the earlier report artifact. Want me to **commit** (I'd do one commit for plan-002), and is plan-003 (the selection engine) next, or hold?
+
+## AI:
+
+**Plan-003 (C) done** — all 5 steps ✅, plan auto-closed. Reports are now genuinely kind-driven.
+
+- **① `selectReportDocs`** — I made it a **pure core function over `LoomState`** (like `buildRoadmap`), not the app/fs spread the plan sketched — cleaner and unit-testable with fixtures. Type ∈ `docTypes` selection, weave/thread scoping, inclusive date window, chronological order, coverage manifest.
+- **② prompt routing** — roadmap kinds (project-overview, release-notes) still read `loom://roadmap`; doc-set kinds run `getState → selectReportDocs` and inject the slice + manifest.
+- **③ kinds** — added release-notes, architecture, decisions, drift-audit, security, each with its doc-set + a distinct framing lens (+ "cite ids / don't invent" guardrails).
+- **④ filters** — `--weave --thread --since --until` wired at the CLI edge.
+- **⑤ verify** — new `report-selection.test.ts` (5 assertions) + suite green. Live: `loom report architecture --weave ai-integration` selected **21 design docs, 156 KB** and printed the slice + manifest, not the roadmap.
+
+**One honest finding from the live run:** that 156 KB slice for a *single-weave* architecture report confirms the **token-budgeting I deferred is a real need** — a whole-project `decisions` or `security` report will be far bigger. The manifest surfaces the size (`totalChars`), so it's visible, but the ctx/summary budgeting is the obvious next follow-up (call it C-2) before these kinds are practical at full-project scope.
+
+Two decisions I made without stopping (both reversible, flagging per usual): engine in **core** not app/fs; **no token budget yet** (filters + a size-reporting manifest instead). Say if you'd rather I'd stopped on either.
+
+Plan-003 is uncommitted. Commit it (one commit), and is that the report feature parked for now — or C-2 (token budgeting) next?
+
+## Rafa:
+
+commit plan-C
+
+note: I guess you generated report during plan C implementation, but I see you did not leave any of them saved so I could check them, take into account that generating them cost tokens and I am unemployeed, so pls not now, but next times include in the plans to leave the generated reports saved in `loom/reports`, thanks
+
+briefly explain C-2 and how are you going to solve token issue
+write plan C-2 (include leave saved reports)
+
+## AI:
+
+## C-2 — token budgeting, briefly
+
+**The problem:** doc-set kinds (`decisions`, `security`, whole-project `architecture`) currently select *every* matching doc — that 156 KB weave-scoped slice becomes hundreds of KB at full-project scope = 100k+ input tokens per run. Expensive (your money) and it can overflow the agent's context.
+
+**How I'll solve it — deterministic tiered budgeting, no AI in the selection layer:**
+- `selectReportDocs` gets a **char/token budget** (per-kind default, overridable).
+- When the slice exceeds budget, it **degrades by relevance** (recent/primary docs first):
+  1. **Full body** for the highest-value docs that fit the budget.
+  2. **Summary** for the rest — prefer an existing **ctx** doc for that scope, else a **fixed excerpt** (H1 + section headings + first N lines). *Deterministic — an excerpt, not a model call.*
+  3. **Reference-only** (`{id, title, type, created}`) for the overflow, so the report knows those docs exist.
+- The **manifest records the tiers** so the report states its own coverage ("N full, M summarized, K referenced").
+
+The key: **the selection layer never calls a model** — summaries are excerpts/ctx, so it stays pure, testable, and *free*. The only paid step is the agent synthesizing the final report, and budgeting **shrinks that input** → directly lowers your cost. Filters (already shipped) are the complementary lever.
+
+**On your note:** adopted — C-2's step 4 explicitly generates **one** budgeted report end-to-end and **leaves it saved under `loom/reports`** for you to review (with a before/after size figure), as the single sanctioned paid generation. I'll carry that practice into any future report-generating plan. (And to reiterate: plan C cost you zero report tokens — briefs only.)
+
+Plan **C-2 is plan-004**. Committing plan-C now.

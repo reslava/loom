@@ -55,6 +55,10 @@ run_test tests/req-coverage.test.ts
 # minimal frontmatter + Provenance body, invisible to LoomState + link index (no phantom weave/thread)
 run_test tests/reports.test.ts
 
+# selectReportDocs (report Group C keystone): pure doc-selection over LoomState —
+# type/weave/thread/date filtering, chronological order, coverage manifest
+run_test tests/report-selection.test.ts
+
 # req handle integrity: diffReqHandles refuses renumber/delete, allows append + ~dropped
 run_test tests/req-diff.test.ts
 

@@ -1,15 +1,38 @@
-import { getReportKind, reportKindSlugs } from '../../../core/dist';
+import { getReportKind, reportKindSlugs, selectReportDocs, ReportFilters, ReportSelection } from '../../../core/dist';
+import { getState } from '../../../app/dist/getState';
+import { getActiveLoomRoot, loadWeave, buildLinkIndex, ConfigRegistry } from '../../../fs/dist';
+import * as fs from 'fs-extra';
 import { handleRoadmapResource } from '../resources/roadmap';
+import { initStateCache, getCachedState, setCachedState } from '../stateCache';
 
 export const promptDef = {
     name: 'report',
     description:
-        'Assemble a filtered slice of the Loom doc graph for a report kind and return an instruction to synthesize the report, then persist it via loom_create_report. Slice 1: kind "project-overview", selection = roadmap passthrough.',
+        'Assemble a filtered slice of the Loom doc graph for a report kind and return an instruction to synthesize the report, then persist it via loom_create_report. Roadmap-sourced kinds (project-overview) read loom://roadmap; doc-set kinds select docs by kind.docTypes + filters via selectReportDocs.',
     arguments: [
-        { name: 'kind', description: 'Report kind slug (e.g. "project-overview").', required: true },
-        { name: 'weaveSlug', description: 'Optional weave slug filter (also the persist target + provenance).', required: false },
+        { name: 'kind', description: 'Report kind slug (e.g. "project-overview", "architecture").', required: true },
+        { name: 'weaveSlug', description: 'Optional weave filter (also the persist target + provenance).', required: false },
+        { name: 'threadSlug', description: 'Optional thread filter.', required: false },
+        { name: 'from', description: 'Optional inclusive lower bound on doc created date (YYYY-MM-DD).', required: false },
+        { name: 'to', description: 'Optional inclusive upper bound on doc created date (YYYY-MM-DD).', required: false },
     ],
 };
+
+/** Render a selectReportDocs result as an agent-readable markdown slice. */
+function renderSelection(sel: ReportSelection): string {
+    const m = sel.manifest;
+    const lines: string[] = [
+        `Source slice — ${m.totalDocs} doc(s) selected for kind "${m.kind}" (types: ${m.docTypes.join(', ') || '—'}).`,
+        `Coverage manifest: counts=${JSON.stringify(m.counts)} · totalDocs=${m.totalDocs} · totalChars=${m.totalChars}` +
+            (Object.keys(m.filters).length ? ` · filters=${JSON.stringify(m.filters)}` : ''),
+        '',
+    ];
+    for (const d of sel.docs) {
+        const loc = `${d.weaveSlug ?? '—'}${d.threadSlug ? `/${d.threadSlug}` : ''}`;
+        lines.push('---', `### [${d.type}] ${d.title} · id: ${d.id} · ${loc} · created ${d.created}`, '', d.body, '');
+    }
+    return lines.join('\n');
+}
 
 export async function handle(root: string, args: Record<string, string | undefined>) {
     const kindSlug = args['kind'];
@@ -20,21 +43,40 @@ export async function handle(root: string, args: Record<string, string | undefin
     }
 
     const weaveSlug = args['weaveSlug'];
+    const filters: ReportFilters = {
+        weaves: weaveSlug ? [weaveSlug] : undefined,
+        threads: args['threadSlug'] ? [args['threadSlug']] : undefined,
+        from: args['from'] ?? undefined,
+        to: args['to'] ?? undefined,
+    };
+
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
-    // Slice 1: selection is a roadmap passthrough for every kind (project-overview).
-    // Later slices route by kind.docTypes through the deterministic app/fs selection.
     let sliceText = '';
-    try {
-        const roadmap = await handleRoadmapResource(root, 'loom://roadmap');
-        sliceText = roadmap.contents[0].text;
-    } catch { /* selection is best-effort */ }
+    let sourcesHint = '["loom://roadmap"]';
+
+    if (kind.docTypes.length === 0) {
+        // Roadmap-sourced kind (e.g. project-overview): read the derived roadmap.
+        try {
+            const roadmap = await handleRoadmapResource(root, 'loom://roadmap');
+            sliceText = `Source slice — the derived roadmap (loom://roadmap):\n\n\`\`\`json\n${roadmap.contents[0].text}\n\`\`\``;
+        } catch { /* selection is best-effort */ }
+    } else {
+        // Doc-set kind: deterministic selection over the current state.
+        initStateCache(root);
+        let state = getCachedState();
+        if (!state) {
+            const registry = new ConfigRegistry();
+            state = await getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root });
+            setCachedState(state);
+        }
+        const selection = selectReportDocs(state, kind, filters);
+        sliceText = renderSelection(selection);
+        sourcesHint = '[the ids of the docs listed in the slice above]';
+    }
 
     if (sliceText) {
-        messages.push({
-            role: 'user',
-            content: { type: 'text', text: `Source slice — the derived roadmap (loom://roadmap):\n\n\`\`\`json\n${sliceText}\n\`\`\`` },
-        });
+        messages.push({ role: 'user', content: { type: 'text', text: sliceText } });
     }
 
     const persist = [
@@ -42,8 +84,8 @@ export async function handle(root: string, args: Record<string, string | undefin
         `- kind="${kind.slug}"`,
         '- title="<a concise report title WITHOUT a date — the date is appended to the filename automatically>"',
         '- content="<the full report markdown you wrote>"',
-        weaveSlug ? `- weave_slug="${weaveSlug}"` : '- (omit weave_slug — this is a cross-weave/roadmap report)',
-        '- sources=["loom://roadmap"]',
+        weaveSlug ? `- weave_slug="${weaveSlug}"` : '- (omit weave_slug — this is a cross-weave report)',
+        `- sources=${sourcesHint}`,
     ].join('\n');
 
     const instruction = [
@@ -56,8 +98,5 @@ export async function handle(root: string, args: Record<string, string | undefin
 
     messages.push({ role: 'user', content: { type: 'text', text: instruction } });
 
-    return {
-        description: `Generate a ${kind.title} report`,
-        messages,
-    };
+    return { description: `Generate a ${kind.title} report`, messages };
 }
