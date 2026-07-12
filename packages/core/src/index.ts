@@ -79,8 +79,8 @@ export {
     planOrdinalFromFile, chatOrdinalFromFile,
 } from './docNaming';
 export { AIClient, Message } from './ai';
-export { ReportKind, REPORT_KINDS, getReportKind, reportKindSlugs } from './reportKinds';
-export { selectReportDocs, ReportFilters, ReportDocSlice, ReportManifest, ReportSelection } from './reportSelection';
+export { ReportKind, REPORT_KINDS, getReportKind, reportKindSlugs, DEFAULT_REPORT_MAX_CHARS } from './reportKinds';
+export { selectReportDocs, deterministicExcerpt, ReportFilters, ReportTier, ReportDocSlice, ReportManifest, ReportSelection } from './reportSelection';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep, resolveBlockedByIds } from './planUtils';

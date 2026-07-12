@@ -21,15 +21,29 @@ export const promptDef = {
 /** Render a selectReportDocs result as an agent-readable markdown slice. */
 function renderSelection(sel: ReportSelection): string {
     const m = sel.manifest;
+    const coverage =
+        `Coverage manifest: counts=${JSON.stringify(m.counts)} · tiers=${JSON.stringify(m.tiers)} · ` +
+        `${m.emittedChars} of ${m.fullChars} chars emitted · budget=${m.maxChars} · budgeted=${m.budgeted}` +
+        (Object.keys(m.filters).length ? ` · filters=${JSON.stringify(m.filters)}` : '');
     const lines: string[] = [
         `Source slice — ${m.totalDocs} doc(s) selected for kind "${m.kind}" (types: ${m.docTypes.join(', ') || '—'}).`,
-        `Coverage manifest: counts=${JSON.stringify(m.counts)} · totalDocs=${m.totalDocs} · totalChars=${m.totalChars}` +
-            (Object.keys(m.filters).length ? ` · filters=${JSON.stringify(m.filters)}` : ''),
-        '',
+        coverage,
     ];
+    if (m.budgeted) {
+        lines.push(
+            '',
+            `NOTE ON COVERAGE — this slice was budget-degraded (${m.elision}). Each doc header below ` +
+            `is tagged with its tier: [full] = full body; [summary] = a deterministic excerpt or a ` +
+            `scope ctx (NOT the full text); [reference] = a marker only, body elided for budget. When ` +
+            `you write the report, state its coverage honestly: do NOT present summarized/referenced ` +
+            `docs as if you read them in full, and note which areas are covered only at summary or ` +
+            `reference depth.`,
+        );
+    }
+    lines.push('');
     for (const d of sel.docs) {
         const loc = `${d.weaveSlug ?? '—'}${d.threadSlug ? `/${d.threadSlug}` : ''}`;
-        lines.push('---', `### [${d.type}] ${d.title} · id: ${d.id} · ${loc} · created ${d.created}`, '', d.body, '');
+        lines.push('---', `### [${d.type}] [${d.tier}] ${d.title} · id: ${d.id} · ${loc} · created ${d.created}`, '', d.body, '');
     }
     return lines.join('\n');
 }

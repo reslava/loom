@@ -17,7 +17,22 @@ export interface ReportKind {
     scopeHint: 'cross-weave' | 'weave' | 'thread';
     /** The synthesis instruction lens handed to the agent by the `report` prompt. */
     promptFraming: string;
+    /**
+     * Optional per-kind deterministic char budget for the selected slice. Falls back to
+     * `DEFAULT_REPORT_MAX_CHARS`, and a caller may override per-run. When the full slice
+     * exceeds it, `selectReportDocs` degrades lower-relevance docs to summaries /
+     * reference-only — no AI, so it stays pure and free.
+     */
+    maxChars?: number;
 }
+
+/**
+ * Default deterministic char budget for a report's selected slice (~15k tokens at ~4
+ * chars/token). A kind may override via `maxChars`; a caller may override per-run.
+ * Roadmap-sourced kinds (empty `docTypes`) bypass selection, so the budget never applies
+ * to them.
+ */
+export const DEFAULT_REPORT_MAX_CHARS = 60000;
 
 export const REPORT_KINDS: Record<string, ReportKind> = {
     'project-overview': {

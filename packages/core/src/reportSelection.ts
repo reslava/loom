@@ -1,20 +1,27 @@
 import { LoomState } from './entities/state';
-import { ReportKind } from './reportKinds';
+import { ReportKind, DEFAULT_REPORT_MAX_CHARS } from './reportKinds';
 
 /**
  * Deterministic doc-selection for reports — the pure keystone of the report feature.
  *
  * A pure function over `LoomState` (mirrors `buildRoadmap`): given a report kind and a
  * scope filter, it gathers the docs whose `type ∈ kind.docTypes` within the filter,
- * orders them deterministically, and returns them plus a coverage `manifest`. No IO, no
- * AI — the MCP `report` prompt calls `getState` then this, so it is unit-testable with a
- * state fixture. (Roadmap-sourced kinds like `project-overview` carry an empty
- * `docTypes` and bypass this — the prompt reads `loom://roadmap` for them.)
+ * orders them deterministically, applies a deterministic token budget, and returns them
+ * plus a coverage `manifest`. No IO, no AI — the MCP `report` prompt calls `getState`
+ * then this, so it is unit-testable with a state fixture. (Roadmap-sourced kinds like
+ * `project-overview` carry an empty `docTypes` and bypass this — the prompt reads
+ * `loom://roadmap` for them.)
  *
- * Slice-C scope: select-all-within-filters + chronological order + a size-reporting
- * manifest. A token budget that prefers ctx/summaries over full bodies when oversized is
- * a deliberate later refinement — filters (--weave/--thread/--since/--until) are the
- * scope control for now, and `manifest.totalChars` makes the size visible.
+ * Token budget (C-2): a whole-project `decisions`/`security` report can be hundreds of KB.
+ * When the full slice exceeds `maxChars`, docs degrade in tiers by relevance (most recent
+ * first keep full bodies):
+ *   - **full** — full body, for the docs that fit the budget;
+ *   - **summary** — a deterministic summary for the rest: an existing ctx doc for that
+ *     scope if present, else a fixed excerpt (H1 + section headings + first N lines);
+ *   - **reference** — a short `{id,title,type,created}` marker for the overflow.
+ * Every summary is an excerpt or an existing ctx doc — never model output — so the
+ * function stays pure, testable, and free. The manifest records `fullChars` (pre-budget)
+ * vs `emittedChars` (post-budget) so a report can state its own coverage.
  */
 
 export interface ReportFilters {
@@ -28,6 +35,9 @@ export interface ReportFilters {
     to?: string | null;
 }
 
+/** The tier at which a doc was emitted under the budget. */
+export type ReportTier = 'full' | 'summary' | 'reference';
+
 export interface ReportDocSlice {
     id: string;
     type: string;
@@ -35,6 +45,9 @@ export interface ReportDocSlice {
     weaveSlug: string | null;
     threadSlug: string | null;
     created: string;
+    /** How this doc was emitted under the budget: full body, deterministic summary, or marker. */
+    tier: ReportTier;
+    /** Emitted content for the doc's tier (full body, summary, or reference-only marker). */
     body: string;
 }
 
@@ -45,7 +58,18 @@ export interface ReportManifest {
     /** Count of selected docs by type. */
     counts: Record<string, number>;
     totalDocs: number;
-    totalChars: number;
+    /** The char budget in effect for this run. */
+    maxChars: number;
+    /** Total chars of ALL selected docs' FULL bodies, before any budget degradation. */
+    fullChars: number;
+    /** Total chars actually emitted after budget degradation (≈ ≤ maxChars once budgeted). */
+    emittedChars: number;
+    /** True when the full slice exceeded the budget and degradation was applied. */
+    budgeted: boolean;
+    /** Per-tier doc counts (how many docs were emitted at full / summary / reference depth). */
+    tiers: { full: number; summary: number; reference: number };
+    /** Human-readable coverage/elision summary, e.g. "12 full, 8 summarized, 3 referenced — 58k of 240k chars (budget 60k)." */
+    elision: string;
 }
 
 export interface ReportSelection {
@@ -53,10 +77,74 @@ export interface ReportSelection {
     manifest: ReportManifest;
 }
 
+/** Internal collected shape — carries the raw full body before budget tiering. */
+interface Collected {
+    id: string;
+    type: string;
+    title: string;
+    weaveSlug: string | null;
+    threadSlug: string | null;
+    created: string;
+    rawBody: string;
+}
+
+const GLOBAL_CTX = '__global__';
+
+/**
+ * Deterministic, AI-free summary of a doc body: its H1, its section headings, and the
+ * first N content lines. Pure string work — same input always yields the same output.
+ */
+export function deterministicExcerpt(body: string, maxLines = 12): string {
+    const lines = body.split('\n');
+    const h1 = lines.find(l => /^#\s+/.test(l))?.replace(/^#\s+/, '').trim() ?? '';
+    const headings = lines
+        .filter(l => /^#{2,3}\s+/.test(l))
+        .map(l => l.replace(/^#{2,6}\s+/, '').trim());
+    const firstLines = lines
+        .filter(l => l.trim().length > 0 && !/^#{1,6}\s+/.test(l))
+        .slice(0, maxLines);
+    const parts: string[] = ['_(summary — full body elided for budget)_'];
+    if (h1) parts.push(`# ${h1}`);
+    if (headings.length) parts.push(`**Sections:** ${headings.join(' · ')}`);
+    if (firstLines.length) parts.push(firstLines.join('\n'));
+    return parts.join('\n\n');
+}
+
+/** Short reference-only marker for a doc dropped from the budget entirely. */
+function referenceMarker(d: { type: string; created: string }): string {
+    return `_(reference-only — omitted for budget; ${d.type}, created ${d.created})_`;
+}
+
+/**
+ * Collect ctx doc bodies keyed by scope (weave slug, or GLOBAL_CTX for project-level).
+ * Used as the preferred deterministic summary for a doc when the budget forces degradation.
+ */
+function collectCtxByScope(state: LoomState): Map<string, string> {
+    const map = new Map<string, string>();
+    const put = (scope: string, doc: any): void => {
+        if (doc && doc.type === 'ctx' && typeof doc.content === 'string' && !map.has(scope)) {
+            map.set(scope, doc.content);
+        }
+    };
+    for (const weave of state.weaves ?? []) {
+        const pools: any[] = [
+            ...(weave.allDocs ?? []),
+            ...(weave.refDocs ?? []),
+            ...(weave.looseFibers ?? []),
+            ...(weave.chats ?? []),
+        ];
+        for (const thread of weave.threads ?? []) pools.push(...(thread.allDocs ?? []));
+        for (const d of pools) put(weave.id, d);
+    }
+    for (const d of [...(state.globalDocs ?? []), ...(state.globalChats ?? [])]) put(GLOBAL_CTX, d);
+    return map;
+}
+
 export function selectReportDocs(
     state: LoomState,
     kind: ReportKind,
     filters: ReportFilters = {},
+    maxChars?: number,
 ): ReportSelection {
     const wantTypes = new Set(kind.docTypes);
     const weaveFilter = filters.weaves && filters.weaves.length ? new Set(filters.weaves) : null;
@@ -65,7 +153,7 @@ export function selectReportDocs(
     const to = filters.to ?? null;
 
     const seen = new Set<string>();
-    const collected: ReportDocSlice[] = [];
+    const collected: Collected[] = [];
 
     const consider = (doc: any, weaveSlug: string | null, threadSlug: string | null): void => {
         if (!doc || !doc.id || seen.has(doc.id)) return;
@@ -84,7 +172,7 @@ export function selectReportDocs(
             weaveSlug,
             threadSlug,
             created,
-            body: typeof doc.content === 'string' ? doc.content : '',
+            rawBody: typeof doc.content === 'string' ? doc.content : '',
         });
     };
 
@@ -110,28 +198,99 @@ export function selectReportDocs(
     for (const d of state.globalDocs ?? []) consider(d, null, null);
     for (const d of state.globalChats ?? []) consider(d, null, null);
 
-    // Deterministic order: chronological by `created` (asc), tie-broken by id. A
-    // structural ordering for kinds like `architecture` is a later refinement.
+    // --- Deterministic token budget ---------------------------------------------------
+    const budget = maxChars ?? kind.maxChars ?? DEFAULT_REPORT_MAX_CHARS;
+    const fullChars = collected.reduce((n, d) => n + d.rawBody.length, 0);
+    const budgeted = fullChars > budget;
+
+    const ctxByScope = collectCtxByScope(state);
+    const summaryFor = (d: Collected): string => {
+        const ctx = ctxByScope.get(d.weaveSlug ?? GLOBAL_CTX);
+        if (ctx && ctx.trim().length) {
+            const label = d.weaveSlug ? `weave "${d.weaveSlug}"` : 'global';
+            return `_(summary — ${label} ctx used in place of full body for budget)_\n\n${ctx}`;
+        }
+        return deterministicExcerpt(d.rawBody);
+    };
+
+    const tierById = new Map<string, { tier: ReportTier; body: string }>();
+    if (!budgeted) {
+        for (const d of collected) tierById.set(d.id, { tier: 'full', body: d.rawBody });
+    } else {
+        // Relevance order: most recent first, tie-broken by id — recent docs keep full
+        // bodies; the tail degrades. Greedy packing against a single char budget: try full,
+        // then a deterministic summary, then a reference marker. Deterministic: fixed order
+        // + fixed sizes ⇒ identical tiers on every run.
+        const byRelevance = [...collected].sort((a, b) =>
+            a.created > b.created ? -1 : a.created < b.created ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
+        );
+        let used = 0;
+        for (const d of byRelevance) {
+            if (used + d.rawBody.length <= budget) {
+                tierById.set(d.id, { tier: 'full', body: d.rawBody });
+                used += d.rawBody.length;
+                continue;
+            }
+            const summ = summaryFor(d);
+            if (used + summ.length <= budget) {
+                tierById.set(d.id, { tier: 'summary', body: summ });
+                used += summ.length;
+                continue;
+            }
+            // Reference markers are the floor — every doc keeps at least this. They are
+            // metadata (id/title/type/created already sit in the slice header), so they do
+            // NOT consume the budget: the budget bounds full + summary content only.
+            tierById.set(d.id, { tier: 'reference', body: referenceMarker(d) });
+        }
+    }
+
+    // Deterministic OUTPUT order: chronological by `created` (asc), tie-broken by id — the
+    // narrative order, independent of the relevance order used for budget allocation.
     collected.sort((a, b) =>
         a.created < b.created ? -1 : a.created > b.created ? 1 : a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
     );
 
+    const docs: ReportDocSlice[] = collected.map(d => {
+        const t = tierById.get(d.id)!;
+        return {
+            id: d.id,
+            type: d.type,
+            title: d.title,
+            weaveSlug: d.weaveSlug,
+            threadSlug: d.threadSlug,
+            created: d.created,
+            tier: t.tier,
+            body: t.body,
+        };
+    });
+
     const counts: Record<string, number> = {};
-    let totalChars = 0;
-    for (const d of collected) {
+    const tiers = { full: 0, summary: 0, reference: 0 };
+    let emittedChars = 0;
+    for (const d of docs) {
         counts[d.type] = (counts[d.type] ?? 0) + 1;
-        totalChars += d.body.length;
+        tiers[d.tier] += 1;
+        emittedChars += d.body.length;
     }
 
+    const elision = budgeted
+        ? `${tiers.full} full, ${tiers.summary} summarized, ${tiers.reference} referenced — ${emittedChars} of ${fullChars} chars emitted (budget ${budget}).`
+        : `${tiers.full} full — ${fullChars} chars, within budget ${budget} (no degradation).`;
+
     return {
-        docs: collected,
+        docs,
         manifest: {
             kind: kind.slug,
             docTypes: kind.docTypes,
             filters,
             counts,
-            totalDocs: collected.length,
-            totalChars,
+            totalDocs: docs.length,
+            maxChars: budget,
+            fullChars,
+            emittedChars,
+            budgeted,
+            tiers,
+            elision,
         },
     };
 }
