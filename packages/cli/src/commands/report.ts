@@ -17,7 +17,7 @@ import { connectLocalMcp } from '../mcpClient';
  */
 export async function reportCommand(
     kind: string,
-    options: { weave?: string; thread?: string; since?: string; until?: string; run?: boolean },
+    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; run?: boolean },
 ): Promise<void> {
     try {
         const root = getActiveLoomRoot();
@@ -29,9 +29,24 @@ export async function reportCommand(
             if (options.thread) args.threadSlug = options.thread;
             if (options.since) args.from = options.since;
             if (options.until) args.to = options.until;
+            if (options.full) args.full = 'true';
             brief = await client.getPrompt('report', args);
         } finally {
             await client.close();
+        }
+
+        // --full disables the token budget: warn at the CLI edge with the unbudgeted size.
+        // The estimate reads manifest.fullChars off the brief's coverage line (doc-set kinds
+        // only; roadmap kinds carry no manifest and are unaffected by --full).
+        if (options.full) {
+            const m = brief.match(/(\d+) of (\d+) chars emitted/);
+            const fullChars = m ? parseInt(m[2], 10) : null;
+            console.log(chalk.yellow.bold('\n⚠ --full: token budget DISABLED — sending the full slice, no degradation.'));
+            if (fullChars != null) {
+                console.log(chalk.yellow(`  Full slice ≈ ${fullChars.toLocaleString()} chars (~${Math.round(fullChars / 4 / 1000)}k input tokens) — this is the unbudgeted cost.`));
+            } else {
+                console.log(chalk.gray('  (--full affects doc-set kinds only; roadmap kinds like project-overview are unaffected.)'));
+            }
         }
 
         if (options.run) {

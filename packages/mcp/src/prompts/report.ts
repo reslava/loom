@@ -15,6 +15,7 @@ export const promptDef = {
         { name: 'threadSlug', description: 'Optional thread filter.', required: false },
         { name: 'from', description: 'Optional inclusive lower bound on doc created date (YYYY-MM-DD).', required: false },
         { name: 'to', description: 'Optional inclusive upper bound on doc created date (YYYY-MM-DD).', required: false },
+        { name: 'full', description: 'Disable the token budget — send the full slice with no degradation (doc-set kinds only; can be large/costly).', required: false },
     ],
 };
 
@@ -23,7 +24,7 @@ function renderSelection(sel: ReportSelection): string {
     const m = sel.manifest;
     const coverage =
         `Coverage manifest: counts=${JSON.stringify(m.counts)} · tiers=${JSON.stringify(m.tiers)} · ` +
-        `${m.emittedChars} of ${m.fullChars} chars emitted · budget=${m.maxChars} · budgeted=${m.budgeted}` +
+        `${m.emittedChars} of ${m.fullChars} chars emitted · budget=${Number.isFinite(m.maxChars) ? m.maxChars : 'unlimited'} · budgeted=${m.budgeted}` +
         (Object.keys(m.filters).length ? ` · filters=${JSON.stringify(m.filters)}` : '');
     const lines: string[] = [
         `Source slice — ${m.totalDocs} doc(s) selected for kind "${m.kind}" (types: ${m.docTypes.join(', ') || '—'}).`,
@@ -39,6 +40,14 @@ function renderSelection(sel: ReportSelection): string {
             `docs as if you read them in full, and note which areas are covered only at summary or ` +
             `reference depth.`,
         );
+        if (m.oversizedWeavesWithoutCtx.length) {
+            lines.push(
+                `SUGGESTION — these weaves had docs degraded by the budget but have no ctx to ` +
+                `summarize with: ${m.oversizedWeavesWithoutCtx.join(', ')}. Generating a ctx for ` +
+                `them (e.g. \`loom refresh ctx\` scoped to the weave) would give better summaries ` +
+                `on the next run. (Informational — no ctx is generated automatically.)`,
+            );
+        }
     }
     lines.push('');
     for (const d of sel.docs) {
@@ -63,6 +72,8 @@ export async function handle(root: string, args: Record<string, string | undefin
         from: args['from'] ?? undefined,
         to: args['to'] ?? undefined,
     };
+    // --full: unlimited budget (no degradation). Doc-set kinds only; roadmap kinds ignore it.
+    const maxChars = args['full'] === 'true' ? Infinity : undefined;
 
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
@@ -84,7 +95,7 @@ export async function handle(root: string, args: Record<string, string | undefin
             state = await getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root });
             setCachedState(state);
         }
-        const selection = selectReportDocs(state, kind, filters);
+        const selection = selectReportDocs(state, kind, filters, maxChars);
         sliceText = renderSelection(selection);
         sourcesHint = '[the ids of the docs listed in the slice above]';
     }

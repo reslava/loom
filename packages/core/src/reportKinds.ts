@@ -70,7 +70,8 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     architecture: {
         slug: 'architecture',
         title: 'Architecture',
-        docTypes: ['design', 'reference'],
+        // ctx included as an orientation input (a scope/global summary) — summary-friendly.
+        docTypes: ['design', 'reference', 'ctx'],
         scopeHint: 'cross-weave',
         promptFraming: [
             'Produce an **architecture report** from the design and reference docs in the slice below. Cover:',
@@ -126,6 +127,74 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
             '- **Open concerns** the docs themselves flag as deferred or unresolved.',
             '',
             'Cite doc ids. Be concrete and grounded — do NOT invent vulnerabilities the docs do not describe; this is a review of documented decisions, not a code audit.',
+        ].join('\n'),
+    },
+    // --- Single-doc-type "complete" kinds -------------------------------------------
+    // Each reads exactly one doc type across the whole project — a per-lens complete
+    // report. One doc type is a smaller, bounded slice than the multi-type analytical
+    // kinds, so each carries a higher default budget; narrow with --weave/--thread.
+    ideas: {
+        slug: 'ideas',
+        title: 'Ideas',
+        docTypes: ['idea', 'ctx'],
+        scopeHint: 'cross-weave',
+        maxChars: 150000,
+        promptFraming: [
+            'Produce an **ideas report** — everything the project set out to build — from the idea docs in the slice below. Cover:',
+            '',
+            '- **What each idea proposes** and why it matters (its goal / success criteria).',
+            '- **Themes across ideas** — recurring intents, grouped by area (infer areas from weave/thread names).',
+            '- **Abandoned or superseded intentions**, if the docs show any.',
+            '',
+            'Group related ideas; cite the source idea id. Do NOT invent goals the ideas do not state.',
+        ].join('\n'),
+    },
+    designs: {
+        slug: 'designs',
+        title: 'Designs',
+        docTypes: ['design', 'ctx'],
+        scopeHint: 'cross-weave',
+        maxChars: 150000,
+        promptFraming: [
+            'Produce a **designs report** — the project\'s full design corpus — from the design docs in the slice below. Cover:',
+            '',
+            '- **The approach each design takes** and the key decisions / trade-offs behind it.',
+            '- **How the designs fit together** — shared patterns, layering, cross-cutting conventions.',
+            '- **Tensions or inconsistencies** between designs, if any surface.',
+            '',
+            'Group by area; cite the source design id. Do NOT invent architecture the docs do not describe.',
+        ].join('\n'),
+    },
+    plans: {
+        slug: 'plans',
+        title: 'Plans',
+        docTypes: ['plan', 'ctx'],
+        scopeHint: 'cross-weave',
+        maxChars: 150000,
+        promptFraming: [
+            'Produce a **plans report** — all planned work — from the plan docs in the slice below. Cover:',
+            '',
+            '- **What each plan builds** and the intent of its steps.',
+            '- **Sequencing / dependencies** between plans where the docs show them.',
+            '- **Areas of concentration** — where the planned effort clusters (grouped by weave/thread).',
+            '',
+            'Group by area; cite the source plan id. Do NOT invent work the plans do not describe.',
+        ].join('\n'),
+    },
+    dones: {
+        slug: 'dones',
+        title: 'Shipped',
+        docTypes: ['done', 'ctx'],
+        scopeHint: 'cross-weave',
+        maxChars: 150000,
+        promptFraming: [
+            'Produce a **shipped report** — everything actually implemented — from the done docs in the slice below. Cover:',
+            '',
+            '- **What was built** per plan (turn the done notes into concise outcomes).',
+            '- **Notable decisions recorded during implementation** and any deviations from the plan the notes mention.',
+            '- **Areas delivered** — grouped by weave/thread (and by release where the docs show it).',
+            '',
+            'Group by area; cite the source done id. Do NOT invent work the done docs do not record.',
         ].join('\n'),
     },
 };

@@ -183,6 +183,49 @@ async function run() {
         console.log('  ✅ budget: summary prefers scope ctx, else excerpt');
     }
 
+    // --- Kind registry (coverage & kinds) --------------------------------------------
+    // 11. New single-doc-type kinds, ctx placement, budgets, roadmap kinds untouched.
+    {
+        const k = (s: string) => getReportKind(s)!;
+        assert(k('ideas').docTypes.join(',') === 'idea,ctx', `ideas reads idea+ctx, got ${k('ideas').docTypes.join(',')}`);
+        assert(k('designs').docTypes.join(',') === 'design,ctx', 'designs reads design+ctx');
+        assert(k('plans').docTypes.join(',') === 'plan,ctx', 'plans reads plan+ctx');
+        assert(k('dones').docTypes.join(',') === 'done,ctx', 'dones reads done+ctx');
+        assert([k('ideas'), k('designs'), k('plans'), k('dones')].every(x => x.maxChars === 150000), 'single-doc-type kinds carry the higher 150k budget');
+        assert(k('architecture').docTypes.includes('ctx'), 'architecture (summary-friendly) includes ctx');
+        assert(!k('decisions').docTypes.includes('ctx') && !k('drift-audit').docTypes.includes('ctx') && !k('security').docTypes.includes('ctx'), 'analytical kinds stay ctx-free');
+        assert(k('project-overview').docTypes.length === 0 && k('release-notes').docTypes.length === 0, 'roadmap kinds keep empty docTypes');
+        console.log('  ✅ registry: new kinds, ctx placement, 150k budgets, roadmap untouched');
+    }
+
+    // 12. --full (unlimited budget) disables degradation that a small budget would apply.
+    {
+        const small = selectReportDocs(budgetState, decisions, {}, bodyLen + 50);
+        assert(small.manifest.budgeted, 'small budget degrades the same slice');
+        const unlimited = selectReportDocs(budgetState, decisions, {}, Infinity);
+        assert(!unlimited.manifest.budgeted, 'unlimited budget: not budgeted');
+        assert(unlimited.docs.every(d => d.tier === 'full'), 'unlimited budget: every doc full');
+        assert(unlimited.manifest.emittedChars === unlimited.manifest.fullChars, 'unlimited: emitted == full');
+        assert(!Number.isFinite(unlimited.manifest.maxChars), 'manifest records an unlimited budget');
+        console.log('  ✅ budget: --full (Infinity) disables degradation');
+    }
+
+    // 13. oversizedWeavesWithoutCtx hint: only degraded weaves that lack a ctx.
+    {
+        const big = linesBody('Big', 400);
+        const ctxDoc = docB('ctx', 'wa-ctx', '2026-01-01', '# WA Context\n\nweave wa summary.');
+        const s5 = state([
+            weave('wa', [thread('wa', 'ta', { design: docB('design', 'd-wa', '2026-03-01', big) })], { looseFibers: [ctxDoc] }),
+            weave('wb', [thread('wb', 'tb', { design: docB('design', 'd-wb', '2026-02-01', big) })]),
+        ]);
+        const degraded = selectReportDocs(s5, decisions, {}, 800); // both designs degrade
+        assert(degraded.manifest.oversizedWeavesWithoutCtx.join(',') === 'wb',
+            `hint lists only the ctx-less degraded weave, got [${degraded.manifest.oversizedWeavesWithoutCtx.join(',')}]`);
+        const roomy = selectReportDocs(s5, decisions, {}, big.length * 2 + 1000); // nothing degrades
+        assert(!roomy.manifest.budgeted && roomy.manifest.oversizedWeavesWithoutCtx.length === 0, 'no degradation → empty hint');
+        console.log('  ✅ budget: oversized-weave-without-ctx hint');
+    }
+
     console.log('\n✅ selectReportDocs tests passed');
 }
 

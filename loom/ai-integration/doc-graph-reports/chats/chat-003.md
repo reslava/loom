@@ -2,14 +2,14 @@
 type: chat
 id: ch_01KXBHD8QEHH2T88MJH8SKC9M2
 title: Doc-graph reports — plan-004 C-2 Chat 003
-status: active
+status: done
 created: 2026-07-12
 updated: 2026-07-12
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 9
+last_ai_block: 15
 ---
 # Doc-graph reports — plan-004 C-2 Chat 003
 
@@ -177,3 +177,41 @@ Candidates so far:
 Where should this live permanently? My rec: a dedicated `## Showcase candidates` note in the thread (survives chat scroll, MCP-writable) — or I keep it in-chat. Your call. Chord Flow's reports will get their own entries once we generate them there.
 
 Committing plan-004 now.
+
+## Rafa:
+
+Agree all
+
+Sub-decisions: 
+- Kind names: agree
+- Override flag: `--full`
+- Default budget for single-doc-type kinds — a number (e.g. 150k), still can override with `--full`
+
+## Tracking list
+
+create a reference doc `loom/refs/reports-reference.md` or similar
+sections included inside:
+- all report kinds* 
+- parameters
+- showcase-tracking-list*
+- examples, how to use reports, for what, etc
+
+* include these now, the rest when we finish the thread as last plan step
+
+## AI:
+
+Done — both created (nothing committed yet; review first).
+
+**Reference doc:** `loom/refs/reports-reference.md` (`rf_01KXBTN81V…`) — the two starred sections filled now: **Report kinds** (current 6 + the four new single-doc-type kinds marked "being added") and **Showcase candidates** (seeded: decisions = rejected, project-overview = candidate). Parameters + Examples/how-to are stubbed `(TODO — final thread step)`.
+
+**Plan-005 — "Reports — coverage & kinds"** (`pl_01KXBTP3XQ…`, active draft), your decisions baked in:
+1. Single-doc-type kinds `ideas`/`designs`/`plans`/`dones` — default budget ≈150k each (your number), still `--full`-overridable.
+2. `ctx` in `docTypes` for summary-friendly kinds (architecture + the 4 new) — analytical kinds stay ctx-free.
+3. `--full` unlimited-budget override + token-cost warning at the CLI edge.
+4. On-demand-ctx suggestion when a weave slice overflows and has no ctx (capability, no standing weave-ctx doc).
+5. build + test + one **weave-scoped** sample report saved under `loom/reports` (weave-scoped per your finding-#1 fix).
+6. Complete `reports-reference.md` (Parameters + Examples; promote the new kinds to shipped) — the last step.
+
+Steps 1–4 are largely independent; 5 waits on all four, 6 on 5.
+
+Next: review plan-005, then `start plan` + `do plan` (or `do step N`) when you want to build — or `refine plan` first. Uncommitted: the new ref doc + plan-005 (plus your `chat-002` status flip).
