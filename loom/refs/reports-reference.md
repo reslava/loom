@@ -16,6 +16,8 @@ description: "How Loom reports work: kinds, parameters, showcase candidates, and
 
 Reports are analytical, human-readable documents synthesized by an AI agent from a **deterministic, token-budgeted slice** of the Loom doc graph (chats, ideas, designs, plans, done, roadmap), under a chosen **report kind**. They persist as standalone `report` artifacts (`rp_` ULID) under `loom/reports/` (cross-weave) or `loom/{weave}/reports/` (weave-scoped) — leaf snapshots, deliberately excluded from `LoomState`, refs, staleness, and `requires_load`.
 
+> **Why reports are a differentiator.** Any tool with an LLM can summarize a *codebase*. Reports read the one layer a codebase-only tool structurally can't reach — the **reasoning**: chats, ideas, designs, and done-notes. That is where *why* a decision was taken, which alternatives lost, and where implementation drifted from design actually live. A `decisions` or `drift-audit` report answers questions the source code cannot, because the rationale was never in the code. This is Loom's sharpest single-artifact differentiator — and the most demo-able one.
+
 The seam: **the server selects (deterministic, testable), the agent synthesizes (in the real loop — never sampling).** Selection lives in `selectReportDocs` (pure core); the `report` MCP prompt injects the slice; `loom_create_report` persists the result.
 
 ## Report kinds
@@ -80,9 +82,11 @@ Curated list of generated reports good enough to feature in READMEs / docs — L
 
 | Status | Report | Id | Note |
 |--------|--------|----|------|
+| ⭐ flagship | ChordFlow — Music-Domain Decisions (2026-07-13) | `rp_01KXEPMWR8…` | Cross-repo (Chord Flow). `decisions --weave domain --full` — 12 sections of rationale over 30 chat/design docs, every decision citing its source. The "works on a project that isn't Loom" proof, and a report codebase-only tools can't produce. Featured in the README. |
 | ✅ candidate | Core Engine — Designs (foundational-first) (2026-07-12) | `rp_01KXC9GHQQ…` | weave-scoped `designs --sort oldest`; keeps the 22 foundational designs full (10 newest → reference) — the better showcase shape. Supersedes the recency run below |
 | ↩ superseded | Core Engine — Designs (2026-07-12) | `rp_01KXC1HB5W…` | earlier recency run; foundational designs dropped to reference — kept for the before/after contrast |
 | ✅ candidate | Loom — Project Overview (2026-07-12) | `rp_01KXB088…` | roadmap-based; "useful payoff" |
+| ✅ candidate | Core Engine — Ideas (2026-07-13) | `rp_01KXD3HQDE…` | `ideas --weave core-engine`; what the engine set out to build — the intent lens, complementary to the designs/overview picks. |
 | ❌ rejected | Loom — Decisions (recent, budget-scoped) | `rp_01KXBPQV3F…` | recency-front-loaded whole-project run; regenerate weave-scoped |
 
 ## Examples — how to use reports, and for what

@@ -78,6 +78,7 @@ stable, so they are listed here in full.
 | `loom://catalog` | Grouped index of the whole `loom_*` MCP surface — tools, resources, prompts (name + one-line purpose); `?kind=tools\|resources\|prompts` filters one section | **Before searching for a tool** — then `ToolSearch select:<exact name>` |
 | `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveSlug=&status=` filterable | Need a global or filtered view |
 | `loom://roadmap` | Derived cross-weave roadmap (`RoadmapView` JSON): the single topo+priority `roadmap[]`, history, diagnostics | Reason about cross-weave **blocked-on** |
+| `loom://reports` | Generated report artifacts (kept out of `LoomState`): `id`, `title`, `kind`, `weaveSlug`, `generated_at`, `filePath` | Listing generated reports |
 | `loom://diagnostics` | Broken links, orphaned docs, and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |
 | `loom://summary` | Health counts (weaves, threads, plans, open steps) | Quick status |
 | `loom://link-index` | Document graph: `byId`, parent/child, backlinks, slugs | Checking relationships |
@@ -107,7 +108,7 @@ same grouping `loom://catalog` renders):
 
 | Group | What it covers | Example tool |
 |-------|----------------|--------------|
-| **create** | New idea / design / plan / req / reference / chat | `loom_create_idea` |
+| **create** | New idea / design / plan / req / reference / chat / **report** | `loom_create_idea`, `loom_create_report` |
 | **doc** | Body / requires_load edits, set status, archive, rename, promote | `loom_update_doc`, `loom_set_status`, `loom_patch_doc` |
 | **refine** | Sampling-based rewrite of a stale idea / design / plan | `loom_refine_design` |
 | **generate** | Sampling-based first-draft generation | `loom_generate_plan` |
@@ -142,6 +143,7 @@ here in full.
 | `generate-idea` | `weaveSlug`, `prompt` (`threadSlug` optional) | Drafts an idea from a description (sampling) |
 | `generate-design` | `weaveSlug`, `threadSlug` | Transitions idea → design (sampling) |
 | `generate-plan` | `weaveSlug`, `threadSlug` | Generates a plan from a design (sampling) |
+| `report` | `kind` (weave / thread / date filters optional) | Assembles a deterministic doc-graph slice for a report kind and instructs the agent to synthesize + persist it via `loom_create_report` |
 
 ---
 

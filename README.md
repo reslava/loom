@@ -158,6 +158,44 @@ can trace any decision back to the conversation that made it. You keep the *why*
 
 ---
 
+## Reports — query the *why*, not just the code
+
+**Reports read your project's reasoning, not its source.** Any tool with an LLM can summarize a
+codebase. What a codebase-only tool structurally *cannot* do is tell you **why** — which alternatives
+were weighed, why one won, where the implementation drifted from the design — because that reasoning
+was never in the code. It's in the chats, ideas, designs, and done-notes. Loom reads *those*.
+
+A **report** is an analytical document an AI agent synthesizes from a deterministic, filtered slice of
+the doc graph, under a chosen **kind**:
+
+```bash
+loom report project-overview                    # orient a newcomer, from the roadmap
+loom report decisions   --weave auth            # the "why" behind a weave's choices
+loom report designs     --weave payments --full # the full design corpus of an area
+loom report drift-audit --weave core            # where the code diverged from the design
+```
+
+The server *selects* the slice (deterministic, testable); the agent *reasons* over it (in the real
+agent loop, never a captive sampling call). Each report persists as a versioned `report` doc under a
+**Reports** node, and **every claim cites the source doc it came from** — traceable, not a
+free-floating narrative.
+
+**See it on a real project.** Generated unedited from live history:
+
+- [**ChordFlow — Music-Domain Decisions**](https://github.com/reslava/chord-flow/blob/main/loom/domain/reports/ChordFlow%20Music-Domain%20Decisions%20%E2%80%94%20Why%20the%20Model%20Is%20Shaped%20This%20Way%20%282026-07-13%29%20-%20decisions%20report.md)
+  — the reasoning behind an entire music-theory engine (the timing-vs-harmony split, the rhythm-DSL
+  design, chromatic-degree spelling, "rhythm wins over harmony" when a tie crosses a chord change),
+  synthesized from ChordFlow's `domain` weave across 30 chat and design docs. Every decision cites the
+  conversation that produced it. **This is a report a codebase-only tool cannot produce** — the
+  rationale isn't in the C#, it's in the docs.
+- [**Loom — Project Overview**](./loom/reports/Loom%20%E2%80%94%20Project%20Overview%20%282026-07-12%29%20-%20project-overview%20report.md)
+  — Loom's own roadmap-sourced overview.
+
+→ Kinds, parameters, token budgeting, and the curated showcase set:
+**[Reports reference](./loom/refs/reports-reference.md)**.
+
+---
+
 ## How Loom decides what the AI sees
 
 **This is the part of Loom that matters most — and the part most tools don't have.** The loop
@@ -217,6 +255,7 @@ agents (Devin-style) that run until done. Loom sits in a different position:
 | Human approval gates | ❌ | ❌ | ✅ every phase transition |
 | Context scope control | ❌ | ❌ | ✅ thread-bounded |
 | Auditable context | ❌ | ❌ | ✅ version-controlled docs |
+| Reports from decision history | ❌ | ❌ partial | ✅ chats + designs, not just code |
 | Works with existing agents | — | — | ✅ MCP standard |
 
 Loom's thesis: **human-in-the-loop, document-native, resumable**. The human drives. The AI executes.
@@ -255,6 +294,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `loom://requires-load/{id}` | Recursively resolved context chain |
 | `loom://catalog` | Grouped index of every `loom_*` tool (name + one-line purpose) — read it before searching for a tool, then `ToolSearch select:<name>` |
 | `loom://roadmap` | Derived cross-weave roadmap: one ordered `roadmap` (present + future) + history + cross-weave **blocked-on** + cycle/dangling diagnostics |
+| `loom://reports` | Generated report artifacts (id, title, kind, weave, generated_at, path) — kept out of `LoomState` |
 | `loom://diagnostics` | Broken links, dangling references |
 
 ### Key tools (state mutations)
@@ -263,6 +303,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 |------|-------------|
 | `loom_complete_step` | Mark a plan step done (idempotent) |
 | `loom_create_idea / design / plan / chat` | Create Loom documents |
+| `loom_create_report` | Persist a synthesized report as a versioned `report` doc |
 | `loom_update_doc` | Rewrite doc body / requires_load, preserve frontmatter |
 | `loom_set_status` | Set a doc's lifecycle status (guarded: plan→done needs close, req→locked needs finalize) |
 | `loom_promote` | idea → design → plan, chat → idea |
@@ -276,6 +317,7 @@ The agent owns code execution. Loom owns workflow state. Each stays in its lane.
 | `do-next-step` | Loads the active plan step + all required context; primary "do work" entry point |
 | `continue-thread` | Loads thread context and proposes the next action |
 | `weave-idea / design / plan` | Guided document creation via AI sampling |
+| `report` | Assemble a filtered doc-graph slice for a report kind; the agent synthesizes + persists it |
 
 ---
 
@@ -489,7 +531,12 @@ Real projects built with Loom — beyond Loom building itself:
   idea → design → locked `req` → a plan of cited steps → done. Every decision, every brainstorm, every
   corrected dead-end lives in its `loom/` graph next to the code it produced, so the AI opens each
   session with the *reasoning*, not just the source. ChordFlow's README carries a reciprocal
-  [**Developed with Loom**](https://github.com/reslava/chord-flow#developed-with-loom) section.
+  [**Developed with Loom**](https://github.com/reslava/chord-flow#developed-with-loom) section. And
+  Loom turns that graph into one document: the
+  [**ChordFlow Music-Domain Decisions report**](https://github.com/reslava/chord-flow/blob/main/loom/domain/reports/ChordFlow%20Music-Domain%20Decisions%20%E2%80%94%20Why%20the%20Model%20Is%20Shaped%20This%20Way%20%282026-07-13%29%20-%20decisions%20report.md)
+  synthesizes *why* ChordFlow's music engine is shaped the way it is — from 30 chat and design docs
+  across its `domain` weave, every decision traced to its source — a report no codebase-only tool can
+  produce.
 
 <table>
 <tr>
