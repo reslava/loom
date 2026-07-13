@@ -2,7 +2,7 @@
 type: design
 id: de_01KXAV5RB06F8E13CC9VKC22WE
 title: Doc-graph reports — design
-status: active
+status: done
 created: 2026-07-12
 updated: 2026-07-12
 version: 2
