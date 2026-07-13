@@ -25,6 +25,9 @@ export interface QuickShipInput {
     newThread?: { slug: string; title?: string };
     /** The completed work: one line, or a short list (each entry becomes one done step). */
     description: string | string[];
+    /** Optional plan title — the descriptive label roadmap history shows. Falls back to
+     *  createPlan's generic `{threadSlug} Plan` default when omitted. */
+    title?: string;
     /** Optional done-doc notes; defaults to a record derived from the descriptions. */
     notes?: string;
 }
@@ -106,6 +109,7 @@ export async function quickShip(
         {
             weaveSlug: input.weaveSlug,
             threadUlid: threadUlid,
+            ...(input.title && input.title.trim() ? { title: input.title.trim() } : {}),
             goal,
             steps: descriptions.map(d => ({ description: d })),
         },

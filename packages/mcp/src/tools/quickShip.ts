@@ -5,7 +5,7 @@ import { quickShip } from '../../../app/dist/quickShip';
 export const toolDef = {
     name: 'loom_quick_ship',
     description:
-        'Record already-done work as exactly one new DONE plan in a single call — the one-action way to leave a versioned-history entry for a fast fix/feature (roadmap history + actual_release key on done plans). Composes create-plan → start → complete-each-step → close-with-done-record. It does NOT implement code (do the work first, then quick-ship) and NEVER touches an existing plan — it always mints one fresh done plan. Target either an existing thread (thread_ulid) or mint a new one (newThread); pass exactly one. `description` is one line, or a short list where each entry becomes one done step — each must read as completed work.',
+        'Record already-done work as exactly one new DONE plan in a single call — the one-action way to leave a versioned-history entry for a fast fix/feature (roadmap history + actual_release key on done plans). Composes create-plan → start → complete-each-step → close-with-done-record. It does NOT implement code (do the work first, then quick-ship) and NEVER touches an existing plan — it always mints one fresh done plan. Target either an existing thread (thread_ulid) or mint a new one (newThread); pass exactly one. `description` is one line, or a short list where each entry becomes one done step — each must read as completed work. Pass `title` to give the plan a descriptive label for roadmap history (falls back to a generic `{thread} Plan` when omitted).',
     inputSchema: {
         type: 'object' as const,
         properties: {
@@ -27,6 +27,11 @@ export const toolDef = {
                 oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
                 description:
                     'The completed work: one line (string), or a short list (array) where each entry becomes one DONE step. Each must read as completed work.',
+            },
+            title: {
+                type: 'string',
+                description:
+                    'Optional descriptive plan title for roadmap history. Falls back to a generic `{thread} Plan` when omitted.',
             },
             notes: {
                 type: 'string',
@@ -51,6 +56,7 @@ export async function handle(root: string, args: Record<string, unknown>) {
             threadUlid: args['thread_ulid'] as string | undefined,
             newThread: args['newThread'] as { slug: string; title?: string } | undefined,
             description: args['description'] as string | string[],
+            title: args['title'] as string | undefined,
             notes: args['notes'] as string | undefined,
         },
         { loadWeave: loadWeaveStrict, saveDoc, saveDocs, loadDoc, fs, loomRoot: root },

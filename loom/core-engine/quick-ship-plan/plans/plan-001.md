@@ -1,10 +1,10 @@
 ---
 type: plan
 id: pl_01KWJDPNA1V25053GMBHY97YRR
-title: quick-ship-plan Plan
+title: Quick-ship one-call done-plan recorder (loom_quick_ship)
 status: done
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-13
 version: 1
 design_version: 1
 tags: []
@@ -35,7 +35,7 @@ steps:
     blocked_by: [mcp-tool-loom-quick-ship]
     satisfies: []
 ---
-# quick-ship-plan Plan
+# Quick-ship one-call done-plan recorder (loom_quick_ship)
 
 ## Goal
 

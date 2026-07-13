@@ -48,7 +48,7 @@ async function run() {
         const weaveSlug = 'qs-weave-a';
         const threadUlid = await makeThread(loomRoot, weaveSlug, 'fast-fixes');
         const result = await quickShip(
-            { weaveSlug: weaveSlug, threadUlid, description: 'fixed the serializer typo' },
+            { weaveSlug: weaveSlug, threadUlid, description: 'fixed the serializer typo', title: 'Fix serializer typo' },
             makeDeps(loomRoot),
         );
         assert(result.stepCount === 1, 'single description → 1 step');
@@ -56,9 +56,10 @@ async function run() {
         const plan = await findPlan(loomRoot, weaveSlug, result.planId);
         assert(!!plan, 'quick-shipped plan must exist in state');
         assert(plan.status === 'done', `plan must be done, got ${plan.status}`);
+        assert(plan.title === 'Fix serializer typo', `plan title must be the passed title, got ${plan.title}`);
         assert(plan.steps.length === 1 && plan.steps[0].status === 'done', 'the one step must be done');
         assert(await fs.pathExists(result.donePath), 'done doc must exist');
-        console.log('    ✅ existing thread, single line → one done plan');
+        console.log('    ✅ existing thread, single line → one done plan (descriptive title)');
     }
 
     // ── (b) existing thread, array description → one done plan, all steps done ──
@@ -74,6 +75,7 @@ async function run() {
         assert(result.stepCount === 3, 'array of 3 → 3 steps');
         const plan = await findPlan(loomRoot, weaveSlug, result.planId);
         assert(plan.status === 'done', 'plan must be done');
+        assert(plan.title === 'fast-fixes Plan', `no title passed → generic default, got ${plan.title}`);
         assert(plan.steps.length === 3, 'plan must have 3 steps');
         assert(plan.steps.every((s: any) => s.status === 'done'), 'all steps must be done');
         console.log('    ✅ existing thread, short list → one done plan, all steps done');
