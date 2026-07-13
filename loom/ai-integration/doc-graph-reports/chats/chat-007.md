@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 19
+last_ai_block: 23
 ---
 # doc-graph-reports — docs showcase Chat 007
 
@@ -266,3 +266,56 @@ Agreed — we earned it. 🎉 Kicking off the **1.24.0** release now: changelog 
 **Headline of the release:** doc-graph **reports** as a first-class feature — the very thing we spent this whole chat showcasing now ships to everyone. Riding along: the `load`/`read`/`reply` context split, the optional `loom_quick_ship` title, and the empty-tree-node fix. `record-release` stamped `actual_release=v1.24.0` onto 12 done plans, so the roadmap now owns "what shipped in 1.24.0."
 
 Fitting that the release notes' top line is the feature that can now write your release notes. 😄 Thanks for building this with me, Rafa — genuinely a good one to ship.
+
+## Rafa:
+
+quoting you, 
+>Fitting that the release notes top line is the feature that can now write your release notes.
+hahahha yu has found another recursive loom issue, recursive quick will be the next slang hahahha
+
+## AI:
+
+😄 Ha — the snake keeps finding its own tail. And it's *almost* real, not just a joke: there's already a `release-notes` kind. `loom report release-notes --since <last-tag>` reads the `done` docs + `actual_release` and drafts exactly the CHANGELOG section `do-release` publishes. So the honest recursion is one wire away — **do-release could open by generating its own release notes from the graph, then hand them to me for the human-review gate.** The report writes the draft; you still approve what ships.
+
+`recursive quick` though 💀 — `code quick` that ships a fix to `code quick`, records itself with `do quick`, whose done-note triggers a `write quick`… I'm going to need a bigger stop-rule. Let's *not* give the ouroboros a keyboard just yet. 🐍⌨️
+
+Great release, Rafa. 🥂 Saying `close` on my end unless you want to wire that release-notes loop.
+
+## Rafa:
+
+hahaha
+
+I love the idea `loom report release-notes --since <last-tag>` and you call yourself from do-release skill, snake bites itself again 😉
+
+Spin up thread, idea for `release-notes report`
+
+## AI:
+
+🐍 Snake fed. Spun up:
+
+- **Thread** `release-automation/release-notes-report` (`th_01KXETYHB7…`, priority 40)
+- **Idea** `idea.md` (`id_01KXETZC3S…`) — *"Release-notes report — do-release drafts its changelog from the graph"*
+
+**Weave choice:** I homed it in **`release-automation`**, not `doc-graph-reports` — the user-visible change is to the *release runbook*, and it **reuses the existing `release-notes` kind** rather than adding one. Flagged as an open question if you'd rather it live as a doc-graph-reports follow-up.
+
+The idea captures the concept, the why, and success criteria — but I deliberately left the **real decisions for the design phase**, because there are two genuine forks:
+
+1. **Source of truth — git log vs done docs vs hybrid.** do-release currently drafts from *commits*; the `release-notes` kind reads *done docs + `actual_release`*. They don't line up 1:1 (a commit per change, a done doc per plan; quick fixes/chores have no done doc). This is *the* call.
+2. **The `actual_release` chicken-and-egg** (the sharp one) — `record-release` stamps `actual_release` *during* do-release, *after* the notes are drafted. So at draft time this release's plans aren't stamped yet → the report has to select by **"done since the last tag"** (date window), never by the not-yet-written `actual_release`. That gotcha probably drives the whole selection design.
+
+The human-review STOP stays exactly where it is — the report replaces the *drafting*, never the *approval*.
+
+**Next:** want to talk through fork #1 (git-spine vs graph-sourced vs hybrid) now and move to a design, or park it here as a captured idea for later? Your call — no rush.
+
+## Rafa:
+
+late, tired, see you tomorrow
+thanks!
+
+## AI:
+
+Get some rest — you earned it: shipped v1.24.0, showcased reports, and teed up the next idea, all in one sitting. 🌙
+
+The new thread + idea are written to the graph (just uncommitted in the tree, alongside `ctx-surface-parity/`). Nothing's lost — we'll pick up fork #1 (git-spine vs graph-sourced) fresh tomorrow. Want me to commit the idea + this chat before you go, or leave it for the morning? Either's fine.
+
+Thanks, Rafa — great session. See you tomorrow. 👋
