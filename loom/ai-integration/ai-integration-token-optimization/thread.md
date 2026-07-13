@@ -4,12 +4,12 @@ id: th_01KV3MWS2QHNBVNZVH0G3HEHQ1
 title: Token Consumption Awareness
 status: active
 created: 2026-06-14
-updated: 2026-07-12
+updated: 2026-07-13
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 60
+priority: 70
 depends_on: []
 ---
 # Token Consumption Awareness

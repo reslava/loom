@@ -1,17 +1,17 @@
 ---
 type: thread
-id: th_01KWY5F1566PZZ0DPHFQM1QMQ9
-title: Validate cross-plan pl_ blockedBy refs at write time
+id: th_01KXC5AMQRAPE8J7T39KD1RPNY
+title: ctx scope & surface parity — weave-ctx capability, display, CLI mirror
 status: active
-created: 2026-07-07
+created: 2026-07-12
 updated: 2026-07-13
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 30
+priority: 20
 depends_on: []
 ---
-# Validate cross-plan pl_ blockedBy refs at write time
+# ctx scope & surface parity — weave-ctx capability, display, CLI mirror
 
 Thread manifest — authored roadmap metadata only (`priority` + `depends_on`). The thread's roadmap status and history are *derived* (`buildRoadmap`), never stored here.
