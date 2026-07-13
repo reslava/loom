@@ -72,6 +72,17 @@ export function classifyScope(docId: string, state: LoomState): DocScope | null 
 // Assembler
 // ---------------------------------------------------------------------------
 
+/**
+ * Bundle scope — how much context to assemble around the target doc.
+ *  - 'full' (default): the whole bundle — global/weave ctx + always-refs + parent
+ *    chain + user-includes + the target + requires_load. The `load` slang path.
+ *  - 'doc': ONLY the target doc — no ctx, refs, parent chain, includes, or
+ *    requires_load. The `read`/`reply` slang path: the active thread's context was
+ *    already paid for by a prior `load`, so re-bundling it is the double-read this
+ *    scope exists to avoid. The weaveSlug/threadUlid header is still populated.
+ */
+export type BundleScope = 'full' | 'doc';
+
 const TOKENS_PER_CHAR = 1 / 4;
 
 function estimateTokens(content: string): number {
@@ -125,6 +136,7 @@ export function assembleContext(
     overrides: ContextOverrides,
     state: LoomState,
     alreadyLoaded: LoadedDoc[] = [],
+    scope: BundleScope = 'full',
 ): ContextBundle {
     const catalog = buildCatalog(state);
 
@@ -210,53 +222,64 @@ export function assembleContext(
     const weave = weaveSlug ? state.weaves.find(w => w.id === weaveSlug) : undefined;
     const thread = weave && threadSlug ? weave.threads.find(t => t.id === threadSlug) : undefined;
 
-    // 2a. Global ctx
-    for (const doc of state.globalDocs) {
-        if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'global', 'auto');
-    }
-    // 2b. Weave ctx (loose fibers / weave-level docs of type ctx)
-    if (weave) {
-        for (const doc of [...weave.looseFibers, ...weave.refDocs]) {
-            if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'weave', 'auto');
+    // scope 'doc' (the `read`/`reply` slang path) skips the entire surrounding
+    // bundle — ctx, always-refs, parent chain, user-includes, requires_load — and
+    // emits ONLY the target. The active thread's context was already paid for by a
+    // prior `load` (full bundle); re-assembling it here is the exact double-read
+    // this scope exists to avoid. The weaveSlug/threadUlid header below is still
+    // populated (from `thread`, resolved above), so the caller keeps the
+    // active-thread address, and the ledger split still applies.
+    if (scope === 'full') {
+        // 2a. Global ctx
+        for (const doc of state.globalDocs) {
+            if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'global', 'auto');
+        }
+        // 2b. Weave ctx (loose fibers / weave-level docs of type ctx)
+        if (weave) {
+            for (const doc of [...weave.looseFibers, ...weave.refDocs]) {
+                if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'weave', 'auto');
+            }
+        }
+        // No thread-scoped ctx: a thread's idea/design/plan are loaded in full by the
+        // parent chain (step 4), so a thread-ctx would duplicate context, not compress it.
+        // ctx exists at global + weave scope only.
+
+        // 2d/3. Reference docs (Phase 2): auto-load load:always refs in matching scope, filtered
+        // by load_when vs the effective mode. Ordered global → weave → thread — after ctx and before
+        // the parent chain, per the deterministic ordering rule.
+        for (const doc of state.globalDocs) addReference(doc, 'global');
+        if (weave) {
+            for (const doc of [...weave.looseFibers, ...weave.refDocs]) addReference(doc, 'weave');
+        }
+        if (thread) {
+            for (const doc of thread.allDocs) addReference(doc, 'thread');
+        }
+
+        // 4. Parent chain for a thread target. The req spec is injected FIRST — it is
+        // the authoritative include/exclude/constraints the rest of the chain must
+        // honour, so it frames everything after it. (This is the thread-scope
+        // always-load slot; ctx is global+weave only.)
+        if (thread) {
+            if (thread.req && thread.req.id !== canonicalTargetId) add(thread.req, 'thread', 'auto');
+            if (thread.idea && thread.idea.id !== canonicalTargetId) add(thread.idea, 'thread', 'auto');
+            if (thread.design && thread.design.id !== canonicalTargetId) add(thread.design, 'thread', 'auto');
+            const plan = activePlan(thread.plans);
+            if (plan && plan.id !== canonicalTargetId) add(plan, 'thread', 'auto');
+        }
+
+        // 5. User includes (overrides that add docs).
+        for (const includeId of overrides.include) {
+            const cid = resolveId(state.index, includeId) ?? includeId;
+            const entry = catalog.get(cid);
+            if (entry && !emitted.has(cid)) add(entry.doc, entry.scope, 'user-include');
         }
     }
-    // No thread-scoped ctx: a thread's idea/design/plan are loaded in full by the
-    // parent chain (step 4), so a thread-ctx would duplicate context, not compress it.
-    // ctx exists at global + weave scope only.
 
-    // 2d/3. Reference docs (Phase 2): auto-load load:always refs in matching scope, filtered
-    // by load_when vs the effective mode. Ordered global → weave → thread — after ctx and before
-    // the parent chain, per the deterministic ordering rule.
-    for (const doc of state.globalDocs) addReference(doc, 'global');
-    if (weave) {
-        for (const doc of [...weave.looseFibers, ...weave.refDocs]) addReference(doc, 'weave');
-    }
-    if (thread) {
-        for (const doc of thread.allDocs) addReference(doc, 'thread');
-    }
-
-    // 4. Parent chain for a thread target. The req spec is injected FIRST — it is
-    // the authoritative include/exclude/constraints the rest of the chain must
-    // honour, so it frames everything after it. (This is the thread-scope
-    // always-load slot; ctx is global+weave only.)
-    if (thread) {
-        if (thread.req && thread.req.id !== canonicalTargetId) add(thread.req, 'thread', 'auto');
-        if (thread.idea && thread.idea.id !== canonicalTargetId) add(thread.idea, 'thread', 'auto');
-        if (thread.design && thread.design.id !== canonicalTargetId) add(thread.design, 'thread', 'auto');
-        const plan = activePlan(thread.plans);
-        if (plan && plan.id !== canonicalTargetId) add(plan, 'thread', 'auto');
-    }
-
-    // 5. User includes (overrides that add docs).
-    for (const includeId of overrides.include) {
-        const cid = resolveId(state.index, includeId) ?? includeId;
-        const entry = catalog.get(cid);
-        if (entry && !emitted.has(cid)) add(entry.doc, entry.scope, 'user-include');
-    }
-
-    // 1/6. Target doc itself, then eager + transitive requires_load.
+    // 1/6. Target doc itself, then (full scope only) eager + transitive requires_load.
     add(targetEntry.doc, 'target', 'auto');
-    resolveRequiresLoad(canonicalTargetId, catalog, state, emitted, order, excluded, add);
+    if (scope === 'full') {
+        resolveRequiresLoad(canonicalTargetId, catalog, state, emitted, order, excluded, add);
+    }
 
     const resolved = order.map(id => emitted.get(id)!);
 

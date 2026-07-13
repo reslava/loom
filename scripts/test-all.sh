@@ -104,6 +104,10 @@ run_test tests/append-done.test.ts
 # Context pipeline: pure assembler + serialiser (no IO)
 run_test tests/context-assembler.test.ts
 
+# scope:'doc' — the read/reply slang path: doc-only bundle (no ctx/parent/requires_load),
+# header still carries weaveSlug/threadUlid, and the alreadyLoaded ledger still dedupes
+run_test tests/context-scope-doc.test.ts
+
 # Context Dispatcher (model C): pure assembleContext dedupe (empty ledger → full bundle,
 # full ledger → 0 delta, version bump → re-injected, manifest = assumed-present) + a
 # loom_do_step / loom://context round-trip threading the alreadyLoaded ledger param

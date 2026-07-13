@@ -1,18 +1,18 @@
 ---
 type: reference
 id: rf_01KX95R2202FGMYCYN64STHSKA
-title: "Loom slang"
+title: Loom slang
 status: active
 created: 2026-07-11
-version: 2
+updated: 2026-07-13
+version: 3
 tags: []
 parent_id: null
-child_ids: []
 requires_load: []
 slug: loom-slang
-description: "Canonical User→AI verb protocol: the small set of loom words (read, reply, do quick, code quick, write quick, do step/steps, do plan, docs done), each with its trigger context and exact tool/command mapping."
+description: "Canonical User→AI verb protocol: the small set of loom words (load, read, reply, do quick, code quick, write quick, do step/steps, do plan, docs done), each with its trigger context and exact tool/command mapping. load is heavy-once and sets the active thread; read/reply are cheap doc-only against it."
 ---
-# Loom slang — a canonical User→AI verb protocol
+# Loom slang
 
 A small, canonical set of **loom words** — short verbs the user says to the AI, each mapping **deterministically** to exactly one CLI command / MCP tool / resource, **or a fixed multi-tool sequence**. One word → one known action, so the user never memorizes tool names and the AI never guesses meaning from phrasing.
 
@@ -21,6 +21,22 @@ This doc is the canonical table. It is referenced by the AI session contract (`C
 ## What slang is — and isn't
 
 A word earns slang status **only if** it is **(a)** ambiguous English (fires only in a defined context) **or** **(b)** expands to a fixed multi-tool chain. Any capability with a clean, self-naming command gets **no slang** — the command name already tells the user what to say and the AI what to run (e.g. "set status done for {path}" → `loom set-status` / `loom_set_status`). As command names sharpen, the slang set *shrinks*, not grows. Discovery of the full surface is the job of `loom://catalog`, not slang.
+
+## The active thread — `load` once, `read`/`reply` cheap
+
+The pointer verbs split into a **heavy-once `load`** and **cheap doc-only `read`/`reply`**, so a thread's context is paid for **once per session**, never re-bundled every time you point at one of its docs.
+
+- **`load {weaveSlug}/{threadSlug}`** assembles the whole thread bundle (global/weave ctx + idea + design + req + active plan + requires_load) and makes it the **active thread**. This is the only verb that sets or switches the active thread.
+- **`read` / `reply`** then act **doc-only** (`?scope=doc`) against that active thread: they pull just the pointed doc, not the surrounding bundle you already hold.
+
+**The active thread lives in the AI's context, not the server.** The MCP server is stateless and cannot hold a pointer — so "active thread" means *the last thread the AI `load`ed this session*, tracked in the AI's own context. Every `load` re-affirms it and the AI emits `🧵 Active: {weaveSlug}/{threadSlug}` so the switch is visible.
+
+Practical rules that fall out of this:
+
+- **Bare filenames resolve inside the active thread.** Once a thread is active, `read design`, `reply chat-005`, `read plan-002` resolve within it — the AI knows where a thread's idea / design / req / plans / dones / chats live. You only need the **full `weaveSlug/threadSlug/docSlug`** at session start or when switching threads.
+- **First pointed action of a session implicitly `load`s.** A fresh session has no active thread, so the first `read {path}` / `reply {path}` **loads that path's thread first** (full bundle), then does its read/reply. This is the one friction-free auto-load.
+- **`read` never auto-loads after that (never switches).** Mid-session, `read {otherWeave}/{otherThread}/{doc}` is a **pure peek** — it fetches only that doc (doc-only) and does **not** make that thread active. Reading a doc is read-only and consequence-free, so it is allowed across threads.
+- **`reply` refuses to cross threads.** `reply {fullPath}` is honored **only if it names the active thread**; pointing it at a non-active thread is **refused with a prompt to `load` that thread first**. Replying writes into a thread's living record and needs that thread's context to be sound — different blast radius from a read, so a stricter rule. To reply into another thread, switch first: `load otherWeave/otherThread, reply chat-001`.
 
 ## Execution namespaces: `do {target}` and the `{act} quick` family
 
@@ -35,8 +51,10 @@ Two collision-safe execution families:
 
 | Word | Fires when… | Maps to | Kind |
 |------|-------------|---------|------|
-| `read {weaveSlug}/{threadSlug}/{docSlug}` | a slug path follows the word | `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` (add `?mode=chat` for a chat) — CLI: `loom context <path>`. **If the target is a chat doc with a pending user turn, `read` implies `reply`** — it flows straight into the `reply` chain. | pointer (→ chain for a pending chat) |
+| `load {weaveSlug}/{threadSlug}` | pointing at a thread — session start, or switching the active thread mid-session | `loom://context/thread/{weaveSlug}/{threadSlug}` — the full thread bundle; sets it as the **active thread** and emits `🧵 Active: {weave}/{thread}`. CLI: `loom context thread <weave>/<thread>` | pointer (sets active thread) |
+| `read {docSlug}` *(active thread)* · `read {weaveSlug}/{threadSlug}/{docSlug}` *(full path)* | a doc is pointed at | `loom://context/{weaveSlug}/{threadSlug}/{docSlug}?scope=doc` — **only** that doc, no re-bundle (add `?mode=chat` for a chat). First pointed action of a session `load`s its thread first. **If the target is a chat with a pending user turn, `read` implies `reply`.** | pointer, doc-only (→ chain for a pending chat) |
 | `reply` | a chat doc is the active context | `loom_read_chat_tail` → *[compose]* → `loom_append_to_chat` | chain |
+| `reply {chatSlug}` *(active thread)* · `reply {weaveSlug}/{threadSlug}/{chatSlug}` *(active thread only)* | a chat is pointed at in the **active** thread | load that chat doc-only (`?scope=doc&mode=chat`) → `loom_read_chat_tail` → *[compose]* → `loom_append_to_chat`. A **full path naming a non-active thread is refused** — prompt to `load` it first. | chain, doc-only |
 | `do quick` | you just did some work to record | `loom_quick_ship(...)` — CLI: `loom quick-ship` | pointer to existing command |
 | `code quick` | a **source-code** change was agreed in the active chat but not yet applied | *[implement the code change]* → build + test + verify → `loom_quick_ship(...)` | chain |
 | `write quick` | a **docs/prose-only** change was agreed but not yet applied | *[implement the docs change]* → `loom_quick_ship(...)` (no build/test) | chain |
@@ -47,18 +65,27 @@ Two collision-safe execution families:
 
 Outside its trigger context each word is ordinary English and no action fires — that is what lets the vocabulary use real words without hijacking normal conversation.
 
-**Chaining.** Slang words can be **comma-chained** and run in sequence, left to right — e.g. `code quick, docs done, commit`. Each word still fires only in its own trigger context.
+**Chaining.** Slang words can be **comma-chained** and run in sequence, left to right — e.g. `load weaveA/threadA, reply chat-001` or `code quick, docs done, commit`. Each word still fires only in its own trigger context.
 
 ## The chains, explicit
 
-**`read {path}`** *(pointer — but fuses into `reply` for a live chat)*
+**`load {weaveSlug}/{threadSlug}`** *(sets the active thread)*
 ```
-loom://context/{weaveSlug}/{threadSlug}/{docSlug}   → load the bundle (?mode=chat for a chat)
+loom://context/thread/{weaveSlug}/{threadSlug}   → full thread bundle into context
+   → mark this thread ACTIVE (AI-held); emit  🧵 Active: {weave}/{thread}
+```
+Every later `read`/`reply` in this thread is doc-only from here — the bundle is already held, so it is never re-assembled. Switching threads = another `load`.
+
+**`read {path}`** *(pointer, doc-only — but fuses into `reply` for a live chat)*
+```
+(if no active thread yet — first pointed action of the session)
+   load {weaveSlug}/{threadSlug} first          → establish the active thread
+loom://context/{weaveSlug}/{threadSlug}/{docSlug}?scope=doc   → ONLY that doc
    ↓ if the target is a CHAT doc AND it has a pending user turn
        (a ## {User}: block after the last ## AI:)
    → read implies reply: continue into the reply chain below
 ```
-Only a chat with an *unanswered* user turn triggers the implied reply. Reading a chat whose last turn is already `## AI:`, or reading any non-chat doc (idea / design / plan / req), stays **load-only** — there is nothing to answer.
+With an active thread already set, `read` is doc-only and **never** loads or switches — a `read` of another thread's doc is a pure peek that returns only that doc. Only a chat with an *unanswered* user turn triggers the implied reply; reading a chat whose last turn is already `## AI:`, or any non-chat doc, stays **load-only**.
 
 **`reply`** *(a chat doc is active)*
 ```
@@ -66,6 +93,7 @@ loom_read_chat_tail(id)         → the user's new turns since my last ## AI:
    ↓ [compose the reply]
 loom_append_to_chat(id, body)   → write it under ## AI: (body is the text ONLY — no role header)
 ```
+**`reply {chatSlug}`** resolves the chat inside the **active thread**, loads it doc-only, then runs the same chain. **`reply {weaveSlug}/{threadSlug}/{chatSlug}`** is honored only when it names the active thread — a non-active thread is **refused** with a prompt to `load` it first (switch, then reply).
 
 **`code quick`** *(a source-code change agreed in the active chat, not yet applied)*
 ```
@@ -126,4 +154,5 @@ The step-family slang is a canonical name for an authorization the session contr
 
 - **No single-letter aliases** (`r`, `s`) — a private DSL nobody remembers; they collide with typos and teach a new user nothing. Whole words + the `do {target}` family are self-documenting.
 - **No slang for self-naming commands** — create / refine / promote / set-status / rename / archive / roadmap / stale / search / validate all name themselves; the `loom://catalog` covers discovery.
+- **No `unload` word.** The AI cannot selectively evict a doc from its context window — only a full session reset (or harness-driven compaction) reclaims it. So the only real lever is *not re-loading*, which the `load`/`read` split already provides: an `unload` verb would promise something it can't deliver. If a session's context fills from many `load`s, start a fresh session — that is the real reset.
 - **`docs done` is a recipe, not a CLI command.** It is a rare, agent-mediated `set-status` chain; encoding it as a tri-surface command was weighed and rejected as over-engineering for a once-per-thread op with no extension button. Revisit if usage shows otherwise.

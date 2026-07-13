@@ -87,7 +87,8 @@ stable, so they are listed here in full.
 
 | URI | Returns | Use when |
 |-----|---------|----------|
-| `loom://context/{docUlid}` — or the slug forms `loom://context/thread/{weaveSlug}/{threadSlug}` and `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` | Unified context bundle: global/weave ctx + parent chain + `requires_load` for a target; append `?mode={chat\|idea\|design\|plan\|implementing\|refine\|promote\|ctx}` and `?loaded=id@version,…`. The bundle manifest header carries the resolved `weave_slug` + `thread_ulid` so a following thread-scoped write needs no second lookup. | **Start of any thread work** |
+| `loom://context/{docUlid}` — or the slug forms `loom://context/thread/{weaveSlug}/{threadSlug}` and `loom://context/{weaveSlug}/{threadSlug}/{docSlug}` | Unified context bundle: global/weave ctx + parent chain + `requires_load` for a target; append `?mode={chat\|idea\|design\|plan\|implementing\|refine\|promote\|ctx}`, `?loaded=id@version,…`, and `?scope={full\|doc}`. The bundle manifest header carries the resolved `weave_slug` + `thread_ulid` so a following thread-scoped write needs no second lookup. | **Start of any thread work** |
+| `loom://context/{weaveSlug}/{threadSlug}/{docSlug}?scope=doc` | **Doc-only** variant of the above: returns *only* the target doc — no ctx, parent chain, or `requires_load` — while the header still carries `weave_slug` + `thread_ulid`, and the `?loaded=` ledger still dedupes. Backs the `read`/`reply` slang path so a doc in an already-loaded thread costs just that doc, not a re-bundle. | Pointing at a doc in the **active thread** (already `load`ed) |
 | `loom://docs/{docUlid}` | Raw markdown of any doc by its ULID | Reading a specific doc |
 | `loom://plan/{planUlid}` | Plan doc with steps parsed as JSON | Inspecting a plan's step list |
 | `loom://requires-load/{docUlid}` | All `requires_load` docs, recursive + deduplicated | Loading a doc's full dependency tree |

@@ -335,6 +335,7 @@ program
     .command('context <doc>')
     .description('Print the assembled context bundle for a doc (or thread/<weave>/<thread>)')
     .option('--mode <mode>', 'Context mode (chat|idea|design|plan|implementing|refine|promote|ctx)')
+    .option('--scope <scope>', 'Bundle scope: full (default) or doc (only the target doc, no surrounding bundle)')
     .action(contextCommand);
 
 program

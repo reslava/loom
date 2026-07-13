@@ -150,7 +150,14 @@ export async function handleContextResource(root: string, uri: string) {
     // manifest of what it assumed present. Absent param ⇒ empty ledger ⇒ full bundle.
     const alreadyLoaded = parseLoadedLedger(url.searchParams.get('loaded'));
 
-    const bundle = assembleContext(targetId, mode, overrides, state, alreadyLoaded);
+    // Bundle scope (the `read`/`reply` slang path): `?scope=doc` emits ONLY the target
+    // doc — no ctx, refs, parent chain, or requires_load — so pointing at a doc in an
+    // already-loaded thread costs just that doc, not a re-bundle. Default 'full' keeps
+    // every existing caller (load, do-step, generate, prompts) unchanged. Composes with
+    // ?mode=chat: the target is still resolved as a chat, only the surrounding bundle is dropped.
+    const scope: 'full' | 'doc' = url.searchParams.get('scope') === 'doc' ? 'doc' : 'full';
+
+    const bundle = assembleContext(targetId, mode, overrides, state, alreadyLoaded, scope);
 
     // The sidebar needs the structured bundle (reasons, stale/missing/locked flags,
     // per-doc token estimates) to render its marks; prompt injection needs the

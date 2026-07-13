@@ -196,8 +196,9 @@ knowing — both already fit Loom's model, nothing special to configure:
 
 - **Borrow context from another thread.** Mid-work on thread-A, ask the agent to read another
   thread's idea to recall why a past decision was made — *"read `core-engine/staleness-model`'s
-  idea so you know why we chose the version-based model."* That's a pointed read
-  (`loom://context/{weave}/{thread}/idea`); you stay in thread-A, its scope doesn't change.
+  idea so you know why we chose the version-based model."* That's a **doc-only** pointed read
+  (`loom://context/{weave}/{thread}/idea?scope=doc`) — a harmless peek that pulls just that one
+  doc and leaves thread-A the active thread; its scope doesn't change.
 - **Switch threads early.** Sometimes you start thread-A and immediately realize thread-B has to
   come first. When thread-A has almost no context invested yet, spin up thread-B (idea + a chat),
   point the agent there, and switch. It's cheap precisely because A hadn't started for real.
@@ -217,7 +218,8 @@ words** each map to exactly one action, so you don't spell out the tool every ti
 
 | Say… | When | The AI does |
 |------|------|-------------|
-| `read {weave}/{thread}/{doc}` | you point at a doc | loads the `loom://context/…` bundle for it |
+| `load {weave}/{thread}` | you point at a thread — session start, or switching | loads the full thread bundle **once** and makes it the **active thread** (shows `🧵 Active: {weave}/{thread}`) |
+| `read {doc}` *(active thread)* · `read {weave}/{thread}/{doc}` | you point at a doc | loads **just that doc** (`?scope=doc`) — it does not re-bundle the thread you already hold |
 | `reply` | a chat doc is open | reads just your new turn (`loom_read_chat_tail`) and appends its answer in the chat |
 | `do quick` | after some work to record | records it as a done plan (`quick-ship`) |
 | `code quick` | a code change was agreed in the chat | implements it, builds + tests + verifies, then records it (`quick-ship`) |
@@ -227,12 +229,21 @@ words** each map to exactly one action, so you don't spell out the tool every ti
 | `do plan` | a plan is implementing | implements every pending step |
 | `docs done` | a thread's authored docs are finished | marks its idea, design, and chats done (never plans — reports any plan with open steps) |
 
+**`load` once, then `read`/`reply` cheap.** `load` pays for a thread's whole context a single
+time and makes it the *active thread*; after that `read {doc}` and `reply` pull only the doc you
+point at, so pointing at a fresh chat mid-thread never re-sends the context you already hold. Once
+a thread is active you can drop the path — `reply chat-005`, `read design` resolve inside it; the
+full `{weave}/{thread}/{doc}` is only needed at session start or to switch. Reading across threads
+is a harmless peek (doc-only, no switch); **replying always stays in the active thread** — to reply
+elsewhere, `load` that thread first (`load weaveA/threadA, reply chat-001`).
+
 The **`do …`** words are the plan-execute family; the **`… quick`** words (`do quick` / `code quick` /
-`write quick`) are the low-ceremony quick-fix lane; `read` and `reply` stand alone because they
+`write quick`) are the low-ceremony quick-fix lane; `load`, `read`, and `reply` stand alone because they
 already live in the chat flow. Slang exists only for words that are ambiguous or expand to a
 multi-step chain — anything with a self-naming command (`set-status`, `rename`, `archive`,
 `roadmap`, …) you just say by name. You can **comma-chain** words to run them in sequence
-(`code quick, docs done, commit`). Full mapping, trigger contexts, and the rules behind each word:
+(`load weaveA/threadA, reply chat-001` or `code quick, docs done, commit`). Full mapping, trigger
+contexts, and the rules behind each word:
 [loom-slang-reference.md](../loom/refs/loom-slang-reference.md).
 
 ### The quick-fix lane — a whole small task in one line
