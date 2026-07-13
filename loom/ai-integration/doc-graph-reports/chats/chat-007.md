@@ -9,7 +9,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 16
+last_ai_block: 19
 ---
 # doc-graph-reports — docs showcase Chat 007
 
@@ -243,3 +243,26 @@ On it — committing and pushing both on `main`:
 Once both are pushed, the two README links resolve. I'm staging only this feature's files — the unrelated `ctx-surface-parity/` work sitting in your loom tree is left untouched.
 
 That closes out the reports showcase. 🎉
+
+## Rafa:
+
+I think we both earn a good release party, agree?
+do-release 1.24.0
+
+## AI:
+
+Agreed — we earned it. 🎉 Kicking off the **1.24.0** release now: changelog → version bump → build + test → tag → push → watch the publish workflow. I'll report back here when it's live.
+
+## AI:
+
+🎉 **v1.24.0 is live — release party time!** Every stage green:
+
+`guard ✓ → build-test ✓ (23/23) → publish-npm ✓ · publish-vsce ✓ · publish-ovsx ✓ → GitHub release ✓`
+
+- **npm** — `@reslava/loom@1.24.0`
+- **VS Code Marketplace** + **Open VSX** — `loom-vscode` 1.24.0
+- **GitHub release** — https://github.com/reslava/loom/releases/tag/v1.24.0
+
+**Headline of the release:** doc-graph **reports** as a first-class feature — the very thing we spent this whole chat showcasing now ships to everyone. Riding along: the `load`/`read`/`reply` context split, the optional `loom_quick_ship` title, and the empty-tree-node fix. `record-release` stamped `actual_release=v1.24.0` onto 12 done plans, so the roadmap now owns "what shipped in 1.24.0."
+
+Fitting that the release notes' top line is the feature that can now write your release notes. 😄 Thanks for building this with me, Rafa — genuinely a good one to ship.
