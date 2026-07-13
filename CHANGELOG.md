@@ -10,6 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-07-13
+
+### Added
+- **Doc-graph reports — analytical reports from your project's *reasoning*, not just its code.** A new `loom report <kind>` command (plus a `report` MCP prompt and a `loom_create_report` tool) synthesizes a report from a filtered slice of the Loom document graph — chats, ideas, designs, plans, done-notes, roadmap. Because it reads the reasoning layer, it can answer what a codebase-only tool structurally cannot: *why* a decision was taken, which alternatives lost, where implementation drifted from design. Kinds: `project-overview`, `decisions`, `architecture`, `designs`, `ideas`, `plans`, `dones`, `drift-audit`, `security`, `release-notes`. The server deterministically selects a **token-budgeted** slice — filter with `--weave` / `--thread` / `--since` / `--until`, tiered degradation with a selectable `--sort recency|oldest`, or `--full` to send the whole slice — and the agent synthesizes it in the real loop (never captive sampling). Reports persist as versioned `report` docs (`rp_` ULID) under `loom/reports/`, cite every source doc, and surface in the VS Code tree under a dedicated **Reports** node with a Generate Report action. `loom report <kind> --run` launches a headless Claude agent to generate and save end-to-end. See the [reports reference](loom/refs/reports-reference.md).
+- **`load` / `read` / `reply` slang split — pay for a thread's context once.** Pointed context is now a heavy-once `load` (the full thread bundle, which sets the active thread) plus cheap doc-only `read` / `reply`, so a doc in an already-loaded thread costs just that doc instead of re-bundling the whole thread on every pointed read. Adds `?scope=doc` on `loom://context/...` and `loom context <path> --scope doc` on the CLI (tri-surface parity). Reading a chat that has an unanswered turn now flows straight into `reply`.
+
+### Changed
+- **`loom_quick_ship` takes an optional `title`.** Quick-shipped plans previously inherited a generic `{thread} Plan` title, giving roadmap history non-descriptive entries. A passed `title` now lands on the plan; omitting it keeps the existing fallback.
+
+### Fixed
+- **VS Code tree: empty Reports / Refs / Context nodes always render.** Each of those nodes was hidden when it had no children — but the action that creates the first report / reference / ctx lives *on that node*, a chicken-and-egg empty state (hit on a fresh Chord Flow workspace). The nodes now always render with a click-to-generate placeholder; per-weave / per-thread subsections stay data-driven so the tree gains no clutter.
+
 ## [1.23.0] - 2026-07-11
 
 ### Added
@@ -686,7 +698,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.23.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.24.0...HEAD
+[1.24.0]: https://github.com/reslava/loom/releases/tag/v1.24.0
 [1.23.0]: https://github.com/reslava/loom/releases/tag/v1.23.0
 [1.22.0]: https://github.com/reslava/loom/releases/tag/v1.22.0
 [1.21.2]: https://github.com/reslava/loom/releases/tag/v1.21.2

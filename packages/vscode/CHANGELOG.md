@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.24.0] - 2026-07-13
+
+### Added
+- **A Reports view in the tree.** A new **Reports** node (cross-weave, sibling to Refs, plus a per-weave Reports subsection) lists the generated report docs synthesized from your document graph. A **Generate Report** action (command palette + the Reports node button, and a **Generate Weave Report** right-click on a weave that pre-fills the weave filter) launches a Claude agent that drives the report prompt and saves the result. Report files open read-only — they are immutable snapshots.
+
+### Fixed
+- **Empty Reports / Refs / Context nodes now always render.** Those nodes were hidden when they had no children, but the action that creates the first report / reference / ctx lives on the node itself — so in a fresh workspace it was unreachable. Each empty node now shows a click-to-generate placeholder.
+
 ## [1.23.0] - 2026-07-11
 
 ### Changed

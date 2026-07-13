@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXAV5RB06F8E13CC9VKC22WE
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.24.0
 steps:
   - id: budget-tiered-degradation-in-selectreportdocs
     order: 1

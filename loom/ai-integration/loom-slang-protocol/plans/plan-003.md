@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KX93MWNFW1BVNFCDNM07RSA4
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.24.0
 steps:
   - id: assemblecontext-scope-doc-scope-doc-resource
     order: 1
