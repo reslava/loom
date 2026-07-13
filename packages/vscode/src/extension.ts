@@ -36,6 +36,7 @@ import { closePlanCommand } from './commands/closePlan';
 import { setStatusDoneCommand, setStatusActiveCommand } from './commands/markStatus';
 import { restoreItemCommand } from './commands/restoreItem';
 import { createReferenceCommand } from './commands/createReference';
+import { generateReportCommand } from './commands/generateReport';
 import { addRequiresLoadCommand } from './commands/addRequiresLoad';
 import { sendFeedbackCommand } from './commands/sendFeedback';
 import { setIconBaseUri } from './icons';
@@ -229,6 +230,7 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.setStatusActive', (node?: TreeNode) => setStatusActiveCommand(treeProvider, treeView, node)),
         vscode.commands.registerCommand('loom.restoreItem', (node?: TreeNode) => restoreItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.createReference', () => createReferenceCommand(treeProvider, treeView)),
+        vscode.commands.registerCommand('loom.generateReport', (node?: TreeNode) => generateReportCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.addRequiresLoad', (node?: TreeNode) => addRequiresLoadCommand(node)),
         vscode.commands.registerCommand('loom.refreshCtx', async (node?: TreeNode) => {
             const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

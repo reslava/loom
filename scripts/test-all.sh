@@ -55,6 +55,10 @@ run_test tests/req-coverage.test.ts
 # minimal frontmatter + Provenance body, invisible to LoomState + link index (no phantom weave/thread)
 run_test tests/reports.test.ts
 
+# report scanner backing loom://reports (Group D): finds cross-weave + weave-scoped
+# reports, tags weaveSlug, newest-first order, ignores non-report markdown
+run_test tests/reports-resource.test.ts
+
 # selectReportDocs (report Group C keystone): pure doc-selection over LoomState —
 # type/weave/thread/date filtering, chronological order, coverage manifest
 run_test tests/report-selection.test.ts

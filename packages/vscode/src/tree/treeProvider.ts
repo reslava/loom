@@ -27,6 +27,21 @@ export interface TreeNode extends vscode.TreeItem {
     roadmap?: RoadmapNode;
 }
 
+/**
+ * A report artifact as surfaced by the `loom://reports` resource — NOT a LoomState
+ * `Document`. Reports are leaf snapshots kept out of state (storage decision A), so
+ * the tree sources them from that resource, never from `loom://state`.
+ * `weaveSlug: null` = cross-weave report (top-level loom/reports/).
+ */
+interface ReportInfo {
+    id: string;
+    title: string;
+    kind: string;
+    weaveSlug: string | null;
+    generated_at: string | null;
+    filePath: string;
+}
+
 export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private _onDidChangeTreeData = new vscode.EventEmitter<TreeNode | undefined | void>();
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
@@ -45,6 +60,10 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private weaveIdToNode = new Map<string, TreeNode>();
     private threadKeyToNode = new Map<string, TreeNode>();
     private _afterRefreshCallbacks: Array<() => void> = [];
+    /** Weave-scoped report artifacts (loom/{weave}/reports/), keyed by weave slug, from
+     *  the loom://reports resource. Populated once per refresh, read by the sync weave-node
+     *  builders (mirrors how this.state feeds sync helpers). Reports are not in LoomState. */
+    private weaveScopedReports = new Map<string, ReportInfo[]>();
 
     constructor(private viewStateManager: ViewStateManager) {}
 
@@ -160,6 +179,19 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             const globalCtxDocs = globalDocs?.filter(d => d.type === 'ctx') ?? [];
             const globalRefDocs = globalDocs?.filter(d => (d as any).type === 'reference') ?? [];
 
+            // Report artifacts come from loom://reports (excluded from LoomState by
+            // decision A). Fetch once per refresh, before weaves are grouped: the sync
+            // weave-node builders read weave-scoped reports off this.weaveScopedReports,
+            // and the cross-weave subset feeds the top-level Reports node below.
+            const allReports = await this.readReports();
+            this.weaveScopedReports = new Map();
+            for (const r of allReports) {
+                if (!r.weaveSlug) continue;
+                const arr = this.weaveScopedReports.get(r.weaveSlug) ?? [];
+                arr.push(r);
+                this.weaveScopedReports.set(r.weaveSlug, arr);
+            }
+
             const refsWeave = filtered.find(w => w.id === 'refs');
             const normalWeaves = filtered.filter(w => w.id !== 'refs');
             const nodes = this.groupWeaves(normalWeaves, viewState.grouping);
@@ -234,6 +266,16 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             } else if (globalRefDocs.length > 0) {
                 nodes.push(this.createRefsSection(globalRefDocs));
             }
+
+            // Reports node — cross-weave report artifacts (loom/reports/). Sourced from
+            // the loom://reports resource (fetched above), NOT LoomState (reports are
+            // excluded by decision A, so there is no phantom 'reports' weave). Sibling
+            // to the Refs node.
+            const crossWeaveReports = allReports.filter(r => r.weaveSlug === null);
+            if (crossWeaveReports.length > 0) {
+                nodes.push(this.createReportsSection(crossWeaveReports, 'reports'));
+            }
+
             this.buildNodeMaps(nodes, undefined);
             pendingCallbacks.forEach(cb => cb());
             return nodes;
@@ -267,6 +309,23 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             }
         }
         throw lastError;
+    }
+
+    /**
+     * Read the `loom://reports` resource — the single MCP read that surfaces report
+     * artifacts (they are excluded from LoomState by decision A). Best-effort: a
+     * failure yields an empty list so the rest of the tree still renders.
+     */
+    private async readReports(): Promise<ReportInfo[]> {
+        if (!this.workspaceRoot) return [];
+        try {
+            const json = await getMCP(this.workspaceRoot).readResource('loom://reports');
+            const parsed = JSON.parse(json) as { reports?: ReportInfo[] };
+            return parsed.reports ?? [];
+        } catch (e) {
+            console.error('🧵 Failed to load reports:', e);
+            return [];
+        }
     }
 
     private threadHasBlocked(t: Thread): boolean {
@@ -661,6 +720,13 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             children.push(this.createRefsSection(weave.refDocs, weave.id));
         }
 
+        // Reports subsection — weave-scoped report artifacts (loom/{weave}/reports/),
+        // sourced from loom://reports (populated this refresh), not weave state.
+        const weaveReports = this.weaveScopedReports.get(weave.id);
+        if (weaveReports && weaveReports.length > 0) {
+            children.push(this.createReportsSection(weaveReports, weave.id));
+        }
+
         return children;
     }
 
@@ -786,6 +852,35 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
             .map(d => this.createDocumentNode(d, 'reference', weaveSlug, threadSlug));
         return { ...node, weaveSlug, threadSlug, children };
+    }
+
+    /**
+     * A dedicated **Reports** node (sibling to Refs) grouping cross-weave report
+     * artifacts. Sourced from `loom://reports`, not LoomState. Read-only display —
+     * the only action is click-to-open; there are no mutate/menu write commands.
+     */
+    private createReportsSection(reports: ReportInfo[], weaveSlug?: string): TreeNode {
+        const node = new vscode.TreeItem('Reports', vscode.TreeItemCollapsibleState.Collapsed);
+        node.contextValue = 'reports-section';
+        node.iconPath = new vscode.ThemeIcon('graph');
+        // The resource already returns newest-first; preserve that order.
+        const children = reports.map(r => this.createReportNode(r));
+        return { ...node, weaveSlug, children };
+    }
+
+    /** A single report artifact rendered read-only, click-to-open like other docs. */
+    private createReportNode(report: ReportInfo): TreeNode {
+        const node = new vscode.TreeItem(report.title, vscode.TreeItemCollapsibleState.None);
+        node.description = report.kind;
+        node.iconPath = new vscode.ThemeIcon('graph');
+        node.contextValue = 'report';
+        node.tooltip = `report • ${report.kind}${report.generated_at ? ` • ${report.generated_at}` : ''}`;
+        node.command = {
+            command: 'vscode.open',
+            title: 'Open Report',
+            arguments: [vscode.Uri.file(report.filePath)],
+        };
+        return { ...node, weaveSlug: report.weaveSlug ?? undefined, children: [] };
     }
 
     private createChatsSection(chatNodes: TreeNode[], weaveSlug?: string, threadSlug?: string): TreeNode {

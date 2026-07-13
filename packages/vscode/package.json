@@ -381,6 +381,12 @@
         "icon": "$(library)"
       },
       {
+        "command": "loom.generateReport",
+        "title": "Generate Report",
+        "category": "Loom",
+        "icon": "$(graph)"
+      },
+      {
         "command": "loom.addRequiresLoad",
         "title": "Add References…",
         "category": "Loom",
@@ -441,6 +447,12 @@
         "icon": "$(book)"
       }
     ],
+    "configurationDefaults": {
+      "files.readonlyInclude": {
+        "**/loom/reports/**": true,
+        "**/loom/*/reports/**": true
+      }
+    },
     "configuration": {
       "title": "Loom",
       "properties": {
@@ -631,6 +643,11 @@
         {
           "command": "loom.createReference",
           "when": "view == loom.threads && viewItem == refs-section",
+          "group": "inline@1"
+        },
+        {
+          "command": "loom.generateReport",
+          "when": "view == loom.threads && viewItem == reports-section",
           "group": "inline@1"
         },
         {

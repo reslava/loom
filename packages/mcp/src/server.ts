@@ -14,6 +14,7 @@ import { handleLinkIndexResource } from './resources/linkIndex';
 import { handleDiagnosticsResource } from './resources/diagnostics';
 import { handleSummaryResource } from './resources/summary';
 import { handleRefsResource } from './resources/refs';
+import { handleReportsResource } from './resources/reports';
 import { handleRoadmapResource } from './resources/roadmap';
 import { handleDocsResource } from './resources/docs';
 import { handleContextResource } from './resources/context';
@@ -114,6 +115,7 @@ const CONCRETE_RESOURCES = [
     { uri: 'loom://roadmap', name: 'Roadmap', description: 'Derived cross-weave roadmap: future (pending/blocked, dependency+priority order), present (active/implementing), history (shipped plans), and diagnostics (cycles, dangling deps, missing thread.md)', mimeType: 'application/json' },
     { uri: 'loom://catalog', name: 'MCP Surface Catalog', description: 'Grouped index of the whole loom_* MCP surface — tools, resources, and prompts (name + one-line purpose), auto-generated from the live registry. Read this BEFORE searching for a tool, then ToolSearch select:<exact name>. Filter one section with ?kind=tools|resources|prompts.', mimeType: 'text/markdown' },
     { uri: 'loom://refs', name: 'References', description: 'Reference docs under loom/refs/ as { id, title, file } — backs the requires_load picker', mimeType: 'application/json' },
+    { uri: 'loom://reports', name: 'Reports', description: 'Report artifacts (leaf snapshots kept out of LoomState) as { id, title, kind, weaveSlug, generated_at, filePath } — cross-weave (loom/reports/) + weave-scoped (loom/{weave}/reports/); backs the extension Reports node', mimeType: 'application/json' },
     { uri: 'loom://feedback-context', name: 'Feedback Context', description: 'Assembled feedback payload: resolved target repo (git-remote/config), non-PII usage snapshot (counts only), and the prefilled GitHub issue-form URL', mimeType: 'application/json' },
 ];
 
@@ -189,6 +191,9 @@ export function createLoomMcpServer(root: string, telemetry: TelemetryClient = n
         }
         if (uri === 'loom://refs') {
             return handleRefsResource(root);
+        }
+        if (uri === 'loom://reports') {
+            return handleReportsResource(root, uri);
         }
         if (uri === 'loom://feedback-context' || uri.startsWith('loom://feedback-context?')) {
             return handleFeedbackContextResource(root, uri);
