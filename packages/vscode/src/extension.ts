@@ -231,6 +231,9 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.restoreItem', (node?: TreeNode) => restoreItemCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.createReference', () => createReferenceCommand(treeProvider, treeView)),
         vscode.commands.registerCommand('loom.generateReport', (node?: TreeNode) => generateReportCommand(treeProvider, node)),
+        // Same handler; a weave node carries its weaveSlug, which generateReportCommand
+        // reads to pre-fill the weave filter — so the picker opens scoped to that weave.
+        vscode.commands.registerCommand('loom.generateWeaveReport', (node?: TreeNode) => generateReportCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.addRequiresLoad', (node?: TreeNode) => addRequiresLoadCommand(node)),
         vscode.commands.registerCommand('loom.refreshCtx', async (node?: TreeNode) => {
             const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;

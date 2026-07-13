@@ -387,6 +387,12 @@
         "icon": "$(graph)"
       },
       {
+        "command": "loom.generateWeaveReport",
+        "title": "Generate Weave Report",
+        "category": "Loom",
+        "icon": "$(graph)"
+      },
+      {
         "command": "loom.addRequiresLoad",
         "title": "Add References…",
         "category": "Loom",
@@ -764,6 +770,11 @@
           "command": "loom.validate",
           "when": "view == loom.threads && viewItem =~ /^weave/",
           "group": "inline@2"
+        },
+        {
+          "command": "loom.generateWeaveReport",
+          "when": "view == loom.threads && viewItem == weave",
+          "group": "ai@1"
         },
         {
           "command": "loom.refineIdea",

@@ -240,10 +240,10 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 nodes.push(archiveSection);
             }
 
-            // Special global sections come after all regular weave nodes
-            if (globalCtxDocs.length > 0) {
-                nodes.push(this.createCtxSection(globalCtxDocs));
-            }
+            // Special global sections come after all regular weave nodes. The global
+            // Context node renders even when empty (like Refs/Reports) so its inline
+            // Refresh Ctx button can generate the first global ctx in a fresh workspace.
+            nodes.push(this.createCtxSection(globalCtxDocs));
 
             if (refsWeave) {
                 const refsChats = refsWeave.chats ?? [];
@@ -263,18 +263,21 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 refsNode.contextValue = 'refs-section';
                 refsNode.iconPath = new vscode.ThemeIcon('library');
                 nodes.push({ ...refsNode, weaveSlug: 'refs', children: refsChildren });
-            } else if (globalRefDocs.length > 0) {
-                nodes.push(this.createRefsSection(globalRefDocs));
+            } else {
+                // Always render the global Refs node, even with zero references, so the
+                // inline Create Reference button stays reachable in a fresh workspace —
+                // same chicken-and-egg fix as Reports. Empty shows a placeholder child.
+                nodes.push(this.createRefsSection(globalRefDocs, 'refs'));
             }
 
             // Reports node — cross-weave report artifacts (loom/reports/). Sourced from
             // the loom://reports resource (fetched above), NOT LoomState (reports are
             // excluded by decision A, so there is no phantom 'reports' weave). Sibling
-            // to the Refs node.
+            // to the Refs node. Rendered ALWAYS, even with zero reports: the inline
+            // Generate Report button lives on this node, so gating it on existing
+            // reports made the first report impossible to create (chicken-and-egg).
             const crossWeaveReports = allReports.filter(r => r.weaveSlug === null);
-            if (crossWeaveReports.length > 0) {
-                nodes.push(this.createReportsSection(crossWeaveReports, 'reports'));
-            }
+            nodes.push(this.createReportsSection(crossWeaveReports, 'reports'));
 
             this.buildNodeMaps(nodes, undefined);
             pendingCallbacks.forEach(cb => cb());
@@ -840,32 +843,75 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         const node = new vscode.TreeItem('Context', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'ctx-section';
         node.iconPath = new vscode.ThemeIcon('note');
-        const children = ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveSlug, threadSlug));
+        // Empty is only reachable for the always-rendered global node (per-weave/thread ctx
+        // subsections stay data-driven): show a click-to-generate placeholder.
+        const children = ctxDocs.length > 0
+            ? ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveSlug, threadSlug))
+            : [this.createCtxEmptyNode()];
         return { ...node, weaveSlug, threadSlug, children };
+    }
+
+    /** Placeholder child for an empty (global) Context section: explains the node and
+     *  doubles as a click-to-generate affordance (mirrors the inline Refresh Ctx button). */
+    private createCtxEmptyNode(): TreeNode {
+        const node = new vscode.TreeItem('No context yet — generate it', vscode.TreeItemCollapsibleState.None);
+        node.contextValue = 'ctx-empty';
+        node.iconPath = new vscode.ThemeIcon('info');
+        node.command = { command: 'loom.refreshCtx', title: 'Refresh Ctx', arguments: [] };
+        return { ...node, children: [] };
     }
 
     private createRefsSection(refDocs: Document[], weaveSlug?: string, threadSlug?: string): TreeNode {
         const node = new vscode.TreeItem('References', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'refs-section';
         node.iconPath = new vscode.ThemeIcon('library');
-        const children = [...refDocs]
-            .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
-            .map(d => this.createDocumentNode(d, 'reference', weaveSlug, threadSlug));
+        // With no references yet, show a placeholder child so the always-rendered global
+        // node explains itself (per-weave subsections stay data-driven, never empty here).
+        const children = refDocs.length > 0
+            ? [...refDocs]
+                .sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+                .map(d => this.createDocumentNode(d, 'reference', weaveSlug, threadSlug))
+            : [this.createRefsEmptyNode()];
         return { ...node, weaveSlug, threadSlug, children };
+    }
+
+    /** Placeholder child for an empty References section: explains the node and doubles as
+     *  a click-to-create affordance (mirrors the inline Create Reference button). */
+    private createRefsEmptyNode(): TreeNode {
+        const node = new vscode.TreeItem('No references yet — create one', vscode.TreeItemCollapsibleState.None);
+        node.contextValue = 'refs-empty';
+        node.iconPath = new vscode.ThemeIcon('info');
+        node.command = { command: 'loom.createReference', title: 'Create Reference', arguments: [] };
+        return { ...node, children: [] };
     }
 
     /**
      * A dedicated **Reports** node (sibling to Refs) grouping cross-weave report
-     * artifacts. Sourced from `loom://reports`, not LoomState. Read-only display —
-     * the only action is click-to-open; there are no mutate/menu write commands.
+     * artifacts. Sourced from `loom://reports`, not LoomState. The only write action is
+     * the inline Generate Report button (bound to this node's `reports-section` context);
+     * report docs themselves are read-only click-to-open. Rendered even when empty so the
+     * button is always reachable — an empty section shows a click-to-generate placeholder.
      */
     private createReportsSection(reports: ReportInfo[], weaveSlug?: string): TreeNode {
         const node = new vscode.TreeItem('Reports', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'reports-section';
         node.iconPath = new vscode.ThemeIcon('graph');
-        // The resource already returns newest-first; preserve that order.
-        const children = reports.map(r => this.createReportNode(r));
+        // The resource already returns newest-first; preserve that order. With no reports
+        // yet, show a placeholder child so the always-rendered node explains itself.
+        const children = reports.length > 0
+            ? reports.map(r => this.createReportNode(r))
+            : [this.createReportsEmptyNode()];
         return { ...node, weaveSlug, children };
+    }
+
+    /** Placeholder child for an empty Reports section: explains the empty node and doubles
+     *  as a click-to-generate affordance (mirrors the inline Generate Report button). */
+    private createReportsEmptyNode(): TreeNode {
+        const node = new vscode.TreeItem('No reports yet — generate one', vscode.TreeItemCollapsibleState.None);
+        node.contextValue = 'reports-empty';
+        node.iconPath = new vscode.ThemeIcon('info');
+        node.command = { command: 'loom.generateReport', title: 'Generate Report', arguments: [] };
+        return { ...node, children: [] };
     }
 
     /** A single report artifact rendered read-only, click-to-open like other docs. */
