@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 25
+last_ai_block: 27
 ---
 # release-notes-report Chat 001
 
@@ -353,3 +353,35 @@ Committing plan-002 to `main` (loom repo) as one unit:
 - this thread's design amendment (v10), plan-002, done doc, and chats
 
 Chord Flow's `do-release.md` is in its own repo — commit it there separately. Committing as the last action of the turn.
+
+## Rafa:
+
+We just done loom/core-engine/ctx-surface-parity/plans/plan-001.md in other session
+
+Now we have 3 done plans to test and if all goes well, do-release 1.25.0
+
+## AI:
+
+Design marked done — noted. And this is the real test: `loom report release-notes` now selects **3 Unreleased done plans** (ctx-surface-parity/plan-001 + our plan-001 & plan-002) and renders all three done-doc bodies into the brief. Enrichment end-to-end, real content, three plans. Combined **build + test green (23/23)** across both sessions' code.
+
+Here's the draft it produces for **1.25.0** (curated from the brief — the feature writing its own release notes):
+
+---
+## [1.25.0]
+
+**Highlights:** Loom now **drafts your release notes from its own doc graph** — `loom report release-notes` turns shipped-but-unreleased work into a curated changelog, ready for release CI. And **ctx is simpler**: one global `loom/ctx.md` on a clean pillar template, visible and refreshable from the tree and CLI.
+
+### Added
+- **Release notes from the doc graph — `loom report release-notes`.** Drafts a changelog from your *Unreleased* done plans, enriched from each plan's done-doc detail, framed Highlights → Added / Changed / Fixed under `## [Unreleased]`. Runs in release CI (`--run` for a headless agent, `--titles-only` for a fast draft) and is guarded — with nothing unreleased it stops cleanly instead of writing an empty changelog.
+- **ctx in the CLI and the tree.** New `loom refresh-ctx` (`--skeleton` seeds just headings + authoring hints, no AI), and a global **Context** node in the VS Code tree with a Refresh action and a "refreshed {date}" recency line.
+- **A project-agnostic ctx template** — a fresh `loom/ctx.md` seeds six pillars (Architecture · API & contracts · Stack · Build/Test/CI · Documentation map · AI collaboration); a refresh preserves your existing sections.
+
+### Changed
+- **ctx is global-only.** One `loom/ctx.md` per project; per-weave / per-thread ctx docs are retired (the parent chain already loads idea/design/plan in full).
+- **`do-release` drafts from the graph, not `git log`** — the runbook now runs `loom report release-notes` for its changelog; `git log` is kept only as a coverage net.
+
+### Fixed
+- ctx refresh **preserves a doc's original `created` date** instead of resetting it to today; `last_refreshed` renders as a plain date in the tree.
+---
+
+All green — ready for **`/do-release 1.25.0`** whenever you fire it (I can't run the release myself; the runbook will build/test again, draft this via the command, STOP for your review, then bump/tag/push). A couple of pre-flight notes: the working tree still has this thread's uncommitted chat, and Chord Flow's skill edit is uncommitted in its own repo (not part of this release).

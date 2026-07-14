@@ -2,7 +2,7 @@
 type: design
 id: de_01KXFHE7S0WFCYHE0ADS6A3QDW
 title: Release-notes report — do-release drafts its changelog from the graph
-status: active
+status: done
 created: 2026-07-14
 updated: 2026-07-14
 version: 10

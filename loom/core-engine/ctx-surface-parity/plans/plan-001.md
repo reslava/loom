@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXG0081KSJXYKTD6HYWK75XN
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.25.0
 steps:
   - id: remove-weave-scope-ctx-is-global
     order: 1

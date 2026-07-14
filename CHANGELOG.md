@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-07-14
+
+### Added
+- **Release notes drafted from your doc graph — `loom report release-notes`.** Loom now writes your changelog for you: the command selects the **Unreleased** work (done plans not yet stamped with a release — exactly what's about to ship), enriches each one from its done-doc detail, and drafts a Highlights lead → **Added / Changed / Fixed** section under `## [Unreleased]`, in user-benefit language rather than raw commit subjects. It runs in your release CI — `--run` hands the brief to a headless agent that writes and saves the notes, `--titles-only` gives a fast low-token draft — and it's **guarded**: with nothing unreleased it returns a "NOTHING UNRELEASED" stop-signal (naming any threads still mid-implementation) instead of an empty changelog. The same command backs `/do-release`, so the tool drafts its own release notes from the decision graph instead of a hand-read of `git log`. (These notes were drafted by it.)
+- **ctx in the CLI and the VS Code tree.** A new `loom refresh-ctx` command mirrors the MCP tool (tri-surface parity), with `--skeleton` to seed just the pillar headings + authoring hints (no AI). The extension gains a global **Context** node with a **Refresh** action and an honest "refreshed {date}" recency line — the first time `loom/ctx.md` is visible and refreshable from the human surface.
+- **A project-agnostic ctx template.** A fresh `loom/ctx.md` seeds six pillars — Architecture · API & contracts · Stack · Build/Test/CI · Documentation map · AI collaboration — with authoring hints; refreshing an existing ctx **preserves the sections you already wrote** rather than overwriting them.
+
+### Changed
+- **ctx is now global-only.** Loom keeps a single `loom/ctx.md` per project; per-weave and per-thread ctx docs are retired (the parent chain already loads each thread's idea / design / plan in full, so scoped ctx was redundant). One place to look, one doc to refresh. Clean removal — no deprecation shim.
+- **`/do-release` drafts its changelog from the graph, not `git log`.** The release runbook now runs `loom report release-notes` for the draft and keeps `git log` only as a coverage net (flagging any user-facing commit with no covering done plan), with a built-in guard that stops a release when nothing is actually unreleased.
+
+### Fixed
+- **ctx refresh preserves a doc's original `created` date** instead of resetting it to today, and the new `last_refreshed` stamp renders as a plain `YYYY-MM-DD` date in the tree (not a raw timestamp).
+
 ## [1.24.0] - 2026-07-13
 
 ### Added
@@ -698,7 +712,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.24.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.25.0...HEAD
+[1.25.0]: https://github.com/reslava/loom/releases/tag/v1.25.0
 [1.24.0]: https://github.com/reslava/loom/releases/tag/v1.24.0
 [1.23.0]: https://github.com/reslava/loom/releases/tag/v1.23.0
 [1.22.0]: https://github.com/reslava/loom/releases/tag/v1.22.0

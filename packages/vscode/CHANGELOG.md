@@ -1,5 +1,13 @@
 # Loom VS Code Extension — Changelog
 
+## [1.25.0] - 2026-07-14
+
+### Added
+- **A global Context node with Refresh.** The tree now surfaces your project's single `loom/ctx.md` under a **Context** node with a **Refresh** action and a "refreshed {date}" recency line — the first time ctx is visible and refreshable from the extension. Refresh seeds a project-agnostic pillar template on a fresh doc and preserves your existing sections on an existing one; a no-AI "seed skeleton" path fills only the headings + authoring hints.
+
+### Changed
+- **Context is global-only.** The tree no longer renders per-weave / per-thread ctx sections — Loom keeps one `loom/ctx.md` per project (the thread parent chain already carries the rest), so the Context node shows exactly that one doc.
+
 ## [1.24.0] - 2026-07-13
 
 ### Added
