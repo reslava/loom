@@ -2,7 +2,7 @@
 type: idea
 id: id_01KXETZC3SX632SXB8E9VM7862
 title: Release-notes report — do-release drafts its changelog from the graph
-status: draft
+status: done
 created: 2026-07-13
 version: 1
 tags: []

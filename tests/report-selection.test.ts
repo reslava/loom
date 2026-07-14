@@ -199,6 +199,19 @@ async function run() {
         console.log('  ✅ registry: new kinds, ctx placement, 150k budgets, roadmap untouched');
     }
 
+    // 11b. release-notes framing carries the A/C/F + Highlights structure (the do-release draft
+    //      shape) while staying roadmap-passthrough — the enrichment lives skill-side, never here.
+    {
+        const rn = getReportKind('release-notes')!;
+        assert(rn.docTypes.length === 0, 'release-notes stays roadmap-passthrough (docTypes empty)');
+        const f = rn.promptFraming;
+        assert(/### Added/.test(f) && /### Changed/.test(f) && /### Fixed/.test(f), 'framing sub-structures each version as Added/Changed/Fixed');
+        assert(/Highlights/.test(f), 'framing leads each version with a Highlights summary');
+        assert(/Unreleased/.test(f), 'framing keeps the Unreleased (release==null) bucket');
+        assert(/benefit voice/.test(f), 'framing asks for user-facing benefit voice, not plan titles');
+        console.log('  ✅ release-notes: A/C/F + Highlights framing, passthrough preserved');
+    }
+
     // 12. --full (unlimited budget) disables degradation that a small budget would apply.
     {
         const small = selectReportDocs(budgetState, decisions, {}, bodyLen + 50);

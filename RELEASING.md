@@ -19,8 +19,11 @@ verify most of it (the two machine-checked items are noted). Skipping a step
 ships a broken or inconsistent release.
 
 - [ ] **Record changes under `## [Unreleased]`** in [`CHANGELOG.md`](CHANGELOG.md)
-      (*Keep a Changelog* format) as you go. The bump (next step) rolls this into the
-      dated `## [X.Y.Z]` section that becomes the GitHub release body.
+      (*Keep a Changelog* format). `/do-release` **drafts these entries from the Loom doc graph** —
+      the Unreleased done plans (`loom://roadmap` history where `release: null`), enriched from
+      their done docs — grouped Added / Changed / Fixed with a Highlights lead; `git log` is only a
+      coverage net. Review and edit the draft before the bump rolls it into the dated `## [X.Y.Z]`
+      section that becomes the GitHub release body.
       *(Machine-checked: the `guard` job fails before any publish if no `[X.Y.Z]` section exists.)*
 - [ ] **Add the extension's user-facing changes** to
       [`packages/vscode/CHANGELOG.md`](packages/vscode/CHANGELOG.md) under a new dated

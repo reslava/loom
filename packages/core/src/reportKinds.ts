@@ -82,11 +82,12 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
         promptFraming: [
             'Produce **release notes / a changelog** from the roadmap slice below, using its `history` (shipped plans, each with a date and release version) and `currentRelease`.',
             '',
-            '- **Group by release version**, newest first; unreleased shipped work under an "Unreleased" heading.',
-            '- Within each release, list the shipped plans as concise, user-facing changelog bullets (turn plan titles into outcomes).',
-            '- Note the current release at the top.',
+            '- **Group by release version**, newest first; unreleased shipped work under an "Unreleased" heading. Note the current release at the top.',
+            '- **Within each version, sub-structure the entries as `### Added` / `### Changed` / `### Fixed`** — classify each shipped plan into the bucket its outcome fits (a new capability = Added, changed or improved existing behavior = Changed, a bug/regression fix = Fixed). Omit any bucket that would be empty.',
+            '- **Lead each version with a one-line _Highlights_ summary** of its most user-visible changes, before the Added/Changed/Fixed breakdown.',
+            '- Write each entry as a **user-facing outcome in a benefit voice** — what the user can now do, or no longer suffers — not the internal/engineering plan title. **Group related entries** so the section reads as a coherent story, not a flat dump.',
             '',
-            'Write clean, scannable markdown. Do NOT invent releases or entries the roadmap history does not contain.',
+            'Write clean, scannable markdown. Do NOT invent releases, entries, or outcomes the roadmap history (and any provided done-doc detail) does not support.',
         ].join('\n'),
     },
     architecture: {
