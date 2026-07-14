@@ -108,6 +108,21 @@ designing, writing code for a step) is done through your MCP agent.
 | `loom validate [weave] [--all] [--verbose]` | Validate document integrity, links, and staleness. |
 | `loom roadmap [--group-by-thread]` | Print the derived cross-weave roadmap — one Roadmap band (present + future in a single dependency + priority order, status + blocked-on per row) and history (shipped plans, newest first). Pure read. |
 
+### Reports
+
+| Command | Description |
+|---------|-------------|
+| `loom report <kind> [--weave <slug>] [--thread <slug>] [--since <date>] [--until <date>] [--full] [--sort <o>] [--titles-only] [--run]` | Assemble a **report** from the doc graph. Prints a brief for your AI agent to synthesize, or `--run` launches a headless agent that writes + saves it via `loom_create_report`. Kinds: `project-overview`, `release-notes`, `architecture`, `decisions`, `drift-audit`, `security`, `ideas`, `designs`, `plans`, `dones`. |
+
+**`loom report release-notes` — draft your changelog from the graph, in CI.** Selects the
+**Unreleased** done plans (those not yet stamped with a release — what's about to ship), enriches
+them from each plan's done-doc detail, and frames a Highlights lead → **Added / Changed / Fixed**
+under `## [Unreleased]`. Drop it into a release job (`--run` lets a headless agent write the notes;
+`--titles-only` for a fast, low-token draft). It's **guarded**: with nothing unreleased it returns a
+**"NOTHING UNRELEASED"** stop-signal (naming any threads still `implementing`) instead of an empty
+changelog. Same command in every Loom project — the doc graph writes your changelog instead of a
+hand-read of `git log`.
+
 ### Feedback
 
 | Command | Description |

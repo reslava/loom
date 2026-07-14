@@ -1,4 +1,4 @@
-import { getReportKind, reportKindSlugs, selectReportDocs, ReportFilters, ReportSelection, ReportSort } from '../../../core/dist';
+import { getReportKind, reportKindSlugs, selectReportDocs, ReportFilters, ReportSelection, ReportSort, buildReleaseNotesBrief, ReleaseNotesBrief } from '../../../core/dist';
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex, ConfigRegistry } from '../../../fs/dist';
 import * as fs from 'fs-extra';
@@ -17,8 +17,39 @@ export const promptDef = {
         { name: 'to', description: 'Optional inclusive upper bound on doc created date (YYYY-MM-DD).', required: false },
         { name: 'full', description: 'Disable the token budget — send the full slice with no degradation (doc-set kinds only; can be large/costly).', required: false },
         { name: 'sort', description: 'Keep-full ordering when budget-degraded: "recency" (newest docs stay full) or "oldest" (foundational docs stay full). Defaults per kind. Ignored with full=true.', required: false },
+        { name: 'titlesOnly', description: 'release-notes only: skip done-doc hydration for a fast, low-token draft (titles only, no per-change rationale).', required: false },
     ],
 };
+
+/** Render a release-notes brief (the Unreleased set + hydrated done bodies) as an agent-readable slice. Exported for tests. */
+export function renderReleaseNotes(brief: ReleaseNotesBrief): string {
+    if (brief.isEmpty) {
+        // Doc-graph empty-set guard: no Unreleased plans. Emit a structured stop-signal so any
+        // consumer (do-release skill, CI) halts cleanly instead of drafting an empty changelog.
+        const lines = [
+            'NOTHING UNRELEASED — no done plans carry a null release, so there is nothing to draft.',
+            '',
+            'Do NOT invent a changelog. Report this and stop. Likely one of:',
+            brief.implementingThreads.length
+                ? `- Work is mid-flight, not closed — threads still \`implementing\`: ${brief.implementingThreads.map(t => `${t.weaveSlug}/${t.threadSlug}`).join(', ')}. Close the plan (or \`quick ship\` the change), then re-run.`
+                : '- No threads are `implementing` — if you did ship work, it may not be recorded as a done plan yet (`quick ship` it), or the tree has uncommitted work.',
+            '- Or nothing has shipped since the last release (do-release run by mistake).',
+        ];
+        return lines.join('\n');
+    }
+    const lines: string[] = [
+        `Source slice — release-notes: ${brief.unreleased.length} Unreleased done plan(s) ` +
+        `(roadmap history where actual_release is null), newest first. ` +
+        `Enrichment: ${brief.enriched ? 'done-doc bodies included below' : 'titles only (no per-change detail)'}.`,
+        '',
+    ];
+    for (const e of brief.unreleased) {
+        lines.push('---', `### ${e.planTitle} · ${e.weaveSlug}/${e.threadSlug} · plan ${e.planId} · ${e.date}`, '');
+        if (e.doneBody) lines.push(e.doneBody.trim(), '');
+        else lines.push('_(no done-doc body — title only)_', '');
+    }
+    return lines.join('\n');
+}
 
 /** Render a selectReportDocs result as an agent-readable markdown slice. Exported for tests. */
 export function renderSelection(sel: ReportSelection): string {
@@ -96,20 +127,13 @@ export async function handle(root: string, args: Record<string, string | undefin
         throw new Error(`Invalid sort "${sortArg}". Use "recency" or "oldest".`);
     }
     const sort = sortArg as ReportSort | undefined;
+    // release-notes only: skip done-doc hydration for a fast, low-token draft.
+    const titlesOnly = args['titlesOnly'] === 'true';
 
     const messages: Array<{ role: 'user' | 'assistant'; content: { type: 'text'; text: string } }> = [];
 
-    let sliceText = '';
-    let sourcesHint = '["loom://roadmap"]';
-
-    if (kind.docTypes.length === 0) {
-        // Roadmap-sourced kind (e.g. project-overview): read the derived roadmap.
-        try {
-            const roadmap = await handleRoadmapResource(root, 'loom://roadmap');
-            sliceText = `Source slice — the derived roadmap (loom://roadmap):\n\n\`\`\`json\n${roadmap.contents[0].text}\n\`\`\``;
-        } catch { /* selection is best-effort */ }
-    } else {
-        // Doc-set kind: deterministic selection over the current state.
+    // Load (and cache) the full state — shared by the release-notes and doc-set paths.
+    const loadStateCached = async () => {
         initStateCache(root);
         let state = getCachedState();
         if (!state) {
@@ -117,7 +141,36 @@ export async function handle(root: string, args: Record<string, string | undefin
             state = await getState({ getActiveLoomRoot, loadWeave, buildLinkIndex, registry, fs, workspaceRoot: root });
             setCachedState(state);
         }
-        const selection = selectReportDocs(state, kind, filters, maxChars, sort);
+        return state;
+    };
+
+    let sliceText = '';
+    let sourcesHint = '["loom://roadmap"]';
+
+    if (kindSlug === 'release-notes') {
+        // Roadmap-sourced but ENRICHED: select the Unreleased (release==null) set and hydrate
+        // each plan's done-doc body (unless --titles-only). Pure builder lives in core.
+        const brief = buildReleaseNotesBrief(await loadStateCached(), { titlesOnly });
+        if (brief.isEmpty) {
+            // Doc-graph empty-set guard: no Unreleased work → return ONLY the stop-signal,
+            // with no "produce a report" framing or persist instruction, so any consumer
+            // (do-release skill, CI) halts cleanly instead of drafting an empty changelog.
+            return {
+                description: 'Release notes — nothing unreleased',
+                messages: [{ role: 'user' as const, content: { type: 'text' as const, text: renderReleaseNotes(brief) } }],
+            };
+        }
+        sliceText = renderReleaseNotes(brief);
+        sourcesHint = '["loom://roadmap", "the done docs of the Unreleased plans"]';
+    } else if (kind.docTypes.length === 0) {
+        // Roadmap-sourced kind (e.g. project-overview): read the derived roadmap.
+        try {
+            const roadmap = await handleRoadmapResource(root, 'loom://roadmap');
+            sliceText = `Source slice — the derived roadmap (loom://roadmap):\n\n\`\`\`json\n${roadmap.contents[0].text}\n\`\`\``;
+        } catch { /* selection is best-effort */ }
+    } else {
+        // Doc-set kind: deterministic selection over the current state.
+        const selection = selectReportDocs(await loadStateCached(), kind, filters, maxChars, sort);
         sliceText = renderSelection(selection);
         sourcesHint = '[the ids of the docs listed in the slice above]';
     }

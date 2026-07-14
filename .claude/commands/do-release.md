@@ -18,13 +18,11 @@ task only *runs* it.
 
 1. `RELEASING.md` — the authoritative checklist + gotchas + partial-failure recovery.
 2. Root `package.json` `version` — the current version (the only authoritative source).
-3. The **Loom doc graph** — the changelog is drafted from here, not from `git log`. Read
-   `loom://roadmap` and take its `history` entries with `release: null` — the **Unreleased**
-   set is this release's shipped plans (`record-release` stamps exactly this set at the end).
-   By default also read those plans' **done docs** for the per-change *why* (see step 2).
-4. `git log <lastTag>..HEAD --oneline` — the **coverage net only** (`git tag --sort=-creatordate | head -1`
-   gives the last tag). No longer the changelog source; used in step 3 to catch user-facing
-   changes that shipped with no covering done plan.
+3. **`loom report release-notes`** — the command that drafts the changelog from the doc graph:
+   Unreleased selection (`actual_release` null), done-body enrichment, and the empty-set guard
+   all live in the command now. This repo *runs* it; you do not hand-read the graph.
+4. `git log <lastTag>..HEAD --oneline` (`git tag --sort=-creatordate | head -1` gives the last
+   tag) — the coverage net + a "work not recorded" tell (step 2). Not the changelog source.
 
 ## Pre-flight (before any release work)
 
@@ -48,26 +46,23 @@ with an explicit version. Proceed past here only when a version was given.
 
 1. **Confirm version.** Pre-flight A guarantees a version was supplied. Sanity-check it's a
    clean bump above the current root `package.json` version and state it.
-2. **Draft the changelog from the graph (not `git log`).** Invoke the `release-notes`
-   report inline (in this session) over the **Unreleased** set — `loom://roadmap` `history`
-   where `release: null`:
-   - **Skeleton + framing** come from the report: grouped by version, the Unreleased bucket
-     sub-structured as **Added / Changed / Fixed** with a one-line **Highlights** lead (the
-     `release-notes` kind owns this shape).
-   - **Enrichment (default):** read each Unreleased plan's **done doc**
-     (`loom/{weave}/{thread}/done/{plan}-done.md` — a bounded per-release set) and curate
-     `title + done-body` into user-facing outcomes in a **benefit voice** — what the user can
-     now do or no longer suffers, not the engineering plan title. Skip the done-doc read only
-     for a fast, low-token draft (**titles-only fallback**).
-   - Synthesize **in-session** — do *not* shell out; you are the AI (no API key / sampling).
-   - **Coverage net (`git log`):** after the graph draft, run `git log <lastTag>..HEAD --oneline`
-     and list any user-facing commit **not represented** by an Unreleased done plan as a
-     **"Not covered by a done plan"** appendix under the draft — the human folds genuine changes
-     in or dismisses them. `quick_ship`'s done docs keep this list near-empty; the net only
-     proves completeness, it does not carry the changelog.
-   - **Stale-leak guardrail:** if any Unreleased done doc's date **predates the previous tag**,
-     flag it inline — a prior release may have failed to stamp its plans (the tag-push gotcha),
-     so they would wrongly leak into these notes. Non-blocking; surface it and let the human decide.
+2. **Draft the changelog with `loom report release-notes`.** Selection (the Unreleased set),
+   done-body enrichment, and the doc-graph empty-set guard live in the command now — this repo
+   runs it and reviews:
+   - Run **`loom report release-notes`** (`--titles-only` for a fast, low-token draft) and
+     synthesize its brief **in-session** (you are the AI — no shell-out, no API key). The brief
+     is the Unreleased plans (`actual_release` null) with their done-doc detail, framed
+     Highlights → **Added / Changed / Fixed** in a benefit voice, under `## [Unreleased]`.
+   - **Empty-set guard (built in):** if the command returns the **"NOTHING UNRELEASED"**
+     stop-signal, do **not** draft — STOP and report it (it names any threads still
+     `implementing`). Cross-check the git tells: a dirty tree (`git status`) or commits in
+     `git log <lastTag>..HEAD` mean work shipped but was never closed/quick-shipped/committed —
+     have the user record it, then re-run.
+   - **Coverage net (release-side):** `git log <lastTag>..HEAD --oneline`; list any user-facing
+     commit **not represented** by an Unreleased done plan as a **"Not covered by a done plan"**
+     appendix for the human to fold in or dismiss (`quick_ship`'s done docs keep this near-empty).
+   - **Stale-leak (release-side):** flag any Unreleased done doc dated **before the previous tag**
+     — a prior release may have failed to stamp its plans; the human decides. Non-blocking.
 3. **Write both changelogs from the step-2 draft:**
    - Root `CHANGELOG.md` — write the curated Added / Changed / Fixed (+ Highlights) entries
      under `## [Unreleased]` (the bump rolls it into the dated `## [X.Y.Z]` section that

@@ -129,6 +129,7 @@ A **Show Roadmap** toolbar toggle re-lays this view into the derived cross-weave
 | *AI Reply* | Continue the conversation inside a chat doc with full thread context loaded |
 | *Refine Idea / Design / Plan* | Re-run generation on a stale doc after its parent was updated |
 | *Refresh Context* | Regenerate the `ctx.md` summary for a weave |
+| *Generate Report* | Synthesize a report from the doc graph — project overview, architecture, decisions, **release notes**, and more |
 
 **Create & promote** (structure, no AI):
 
@@ -154,6 +155,10 @@ Right-click any node for the same actions as a context menu.
 ### Context view
 
 Shows every document that *would* be loaded into the AI's context for the selected node — **before** you launch anything. Updates as you click around. What you see here is what the AI gets.
+
+### Reports view
+
+Generate and browse **reports synthesized from the doc graph** — a project overview, architecture, decisions, or **release notes** for your next version — right from the panel; they're saved under `loom/reports/`. The `release-notes` report drafts your changelog from the *Unreleased* done plans (enriched from their done docs, framed Highlights → Added / Changed / Fixed), and the same `loom report release-notes` command drops into your release CI so the doc graph writes your changelog.
 
 Each row is one doc, marked by why it's there:
 

@@ -29,7 +29,7 @@ Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the
 | Kind | Reads | Lens |
 |------|-------|------|
 | `project-overview` | roadmap (history + pending) | what this is, goals, direction |
-| `release-notes` | roadmap (`actual_release`) | what shipped between releases |
+| `release-notes` | Unreleased done plans + their done docs | draft the next release's changelog (CI-ready, guarded) |
 
 **Analytical** (multi-type doc-set; `decisions`/`drift-audit`/`security` stay **ctx-free** — raw rationale, no summary-of-a-summary)
 
@@ -63,6 +63,7 @@ Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the
 | `--full` | disable the token budget — send the FULL slice, no degradation (prints an estimated-size warning; a no-op for roadmap kinds) |
 | `--sort <recency\|oldest>` | keep-full ordering when the slice is budget-degraded: `recency` = newest docs stay full; `oldest` = oldest/foundational stay full. Defaults per kind (see below). Ignored with `--full` (nothing degrades) |
 | `--run` | launch a headless Claude agent to synthesize + save the report end-to-end, instead of printing the brief |
+| `--titles-only` | **`release-notes` only** — skip done-doc hydration for a fast, low-token draft (titles, no per-change rationale) |
 
 **Token budget & tiered degradation.** `selectReportDocs` bounds the slice to a per-kind char budget (default 60k; single-doc-type kinds 150k; `--full` = unlimited). When the full slice exceeds budget, docs degrade by a **selectable keep-full ordering** (`--sort`):
 
@@ -97,6 +98,7 @@ Curated list of generated reports good enough to feature in READMEs / docs — L
 - `loom report decisions --weave <w>` — the "why" behind a weave's choices (rationale that isn't in code). Scope to a weave — a whole-project run skews to the newest thread.
 - `loom report designs --weave <w>` / `loom report architecture --weave <w>` — the design corpus / architecture of an area. Add `--full` for a complete pass.
 - `loom report dones --since <date>` — what actually shipped in a window (release-notes-adjacent).
+- `loom report release-notes` — draft the next release's changelog from the *Unreleased* done plans (enriched from their done docs; Highlights → Added / Changed / Fixed under `## [Unreleased]`). CI-ready via `--run`; returns a "nothing unreleased" stop-signal when there's nothing to ship. `--titles-only` for a fast draft.
 - `loom report drift-audit --weave <w>` — where implementation diverged from design (design vs done).
 
 **The two run modes:**

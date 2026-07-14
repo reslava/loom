@@ -1,6 +1,6 @@
 import { assert } from './test-utils.ts';
-import { selectReportDocs, getReportKind, deterministicExcerpt } from '../packages/core/dist';
-import { renderSelection } from '../packages/mcp/dist/prompts/report';
+import { selectReportDocs, getReportKind, deterministicExcerpt, buildReleaseNotesBrief } from '../packages/core/dist';
+import { renderSelection, renderReleaseNotes } from '../packages/mcp/dist/prompts/report';
 
 // Pure unit tests for selectReportDocs — no filesystem, no CLI. Build a minimal
 // LoomState-shaped fixture and assert deterministic selection: type ∈ kind.docTypes,
@@ -306,6 +306,71 @@ async function run() {
             'the --sort/--full lever comes before the ctx suggestion');
         assert(text.includes('sort=recency'), 'coverage manifest line surfaces the effective sort');
         console.log('  ✅ prompt: reworded suggestion leads with --sort/--full, ctx secondary + persistent caveat');
+    }
+
+    // --- Release-notes brief (buildReleaseNotesBrief) --------------------------------
+    // 18. Selects the Unreleased (release==null) done plans, hydrates their done-doc bodies,
+    //     captures implementing threads; --titles-only drops the bodies.
+    {
+        const mkThread = (slug: string, o: any): any => ({
+            id: slug, weaveSlug: 'wr',
+            manifest: { id: `th_${slug}`, priority: 100, created: '2026-07-01', depends_on: [] },
+            idea: null, design: null, req: null,
+            plans: [{ type: 'plan', id: o.planId, title: `${o.planId} title`, status: o.planStatus, created: '2026-07-01', updated: '2026-07-01', version: 1, actual_release: o.release ?? null, steps: [] }],
+            dones: o.doneBody != null ? [{ type: 'done', id: `${o.planId}-done`, parent_id: o.planId, title: 'd', status: 'done', created: '2026-07-02', version: 1, content: o.doneBody }] : [],
+            chats: [], refDocs: [], allDocs: [],
+        });
+        const rnState: any = {
+            weaves: [{
+                id: 'wr', threads: [
+                    mkThread('ta', { planId: 'pl_a', planStatus: 'done', release: null, doneBody: 'Added the A capability — users can now do A.' }),
+                    mkThread('tb', { planId: 'pl_b', planStatus: 'done', release: '1.0.0', doneBody: 'shipped B' }),
+                    mkThread('tc', { planId: 'pl_c', planStatus: 'implementing' }),
+                ], looseFibers: [], chats: [], refDocs: [], allDocs: [],
+            }],
+            globalDocs: [], globalChats: [],
+        };
+
+        const brief = buildReleaseNotesBrief(rnState);
+        assert(brief.unreleased.length === 1 && brief.unreleased[0].planId === 'pl_a', `Unreleased = the release==null done plan only, got ${brief.unreleased.map((u: any) => u.planId).join(',')}`);
+        assert(brief.unreleased[0].doneBody === 'Added the A capability — users can now do A.', 'enrichment hydrates the done-doc body');
+        assert(brief.enriched === true && brief.isEmpty === false, 'default is enriched, non-empty');
+        assert(brief.implementingThreads.some((t: any) => t.threadSlug === 'tc'), 'captures threads still implementing (empty-set diagnosis)');
+        assert(!brief.unreleased.some((u: any) => u.planId === 'pl_b'), 'excludes the already-released plan (release=1.0.0)');
+
+        const titlesOnly = buildReleaseNotesBrief(rnState, { titlesOnly: true });
+        assert(titlesOnly.unreleased[0].doneBody === undefined && titlesOnly.enriched === false, '--titles-only drops done-doc bodies');
+
+        // Empty set (only a released plan) → isEmpty true.
+        const emptyState: any = { weaves: [{ id: 'wr', threads: [mkThread('tb', { planId: 'pl_b', planStatus: 'done', release: '1.0.0', doneBody: 'x' })], looseFibers: [], chats: [], refDocs: [], allDocs: [] }], globalDocs: [], globalChats: [] };
+        assert(buildReleaseNotesBrief(emptyState).isEmpty === true, 'no release==null plans → isEmpty');
+        console.log('  ✅ release-notes brief: Unreleased selection, done-body enrichment, titles-only, implementing threads, empty');
+    }
+
+    // 19. renderReleaseNotes — empty set emits a structured stop-signal that names implementing
+    //     threads; a non-empty set renders the enriched slice with the hydrated done body.
+    {
+        const mk = (slug: string, o: any): any => ({
+            id: slug, weaveSlug: 'wr',
+            manifest: { id: `th_${slug}`, priority: 100, created: '2026-07-01', depends_on: [] },
+            idea: null, design: null, req: null,
+            plans: [{ type: 'plan', id: o.planId, title: `${o.planId} title`, status: o.planStatus, created: '2026-07-01', updated: '2026-07-01', version: 1, actual_release: o.release ?? null, steps: [] }],
+            dones: o.doneBody != null ? [{ type: 'done', id: `${o.planId}-done`, parent_id: o.planId, title: 'd', status: 'done', created: '2026-07-02', version: 1, content: o.doneBody }] : [],
+            chats: [], refDocs: [], allDocs: [],
+        });
+        const mkState = (threads: any[]): any => ({ weaves: [{ id: 'wr', threads, looseFibers: [], chats: [], refDocs: [], allDocs: [] }], globalDocs: [], globalChats: [] });
+
+        // Empty set but a thread mid-flight → stop-signal names it.
+        const emptyBrief = buildReleaseNotesBrief(mkState([mk('tc', { planId: 'pl_c', planStatus: 'implementing' })]));
+        assert(emptyBrief.isEmpty, 'fixture has no unreleased done plans');
+        const sig = renderReleaseNotes(emptyBrief);
+        assert(/NOTHING UNRELEASED/.test(sig) && /stop/i.test(sig), 'empty render is a stop-signal');
+        assert(/implementing/.test(sig) && /wr\/tc/.test(sig), 'empty stop-signal names the implementing thread');
+
+        // Non-empty → the enriched slice carries the hydrated done body.
+        const rendered = renderReleaseNotes(buildReleaseNotesBrief(mkState([mk('ta', { planId: 'pl_a', planStatus: 'done', release: null, doneBody: 'Added the A capability — users can now do A.' })])));
+        assert(/Added the A capability/.test(rendered) && /pl_a/.test(rendered), 'non-empty render includes the hydrated done body');
+        console.log('  ✅ renderReleaseNotes: empty stop-signal (+ implementing thread), non-empty enriched slice');
     }
 
     console.log('\n✅ selectReportDocs tests passed');

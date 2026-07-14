@@ -152,6 +152,20 @@ The `loom` CLI is scriptable, so parts of Loom belong in CI and release scripts.
 > your release script calls `loom record-release` to stamp the shipped version onto done plans.
 > No agent involved.
 
+**Release notes from the doc graph — the one report that belongs in your release CI.**
+`loom report release-notes` drafts a changelog from your **Unreleased** done plans (the ones not
+yet stamped with a release — exactly what's about to ship), enriched from each plan's done-doc
+detail: a Highlights lead → **Added / Changed / Fixed**, under `## [Unreleased]`. It's the same
+command every Loom project gets — drop it into your release workflow and the doc graph writes your
+changelog instead of a hand-read of `git log`.
+
+> **Example.** Your release job runs `loom report release-notes --run`, which hands the enriched
+> brief to a headless agent that synthesizes the notes and saves them. It's **guarded**: if nothing
+> is unreleased the command returns a **"NOTHING UNRELEASED"** stop-signal (naming any threads still
+> `implementing`) instead of an empty changelog — so a mistaken or premature run stops cleanly. Use
+> `--titles-only` for a fast, low-token draft. This is the one report that pairs CI with an agent:
+> the graph *selects and enriches*, the agent *writes the prose*.
+
 ---
 
 ## Pick your way

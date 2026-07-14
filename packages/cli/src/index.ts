@@ -406,8 +406,9 @@ program
     .option('--full', 'Disable the token budget — send the FULL slice with no degradation (can be large and costly; a warning prints the estimated size)')
     .option('--sort <order>', 'Keep-full ordering when the slice is budget-degraded: "recency" (newest docs stay full) or "oldest" (oldest/foundational docs stay full). Defaults per kind. Ignored with --full (nothing degrades).')
     .option('--run', 'Launch a Claude agent (headless) to synthesize the report and save it via loom_create_report, instead of printing the brief')
+    .option('--titles-only', 'release-notes only: skip done-doc hydration for a fast, low-token draft (titles only, no per-change rationale)')
     .action((kind, options) => reportCommand(kind, {
-        weave: options.weave, thread: options.thread, since: options.since, until: options.until, full: options.full, sort: options.sort, run: options.run,
+        weave: options.weave, thread: options.thread, since: options.since, until: options.until, full: options.full, sort: options.sort, run: options.run, titlesOnly: options.titlesOnly,
     }));
 
 program

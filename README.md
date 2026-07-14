@@ -173,12 +173,18 @@ loom report project-overview                    # orient a newcomer, from the ro
 loom report decisions   --weave auth            # the "why" behind a weave's choices
 loom report designs     --weave payments --full # the full design corpus of an area
 loom report drift-audit --weave core            # where the code diverged from the design
+loom report release-notes                       # draft the next release's changelog, from the Unreleased done plans
 ```
 
 The server *selects* the slice (deterministic, testable); the agent *reasons* over it (in the real
 agent loop, never a captive sampling call). Each report persists as a versioned `report` doc under a
 **Reports** node, and **every claim cites the source doc it came from** — traceable, not a
 free-floating narrative.
+
+**`release-notes` runs in your release CI.** It selects the *Unreleased* done plans — what's about
+to ship — enriches them from their done-doc detail, and drafts a Highlights → Added / Changed / Fixed
+changelog under `## [Unreleased]`. The same command drops into a release job so the doc graph writes
+your changelog instead of a hand-read of `git log`, with a built-in "nothing unreleased" guard.
 
 **See it on a real project.** Generated unedited from live history:
 

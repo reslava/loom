@@ -143,7 +143,7 @@ here in full.
 | `generate-idea` | `weaveSlug`, `prompt` (`threadSlug` optional) | Drafts an idea from a description (sampling) |
 | `generate-design` | `weaveSlug`, `threadSlug` | Transitions idea → design (sampling) |
 | `generate-plan` | `weaveSlug`, `threadSlug` | Generates a plan from a design (sampling) |
-| `report` | `kind` (weave / thread / date filters optional) | Assembles a deterministic doc-graph slice for a report kind and instructs the agent to synthesize + persist it via `loom_create_report` |
+| `report` | `kind` (weave / thread / date / `full` / `sort` / `titlesOnly` optional) | Assembles a doc-graph slice for a report kind and instructs the agent to synthesize + persist it via `loom_create_report`. **`release-notes`** is enriched: it selects the *Unreleased* done plans (`actual_release` null), hydrates their done-doc bodies (`titlesOnly` skips this for a fast draft), and on an empty set returns a **"NOTHING UNRELEASED"** stop-signal (naming threads still `implementing`) instead of a draft — the doc-graph half of the release CI guard. |
 
 ---
 

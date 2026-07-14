@@ -17,7 +17,7 @@ import { connectLocalMcp } from '../mcpClient';
  */
 export async function reportCommand(
     kind: string,
-    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; sort?: string; run?: boolean },
+    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; sort?: string; run?: boolean; titlesOnly?: boolean },
 ): Promise<void> {
     try {
         // Validate --sort at the CLI edge before doing any work.
@@ -35,6 +35,7 @@ export async function reportCommand(
             if (options.until) args.to = options.until;
             if (options.full) args.full = 'true';
             if (options.sort) args.sort = options.sort;
+            if (options.titlesOnly) args.titlesOnly = 'true';
             brief = await client.getPrompt('report', args);
         } finally {
             await client.close();

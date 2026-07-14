@@ -2,10 +2,10 @@
 type: design
 id: de_01KXFHE7S0WFCYHE0ADS6A3QDW
 title: Release-notes report — do-release drafts its changelog from the graph
-status: done
+status: active
 created: 2026-07-14
 updated: 2026-07-14
-version: 7
+version: 10
 idea_version: 1
 tags: []
 parent_id: id_01KXETZC3SX632SXB8E9VM7862
@@ -32,16 +32,19 @@ The machinery is largely built — this thread is **framing + wiring**, not new 
 ## Architecture
 
 ```
-do-release (repo-specific skill)
-  └─ draft phase:
-       1. run `release-notes` report inline (in-session) → take its "Unreleased" section
-       2. git-log net: diff shipped commits (lastTag..HEAD) against the unversioned
-          done-plan set → list changes with no covering done plan
-       3. hydrate each Unreleased plan's done-doc body → curate into Added /
-          Changed / Fixed (user-benefit voice, Highlights lead); titles-only fallback
-  └─ human-review STOP  (UNCHANGED — draft is shown, edited, approved)
-  └─ bump / tag / push  (UNCHANGED)
-  └─ record-release      (stamps actual_release onto the just-shipped plans)
+loom report release-notes   ← GENERIC (ships in the package; any repo / CI runs it)
+  • select the release:null (Unreleased) set
+  • hydrate those plans' done-doc bodies → assemble the Added/Changed/Fixed + Highlights
+    brief (titles-only fallback)
+  • doc-graph empty-set guard: no unreleased plans / threads still `implementing` → stop-signal
+  → the invoking agent curates the brief into prose (synthesis stays with the agent, no LLM in the CLI)
+
+do-release (per-repo skill)   ← THIN
+  1. run `loom report release-notes` → draft (or the empty-set stop-signal)
+  2. git-process add-on: git-log coverage net + dirty-tree tell (release-side, not doc-graph)
+  3. human-review STOP  (UNCHANGED)
+  4. write repo changelog file(s) → bump / tag / push   (repo-specific)
+  5. record-release   (stamps actual_release onto the just-shipped plans)
 ```
 
 The report **drafts**; the human still **approves**. The existing review gate and the bump/tag/push tail are untouched.
@@ -64,9 +67,14 @@ The existing framing groups by *release version*. For the do-release draft we wa
 
 **Settled: done-body enrichment is the default; titles-only is a cheap fallback flag** for a release that wants a fast, low-token draft. The bounded per-release cost (a handful of dones) is unlike bulk report generation, so enrichment-by-default is affordable here.
 
-### 4. Invocation — inline, in-session
+### 4. Invocation — a generic `loom report release-notes`, called by the per-repo skill  *(amended after plan-001)*
 
-`do-release` assembles the brief and synthesizes **in the running session** (not a CLI shell-out). It is cheaper (the agent is already running), keeps the draft inside the review turn, and needs no new `loom` subcommand. The `do-release` skill file changes; no new command wraps it.
+**Correction.** plan-001 put the whole workflow *inline in the `do-release` skill* — which meant it only shipped to *this* repo; every other Loom project would have to reinvent selection, enrichment, and the guards. That half-ships the feature and violates the project-agnostic goal. plan-002 pushes the generic workflow **down into `loom report release-notes`** (CLI + the `report` MCP prompt) so it ships in the package and every Loom project — and any release CI — consumes it identically.
+
+- **The command does the generic, doc-graph work:** select the `release: null` set · hydrate those plans' done-doc bodies (enrichment default, `--titles-only` fallback) · apply the **doc-graph empty-set guard** (no unreleased plans / threads still `implementing`) · assemble the A/C/F + Highlights **brief**.
+- **Synthesis stays with the agent** — consistent with Loom's existing report model (the `report` prompt returns a brief; the agent writes the prose; no LLM / API key in the CLI). A CI consumer runs an agent (e.g. `claude` in an Action) against the same command.
+- **The per-repo `do-release` skill shrinks** to: run the command → review at the existing STOP → write the repo's changelog file(s) → bump/tag/push. Repo-specific only.
+- **Git-process checks** (the `git log` coverage net, the dirty-tree tell) touch git, not the doc graph, so they stay a thin release-side add-on in the skill/CI — not buried workflow.
 
 ## Project-agnostic seam
 
@@ -95,3 +103,4 @@ If a prior release ever failed to stamp (the tag-push gotcha), its done plans st
 1. **Framing source — done-body enrichment by default.** The `release-notes` kind stays roadmap-passthrough (`docTypes: []`) and owns the *structure* (A/C/F, user-benefit voice, Highlights lead). The `do-release` skill **hydrates** the Unreleased plans' done-doc bodies inline (a bounded per-release set) and the live agent curates them into user-facing prose — enrichment is **on by default**, with a titles-only fallback flag for a fast low-token draft. Passthrough contract + `report-selection` test preserved (enrichment is skill-side, never a `docTypes` change).
 2. **git-log net — inline appendix.** The coverage residue (commits with no covering done plan) is surfaced as a "Not covered by a done plan" appendix inside the draft the human reviews — not a separate pre-check to reconcile first.
 3. **Kind hardening — extend `release-notes`' framing in place.** Sub-structure each version group (including "Unreleased") as Added/Changed/Fixed within the one existing kind. No new kind, no mode param; both the standalone `release-notes` report and the do-release draft get the richer shape.
+4. **Generic workflow lives in `loom report release-notes`, not the skill (amended, plan-002).** Selection + done-body enrichment + the doc-graph empty-set guard ship in the package (CLI + `report` prompt) so every Loom project and its CI get them; synthesis stays with the invoking agent (no LLM in the CLI). The per-repo `do-release` skill only reviews + does the git-process net + repo-specific changelog/bump/tag/push. **Supersedes the plan-001 "inline in the skill" invocation** (§4) — that half-shipped the feature to this repo alone.
