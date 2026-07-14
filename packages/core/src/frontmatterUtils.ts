@@ -5,7 +5,7 @@ import { isUlidId, parseDocId } from './idUtils';
 import { today, toCanonical } from './dates';
 
 /** Frontmatter keys that hold a Loom date and are normalized to canonical YYYY-MM-DD on write. */
-const DATE_KEYS = new Set(['created', 'updated']);
+const DATE_KEYS = new Set(['created', 'updated', 'last_refreshed']);
 
 /**
  * Base frontmatter fields present in all Loom documents.
@@ -151,6 +151,7 @@ const ORDERED_KEYS = [
     'last_ai_block',
     // ctx-specific
     'source_hash',
+    'last_refreshed',
     // report-specific (snapshot artifacts; see loom/ai-integration/loom-ai-analysis)
     'kind',
     'generated_at',

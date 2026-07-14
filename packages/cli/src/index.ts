@@ -56,6 +56,7 @@ import { setThreadDepsCommand } from './commands/setThreadDeps';
 import { closePlanCommand } from './commands/closePlan';
 import { quickShipCommand } from './commands/quickShip';
 import { promoteCommand } from './commands/promote';
+import { refreshCtxCommand } from './commands/refreshCtx';
 
 // Single source of truth for the version. esbuild inlines this JSON at build
 // time (so the published bundle carries the real version); when run from source
@@ -145,6 +146,12 @@ program
     .option('--filter <criteria>', 'Filter weaves (e.g., status=active|implementing,phase=planning)')
     .option('--sort <order>', 'Sort weaves (e.g., id:asc, id:desc)')
     .action(statusCommand);
+
+program
+    .command('refresh-ctx')
+    .description('Prepare a (re)generation of the global ctx doc (loom/ctx.md, global-only). --skeleton seeds only the pillar headings (no AI); default prints the assembled source + section template as a brief for your AI to summarise and write via loom_update_doc.')
+    .option('--skeleton', 'Seed only the pillar skeleton (headings + authoring hints), no AI')
+    .action((options) => refreshCtxCommand({ skeleton: options.skeleton }));
 
 program
     .command('validate [weave]')

@@ -55,7 +55,7 @@ export { assembleContext, classifyScope } from './context/assembleContext';
 export { serializeBundle, bundleVisibilityLines } from './context/serializeBundle';
 export {
     buildCtxSource, ctxTarget, computeSourceHash, buildCtxFrontmatter, buildCtxShell,
-    CtxScope, CtxTarget,
+    CtxTarget,
 } from './buildCtxSource';
 
 // ============================================================================

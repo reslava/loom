@@ -78,7 +78,7 @@ async function pureTests() {
     const full = assembleContext('c1', 'chat', NONE, state);
     const fullIds = full.docs.map((d: any) => d.id);
     assert(
-        JSON.stringify(fullIds) === JSON.stringify(['g-ctx', 'w-ctx', 'i1', 'd1', 'p1', 'c1', 'rf-vis', 'ghost']),
+        JSON.stringify(fullIds) === JSON.stringify(['g-ctx', 'i1', 'd1', 'p1', 'c1', 'rf-vis', 'ghost']),
         `unexpected full bundle: ${JSON.stringify(fullIds)}`,
     );
     assert(Array.isArray(full.manifest) && full.manifest.length === 0, 'manifest must be empty for an empty ledger');

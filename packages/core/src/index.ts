@@ -108,7 +108,10 @@ export { sortWeavesById, sortDocumentsByCreated, sortDocumentsByTitle } from './
 export { generateIdeaBody } from './bodyGenerators/ideaBody';
 export { generateDesignBody } from './bodyGenerators/designBody';
 export { generatePlanBody } from './bodyGenerators/planBody';
-export { generateCtxBody, CtxSummaryData } from './bodyGenerators/ctxBody';
+export {
+    CtxPillar, DEFAULT_CTX_PILLARS, CTX_COMPANION_NOTE,
+    buildCtxSkeleton, extractCtxHeadings, ctxTemplateHeadings,
+} from './bodyGenerators/ctxBody';
 
 // ============================================================================
 // Feedback

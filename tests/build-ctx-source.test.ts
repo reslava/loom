@@ -28,41 +28,29 @@ async function run() {
     console.log('🧩 Running buildCtxSource tests...\n');
     const state = makeState();
 
-    // ── weave source rolls up design + ideas + plans + dones ──────────────────
-    console.log('  • weave source roll-up...');
-    const wsrc = buildCtxSource('weave', 'demo', state);
-    assert(wsrc.includes('Weave: demo'), 'weave header');
-    assert(wsrc.includes('DESIGN BODY HERE'), 'primary design body included');
-    assert(wsrc.includes('t1-plan-001 (implementing, 1/2 steps)'), 'plan line with step progress');
-    assert(wsrc.includes('T1 Idea (active)'), 'idea line');
-    assert(wsrc.includes('decided A'), 'done decisions');
-    assert(wsrc.includes('open X'), 'done open items');
-    console.log('    ✅ design + ideas + plans + dones');
-
-    // ── global source lists active/implementing weaves + threads ──────────────
+    // ── ctx is global-only: source lists active/implementing weaves + threads ──
     console.log('  • global source...');
-    const gsrc = buildCtxSource('global', undefined, state);
+    const gsrc = buildCtxSource(state);
     assert(gsrc.includes('## demo'), 'global lists the active weave');
     assert(gsrc.includes('- t1'), 'global lists the thread');
     console.log('    ✅ active weaves + threads');
 
-    // ── canonical targets ─────────────────────────────────────────────────────
-    console.log('  • canonical targets...');
-    const gt = ctxTarget('global', undefined);
+    // ── canonical target (global-only) ────────────────────────────────────────
+    console.log('  • canonical target...');
+    const gt = ctxTarget();
     assert(gt.ctxId === 'loom-ctx' && gt.relPath === 'loom/ctx.md', 'global target');
-    const wt = ctxTarget('weave', 'demo');
-    assert(wt.ctxId === 'demo-ctx' && wt.relPath === 'loom/demo/ctx.md', 'weave target');
-    console.log('    ✅ loom-ctx / {weave}-ctx flat paths');
+    console.log('    ✅ loom-ctx flat path');
 
     // ── hash idempotency + shell frontmatter ──────────────────────────────────
     console.log('  • source_hash + shell...');
-    const h1 = computeSourceHash(wsrc);
-    const h2 = computeSourceHash(wsrc);
+    const h1 = computeSourceHash(gsrc);
+    const h2 = computeSourceHash(gsrc);
     assert(h1 === h2 && h1.length === 40, 'sha1 is stable, 40 hex chars');
-    const shell = buildCtxShell(wt, 1, h1);
-    assert(shell.includes('type: ctx') && shell.includes('id: demo-ctx'), 'shell frontmatter id/type');
+    const shell = buildCtxShell(gt, 1, h1);
+    assert(shell.includes('type: ctx') && shell.includes('id: loom-ctx'), 'shell frontmatter id/type');
     assert(shell.includes('parent_id: null'), 'parent_id null');
     assert(shell.includes(`source_hash: ${h1}`), 'source_hash present');
+    assert(shell.includes('last_refreshed:'), 'last_refreshed recency stamp present');
     console.log('    ✅ stable hash + canonical shell');
 
     console.log('\n✨ All buildCtxSource tests passed!\n');

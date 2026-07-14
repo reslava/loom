@@ -210,7 +210,7 @@ Button clicked
 | `plan` | `{thread}/plans/plan-NNN.md` | Implementation plan — structured `steps` in frontmatter (source of truth); the body `## Steps` table is a generated view |
 | `done` | `{thread}/done/plan-NNN-done.md` | Post-implementation summary (one per plan) |
 | `chat` | `{thread}/chats/chat-NNN.md`, `{weave}/chats/chat-NNN.md`, or `loom/refs/chats/{slug}.md` | AI conversation log (thread-, weave-, or refs-scoped) |
-| `ctx` | `loom/ctx.md` (global) or `{weave}/ctx.md` (weave) | AI-optimised context summary (source of truth for agents). Scope is global + weave only — there is no thread-level ctx; the parent chain loads idea/design/plan in full. |
+| `ctx` | `loom/ctx.md` (global-only) | AI-optimised architecture/API context summary (source of truth for agents). Scope is **global-only** — one `loom/ctx.md` per project; there is no weave- or thread-level ctx (the parent chain loads idea/design/plan in full). |
 | `reference` | `loom/refs/{scope}/{id}.md` | Static/semi-static architectural facts |
 
 ### Frontmatter fields (canonical order)
@@ -273,7 +273,7 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
 | Mechanism | What it does |
 |-----------|-------------|
 | `requires_load` | Declares which docs must be loaded before working on a doc. Enforced by CLAUDE.md session start protocol. |
-| `ctx` docs | AI-optimised summaries at global/weave/thread level. Agents read ctx before raw source docs. Always kept fresh. |
+| `ctx` docs | AI-optimised summary at the global level (one `loom/ctx.md`). Agents read ctx before raw source docs; refreshed on demand (a `last_refreshed` recency stamp, no stale badge). |
 | `load_when` | Filters which reference docs are auto-included based on the current operation mode (idea/design/plan/implementing). Saves tokens. |
 | Stale tracking | When a parent doc is updated, child docs become stale. Agents see stale warnings and use `loom_refresh_ctx` / `loom_get_stale_docs` to update. |
 | Link index | `parent_id` / `child_ids` graph that tracks doc relationships. Enables `loom://requires-load` chain resolution and stale detection. |
@@ -291,7 +291,6 @@ AI agents are stateless: each session starts from zero. Loom solves this by bein
       chats/                ← refs-level AI chat docs (promote to -reference.md)
     .archive/               ← archived project-level docs
     {weave-id}/
-      ctx.md                ← weave-level context summary
       .archive/             ← archived weave-level docs
       {thread-id}/
         thread.md           ← thread manifest (th_ ULID + soft priority + depends_on) — powers the roadmap
@@ -339,9 +338,8 @@ Special forced filenames (exact, no prefix):
 | Filename | Scope |
 |----------|-------|
 | `ctx.md` | Global (`loom/ctx.md`) |
-| `{weave-id}/ctx.md` | Weave-level |
 
-There is no thread-level ctx file — ctx scope is global + weave only.
+ctx is **global-only** — one `loom/ctx.md` per project; there is no weave- or thread-level ctx file.
 
 Thread constraints define what docs can exist. Location implies the parent thread — no extra metadata needed. Ordinals (`plan-NNN`, `chat-NNN`) are assigned by creation order and never renumbered on delete (gaps allowed). Loom owns these filenames: it derives them on create through one canonical naming module, `loom migrate-layout` normalizes existing docs to the scheme, and folder renames go through `loom_rename_thread` / `loom_rename_weave`.
 

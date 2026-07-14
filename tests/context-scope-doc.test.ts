@@ -69,7 +69,8 @@ async function run() {
     console.log('  • full scope still bundles the surrounding context...');
     const full = assembleContext('c1', 'chat', { include: [], exclude: [] }, state, [], 'full');
     const fullIds = full.docs.map((d: any) => d.id);
-    assert(fullIds.includes('g-ctx') && fullIds.includes('w-ctx'), 'full scope should include ctx');
+    // ctx is global-only (ctx-surface-parity): the global ctx loads, the weave ctx does not.
+    assert(fullIds.includes('g-ctx') && !fullIds.includes('w-ctx'), 'full scope includes the global ctx, not weave ctx');
     assert(fullIds.includes('i1') && fullIds.includes('d1') && fullIds.includes('p1'), 'full scope should include the parent chain');
     assert(fullIds.includes('rf-A'), 'full scope should follow requires_load');
     assert(fullIds.includes('c1'), 'full scope should include the target');

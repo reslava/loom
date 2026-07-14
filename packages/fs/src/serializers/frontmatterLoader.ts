@@ -47,6 +47,9 @@ export async function loadDoc(filePath: string): Promise<Document> {
   // formats in the first place. Now the whole domain sees canonical date strings.
   if (doc.created !== undefined) doc.created = toCanonical(doc.created as any) as string;
   if ((doc as any).updated !== undefined) (doc as any).updated = toCanonical((doc as any).updated);
+  // ctx recency stamp — same unquoted-date → canonical coercion, so the tree shows a
+  // plain YYYY-MM-DD ("refreshed 2026-07-14"), not a JS Date / full-ISO timestamp.
+  if ((doc as any).last_refreshed !== undefined) (doc as any).last_refreshed = toCanonical((doc as any).last_refreshed);
 
   // Plan steps: frontmatter is the source of truth. If a structured `steps` block is
   // present, use it (the body table is a generated view, ignored on load). Otherwise

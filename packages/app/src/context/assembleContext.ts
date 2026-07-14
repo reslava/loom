@@ -113,8 +113,9 @@ function loadWhenAllows(doc: ReferenceDoc, effectiveMode: string): boolean {
  * Pure: no IO, no async, no side effects. Everything is read from `state`
  * (bodies via BaseDoc.content, id/slug lookups via state.index).
  *
- * Scope: auto-load global + weave ctx (all ctx treated as load:always; thread
- * scope has no ctx — a thread's idea/design/plan load in full via the parent chain)
+ * Scope: auto-load the global ctx (ctx is global-only — ctx-surface-parity; a
+ * weave/thread's idea/design/plan load in full via the parent chain, so a scoped
+ * ctx would duplicate context, not compress it)
  * + load:always reference docs in matching scope, filtered by `load_when` vs
  * the effective mode (Phase 2) + the target's parent chain + eager/transitive
  * requires_load. by-request refs are excluded from auto-load but remain
@@ -230,19 +231,12 @@ export function assembleContext(
     // populated (from `thread`, resolved above), so the caller keeps the
     // active-thread address, and the ledger split still applies.
     if (scope === 'full') {
-        // 2a. Global ctx
+        // 2a. Global ctx (ctx is global-only — ctx-surface-parity). No weave/thread
+        // ctx: a weave/thread's idea/design/plan are loaded in full by the parent chain
+        // (step 4), so a scoped ctx would duplicate context, not compress it.
         for (const doc of state.globalDocs) {
             if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'global', 'auto');
         }
-        // 2b. Weave ctx (loose fibers / weave-level docs of type ctx)
-        if (weave) {
-            for (const doc of [...weave.looseFibers, ...weave.refDocs]) {
-                if (doc.type === 'ctx' && doc.id !== canonicalTargetId) add(doc, 'weave', 'auto');
-            }
-        }
-        // No thread-scoped ctx: a thread's idea/design/plan are loaded in full by the
-        // parent chain (step 4), so a thread-ctx would duplicate context, not compress it.
-        // ctx exists at global + weave scope only.
 
         // 2d/3. Reference docs (Phase 2): auto-load load:always refs in matching scope, filtered
         // by load_when vs the effective mode. Ordered global → weave → thread — after ctx and before
@@ -258,7 +252,7 @@ export function assembleContext(
         // 4. Parent chain for a thread target. The req spec is injected FIRST — it is
         // the authoritative include/exclude/constraints the rest of the chain must
         // honour, so it frames everything after it. (This is the thread-scope
-        // always-load slot; ctx is global+weave only.)
+        // always-load slot; ctx is global-only.)
         if (thread) {
             if (thread.req && thread.req.id !== canonicalTargetId) add(thread.req, 'thread', 'auto');
             if (thread.idea && thread.idea.id !== canonicalTargetId) add(thread.idea, 'thread', 'auto');

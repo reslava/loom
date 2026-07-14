@@ -183,6 +183,10 @@ run_test tests/event-save-scope.test.ts
 # Step 7: buildCtxSource — pure ctx source assembler + helpers (no IO)
 run_test tests/build-ctx-source.test.ts
 
+# ctx pillar template (ctx-surface-parity): buildCtxSkeleton emits H1 + CLAUDE.md-split
+# note + all default pillars; ctxTemplateHeadings preserves an existing doc's headings, else defaults
+run_test tests/ctx-template.test.ts
+
 # CLAUDE.md two-surface sync: the root CLAUDE.md and the LOOM_CLAUDE_MD install template
 # must carry the same <!-- rule:id --> set + shared verbatim invariants (no silent drift)
 run_test tests/claude-md-sync.test.ts

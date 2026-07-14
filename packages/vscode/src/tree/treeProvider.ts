@@ -704,7 +704,8 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             children.push(this.createThreadNode(thread, weave.id, staleIds));
         }
 
-        const ctxFibers = weave.looseFibers.filter(f => f.type === 'ctx');
+        // ctx is global-only (ctx-surface-parity): no per-weave Context section. A ctx
+        // loose fiber (legacy) is simply not rendered — the one ctx lives at root.
         const otherFibers = weave.looseFibers.filter(f => f.type !== 'ctx');
 
         if (otherFibers.length > 0) {
@@ -714,11 +715,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             ));
         }
 
-        // Special sections at end: Context, References
-        if (ctxFibers.length > 0) {
-            children.push(this.createCtxSection(ctxFibers, weave.id));
-        }
-
+        // Special sections at end: References
         if (weave.refDocs && weave.refDocs.length > 0) {
             children.push(this.createRefsSection(weave.refDocs, weave.id));
         }
@@ -751,8 +748,6 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         if (thread.idea) contextValue += '-has-idea';
         if (thread.design) contextValue += '-has-design';
         if (thread.req) contextValue += '-has-req';
-        const hasCtx = thread.allDocs?.some(d => d.type === 'ctx');
-        if (hasCtx) contextValue += '-has-ctx';
         node.contextValue = contextValue;
 
         return { ...node, weaveSlug, threadSlug: thread.id, threadUlid: thread.manifest?.id, children };
@@ -818,10 +813,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             weaveSlug, thread.id
         ));
 
-        const ctxDocs = thread.allDocs.filter(d => d.type === 'ctx');
-        if (ctxDocs.length > 0) {
-            children.push(this.createCtxSection(ctxDocs, weaveSlug, thread.id));
-        }
+        // ctx is global-only (ctx-surface-parity): no per-thread Context section.
 
         if (thread.refDocs && thread.refDocs.length > 0) {
             children.push(this.createRefsSection(thread.refDocs, weaveSlug, thread.id));
@@ -839,16 +831,22 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         return stampThreadUlid(children);
     }
 
-    private createCtxSection(ctxDocs: Document[], weaveSlug?: string, threadSlug?: string): TreeNode {
+    /** The global Context section (ctx is global-only — ctx-surface-parity). Renders the
+     *  single loom/ctx.md with its `refreshed {date}` recency line (the honest signal —
+     *  there is no stale badge), or a click-to-generate placeholder in a fresh workspace. */
+    private createCtxSection(ctxDocs: Document[]): TreeNode {
         const node = new vscode.TreeItem('Context', vscode.TreeItemCollapsibleState.Collapsed);
         node.contextValue = 'ctx-section';
         node.iconPath = new vscode.ThemeIcon('note');
-        // Empty is only reachable for the always-rendered global node (per-weave/thread ctx
-        // subsections stay data-driven): show a click-to-generate placeholder.
         const children = ctxDocs.length > 0
-            ? ctxDocs.map(d => this.createDocumentNode(d, 'ctx', weaveSlug, threadSlug))
+            ? ctxDocs.map(d => {
+                const n = this.createDocumentNode(d, 'ctx');
+                const last = (d as any).last_refreshed;
+                n.description = last ? `refreshed ${last}` : 'never refreshed';
+                return n;
+            })
             : [this.createCtxEmptyNode()];
-        return { ...node, weaveSlug, threadSlug, children };
+        return { ...node, children };
     }
 
     /** Placeholder child for an empty (global) Context section: explains the node and

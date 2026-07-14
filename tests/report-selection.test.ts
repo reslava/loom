@@ -224,22 +224,6 @@ async function run() {
         console.log('  ✅ budget: --full (Infinity) disables degradation');
     }
 
-    // 13. oversizedWeavesWithoutCtx hint: only degraded weaves that lack a ctx.
-    {
-        const big = linesBody('Big', 400);
-        const ctxDoc = docB('ctx', 'wa-ctx', '2026-01-01', '# WA Context\n\nweave wa summary.');
-        const s5 = state([
-            weave('wa', [thread('wa', 'ta', { design: docB('design', 'd-wa', '2026-03-01', big) })], { looseFibers: [ctxDoc] }),
-            weave('wb', [thread('wb', 'tb', { design: docB('design', 'd-wb', '2026-02-01', big) })]),
-        ]);
-        const degraded = selectReportDocs(s5, decisions, {}, 800); // both designs degrade
-        assert(degraded.manifest.oversizedWeavesWithoutCtx.join(',') === 'wb',
-            `hint lists only the ctx-less degraded weave, got [${degraded.manifest.oversizedWeavesWithoutCtx.join(',')}]`);
-        const roomy = selectReportDocs(s5, decisions, {}, big.length * 2 + 1000); // nothing degrades
-        assert(!roomy.manifest.budgeted && roomy.manifest.oversizedWeavesWithoutCtx.length === 0, 'no degradation → empty hint');
-        console.log('  ✅ budget: oversized-weave-without-ctx hint');
-    }
-
     // --- Keep-full ordering (recency vs oldest) --------------------------------------
     // Reuse budgetState (d1 oldest … d3 newest, equal sizes) and the mid budget that fits
     // exactly one full + one summary.
@@ -287,25 +271,23 @@ async function run() {
         console.log('  ✅ sort: explicit param overrides the kind default');
     }
 
-    // 17. Reworded budget suggestion (MCP prompt): leads with --sort/--full, ctx demoted to a
-    //     secondary opt-in that flags the PERSISTENT weave ctx.md caveat.
+    // 17. Budget suggestion (MCP prompt): leads with the --sort/--full levers. ctx is
+    //     global-only now, so there is NO weave-ctx nudge (the old secondary option is gone).
     {
         const big = linesBody('Big', 400);
         const s6 = state([
             weave('wb', [thread('wb', 'tb', { design: docB('design', 'd-wb1', '2026-02-01', big) }),
-                         thread('wb', 'tc', { design: docB('design', 'd-wb2', '2026-03-01', big) })]), // no ctx → hint fires
+                         thread('wb', 'tc', { design: docB('design', 'd-wb2', '2026-03-01', big) })]),
         ]);
         const degraded = selectReportDocs(s6, decisions, {}, 800); // both designs degrade
-        assert(degraded.manifest.budgeted && degraded.manifest.oversizedWeavesWithoutCtx.length > 0, 'fixture actually degrades a ctx-less weave');
+        assert(degraded.manifest.budgeted, 'fixture actually degrades docs');
         const text = renderSelection(degraded);
         assert(text.includes('TO KEEP MORE DOCS FULL') && text.includes('--sort') && text.includes('--full'),
             'suggestion LEADS with the --sort / --full levers');
-        assert(text.includes('Secondary option') && text.includes('PERSISTENT'),
-            'ctx demoted to a secondary opt-in that flags the persistent weave ctx.md');
-        assert(text.indexOf('TO KEEP MORE DOCS FULL') < text.indexOf('Secondary option'),
-            'the --sort/--full lever comes before the ctx suggestion');
+        assert(!text.includes('Secondary option') && !/weave[ -]ctx/i.test(text),
+            'no weave-ctx nudge — ctx is global-only');
         assert(text.includes('sort=recency'), 'coverage manifest line surfaces the effective sort');
-        console.log('  ✅ prompt: reworded suggestion leads with --sort/--full, ctx secondary + persistent caveat');
+        console.log('  ✅ prompt: budget suggestion leads with --sort/--full (no weave-ctx nudge)');
     }
 
     // --- Release-notes brief (buildReleaseNotesBrief) --------------------------------

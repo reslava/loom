@@ -32,7 +32,7 @@ Diagram:
               └────────────────▶ plan          {implement step(s)}
                                                (req optional: design ▶ plan directly)
 
-   ctx (global + weave) — regenerable scope summary, {generate}/{refresh} any time
+   ctx (global-only) — regenerable project summary, {generate}/{refresh} any time
    {refine} — re-run generation on any stale idea/design/req/plan, any time
 ```
 
@@ -53,7 +53,7 @@ Outputs:
 - **design** — how we'll build it: architecture, components, decisions, trade-offs.
 - **req** — the thread's locked scope: Included / Excluded / Constraints, authored after the design and always-loaded thereafter (optional; see the [requirements model](loom-requirements-reference.md)).
 - **plan** — concrete steps with files touched and dependencies, each citing the req it satisfies.
-- **ctx** — context summary for AI (global + weave only), auto-loaded by scope.
+- **ctx** — architecture/API context summary for AI (global-only, one `loom/ctx.md`), always auto-loaded.
 
 ### {refine} (existing doc → updated doc)
 

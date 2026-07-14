@@ -46,7 +46,6 @@ const EXCEPTIONS: Record<string, string> = {
     // Context UX — extension sidebar / agent context prefs, no terminal surface.
     loom_get_context_prefs: 'context UX (extension/agent)',
     loom_set_context_prefs: 'context UX (extension/agent)',
-    loom_refresh_ctx: 'ctx regeneration (extension/agent)',
     // Onboarding seed — a setup single-surface op (the extension/agent seeds the example).
     loom_seed_example: 'onboarding seed (setup, single-surface)',
     // id→path resolver — the CLI resolves via resolve-ulid / resolve-path / search instead.
@@ -68,6 +67,7 @@ const MAPPING: Record<string, string> = {
     loom_record_release: 'record-release', loom_install: 'install', loom_validate: 'validate',
     loom_search_docs: 'search', loom_get_blocked_steps: 'blocked',
     loom_get_stale_docs: 'stale', loom_get_stale_plans: 'stale',
+    loom_refresh_ctx: 'refresh-ctx',
 };
 
 async function run() {

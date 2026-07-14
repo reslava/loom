@@ -235,27 +235,25 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         // reads to pre-fill the weave filter — so the picker opens scoped to that weave.
         vscode.commands.registerCommand('loom.generateWeaveReport', (node?: TreeNode) => generateReportCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.addRequiresLoad', (node?: TreeNode) => addRequiresLoadCommand(node)),
-        vscode.commands.registerCommand('loom.refreshCtx', async (node?: TreeNode) => {
+        vscode.commands.registerCommand('loom.refreshCtx', async () => {
             const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
             if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
-            const weaveSlug = node?.weaveSlug;
-            const scope: 'global' | 'weave' = weaveSlug ? 'weave' : 'global';
-            const argsLiteral = weaveSlug ? `{ scope: "weave", weave_slug: "${weaveSlug}" }` : `{ scope: "global" }`;
             if (await isClaudeInstalled()) {
                 await launchClaude(root, 'Loom: Refresh Ctx',
-                    `Loom refresh ctx task (scope=${scope}). ctx exists at global + weave scope only. Call MCP tool loom_refresh_ctx with ${argsLiteral} to get the assembled source and the ctxId, write a concise context summary from that source, then call loom_update_doc on the returned ctxId with the summary body.`
+                    `Loom refresh ctx task. ctx is GLOBAL-ONLY (one loom/ctx.md, id loom-ctx). Call MCP tool loom_refresh_ctx with {} — it returns the assembled source, the section template, and the ctxId. Write a concise context summary from the source UNDER the returned template sections (the default pillars on a fresh doc, or the doc's existing headings — preserve them). Then call loom_update_doc on the returned ctxId with the summary body. ctx holds architecture / API / stack only — do NOT restate rules or workflow from CLAUDE.md.`
                 );
             } else {
-                // No agent available — ensure the canonical ctx shell + source, open it for editing.
+                // No agent available — seed the pillar skeleton (headings + hints), open it
+                // for the user to fill in by hand. skeleton_only writes no prose (no AI).
                 try {
                     let result: any;
                     await vscode.window.withProgress(
                         { location: vscode.ProgressLocation.Notification, title: 'Loom: Preparing ctx…', cancellable: false },
-                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', weaveSlug ? { scope, weave_slug: weaveSlug } : { scope }); }
+                        async () => { result = await getMCP(root).callTool('loom_refresh_ctx', { skeleton_only: true }); }
                     );
                     treeProvider.refresh();
                     if (result?.targetPath) { const doc = await vscode.workspace.openTextDocument(result.targetPath); await vscode.window.showTextDocument(doc, { preview: false }); }
-                    vscode.window.showInformationMessage('Ctx shell ready — write the summary (an agent can do this), then save.');
+                    vscode.window.showInformationMessage('Ctx skeleton ready — fill the pillar sections, then save.');
                 } catch (e: any) { handleMcpError(e, treeProvider); }
             }
         }),

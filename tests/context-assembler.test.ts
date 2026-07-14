@@ -92,14 +92,16 @@ async function run() {
 
     // ── Scope ordering ───────────────────────────────────────────────────────
     console.log('  • deterministic scope ordering...');
+    // ctx is global-only (ctx-surface-parity): the weave-level `w-ctx` doc is NOT
+    // auto-loaded — only the global ctx is, then the parent chain + refs.
     assert(
-        JSON.stringify(ids) === JSON.stringify(['g-ctx', 'w-ctx', 'i1', 'd1', 'p1', 'c1', 'rf-vis', 'rf-A', 'ghost', 'rf-B']),
+        JSON.stringify(ids) === JSON.stringify(['g-ctx', 'i1', 'd1', 'p1', 'c1', 'rf-vis', 'rf-A', 'ghost', 'rf-B']),
         `Unexpected order: ${JSON.stringify(ids)}`,
     );
     assert(bundle.docs[0].scope === 'global', 'g-ctx scope should be global');
-    assert(bundle.docs[1].scope === 'weave', 'w-ctx scope should be weave');
+    assert(!ids.includes('w-ctx'), 'weave ctx is not auto-loaded (global-only)');
     assert(bundle.docs.find((d: any) => d.id === 'c1').scope === 'target', 'c1 scope should be target');
-    console.log('    ✅ order + scopes correct');
+    console.log('    ✅ order + scopes correct (global-only ctx)');
 
     // ── Slug resolution via requires_load ─────────────────────────────────────
     console.log('  • requires_load resolves a slug...');
@@ -168,7 +170,7 @@ async function run() {
     // ── serializeBundle ───────────────────────────────────────────────────────
     console.log('  • serializeBundle markdown shape...');
     const md = serializeBundle(bundle);
-    assert(md.startsWith('<!-- loom:context-bundle target=c1 ') && md.includes('mode=chat docs=10'), 'leading bundle comment missing/wrong');
+    assert(md.startsWith('<!-- loom:context-bundle target=c1 ') && md.includes('mode=chat docs=9'), 'leading bundle comment missing/wrong');
     assert(md.includes('### [global ctx] g-ctx · id: g-ctx'), 'global ctx header wrong');
     assert(md.includes('### [target chat] c1 · id: c1'), 'target header wrong');
     assert(md.includes('### ⚠️ requires_load target missing: ghost'), 'missing header wrong');

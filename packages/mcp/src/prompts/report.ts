@@ -85,15 +85,6 @@ export function renderSelection(sel: ReportSelection): string {
             `${flipKeeps} docs full instead, or \`--full\` to keep the ENTIRE slice full (higher token ` +
             `cost). These are the direct fixes when a designs/architecture report dropped foundational docs.`,
         );
-        if (m.oversizedWeavesWithoutCtx.length) {
-            lines.push(
-                `Secondary option — these weaves had degraded docs and no ctx to summarize with: ` +
-                `${m.oversizedWeavesWithoutCtx.join(', ')}. A ctx would improve summaries next run, but ` +
-                `note that \`loom refresh ctx\` (scoped to a weave) writes a PERSISTENT loom/{weave}/ctx.md ` +
-                `— a standing doc loaded thereafter, NOT an ephemeral one-run summary — so opt into it ` +
-                `deliberately. (Informational — no ctx is generated automatically.)`,
-            );
-        }
     }
     lines.push('');
     for (const d of sel.docs) {

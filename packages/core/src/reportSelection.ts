@@ -75,9 +75,6 @@ export interface ReportManifest {
     tiers: { full: number; summary: number; reference: number };
     /** Human-readable coverage/elision summary, e.g. "12 full, 8 summarized, 3 referenced — 58k of 240k chars (budget 60k)." */
     elision: string;
-    /** Weaves that had docs degraded by the budget but have NO ctx doc — generating a ctx
-     *  for them would yield better summaries next run. Empty when nothing was degraded. */
-    oversizedWeavesWithoutCtx: string[];
 }
 
 export interface ReportSelection {
@@ -293,15 +290,6 @@ export function selectReportDocs(
         ? `${tiers.full} full, ${tiers.summary} summarized, ${tiers.reference} referenced — ${emittedChars} of ${fullChars} chars emitted (budget ${budget}).`
         : `${tiers.full} full — ${fullChars} chars, within budget ${budget} (no degradation).`;
 
-    // Weaves whose docs got degraded but that have no ctx to summarize with — a ctx there
-    // would improve future runs. Capability hint only; we never auto-generate one.
-    const oversizedWeavesWithoutCtx: string[] = [];
-    if (budgeted) {
-        const degradedWeaves = new Set<string>();
-        for (const d of docs) if (d.tier !== 'full' && d.weaveSlug) degradedWeaves.add(d.weaveSlug);
-        for (const w of Array.from(degradedWeaves).sort()) if (!ctxByScope.has(w)) oversizedWeavesWithoutCtx.push(w);
-    }
-
     return {
         docs,
         manifest: {
@@ -317,7 +305,6 @@ export function selectReportDocs(
             budgeted,
             tiers,
             elision,
-            oversizedWeavesWithoutCtx,
         },
     };
 }
