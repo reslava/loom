@@ -10,6 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-07-15
+
+**Highlights:** wire thread dependencies visually from the roadmap, clicking a roadmap thread now drops you into its live chat, a new next-work report mines the graph for what to build next, and the three READMEs are lighter entry points.
+
+### Added
+- **Wire thread dependencies visually.** Right-click a thread in the roadmap (or tree) → **Set Dependencies…** to set its `depends_on` edges from a multi-select list pre-checked with the current graph — no more hand-editing `thread.md` or dropping to the CLI. The pre-checked picker doubles as the "what does this depend on today" view, and a dependency that would form a cycle is refused with a clear message. Completes CLI ⇄ MCP ⇄ extension parity for dependency editing.
+- **A next-work report.** A new prospective report kind mines the doc graph's still-open material to propose what to work on next, with `forward` and `creativity` knobs to steer how far ahead and how inventive the suggestions run.
+
+### Changed
+- **Clicking a roadmap thread resumes the conversation.** A roadmap thread now opens its latest still-open chat first (falling back to design → idea → thread manifest), so you land where the work actually is instead of on the spec.
+- **Cross-plan blockers are no longer silently dropped.** A step's `blockedBy` reference to another plan is now validated and warn-and-stored, with a standing diagnostic that surfaces any dangling plan reference — so a cross-plan dependency survives even when its target isn't loaded, instead of vanishing at write time.
+- **Lighter README entry points.** The three READMEs (root, CLI, VS Code) are now deliberately light — one pain-first tagline, a quick-start, and a doc-map — with the exhaustive material kept in the linked docs, and that "light entry point" rule is now encoded in the doc-sync contract so it stays that way.
+
+### Fixed
+- **Set Dependencies now appears in the roadmap view.** The **Set Dependencies…** menu item was only showing on tree-view thread nodes; it now also shows on roadmap thread nodes — the view where you can see the candidate threads in dependency order.
+
 ## [1.25.0] - 2026-07-14
 
 ### Added
@@ -712,7 +728,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.25.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.26.0...HEAD
+[1.26.0]: https://github.com/reslava/loom/releases/tag/v1.26.0
 [1.25.0]: https://github.com/reslava/loom/releases/tag/v1.25.0
 [1.24.0]: https://github.com/reslava/loom/releases/tag/v1.24.0
 [1.23.0]: https://github.com/reslava/loom/releases/tag/v1.23.0

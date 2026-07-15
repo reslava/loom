@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXJQ6CS3D94ST0HGCA3KM1BB
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.26.0
 steps:
   - id: normalizer-inject-planexists-return-ids-warnings
     order: 1

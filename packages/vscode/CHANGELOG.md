@@ -1,5 +1,16 @@
 # Loom VS Code Extension — Changelog
 
+## [1.26.0] - 2026-07-15
+
+### Added
+- **Set Dependencies… on a thread.** Right-click a thread node (in the roadmap or the tree) → **Set Dependencies…** to wire its `depends_on` edges from a multi-select quick-pick, pre-checked with the thread's current dependencies. Confirming writes the new edge set; a dependency that would form a cycle is refused with a clear message and the graph is left untouched.
+
+### Changed
+- **Clicking a roadmap thread opens its live chat.** A roadmap thread node now opens its latest still-open chat first (falling back to design → idea → thread manifest), so a click resumes the conversation instead of always landing on the spec.
+
+### Fixed
+- **Set Dependencies… now appears in the roadmap view.** The menu item was only showing on tree-view thread nodes; it now also shows on roadmap thread nodes.
+
 ## [1.25.0] - 2026-07-14
 
 ### Added

@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.26.0
 steps:
   - id: rewrote-root-readme-md-620-140
     order: 1

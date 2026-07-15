@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXH9ZH380GNK3NV1CCQ2T32D
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.26.0
 steps:
   - id: source-discriminator-on-reportkind
     order: 1

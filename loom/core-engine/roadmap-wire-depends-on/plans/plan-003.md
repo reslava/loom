@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.26.0
 steps:
   - id: reworked-resolvethreaddocpath-packages-vscode-src-tree
     order: 1

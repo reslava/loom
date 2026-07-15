@@ -11,6 +11,7 @@ tags: []
 parent_id: null
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.26.0
 steps:
   - id: rewrote-the-doc-sync-contract-s
     order: 1
