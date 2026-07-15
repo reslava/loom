@@ -2,7 +2,7 @@
 type: idea
 id: id_01KWY5G05RHV3EN90EREP46ZYW
 title: Validate cross-plan pl_ blockedBy refs at write time
-status: draft
+status: done
 created: 2026-07-07
 version: 1
 tags: []

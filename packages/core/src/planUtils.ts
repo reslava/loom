@@ -33,14 +33,23 @@ export function isStepBlocked(
             continue;
         }
 
-        // Cross‑plan dependency: plan ID
-        if (blocker.includes('-plan-')) {
-            const planEntry = index.documents.get(blocker);
-            // If the plan doesn't exist or the file is missing, consider it blocked.
+        // Cross‑plan dependency: a `pl_…` ULID or legacy "{slug}-plan-NNN".
+        //
+        // Back-compat fallback — no longer the primary contract. "Missing plan ⇒ blocked"
+        // used to be the only signal a cross-plan edge pointed nowhere; as of
+        // core-engine/cross-plan-blocker-validation the standing `blockedByDangling`
+        // diagnostic (loom_validate / loom://diagnostics) is the authoritative surface for
+        // a dangling cross-plan edge. This is retained only so a step whose dependency plan
+        // does not (yet) exist is not offered as *doable* — mirroring how the ordinal
+        // fallback above is kept but no longer load-bearing. Previously only the legacy
+        // `-plan-` form was checked here, so a modern `pl_…` blocker was silently ignored
+        // (never blocking); `isPlanIdRef` unifies both forms.
+        if (isPlanIdRef(blocker)) {
+            const planEntry = index.documents.get(planRefId(blocker));
+            // Missing/nonexistent target ⇒ blocked (best-effort; the diagnostic reports why).
+            // An existing plan is assumed NOT blocked — its completion status can't be checked
+            // here without loading the doc.
             if (!planEntry || !planEntry.exists) return true;
-            // If the plan exists, we cannot check its status without loading the document.
-            // For now, assume it is NOT blocked (the blocker resolution is best‑effort).
-            // A future enhancement could load the plan to check its status.
             continue;
         }
     }
@@ -51,10 +60,43 @@ export function isStepBlocked(
 /**
  * Whether a `blockedBy` entry names a *plan* (cross-plan dependency) rather than a
  * sibling step: a canonical `pl_…` ULID, or a legacy positional `"{slug}-plan-NNN"`
- * id. Such entries are passed through unvalidated by {@link resolveBlockedByIds}.
+ * id. Such entries are stored verbatim by {@link resolveBlockedByIds}; whether the
+ * target plan actually exists is checked (warn-and-store) via the injected
+ * `planExists` predicate, when one is supplied.
  */
-function isPlanIdRef(entry: string): boolean {
+export function isPlanIdRef(entry: string): boolean {
     return entry.startsWith('pl_') || entry.includes('-plan-');
+}
+
+/**
+ * Extract the plan id from a cross-plan `blockedBy` entry. A modern `pl_…` ULID is
+ * the id itself; a legacy `"{slug}-plan-NNN N"` form carries a trailing step ordinal
+ * separated by a space, so the id is the first token. Use before an existence lookup.
+ */
+export function planRefId(entry: string): string {
+    return entry.includes('-plan-') ? entry.split(' ')[0] : entry;
+}
+
+/**
+ * A non-blocking advisory produced by {@link resolveBlockedByIds} at write time.
+ * `dangling_plan_ref` = a cross-plan `blockedBy` names a plan the injected
+ * `planExists` predicate could not resolve. The edge is **still stored** (warn-and-store:
+ * forward-referencing a not-yet-created plan is legal) — this only surfaces it so the
+ * author isn't left with a silently-dangling edge. The durable guarantee is the standing
+ * step-level `dangling_dep` diagnostic; this advisory is the cheap write-time echo.
+ */
+export interface BlockedByWarning {
+    kind: 'dangling_plan_ref';
+    /** The unresolved cross-plan ref, as stored. */
+    ref: string;
+    /** The owning step's id, when known. */
+    stepId?: string;
+}
+
+/** The result of {@link resolveBlockedByIds}: the normalized edge ids plus any advisories. */
+export interface ResolveBlockedByResult {
+    ids: string[];
+    warnings: BlockedByWarning[];
 }
 
 /**
@@ -67,10 +109,13 @@ function isPlanIdRef(entry: string): boolean {
  *
  * - A numeric entry (`"1"`) or `"Step N"` form → the id at that 1-based position
  *   in `orderedStepIds`.
- * - A plan id (`pl_…`, or a legacy `"{slug}-plan-NNN"` cross-plan blocker) passes
- *   through unchanged — best-effort, since the resolver holds only this plan's step
- *   ids and cannot verify another plan exists (matching {@link isStepBlocked}'s
- *   "missing plan ⇒ blocked" read-time convention).
+ * - A plan id (`pl_…`, or a legacy `"{slug}-plan-NNN"` cross-plan blocker) is stored
+ *   verbatim. If a `planExists` predicate is supplied and it does not resolve the ref,
+ *   the edge is **still stored** but a `dangling_plan_ref` warning is returned
+ *   (warn-and-store — forward-referencing a not-yet-created plan is legal). Without a
+ *   predicate it passes through best-effort, as before. The predicate is the plan-existence
+ *   (and legacy-form normalization) oracle: `core` holds no link index, so the caller
+ *   closes over it and hands in a pure `(ref) => boolean` — keeping this function pure.
  * - A non-numeric entry that matches a known id in `orderedStepIds` passes through.
  * - A numeric entry out of range, OR a non-numeric entry that is neither a plan id
  *   nor a known step id, throws: a positional reference to a nonexistent step, or a
@@ -84,15 +129,20 @@ function isPlanIdRef(entry: string): boolean {
  * @param entries        the raw `blockedBy` list as supplied
  * @param orderedStepIds the plan's step ids in order (index 0 = step 1)
  * @param selfId         the owning step's id, when known — to reject self-blocks
+ * @param planExists     optional pure predicate — `true` iff the cross-plan ref resolves
+ *                       to a real plan. Supplied only by callers that hold the link index
+ *                       (the app layer); omitted by the pure reducer, which stores verbatim.
  */
 export function resolveBlockedByIds(
     entries: ReadonlyArray<string | number> | undefined,
     orderedStepIds: string[],
-    selfId?: string
-): string[] {
-    if (!entries || entries.length === 0) return [];
+    selfId?: string,
+    planExists?: (ref: string) => boolean
+): ResolveBlockedByResult {
+    if (!entries || entries.length === 0) return { ids: [], warnings: [] };
 
     const resolved: string[] = [];
+    const warnings: BlockedByWarning[] = [];
     const seen = new Set<string>();
 
     for (const raw of entries) {
@@ -115,6 +165,7 @@ export function resolveBlockedByIds(
         if (entry === '') continue;
 
         let id: string;
+        let danglingPlanRef = false;
         const ordinal = entry.match(/^(?:Step\s+)?(\d+)$/i);
         if (ordinal) {
             const position = parseInt(ordinal[1], 10);
@@ -126,10 +177,13 @@ export function resolveBlockedByIds(
             }
             id = orderedStepIds[position - 1];
         } else if (isPlanIdRef(entry)) {
-            // Cross-plan blocker: pass through unvalidated. The resolver holds only this
-            // plan's step ids, so it cannot verify the target plan exists — that stays
-            // best-effort, matching isStepBlocked's "missing plan ⇒ blocked" convention.
+            // Cross-plan blocker: always stored verbatim (warn-and-store). The resolver
+            // holds no link index, so plan-existence is checked via the injected predicate
+            // (which also resolves the legacy "{slug}-plan-NNN" form). When a predicate is
+            // supplied and the ref does not resolve, the edge is kept AND flagged as a
+            // dangling_plan_ref advisory. Without a predicate this stays best-effort.
             id = entry;
+            if (planExists && !planExists(entry)) danglingPlanRef = true;
         } else if (orderedStepIds.includes(entry)) {
             // An already-resolved step-id slug — passes through.
             id = entry;
@@ -152,10 +206,12 @@ export function resolveBlockedByIds(
         if (!seen.has(id)) {
             seen.add(id);
             resolved.push(id);
+            // Warn once per unique unresolved edge (dedupe collapses repeats of the same ref).
+            if (danglingPlanRef) warnings.push({ kind: 'dangling_plan_ref', ref: id, stepId: selfId });
         }
     }
 
-    return resolved;
+    return { ids: resolved, warnings };
 }
 
 /**

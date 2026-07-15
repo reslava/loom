@@ -98,7 +98,10 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
                 );
             }
             // blockedBy is normalized to stable slug ids (same helper as create) so a
-            // numeric ordinal supplied to update is never persisted verbatim.
+            // numeric ordinal supplied to update is never persisted verbatim. The reducer is
+            // pure and holds no link index, so it calls the resolver predicate-free and takes
+            // .ids only — cross-plan refs store verbatim. Dangling-plan warnings are the app
+            // layer's job (it holds the index); the standing diagnostic is the guarantee.
             const orderedIds = doc.steps.map(st => st.id);
             const steps = doc.steps.map((s, i) =>
                 i === idx
@@ -106,7 +109,7 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
                           ...s,
                           ...(patch.description !== undefined ? { description: patch.description } : {}),
                           ...(patch.files_touched !== undefined ? { files_touched: patch.files_touched } : {}),
-                          ...(patch.blockedBy !== undefined ? { blockedBy: resolveBlockedByIds(patch.blockedBy, orderedIds, stepId) } : {}),
+                          ...(patch.blockedBy !== undefined ? { blockedBy: resolveBlockedByIds(patch.blockedBy, orderedIds, stepId).ids } : {}),
                           ...(patch.satisfies !== undefined ? { satisfies: patch.satisfies } : {}),
                       }
                     : s
@@ -165,7 +168,7 @@ export function planReducer(doc: PlanDoc, event: PlanEvent): PlanDoc {
             const steps = next.map((s, i) => ({
                 ...s,
                 order: i + 1,
-                ...(s.id === id ? { blockedBy: resolveBlockedByIds(s.blockedBy, orderedIds, id) } : {}),
+                ...(s.id === id ? { blockedBy: resolveBlockedByIds(s.blockedBy, orderedIds, id).ids } : {}),
             }));
             return { ...doc, steps, updated };
         }

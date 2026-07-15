@@ -2,6 +2,7 @@ import { Document } from './entities/document';
 import { PlanDoc } from './entities/plan';
 
 import { LinkIndex } from './linkIndex';
+import { isPlanIdRef, planRefId } from './planUtils';
 
 export interface ValidationIssue {
     documentId: string;
@@ -70,10 +71,17 @@ export function validateStepBlockers(plan: PlanDoc, index: LinkIndex): Validatio
                 continue;
             }
 
-            // Cross-plan dependency: "{plan-id}" or "{plan-id} N" or "{plan-id} N,M"
-            if (blocker.includes('-plan-')) {
-                const planId = blocker.split(' ')[0];
-                if (!index.documents.has(planId)) {
+            // Cross-plan dependency: a modern `pl_…` ULID, or a legacy
+            // "{plan-id}" / "{plan-id} N" / "{plan-id} N,M" form. This is the standing
+            // net for warn-and-store (core-engine/cross-plan-blocker-validation): a
+            // blocker naming a non-existent plan is stored, never rejected, and surfaced
+            // here as a warning — so a dangling `pl_…` edge is never silent (previously
+            // a `pl_…` ref fell through to the "unknown blocker format" branch below,
+            // both missing the real dangling case and mis-warning on a valid one).
+            if (isPlanIdRef(blocker)) {
+                const planId = planRefId(blocker);
+                const entry = index.documents.get(planId);
+                if (!entry || !entry.exists) {
                     issues.push({
                         documentId: plan.id,
                         severity: 'warning',

@@ -160,7 +160,7 @@ function buildStructuredSteps(stepsInput: PlanStepInput[]): PlanStep[] {
         title,
         description,
         files_touched: s.files ?? [],
-        blockedBy: resolveBlockedByIds(s.blockedBy, orderedStepIds, id),
+        blockedBy: resolveBlockedByIds(s.blockedBy, orderedStepIds, id).ids,
         satisfies: s.satisfies ?? [],
         ...(s.detail && s.detail.trim() ? { detail: s.detail } : {}),
     }));

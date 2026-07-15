@@ -224,6 +224,12 @@ run_test tests/resolve-blockedby-ids.test.ts
 # persist ordinal blockedBy as slug ids (out-of-range throws; slug/plan-id passthrough; reorder-safe)
 run_test tests/blockedby-normalization.test.ts
 
+# cross-plan-blocker-validation: warn-and-store — an unresolved pl_ blocker is stored AND
+# warned via the planExists predicate; validateStepBlockers flags dangling pl_/legacy refs
+# (a valid pl_ no longer mis-flagged as unknown format); isStepBlocked's missing⇒blocked is
+# a demoted, form-unified back-compat fallback
+run_test tests/cross-plan-blocker-validation.test.ts
+
 # Step 8: workspace workflow — real filesystem at j:/temp/loom (Phase 6, thread + multi-thread)
 run_test tests/workspace-workflow.test.ts
 

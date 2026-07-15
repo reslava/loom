@@ -1,6 +1,6 @@
 import { getState } from '../../../app/dist/getState';
 import { getActiveLoomRoot, loadWeave, buildLinkIndex } from '../../../fs/dist';
-import { parseReq, checkReqCoverage, buildRoadmap } from '../../../core/dist';
+import { parseReq, checkReqCoverage, buildRoadmap, isPlanIdRef, planRefId } from '../../../core/dist';
 import { ConfigRegistry } from '../../../fs/dist';
 import { LinkIndex } from '../../../core/dist/linkIndex';
 import * as fs from 'fs-extra';
@@ -9,6 +9,17 @@ interface DiagnosticIssue {
     docId: string;
     issue: 'broken_parent_id' | 'dangling_child_id';
     detail: string;
+}
+
+/** A step's cross-plan `blockedBy` that points at a non-existent plan — warn-and-store's
+ *  standing net. The write path stores such an edge verbatim; this is where it surfaces. */
+interface BlockedByDanglingIssue {
+    weaveSlug: string;
+    threadSlug: string;
+    planId: string;
+    stepId: string;
+    /** The blocker as stored (may carry a legacy trailing ordinal); `planId` is the resolved target. */
+    ref: string;
 }
 
 interface ReqCoverageIssue {
@@ -67,6 +78,28 @@ export async function handleDiagnosticsResource(root: string) {
         }
     }
 
+    // Step-level cross-plan dangling blockers: a step's blockedBy names a `pl_…` (or legacy
+    // "{slug}-plan-NNN") plan that does not exist. This is the standing guarantee behind
+    // warn-and-store — the write path stores the edge verbatim, and this recompute is what
+    // keeps it from being silent. Mirrors the roadmap's thread-level `dangling_dep`, one layer down.
+    const blockedByDangling: BlockedByDanglingIssue[] = [];
+    for (const weave of state.weaves) {
+        for (const thread of weave.threads) {
+            for (const plan of thread.plans) {
+                for (const step of plan.steps ?? []) {
+                    for (const ref of step.blockedBy ?? []) {
+                        if (!isPlanIdRef(ref)) continue;
+                        const planId = planRefId(ref);
+                        const entry = index.documents.get(planId);
+                        if (!entry || !entry.exists) {
+                            blockedByDangling.push({ weaveSlug: weave.id, threadSlug: thread.id, planId, stepId: step.id, ref });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Roadmap diagnostics: depends_on cycles, dangling dependency targets, and
     // threads missing thread.md (→ run `loom migrate`). Derived from the same state.
     const roadmapDiagnostics = buildRoadmap(state).diagnostics;
@@ -75,7 +108,7 @@ export async function handleDiagnosticsResource(root: string) {
         contents: [{
             uri: 'loom://diagnostics',
             mimeType: 'application/json',
-            text: JSON.stringify({ issueCount: issues.length, issues, reqCoverage, roadmap: roadmapDiagnostics }, null, 2),
+            text: JSON.stringify({ issueCount: issues.length, issues, reqCoverage, blockedByDangling, roadmap: roadmapDiagnostics }, null, 2),
         }],
     };
 }

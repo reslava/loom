@@ -79,7 +79,7 @@ stable, so they are listed here in full.
 | `loom://state` | Full project state (weaves, threads, plans) as JSON; `?weaveSlug=&status=` filterable | Need a global or filtered view |
 | `loom://roadmap` | Derived cross-weave roadmap (`RoadmapView` JSON): the single topo+priority `roadmap[]`, history, diagnostics | Reason about cross-weave **blocked-on** |
 | `loom://reports` | Generated report artifacts (kept out of `LoomState`): `id`, `title`, `kind`, `weaveSlug`, `generated_at`, `filePath` | Listing generated reports |
-| `loom://diagnostics` | Broken links, orphaned docs, and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |
+| `loom://diagnostics` | Broken links, orphaned docs, req-coverage gaps, **step-level dangling cross-plan blockers** (`blockedByDangling[]`), and roadmap findings (cycles, dangling deps, missing `thread.md`) | Before a cleanup pass |
 | `loom://summary` | Health counts (weaves, threads, plans, open steps) | Quick status |
 | `loom://link-index` | Document graph: `byId`, parent/child, backlinks, slugs | Checking relationships |
 | `loom://status` | Raw `.loom/_status.md` text | Stage 1 legacy only |
@@ -154,6 +154,7 @@ The derived roadmap shows how one feature spans **read** and **write** MCP surfa
 
 - **Read:** `loom://roadmap` — `getState → buildRoadmap(state) → RoadmapView` JSON (the single topo+priority `roadmap[]`, shipped-plan history, diagnostics). The CLI's `loom roadmap` is a *separate* human ASCII renderer over the same pure function; the resource is what lets an agent reason about cross-weave **blocked-on** without parsing CLI text.
 - **Diagnostics:** roadmap cycles, dangling `depends_on`, and threads missing `thread.md` fold into `loom://diagnostics` and the `validate-state` prompt.
+- **Cross-plan blockers (warn-and-store):** a step's `blockedBy` naming a non-existent plan (`pl_…` or legacy `{slug}-plan-NNN`) is **stored, never rejected** — forward-referencing a not-yet-created plan is legal. It surfaces as a `warning` in `loom_validate` (via `validateStepBlockers`) and as a structured `blockedByDangling[]` entry (`{ weaveSlug, threadSlug, planId, stepId, ref }`) in `loom://diagnostics` — the step-level twin of the roadmap's thread-level `dangling_dep`. This standing net, not the write path, is the guarantee that a dangling edge is never silent.
 - **Write (group `thread`):** `loom_create_thread`, `loom_set_priority`, `loom_set_thread_deps` — author the only non-derived inputs (soft `priority`, hard `depends_on`), with write-time cycle/existence validation.
 
 ---

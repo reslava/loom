@@ -85,7 +85,8 @@ export { selectReportDocs, deterministicExcerpt, ReportFilters, ReportTier, Repo
 export { buildForwardSignal, extractParkedSection, ForwardSignal, ForwardSignalItem, ForwardSignalGroup } from './forwardSignal';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
-export { isStepBlocked, findNextStep, resolveBlockedByIds } from './planUtils';
+export { isStepBlocked, findNextStep, resolveBlockedByIds, isPlanIdRef, planRefId } from './planUtils';
+export type { BlockedByWarning, ResolveBlockedByResult } from './planUtils';
 export { ChatBlock, parseChatBlocks, lastAiBlockIndex, tailAfterBlock, appendChatBlock } from './chatUtils';
 export { createEmptyIndex, resolveId, LinkIndex, DocumentEntry, StepBlocker } from './linkIndex';
 export {
