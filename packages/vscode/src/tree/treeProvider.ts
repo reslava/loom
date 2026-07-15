@@ -562,7 +562,15 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     /** Best-effort path to open for a roadmap thread node: design, then idea, then manifest. */
     private resolveThreadDocPath(weaveSlug: string, threadSlug: string): string | undefined {
         const t = this.findThreadInState(weaveSlug, threadSlug);
-        const doc = t?.design ?? t?.idea ?? t?.manifest;
+        // Prefer the latest still-open chat so clicking a thread drops you into the
+        // live conversation to continue working; only when there's no open chat do we
+        // fall back to the most-evolved spec (design → idea), then the manifest.
+        // "Open" = status 'active' (not done/archived); latest by created date, then id.
+        const openChat = (t?.chats ?? [])
+            .filter(c => c.status === 'active')
+            .sort((a, b) => (a.created === b.created ? a.id.localeCompare(b.id) : a.created.localeCompare(b.created)))
+            .pop();
+        const doc = openChat ?? t?.design ?? t?.idea ?? t?.manifest;
         return (doc as any)?._path;
     }
 
