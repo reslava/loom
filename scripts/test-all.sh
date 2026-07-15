@@ -63,6 +63,11 @@ run_test tests/reports-resource.test.ts
 # type/weave/thread/date filtering, chronological order, coverage manifest
 run_test tests/report-selection.test.ts
 
+# buildForwardSignal (prospective next-work kind): the four Tier-1 detectors (parked-decision,
+# stalled-intent, blocked-work steps+threads, drift-debt), deterministic leverage/ready/age
+# ranking, filters/empty-set, renderForwardSignal slice, and applyProspectiveFraming knob logic
+run_test tests/forward-signal.test.ts
+
 # req handle integrity: diffReqHandles refuses renumber/delete, allows append + ~dropped
 run_test tests/req-diff.test.ts
 

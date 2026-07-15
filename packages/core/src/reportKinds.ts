@@ -17,10 +17,29 @@
  */
 export type ReportSort = 'recency' | 'oldest';
 
+/**
+ * How a report kind's source slice is assembled — the explicit selection-shape
+ * discriminator the `report` prompt switches on. Retires the old brittle inference
+ * (`docTypes.length === 0` ⇒ roadmap, `slug === 'release-notes'` ⇒ brief), which broke
+ * down once a fourth shape (`forward-signal`) also carried empty `docTypes`.
+ *
+ * - `docset`        — deterministic doc-type scan via `selectReportDocs` (`docTypes`).
+ * - `roadmap`       — roadmap passthrough (reads `loom://roadmap`); `docTypes` empty.
+ * - `release-notes` — the enriched Unreleased brief (`buildReleaseNotesBrief`).
+ * - `forward-signal`— the derived forward-signal slice (`buildForwardSignal`); prospective.
+ */
+export type ReportSource = 'docset' | 'roadmap' | 'release-notes' | 'forward-signal';
+
 export interface ReportKind {
     slug: string;
     title: string;
-    /** Doc types this kind reads. Empty = roadmap passthrough (no doc-type scan yet). */
+    /**
+     * How this kind's source slice is assembled. Drives the `report` prompt's selection
+     * branch (replacing the old `docTypes.length === 0` inference). `docset` kinds scan
+     * `docTypes`; the other sources ignore `docTypes` and read a derived slice.
+     */
+    source: ReportSource;
+    /** Doc types this kind reads (only meaningful for `source: 'docset'`; empty otherwise). */
     docTypes: string[];
     scopeHint: 'cross-weave' | 'weave' | 'thread';
     /** The synthesis instruction lens handed to the agent by the `report` prompt. */
@@ -60,6 +79,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     'project-overview': {
         slug: 'project-overview',
         title: 'Project Overview',
+        source: 'roadmap',
         docTypes: [],
         scopeHint: 'cross-weave',
         promptFraming: [
@@ -77,6 +97,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     'release-notes': {
         slug: 'release-notes',
         title: 'Release Notes',
+        source: 'release-notes',
         docTypes: [],
         scopeHint: 'cross-weave',
         promptFraming: [
@@ -93,6 +114,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     architecture: {
         slug: 'architecture',
         title: 'Architecture',
+        source: 'docset',
         // ctx included as an orientation input (a scope/global summary) — summary-friendly.
         docTypes: ['design', 'reference', 'ctx'],
         scopeHint: 'cross-weave',
@@ -112,6 +134,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     decisions: {
         slug: 'decisions',
         title: 'Decisions',
+        source: 'docset',
         docTypes: ['chat', 'design'],
         scopeHint: 'cross-weave',
         // Analytical: recent rationale is usually the most relevant — keep newest full.
@@ -129,6 +152,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     'drift-audit': {
         slug: 'drift-audit',
         title: 'Design-vs-Done Drift Audit',
+        source: 'docset',
         docTypes: ['design', 'done'],
         scopeHint: 'cross-weave',
         defaultSort: 'recency',
@@ -145,6 +169,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     security: {
         slug: 'security',
         title: 'Security & Weakness',
+        source: 'docset',
         docTypes: ['design', 'done', 'reference'],
         scopeHint: 'cross-weave',
         defaultSort: 'recency',
@@ -165,6 +190,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     ideas: {
         slug: 'ideas',
         title: 'Ideas',
+        source: 'docset',
         docTypes: ['idea', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
@@ -183,6 +209,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     designs: {
         slug: 'designs',
         title: 'Designs',
+        source: 'docset',
         docTypes: ['design', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
@@ -200,6 +227,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     plans: {
         slug: 'plans',
         title: 'Plans',
+        source: 'docset',
         docTypes: ['plan', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
@@ -217,6 +245,7 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
     dones: {
         slug: 'dones',
         title: 'Shipped',
+        source: 'docset',
         docTypes: ['done', 'ctx'],
         scopeHint: 'cross-weave',
         maxChars: 150000,
@@ -229,6 +258,29 @@ export const REPORT_KINDS: Record<string, ReportKind> = {
             '- **Areas delivered** — grouped by weave/thread (and by release where the docs show it).',
             '',
             'Group by area; cite the source done id. Do NOT invent work the done docs do not record.',
+        ].join('\n'),
+    },
+    // --- Prospective kind: the doc graph's OPEN material, ranked into next work --------
+    // Unlike every kind above (retrospective — what happened), this one is forward-looking:
+    // its slice is the derived forward signal (buildForwardSignal), not a doc-type scan.
+    // The `creativity` clause is appended by the report prompt at run time.
+    'next-work': {
+        slug: 'next-work',
+        title: 'Next Work',
+        source: 'forward-signal',
+        docTypes: [],
+        scopeHint: 'cross-weave',
+        promptFraming: [
+            'Produce a **next-work report** from the forward-signal slice below — the project\'s open material, already grouped as **parked decisions**, **stalled intent**, **blocked work**, and **drift debt**, each item carrying a deterministic leverage / readiness / age signal.',
+            '',
+            'Output a **single ranked next-work list** — highest-leverage and unblocked first (the slice is pre-sorted; keep that order unless a tighter grouping genuinely reads better). For each proposal give:',
+            '',
+            '- **What to do** — one concrete, actionable move.',
+            '- **Why now** — the signal it derives from: cite the source doc id(s) AND which group fired.',
+            '- **Leverage** — what resolving it unblocks (dependents / dependent steps / downstream docs).',
+            '- **First move** — the concrete next action (e.g. "decide X recorded on id_…", "refine the stale plan", "unblock the named step").',
+            '',
+            'Ground every proposal in a cited signal item — do NOT propose work no item supports, and do NOT invent problems the slice does not show (you may propose a bolder *solution* to an item per the creativity setting, but never a new *problem*). If the slice reports no open material, say so and stop — do not manufacture a backlog.',
         ].join('\n'),
     },
 };

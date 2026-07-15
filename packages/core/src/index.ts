@@ -79,9 +79,10 @@ export {
     planOrdinalFromFile, chatOrdinalFromFile,
 } from './docNaming';
 export { AIClient, Message } from './ai';
-export { ReportKind, ReportSort, REPORT_KINDS, getReportKind, reportKindSlugs, DEFAULT_REPORT_MAX_CHARS, DEFAULT_REPORT_SORT } from './reportKinds';
+export { ReportKind, ReportSource, ReportSort, REPORT_KINDS, getReportKind, reportKindSlugs, DEFAULT_REPORT_MAX_CHARS, DEFAULT_REPORT_SORT } from './reportKinds';
 export { buildReleaseNotesBrief, ReleaseNotesBrief, ReleaseNotesEntry, ImplementingThread } from './releaseNotes';
 export { selectReportDocs, deterministicExcerpt, ReportFilters, ReportTier, ReportDocSlice, ReportManifest, ReportSelection } from './reportSelection';
+export { buildForwardSignal, extractParkedSection, ForwardSignal, ForwardSignalItem, ForwardSignalGroup } from './forwardSignal';
 export { parseStepsTable, generateStepsTable, updateStepsTableInContent, serializePlanBody, slugifyStepId, stepsSectionHasRows, rekeyDetailSections } from './planTableUtils';
 export { syncBodyH1 } from './bodyH1Sync';
 export { isStepBlocked, findNextStep, resolveBlockedByIds } from './planUtils';

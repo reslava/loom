@@ -22,7 +22,9 @@ The seam: **the server selects (deterministic, testable), the agent synthesizes 
 
 ## Report kinds
 
-Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the doc-set it reads (`docTypes`) and a synthesis lens (`promptFraming`). Adding a kind = a registry entry, never a new selection path. Empty `docTypes` = roadmap passthrough (reads `loom://roadmap`, bypasses `selectReportDocs`). Kinds marked **†** include `ctx` in their doc-set — a scope/global ctx is pulled in as an orientation input when one exists.
+Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring how its slice is assembled (`source`), the doc-set it reads (`docTypes`), and a synthesis lens (`promptFraming`). Adding a kind = a registry entry, never a new selection path. The `source` discriminator picks the selection shape: `docset` (scan `docTypes` via `selectReportDocs`), `roadmap` (passthrough — reads `loom://roadmap`), `release-notes` (the enriched Unreleased brief), or `forward-signal` (the prospective slice — see *Prospective* below). Kinds marked **†** include `ctx` in their doc-set — a scope/global ctx is pulled in as an orientation input when one exists.
+
+Every kind above the **Prospective** section is **retrospective** — it narrates what *happened*. `next-work` is the one **prospective** kind: it mines the graph's *open* material and proposes what to do next.
 
 **Roadmap-sourced**
 
@@ -49,6 +51,21 @@ Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the
 | `plans` **†** | plans (+ ctx) | all planned work |
 | `dones` **†** | done docs (+ ctx) | everything actually shipped |
 
+**Prospective** (forward-looking — mines *open* material, `source: forward-signal`):
+
+| Kind | Reads | Lens |
+|------|-------|------|
+| `next-work` | the derived forward signal (`buildForwardSignal`) | a ranked next-work list, every item cited |
+
+`next-work` is unlike every kind above: its slice is not a doc-type scan but the **forward signal** — four deterministic, grounded detectors composed from existing derivations, each item carrying its source doc id + the detector that fired:
+
+- **parked-decision** — an `## Open questions` / deferred section lifted verbatim from an idea/design (a decision explicitly awaiting a call).
+- **stalled-intent** — a broken authoring chain: idea→no design, design→no plan, or a plan that exists but was never started.
+- **blocked-work** — blocked plan steps + dependency-blocked threads (roadmap `blockedOn`).
+- **drift-debt** — actionable stale docs never reconciled.
+
+Items are pre-ranked **leverage → readiness → age** ("highest-leverage, unblocked, longest-parked first"); leverage is a deterministic fan-out proxy (dependents / dependent steps / downstream docs a resolution unblocks). The report **invents no problems** — every proposal cites a signal item; an empty scan returns a "no open material" stop-signal instead of a manufactured backlog. Semantic cross-thread synthesis (convergence / design-smell detection) is a deferred Tier-2 follow-on, not part of this kind.
+
 ## Parameters
 
 `loom report <kind> [options]` assembles a **brief** (source slice + synthesis instruction) and, by default, prints it for an AI agent to synthesize and persist via `loom_create_report`.
@@ -64,6 +81,8 @@ Each kind is a registry entry (`packages/core/src/reportKinds.ts`) declaring the
 | `--sort <recency\|oldest>` | keep-full ordering when the slice is budget-degraded: `recency` = newest docs stay full; `oldest` = oldest/foundational stay full. Defaults per kind (see below). Ignored with `--full` (nothing degrades) |
 | `--run` | launch a headless Claude agent to synthesize + save the report end-to-end, instead of printing the brief |
 | `--titles-only` | **`release-notes` only** — skip done-doc hydration for a fast, low-token draft (titles, no per-change rationale) |
+| `--forward` | read a **retrospective** kind prospectively — reframe its slice to propose next work (selection unchanged). The cheap experiment for finding which retrospective slices carry forward signal. A no-op for `next-work` (already forward) |
+| `--creativity <closed\|creative>` | prospective solution latitude (`next-work` / `--forward`): `closed` (default) proposes within the current stack/architecture; `creative` may propose new approaches/stack for an *observed* problem. Grounded observation is required either way — only the solution ranges wider |
 
 **Token budget & tiered degradation.** `selectReportDocs` bounds the slice to a per-kind char budget (default 60k; single-doc-type kinds 150k; `--full` = unlimited). When the full slice exceeds budget, docs degrade by a **selectable keep-full ordering** (`--sort`):
 
@@ -100,6 +119,8 @@ Curated list of generated reports good enough to feature in READMEs / docs — L
 - `loom report dones --since <date>` — what actually shipped in a window (release-notes-adjacent).
 - `loom report release-notes` — draft the next release's changelog from the *Unreleased* done plans (enriched from their done docs; Highlights → Added / Changed / Fixed under `## [Unreleased]`). CI-ready via `--run`; returns a "nothing unreleased" stop-signal when there's nothing to ship. `--titles-only` for a fast draft.
 - `loom report drift-audit --weave <w>` — where implementation diverged from design (design vs done).
+- `loom report next-work` — what to do next: a ranked list of the project's open material (parked decisions, stalled intent, blocked work, drift debt), every item cited. Add `--creativity creative` to let it propose bolder solutions to the problems it finds. Scope with `--weave` to plan one area's next moves.
+- `loom report decisions --weave <w> --forward` — the *experiment*: read a retrospective kind prospectively ("given these past decisions, what should we decide next?"). Works on any kind; near-zero cost.
 
 **The two run modes:**
 

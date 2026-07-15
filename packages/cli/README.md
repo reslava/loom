@@ -78,7 +78,7 @@ code for a step) is done through your MCP agent.
 
 | Command | Description |
 |---------|-------------|
-| `loom report <kind> [--weave <slug>] [--thread <slug>] [--since <date>] [--until <date>] [--full] [--sort <o>] [--titles-only] [--run]` | Assemble a **report** from the doc graph. Prints a brief for your AI agent to synthesize, or `--run` launches a headless agent that writes + saves it. Kinds: `project-overview`, `release-notes`, `architecture`, `decisions`, `drift-audit`, `security`, `ideas`, `designs`, `plans`, `dones`. |
+| `loom report <kind> [--weave <slug>] [--thread <slug>] [--since <date>] [--until <date>] [--full] [--sort <o>] [--titles-only] [--forward] [--creativity <c>] [--run]` | Assemble a **report** from the doc graph. Prints a brief for your AI agent to synthesize, or `--run` launches a headless agent that writes + saves it. Kinds: `project-overview`, `release-notes`, `architecture`, `decisions`, `drift-audit`, `security`, `ideas`, `designs`, `plans`, `dones`, and the prospective `next-work` (mines open material into a ranked next-work list). `--forward` reads any retrospective kind prospectively; `--creativity creative` widens prospective solution latitude. |
 
 **`loom report release-notes`** selects the **Unreleased** done plans (what's about to ship), enriches
 them from each plan's done-doc, and frames a Highlights → **Added / Changed / Fixed** changelog under

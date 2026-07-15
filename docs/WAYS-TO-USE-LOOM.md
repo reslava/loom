@@ -166,6 +166,16 @@ changelog instead of a hand-read of `git log`.
 > `--titles-only` for a fast, low-token draft. This is the one report that pairs CI with an agent:
 > the graph *selects and enriches*, the agent *writes the prose*.
 
+**What to do next — a report that reads your open questions, not your history.**
+Every other report looks backward; `loom report next-work` looks forward. It mines the graph's
+*open* material — parked "Open questions", stalled threads (an idea with no design, a plan never
+started), blocked steps, and stale docs — and returns a **ranked, cited** list of next moves,
+highest-leverage and unblocked first. It invents nothing: each proposal points at the doc that
+raised it. Add `--creativity creative` to let it propose bolder solutions to the problems it finds,
+or `--forward` on any *retrospective* kind (e.g. `loom report decisions --weave x --forward`) to
+read that slice prospectively. The manual step it removes: re-reading every idea's Open-questions
+section by hand to decide what to build next.
+
 ---
 
 ## Pick your way

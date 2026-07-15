@@ -17,12 +17,16 @@ import { connectLocalMcp } from '../mcpClient';
  */
 export async function reportCommand(
     kind: string,
-    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; sort?: string; run?: boolean; titlesOnly?: boolean },
+    options: { weave?: string; thread?: string; since?: string; until?: string; full?: boolean; sort?: string; run?: boolean; titlesOnly?: boolean; forward?: boolean; creativity?: string },
 ): Promise<void> {
     try {
         // Validate --sort at the CLI edge before doing any work.
         if (options.sort !== undefined && options.sort !== 'recency' && options.sort !== 'oldest') {
             throw new Error(`Invalid --sort "${options.sort}". Use "recency" (newest docs stay full) or "oldest" (foundational docs stay full).`);
+        }
+        // Validate --creativity at the CLI edge (mirrors the prompt-side check).
+        if (options.creativity !== undefined && options.creativity !== 'closed' && options.creativity !== 'creative') {
+            throw new Error(`Invalid --creativity "${options.creativity}". Use "closed" (within the current stack) or "creative" (may propose new approaches).`);
         }
         const root = getActiveLoomRoot();
         const client = await connectLocalMcp(root);
@@ -36,6 +40,8 @@ export async function reportCommand(
             if (options.full) args.full = 'true';
             if (options.sort) args.sort = options.sort;
             if (options.titlesOnly) args.titlesOnly = 'true';
+            if (options.forward) args.forward = 'true';
+            if (options.creativity) args.creativity = options.creativity;
             brief = await client.getPrompt('report', args);
         } finally {
             await client.close();

@@ -2,7 +2,7 @@
 type: idea
 id: id_01KXFHF3C99QV8XJDJ8K4CZ1DX
 title: Future-focused report — mine the graph's open material to propose next work
-status: draft
+status: done
 created: 2026-07-14
 version: 1
 tags: []

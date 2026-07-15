@@ -405,7 +405,7 @@ program
 
 program
     .command('report <kind>')
-    .description('Generate an analytical report from the Loom doc graph (kinds: project-overview, release-notes, architecture, decisions, drift-audit, security, ideas, designs, plans, dones). Prints a brief for your AI agent; pass --run to launch Claude and generate + save it end-to-end.')
+    .description('Generate an analytical report from the Loom doc graph (kinds: project-overview, release-notes, architecture, decisions, drift-audit, security, ideas, designs, plans, dones, next-work). next-work is prospective — it mines the graph\'s open material into a ranked next-work list. Prints a brief for your AI agent; pass --run to launch Claude and generate + save it end-to-end.')
     .option('--weave <slug>', 'Scope/persist the report to a single weave (omit for a cross-weave report)')
     .option('--thread <slug>', 'Scope the report to a single thread')
     .option('--since <date>', 'Only include docs created on/after this date (YYYY-MM-DD)')
@@ -414,8 +414,10 @@ program
     .option('--sort <order>', 'Keep-full ordering when the slice is budget-degraded: "recency" (newest docs stay full) or "oldest" (oldest/foundational docs stay full). Defaults per kind. Ignored with --full (nothing degrades).')
     .option('--run', 'Launch a Claude agent (headless) to synthesize the report and save it via loom_create_report, instead of printing the brief')
     .option('--titles-only', 'release-notes only: skip done-doc hydration for a fast, low-token draft (titles only, no per-change rationale)')
+    .option('--forward', 'Read a retrospective kind prospectively: reframe its slice to propose next work (no-op for next-work, already forward)')
+    .option('--creativity <level>', 'Prospective solution latitude: "closed" (default — within the current stack/architecture) or "creative" (may propose new approaches for an observed problem)')
     .action((kind, options) => reportCommand(kind, {
-        weave: options.weave, thread: options.thread, since: options.since, until: options.until, full: options.full, sort: options.sort, run: options.run, titlesOnly: options.titlesOnly,
+        weave: options.weave, thread: options.thread, since: options.since, until: options.until, full: options.full, sort: options.sort, run: options.run, titlesOnly: options.titlesOnly, forward: options.forward, creativity: options.creativity,
     }));
 
 program
