@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 18
+last_ai_block: 29
 ---
 # rename-loom-to-docuflow Chat 001
 
@@ -478,3 +478,169 @@ Two honest notes before you post it:
 - **Timing helps a little:** post on a weekday morning US-Eastern (≈8–10am ET), then step away and check comments that evening. Don't refresh the ranking.
 
 Want me to tune the voice (more/less personal), tighten it, or write a couple of alternate titles to pick from? Titles are 80% of a Show HN — worth getting right.
+
+## Rafa:
+
+I pushed
+I like the post, write alternative titles, but I like the current one
+I see in HN submit needs:
+- Title: Show HN: Loom – give your AI coding agent a durable, document-based memory
+- URL: https://github.com/reslava/loom
+- text
+
+I guess the 3 fields are text format. Gime me text field pls
+question: why title start with `Show HN:` is that usual way in HN?
+
+## AI:
+
+**Yes — `Show HN:` is the real, official convention.** It's the prefix HN wants on any post where you're *showing something you made that people can try* (a project, app, repo). It routes the post to the [Show HN section](https://news.ycombinator.com/show), and — this is the useful part — Show HN is the *one* place on HN where self-promotion is explicitly allowed and expected, so the prefix actually **lowers** the spammer reflex instead of raising it. Keep it. (Rules: it must be something people can actually play with — a repo they can clone qualifies — and don't editorialize the title with hype.)
+
+One formatting note before the text: **the HN text field is plain text, not Markdown.** Blank lines make paragraphs; single newlines collapse; `**bold**` and `- bullets` don't render (a lone `-` just shows literally, and list items run together unless you put a blank line between each). `*asterisks*` do italicize. So I reformatted the post for HN below — bullets are separated by blank lines so they render as distinct lines, and I dropped the repo link from the body since it already lives in the URL field.
+
+### Text field — paste this exactly
+
+```
+Hi HN. I don't post here much. I'm a solo dev and I built this to scratch my own itch.
+
+Every AI coding session starts from zero. Session 1 is always the best one — by session 10 the model has forgotten sessions 2–9 and I'm re-explaining the whole project again. I got tired of that, so I started keeping my ideas, designs, and plans as markdown files the AI rereads before it acts. That habit turned into Loom.
+
+The idea: docs are the database, not the chat log. Your project becomes a graph of typed markdown docs — idea → design → plan-with-steps → done — versioned in git next to the code. State is derived from the files, so:
+
+- A session is a document graph, not a scrollback buffer. Nothing lives only in the model's context window.
+
+- The AI resumes mid-plan. Close the terminal, come back tomorrow, ask for the next step — it rereads the plan and continues with full context. No re-explaining.
+
+- Change a design and its plans are flagged stale; ask the AI to refine and the change propagates downstream.
+
+- The "why" stays in the repo — the chats, the rejected alternatives. You can even generate reports over it ("why is the auth module shaped this way?") that a codebase-only tool structurally can't, because that reasoning was never in the code.
+
+Tech: TypeScript monorepo, event-sourced (markdown is the log), exposed to agents over MCP so it works with Claude Code, Cursor, Continue, or any MCP host. Ships as a VS Code extension (1-click, bundles its own server) and as a CLI/MCP server for the terminal and CI. No signup, telemetry off by default, BYO Claude (CLI or API key).
+
+It's a one-person side project and still early — it hasn't had a proper kicking from the real world yet. I use it to build itself, and to build one unrelated app (a music-theory trainer). What I'd actually like to know: is the "my AI forgets everything every session" problem as real for you as it is for me — or have I built an elaborate fix for my own weird workflow?
+```
+
+So the three fields are:
+- **Title:** `Show HN: Loom – give your AI coding agent a durable, document-based memory`
+- **URL:** `https://github.com/reslava/loom`
+- **Text:** *(the block above)*
+
+### Alternate titles (you like the current one — these lean more *technical*, which HN often rewards over anything that sounds like marketing)
+1. `Show HN: Loom – markdown docs as durable memory for AI coding agents`
+2. `Show HN: Loom – event-sourced markdown memory for AI agents, over MCP`
+3. `Show HN: Loom – a document graph that gives AI agents persistent project memory`
+4. `Show HN: Loom – stop re-explaining your project to your AI every session`
+
+My read: your **current title is strong** — it's concrete and says exactly what it does. #1 and #2 are the most "HN-native" (technical, no adjectives); #4 is the punchiest hook but is the one most likely to read as marketing to a cynical HN crowd, so I'd only use it if you want to lead with pain. If you're happy with the current one, keep it — it's genuinely good.
+
+You're ready to submit whenever. Want me to sanity-check anything else before you post?
+
+## Rafa:
+
+Yes, do a sanity-check
+
+## AI:
+
+Sanity-check done — I verified the live repo and the submission, not just eyeballed it.
+
+### Technical — all green ✅
+- **README is live and renders** on github.com/reslava/loom with the new tagline at the top and the workflow GIF near the top (I fetched the actual page). The "error loading" bits you might see are GitHub's *sidebar widgets* (contributors/packages/sponsors), not your README — the README content itself renders fully.
+- **No broken links or images.** I checked every path the new README points at — all 6 `docs/` guides, both `loom/refs/` files (`reports-reference`, `getting-started-reference`), the GIF, and both screenshots — **all present.** Nothing 404s.
+- **Repo is clone-able and public** → it meets the Show HN "something people can actually try" rule.
+- **Title** is 73 chars (HN is happy under ~80), concrete, no hype. **Text** is correctly HN-plaintext-formatted (blank-line-separated bullets, unicode arrows/dashes render fine).
+
+### Real risks & do/don't for the actual posting (this is the part that matters)
+- **Post ONCE. Do not delete-and-repost if it sinks.** HN penalizes reposts and it's the #1 new-poster mistake. If it doesn't catch, leave it — you can legitimately resubmit *once* after a good while only if it got essentially zero attention (a mod rule), but don't game it.
+- **Never ask anyone to upvote** (DMs, Discord, "please vote"). HN detects vote-rings and it can flag/ban the post. Sharing the *link* for feedback is fine; asking for *votes* is not.
+- **Timing:** weekday, ~8–10am US-Eastern. Avoid Fri/weekend. Then step away — don't sit refreshing the rank.
+- **Be reachable for the first ~2–3 hours** to answer *questions* — this is the introvert-friendly part: you only reply when someone asks something. Answer honestly, and if someone's harsh, "fair point" and move on. Do **not** defend or argue; that's what tanks Show HN threads.
+- **Expectation, one more time:** success = a few real comments engaging the *problem*, not the upvote number. A quiet result is the base rate, not a verdict.
+
+### One thing I'd prep before you post
+HN's exact crowd *will* ask **"how is this different from X"** — `CLAUDE.md`/Cursor rules, Aider, RAG-over-repo, the agents' built-in memory features. Having a crisp, honest one-liner for each ready means you answer in 20 seconds instead of freezing. Want me to draft a short **"how Loom differs from X" cheat-sheet** (4–5 pre-written comment replies) you keep in a scratch file? It's the highest-leverage 10 minutes of prep, and it's exactly the kind of thing that's miserable to write live and easy to write now.
+
+Otherwise: **you're clear to post.** Nothing technical is blocking you.
+
+## Rafa:
+
+Do you think this is needed `No signup, telemetry off by default`?
+
+## AI:
+
+Good instinct — half of it is filler, half is worth keeping. Let me split it:
+
+- **"No signup" — cut it.** For a tool people *clone from a repo*, "no signup" is self-evident; it only means something for a hosted SaaS. On HN it reads as filler at best, or faintly defensive at worst ("...why would there be a signup?"). Drop it.
+- **"telemetry off by default" — keep the fact, but reframe it.** HN's crowd *reliably* asks "does it phone home / what does it send?" — so silence doesn't avoid the question, it just moves it into a comment you'll answer defensively. The problem with the current wording is it plants the word "telemetry" as a *concern* without the reassurance. Flip it so the reassuring fact leads: the honest, HN-friendly version is **"runs locally — the only outbound calls are to your AI provider."** *That's* what a privacy-minded reader actually wants to know. The opt-in telemetry becomes a small footnote to it, not the headline.
+
+So I'd replace the last sentence of the Tech paragraph:
+
+> ~~No signup, telemetry off by default, BYO Claude (CLI or API key).~~
+
+with:
+
+> **BYO Claude (CLI or API key); it runs locally, and the only outbound calls are to your AI provider. Optional usage telemetry is off by default.**
+
+That drops the filler, leads with the positive ("runs locally"), pre-empts the phone-home question before it's asked, and stays honest about the opt-in telemetry (you can't say "no telemetry" like Juggler did, because you have it — but "off by default" is a perfectly defensible answer).
+
+If you'd rather keep it tight, the minimal honest version is just **"BYO Claude (CLI or API key); runs locally."** and handle telemetry in a comment only if someone asks. Either works — the one thing I'd *not* do is leave the bare "telemetry off by default" with no "runs locally" in front of it.
+
+Want me to drop the reworked line into the text block above so you've got the final paste-ready version?
+
+## Rafa:
+
+I think `BYO Claude (CLI or API key); runs locally.` is enough. I will post with timing proposed
+
+About hard rule CLAUDE.md doc syncs, I think we should update it to this new philosophy, layout, split of Loom documentation
+Agree? If so
+code quick
+
+## AI:
+
+Agree — but let me be precise about *why*, because the honest reason isn't the obvious one.
+
+The README overhaul was **not** a structural change. The doc-sync contract's three axes are filename/layout, workflow/phases, package layers — and we touched none of them. We changed *positioning and voice*: the three READMEs became light entry points that link out to `docs/` and `loom/refs/`. So the contract's rules didn't "go stale" in the drift sense.
+
+What *did* change is a durable design decision that isn't written down anywhere yet, and the contract is the one place a future session will look. Right now the sweep line just says "also sweep the package READMEs and `docs/*.md` … they carry filename and workflow examples that must not contradict the refs." Read literally after, say, a filename change, that invites a future session to **re-inline full examples into a README to keep it in sync** — re-bloating exactly what we just spent three rewrites removing. That's the real risk worth encoding: not "the contract is wrong," but "the contract doesn't know the READMEs are deliberately thin now."
+
+So the edit I'd make is small and surgical — replace the "Also sweep" paragraph with:
+
+> Also sweep the **three README entry points** (`README.md` root · `packages/vscode/README.md` Marketplace · `packages/cli/README.md` npm) and `docs/*.md`. **These three READMEs are deliberately light entry points** — hero + quick-start + a *Learn more* doc-map; all exhaustive material lives in `docs/*.md` and `loom/refs/*.md`. On a structural change: fix the depth in `docs/*.md` (they carry the detailed filename/workflow examples), and in each README keep only the quick-start factually correct and the doc-map links unbroken. **Never re-inline exhaustive detail into a README to "fix" drift — update the linked doc instead.** They remain user-facing surfaces that must not contradict the refs.
+
+(It also finally names the **root** `README.md` in the sweep list — currently only the two package READMEs are named, which is itself a gap.)
+
+Two things worth knowing before we ship it:
+
+1. **This is repo-specific — the `LOOM_CLAUDE_MD` template is untouched.** The whole doc-sync contract lives only in `CLAUDE.md` (it names `loom/refs/…` and `installWorkspace.ts`), carries no `<!-- rule:{id} -->` marker, and the section itself says it's "a discipline, not a test." So there's no parity mirror to make and I'm not touching any marker or invariant token — `claude-md-sync.test.ts` will still pass. But because `CLAUDE.md` *is* test-gated, `code quick` correctly runs the suite anyway.
+
+2. One small **open choice** for you: keep this as the reworked sweep paragraph inside the doc-sync contract (my recommendation — it's where READMEs already live, one edit, no new section), **or** also promote "entry points stay light; depth lives in docs/refs" to a standalone one-line principle higher up. I lean against a second home — one canonical statement beats two that can drift.
+
+I'm holding on the `code quick` for one reason only: this is a hard-rule contract file, so I want your eyes on the *exact wording* above before it lands — not re-asking whether to do it (you decided that). Give me the nod on the paragraph (tweak it if a phrase isn't your voice) and I'll run the `code quick`: edit → `build-all` + `test-all` → `quick_ship`.
+
+## Rafa:
+
+Agree all
+
+Question: becuase 
+>1. This is repo-specific — the `LOOM_CLAUDE_MD` template is untouched
+maybe we do not need `code quick` and `write quick` is enough, no need for build & test
+
+do what you consider
+
+## AI:
+
+Done — `write quick`, and you're right that it's the correct verb here.
+
+Your reasoning holds: the edit is prose in a **repo-specific, unmarked** section, so there's no template mirror and — this is the deciding fact — it touches **zero `<!-- rule:id -->` markers and zero invariant tokens** (no MCP prefixes, no `loom_*` names, no stop-rule phrases). Those are the *only* things `claude-md-sync.test.ts` checks, and it reads the files straight from source (no build involved). So a read-through *is* a complete check: parity is provably intact, template untouched. No build/test cycle owed.
+
+(The one nuance for the record: the slang table calls CLAUDE.md a "test-gated contract file → `code quick`" as a blanket rule. That rule is right *in general* — most CLAUDE.md edits risk a marker/invariant, so the test run is owed. This edit is the narrow exception where inspection is provably sufficient. Not worth rewriting the slang over one case, but worth naming so future-me doesn't think the rule was ignored by accident.)
+
+What shipped (recorded as `plan-002`, roadmap history):
+- Named the **root `README.md`** in the sweep list alongside the two package READMEs (it was missing — a real gap).
+- Declared the three READMEs **deliberately light entry points** (hero + quick-start + *Learn more* doc-map), with exhaustive material living in `docs/*.md` and `loom/refs/*.md`.
+- On a structural change: fix the depth in `docs/*.md`; in each README keep only the quick-start correct and the doc-map links unbroken.
+- **Never re-inline exhaustive detail into a README to "fix" drift — update the linked doc instead.** — the guardrail that protects the three rewrites we just did from a future re-bloat.
+
+Kept it to the single reworked paragraph inside the doc-sync contract — no second standalone principle, so there's one canonical statement that can't drift from itself.
+
+## AI:
+
+Committing now — scoped to this thread only. The tree has unrelated concurrent work (the whole `ai-integration/future-report` thread + `packages/*` report/forward-signal changes + a new test), so I'm staging **just** `CLAUDE.md` and this thread's `chat-001.md` + `plan-002` done record, and leaving all the future-report/reports work alone for its own commit. Message describes the doc-sync-contract change (no hash referenced — recoverable from `git log`).
