@@ -352,6 +352,12 @@
         "icon": "$(archive)"
       },
       {
+        "command": "loom.setThreadDeps",
+        "title": "Set Dependencies…",
+        "category": "Loom",
+        "icon": "$(references)"
+      },
+      {
         "command": "loom.context.exclude",
         "title": "Exclude from context",
         "category": "Loom",
@@ -839,6 +845,11 @@
         {
           "command": "loom.setStatusActive",
           "when": "view == loom.threads && viewItem =~ /^(idea|design|plan|chat|reference)/",
+          "group": "edit@2"
+        },
+        {
+          "command": "loom.setThreadDeps",
+          "when": "view == loom.threads && viewItem =~ /^(roadmap-)?thread/",
           "group": "edit@2"
         },
         {

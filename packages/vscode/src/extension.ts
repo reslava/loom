@@ -15,6 +15,7 @@ import { generateReqCommand, finalizeReqCommand, amendReqCommand, verifyReqComma
 import { renameCommand, renameFileCommand } from './commands/rename';
 import { refineCommand } from './commands/refine';
 import { startPlanCommand } from './commands/startPlan';
+import { setThreadDepsCommand } from './commands/setThreadDeps';
 import { completeStepCommand } from './commands/completeStep';
 import { validateCommand } from './commands/validate';
 import { showGroupingSelector, showHistoryGroupingSelector } from './commands/grouping';
@@ -179,6 +180,8 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         vscode.commands.registerCommand('loom.renameFile', (node?: TreeNode) => renameFileCommand(treeProvider, node ?? treeView.selection[0])),
         vscode.commands.registerCommand('loom.refineDesign', (node?: TreeNode) => refineCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.startPlan', (node?: TreeNode) => startPlanCommand(treeProvider, node)),
+        // Node-tolerant (like loom.rename): a palette invocation with no arg falls back to the tree selection.
+        vscode.commands.registerCommand('loom.setThreadDeps', (node?: TreeNode) => setThreadDepsCommand(treeProvider, node ?? treeView.selection[0])),
         vscode.commands.registerCommand('loom.completeStep', (node?: TreeNode) => completeStepCommand(treeProvider, node)),
         vscode.commands.registerCommand('loom.validate', () => validateCommand(treeProvider)),
         vscode.commands.registerCommand('loom.setGrouping', () => showGroupingSelector(viewStateManager, treeProvider)),
