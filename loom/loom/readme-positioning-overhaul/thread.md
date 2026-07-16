@@ -4,11 +4,12 @@ id: th_01KXH2YKQ6QNB10TFAJW9QWMBS
 title: rename-loom-to-docuflow
 status: active
 created: 2026-07-14
+updated: 2026-07-16
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-priority: 1000
+priority: 10
 depends_on: []
 ---
 # rename-loom-to-docuflow

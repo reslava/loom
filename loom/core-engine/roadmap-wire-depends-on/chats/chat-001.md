@@ -8,7 +8,7 @@ version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 16
+last_ai_block: 17
 ---
 # roadmap-wire-depends-on Chat 001
 
@@ -222,3 +222,16 @@ Not committed yet — say `commit` and I'll land it (this resolver change is a o
 ## AI:
 
 Committing the chat-first resolver + plan-003 record, then kicking off the 1.26.0 release (changelog → bump → build/test → tag → push → publish). I'll report the release outcome once the pipeline runs.
+
+## AI:
+
+**v1.26.0 shipped.** 🎉 Release workflow green end-to-end — `guard → build-test → publish-npm · publish-vsce · publish-ovsx → release` all success.
+
+- **npm** `@reslava/loom@1.26.0` — live
+- **VS Code Marketplace** + **Open VSX** — published
+- **GitHub release** `v1.26.0` — published (not draft), notes from the root CHANGELOG verbatim
+- `record-release` stamped all 7 done plans with `actual_release: v1.26.0`
+
+What went out: visual thread-dependency wiring (this thread's work), the roadmap thread-click → live-chat change, the next-work report, cross-plan blocker validation, and the lighter READMEs.
+
+Left untouched in your working tree (your concurrent work, deliberately excluded from the release commit): `readme-positioning-overhaul/chats/chat-001.md` and its `thread.md` — commit those whenever you're ready.
