@@ -196,15 +196,12 @@ run_test tests/ctx-template.test.ts
 # must carry the same <!-- rule:id --> set + shared verbatim invariants (no silent drift)
 run_test tests/claude-md-sync.test.ts
 
-# VS Code import guard: the extension must reach Loom only via the MCP client —
-# no node fs / @reslava-loom/{app,fs} imports under packages/vscode/src (small
-# justified whitelist). Enforces vscode → mcp → app where the gate hook can't see.
-run_test tests/vscode-no-fs-imports.test.ts
-
-# Core purity guard: packages/core is pure domain logic — nothing under
-# packages/core/src may import a node fs module (fs/fs-extra/node:fs/fs/promises).
-# Sibling to the vscode guard, one layer down; caught the ConfigRegistry IO drift.
-run_test tests/core-no-fs-imports.test.ts
+# Layer-imports guard: one table-driven check for EVERY package dependency edge —
+# the executable mirror of architecture-reference.md §1. Resolves relative + package
+# specifiers, enforces cli/vscode → mcp → app → core + fs + telemetry, node-fs bans
+# on core/vscode (justified whitelist), and package coverage. Subsumes the former
+# core-no-fs-imports + vscode-no-fs-imports guards; caught the ConfigRegistry IO drift class.
+run_test tests/layer-imports.test.ts
 
 # New MCP tools: patch_doc body-prose guard + Steps-table refusal, update_step/reorder_steps
 # done-immutability + leading-block, read_chat_tail tail-after-last-AI with configured ai.model

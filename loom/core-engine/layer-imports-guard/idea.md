@@ -2,7 +2,7 @@
 type: idea
 id: id_01KV93ZE152CHPW6CTV8VNPBMG
 title: Single table-driven layer-imports guard for all package dependency rules
-status: draft
+status: done
 created: 2026-06-16
 version: 1
 tags: []
