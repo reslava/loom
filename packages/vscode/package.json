@@ -2,7 +2,7 @@
   "name": "loom-vscode",
   "displayName": "Loom AI",
   "description": "AI workflow engine: turns your project docs into a structured graph your AI agent reads and writes. 1‑click in VS Code — no CLI, no setup.",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "publisher": "reslava",
   "license": "MIT",
   "icon": "media/loom.png",

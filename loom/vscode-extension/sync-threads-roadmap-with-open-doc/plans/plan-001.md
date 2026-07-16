@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXMRVF617KKJC0316833FB8F
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.27.0
 steps:
   - id: state-derived-doc-thread-resolver
     order: 1

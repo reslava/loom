@@ -1,5 +1,10 @@
 # Loom VS Code Extension — Changelog
 
+## [1.27.0] - 2026-07-16
+
+### Changed
+- **The tree selection follows the open doc — in both views, on every trigger.** Opening a doc now selects its node in the Roadmap view as well (falling back to the doc's thread node when the roadmap has no exact doc row), and the selection keeps up everywhere it used to lag: toggling Show Roadmap ⇄ Show Threads with a doc open, switching to another sidebar tool and back to Loom, re-enabling doc→tree sync (it jumps to the current doc immediately), and opening VS Code with a doc already open. Threads-view exact-node precision is unchanged.
+
 ## [1.26.0] - 2026-07-15
 
 ### Added

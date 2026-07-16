@@ -11,6 +11,7 @@ tags: []
 parent_id: de_01KXMYYVB09G1X1556W8GSC7PV
 requires_load: []
 target_version: 0.1.0
+actual_release: 1.27.0
 steps:
   - id: wrote-tests-layer-imports-test-ts
     order: 1

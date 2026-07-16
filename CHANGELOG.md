@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-07-16
+
+**Highlights:** the tree now follows the doc you're working in — in the Roadmap view too, and across view toggles, sidebar switches, and window reload — and the package-layer architecture rule is now enforced end-to-end by one table-driven guard.
+
+### Changed
+- **The tree selection follows the open doc — in both views, on every trigger.** Opening a doc now selects its node in the Roadmap view as well (falling back to the doc's thread node when the roadmap has no exact doc row), and the selection keeps up everywhere it used to lag: toggling Show Roadmap ⇄ Show Threads with a doc open, switching to another sidebar tool and back to Loom, re-enabling doc→tree sync (it jumps to the current doc immediately), and opening VS Code with a doc already open. Threads-view exact-node precision is unchanged.
+- **The layer rule is now machine-enforced across the whole package graph.** A single table-driven guard checks every package edge (`cli`/`vscode` → `mcp` → `app` → `core` + `fs` + `telemetry`) on both axes — sibling-package imports and direct node `fs` access — and resolves relative imports, so cross-package edges can no longer slip past a specifier-only scan. It subsumes the two old per-package guards, keeps their documented exceptions, and fails red for any new package without a declared row.
+
 ## [1.26.0] - 2026-07-15
 
 **Highlights:** wire thread dependencies visually from the roadmap, clicking a roadmap thread now drops you into its live chat, a new next-work report mines the graph for what to build next, and the three READMEs are lighter entry points.
@@ -728,7 +736,8 @@ the loop has been dogfooded on Loom itself across two threads.
 - **Physical Template Files**  
   `.loom/templates/` replaced by body generators in `core/bodyGenerators/`.
 
-[Unreleased]: https://github.com/reslava/loom/compare/v1.26.0...HEAD
+[Unreleased]: https://github.com/reslava/loom/compare/v1.27.0...HEAD
+[1.27.0]: https://github.com/reslava/loom/releases/tag/v1.27.0
 [1.26.0]: https://github.com/reslava/loom/releases/tag/v1.26.0
 [1.25.0]: https://github.com/reslava/loom/releases/tag/v1.25.0
 [1.24.0]: https://github.com/reslava/loom/releases/tag/v1.24.0
