@@ -103,6 +103,32 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
         if (root) updateDiagnostics(diagnosticCollection, root);
     }
 
+    // Single sync primitive: reveal the tree node for the currently-open doc.
+    // Prefers the exact doc node (Threads view's doc-level precision), falling
+    // back to the owning-thread node (Roadmap view, or any doc the per-node map
+    // doesn't cover). Reads activeTextEditor itself so trigger callers that hold
+    // no editor (view/sync toggles) can invoke it. No-op while sync is disabled.
+    function syncActiveEditorToTree(): void {
+        if (!viewStateManager.getState().syncDocToTreeEnabled) return;
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) return;
+        const filePath = editor.document.uri.fsPath;
+        const node = treeProvider.getNodeByFilePath(filePath)
+            ?? treeProvider.getThreadNodeByFilePath(filePath);
+        if (node) {
+            treeView.reveal(node, { select: true, focus: false, expand: true });
+        }
+    }
+
+    // Sync after a tree rebuild or a view-becomes-visible event. Unlike the plain
+    // sync (which runs against an already-painted tree on editor change), these
+    // triggers fire while VS Code is still (re)rendering rows — reveal is silently
+    // dropped if the target row isn't painted yet, and there is no "tree rendered"
+    // event to await. Yielding one macrotask lets the render settle first.
+    function syncActiveEditorToTreeDeferred(): void {
+        setTimeout(() => syncActiveEditorToTree(), 0);
+    }
+
     // In-process workspace install via the loom_install MCP tool — no terminal,
     // real progress + error surfacing. Replaces the old `loom install` shell-out
     // while keeping the vscode → mcp → app layer boundary (C3): the extension
@@ -132,14 +158,15 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     );
 
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (!editor) return;
-            if (!viewStateManager.getState().syncDocToTreeEnabled) return;
-            const filePath = editor.document.uri.fsPath;
-            const node = treeProvider.getNodeByFilePath(filePath);
-            if (node) {
-                treeView.reveal(node, { select: true, focus: false, expand: true });
-            }
+        vscode.window.onDidChangeActiveTextEditor(() => syncActiveEditorToTree())
+    );
+
+    // Sync when the Loom view (re)appears without an editor change — switching back
+    // from another sidebar view, or opening a workspace with a doc already open. The
+    // node maps persist from the last build, so a deferred reveal is enough.
+    context.subscriptions.push(
+        treeView.onDidChangeVisibility(e => {
+            if (e.visible) syncActiveEditorToTreeDeferred();
         })
     );
 
@@ -193,19 +220,27 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
             const enabled = !viewStateManager.getState().syncDocToTreeEnabled;
             viewStateManager.update({ syncDocToTreeEnabled: enabled });
             vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', enabled);
+            // On re-enable, jump to the current doc now; a no-op when turning off.
+            syncActiveEditorToTree();
         }),
         vscode.commands.registerCommand('loom.toggleSyncDocToTreeOff', () => {
             const enabled = !viewStateManager.getState().syncDocToTreeEnabled;
             viewStateManager.update({ syncDocToTreeEnabled: enabled });
             vscode.commands.executeCommand('setContext', 'loom.syncDocToTreeEnabled', enabled);
+            syncActiveEditorToTree();
         }),
         ...((): vscode.Disposable[] => {
-            const toggleRoadmap = () => {
+            const toggleRoadmap = async () => {
                 const enabled = !viewStateManager.getState().roadmapEnabled;
                 viewStateManager.update({ roadmapEnabled: enabled });
                 vscode.commands.executeCommand('setContext', 'loom.roadmapEnabled', enabled);
                 updateViewTitle();
-                treeProvider.refresh();
+                // waitForRefresh() fires the rebuild itself and resolves once
+                // getRootChildren (hence the node maps for the newly-shown view) has
+                // run — no separate refresh() call, which would double-fire the tree
+                // event. Then defer the reveal past VS Code's async row render.
+                await treeProvider.waitForRefresh();
+                syncActiveEditorToTreeDeferred();
             };
             const selectHistoryGrouping = async () => {
                 await showHistoryGroupingSelector(viewStateManager, treeProvider);
@@ -537,7 +572,14 @@ export function activate(context: vscode.ExtensionContext): LoomExtensionAPI {
     context.subscriptions.push(watcher.onDidDelete(debouncedSyncSetup));
     context.subscriptions.push(watcher);
 
-    setImmediate(() => syncAndRefresh());
+    setImmediate(() => {
+        syncAndRefresh();
+        // Initial sync for the already-open doc on startup / window reload: neither
+        // onDidChangeActiveTextEditor (the editor didn't change) nor
+        // onDidChangeVisibility (the view may already be visible) fires for it. Wait
+        // for the first tree build so the node maps exist, then deferred-reveal.
+        void treeProvider.waitForRefresh().then(() => syncActiveEditorToTreeDeferred());
+    });
     // Refresh Loom-owned artifacts if the extension (hence bundled server) updated.
     setImmediate(() => ensureWorkspaceCurrent());
 

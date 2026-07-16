@@ -59,6 +59,11 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
     private nodeToParent = new Map<TreeNode, TreeNode>();
     private weaveIdToNode = new Map<string, TreeNode>();
     private threadKeyToNode = new Map<string, TreeNode>();
+    /** Absolute doc file path → "weaveSlug/threadSlug", built from full state each
+     *  refresh independent of view mode. Lets any open doc resolve to its owning
+     *  thread node (via threadKeyToNode) even in Roadmap view, where the per-node
+     *  filePathToNode map only carries each thread's one representative doc. */
+    private filePathToThreadKey = new Map<string, string>();
     private _afterRefreshCallbacks: Array<() => void> = [];
     /** Weave-scoped report artifacts (loom/{weave}/reports/), keyed by weave slug, from
      *  the loom://reports resource. Populated once per refresh, read by the sync weave-node
@@ -115,8 +120,14 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
             if (node.weaveSlug && !node.threadSlug && node.contextValue === 'weave') {
                 this.weaveIdToNode.set(node.weaveSlug, node);
             }
-            if (node.weaveSlug && node.threadSlug && (node.contextValue as string | undefined)?.startsWith('thread')) {
-                this.threadKeyToNode.set(`${node.weaveSlug}/${node.threadSlug}`, node);
+            // Thread-level node in either view: 'thread…' in Threads view, or the
+            // 'roadmap-thread' node in Roadmap view. Both must land in threadKeyToNode
+            // so getThreadNodeByFilePath resolves the open doc's thread in both views.
+            if (node.weaveSlug && node.threadSlug) {
+                const cv = node.contextValue as string | undefined;
+                if (cv?.startsWith('thread') || cv === 'roadmap-thread') {
+                    this.threadKeyToNode.set(`${node.weaveSlug}/${node.threadSlug}`, node);
+                }
             }
             if (node.children?.length) this.buildNodeMaps(node.children, node);
         }
@@ -128,6 +139,34 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
 
     getNodeByThreadId(weaveSlug: string, threadSlug: string): TreeNode | undefined {
         return this.threadKeyToNode.get(`${weaveSlug}/${threadSlug}`);
+    }
+
+    /** Resolve any doc file path to its owning thread's currently-visible node.
+     *  Uses the view-agnostic filePathToThreadKey index → threadKeyToNode, so it
+     *  yields the roadmap thread node in Roadmap view and the thread node in
+     *  Threads view. Returns undefined for docs in no thread (loose fibers, global). */
+    getThreadNodeByFilePath(filePath: string): TreeNode | undefined {
+        const key = this.filePathToThreadKey.get(filePath);
+        return key ? this.threadKeyToNode.get(key) : undefined;
+    }
+
+    /** Build the view-agnostic filePathToThreadKey index from full state: every
+     *  doc-bearing field of every thread → "weaveSlug/threadSlug". */
+    private buildFilePathToThreadKey(state: LoomState): void {
+        this.filePathToThreadKey.clear();
+        for (const weave of state.weaves) {
+            for (const t of weave.threads) {
+                const docs = [
+                    t.req, t.idea, t.design, t.manifest,
+                    ...t.plans, ...t.dones, ...t.chats, ...(t.refDocs ?? []),
+                ].filter(Boolean) as Document[];
+                const key = `${weave.id}/${t.id}`;
+                for (const doc of docs) {
+                    const p = (doc as any)._path as string | undefined;
+                    if (p) this.filePathToThreadKey.set(p, key);
+                }
+            }
+        }
     }
 
     private async getRootChildren(): Promise<TreeNode[]> {
@@ -145,6 +184,7 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
         this.nodeToParent.clear();
         this.weaveIdToNode.clear();
         this.threadKeyToNode.clear();
+        this.filePathToThreadKey.clear();
 
         try {
             const json = await this.readStateWithRetry(this.workspaceRoot);
@@ -162,6 +202,12 @@ export class LoomTreeProvider implements vscode.TreeDataProvider<TreeNode> {
                 pendingCallbacks.forEach(cb => cb());
                 return [];
             }
+
+            // View-agnostic doc→thread index: built from full state before the
+            // view branch so getThreadNodeByFilePath resolves in both Roadmap and
+            // Threads views (the per-node filePathToThreadKey is filled here; the
+            // per-view node maps are filled by buildNodeMaps further down).
+            this.buildFilePathToThreadKey(this.state);
 
             const viewState = this.viewStateManager.getState();
 
