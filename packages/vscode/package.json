@@ -664,7 +664,7 @@
         },
         {
           "command": "loom.addRequiresLoad",
-          "when": "view == loom.threads && viewItem =~ /^(idea|design|plan)/",
+          "when": "view == loom.threads && viewItem =~ /^(idea|design|plan|chat)/",
           "group": "edit@0"
         },
         {

@@ -13,7 +13,7 @@ export async function addRequiresLoadCommand(node?: TreeNode): Promise<void> {
     if (!root) { vscode.window.showErrorMessage('No workspace open.'); return; }
 
     const docId = node?.doc?.id;
-    if (!docId) { vscode.window.showErrorMessage('Select an idea, design, or plan first.'); return; }
+    if (!docId) { vscode.window.showErrorMessage('Select an idea, design, plan, or chat first.'); return; }
 
     let refs: RefEntry[];
     try {
