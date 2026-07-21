@@ -2,13 +2,13 @@
 type: chat
 id: ch_01KXH2YVDGJHBPK30PGTD01YZ9
 title: rename-loom-to-docuflow Chat 001
-status: active
+status: done
 created: 2026-07-14
 version: 1
 tags: []
 parent_id: null
 requires_load: []
-last_ai_block: 29
+last_ai_block: 36
 ---
 # rename-loom-to-docuflow Chat 001
 
@@ -644,3 +644,146 @@ Kept it to the single reworked paragraph inside the doc-sync contract — no sec
 ## AI:
 
 Committing now — scoped to this thread only. The tree has unrelated concurrent work (the whole `ai-integration/future-report` thread + `packages/*` report/forward-signal changes + a new test), so I'm staging **just** `CLAUDE.md` and this thread's `chat-001.md` + `plan-002` done record, and leaving all the future-report/reports work alone for its own commit. Message describes the doc-sync-contract change (no hash referenced — recoverable from `git log`).
+
+## Rafa:
+
+write me the HN-differentiator cheat-sheet pls
+
+## AI:
+
+Here's the cheat-sheet — the "how is this different from X" questions HN will reliably throw, each with a ready reply you can adapt in the moment. I also saved a paste-ready plain-text copy to your scratchpad (`hn-differentiator-cheatsheet.txt`) and sent it, so you can keep it open in a window while the thread is live.
+
+**Read this once before replying to anything — the tone is 80% of it:**
+- **Agree first.** "Fair question / that's exactly the habit this grew from." Disarms the spam reflex instantly.
+- **One honest axis of difference, not five.** A list reads defensive; one clean distinction lands.
+- **Never say the other tool is bad.** Say what job each does. Concede scope happily ("if a notes file works for you, keep it") — on HN, honesty reads as confidence, not weakness.
+- **If someone's harsh:** "fair point," answer the substance or let it go. Don't argue — arguing is what tanks Show HN threads.
+
+---
+
+**1. "Isn't this just a CLAUDE.md / .cursorrules / a system-prompt file?"**
+Pretty close in spirit — that's the exact habit Loom grew out of. The difference is those are one flat static file you hand-maintain; Loom is a typed graph of docs (idea → design → plan-with-steps → done) where state is derived and changes propagate: edit a design and its plans get flagged stale, then a refine flows the change downstream. Less "a rules file," more "a small versioned database of the project's intent the agent reads and writes through validated ops." If one CLAUDE.md covers your project, you may not need more — this earns its keep once there are enough live design decisions that a single file becomes a mess.
+
+**2. "How is this different from Aider?"**
+Aider's a great coding agent — the edit/commit loop with a repo map for code context. Loom isn't a coding agent and doesn't replace one; it's the layer *above* the code — the design/plan/decision memory — and it's agent-agnostic (talks over MCP, so point Claude Code, Cursor, Continue, whatever at it). Aider gives the model your current *code*; Loom gives it your current *intent and plan*, persistent across sessions. You could use Aider as the agent and Loom as its memory.
+
+**3. "Isn't this just RAG / embeddings over the repo (Cody, Continue @-context)?"**
+Different mechanism, different goal. RAG retrieves fuzzy-similar chunks at query time; Loom is authored, structured, current context the agent reads deterministically — an actual plan with steps to execute and a decision history, not the top-k nearest snippets. Retrieval answers "what text looks relevant"; Loom answers "what are we building, why, and what's next." They compose fine — you could even RAG over Loom's docs.
+
+**4. "Doesn't ChatGPT / Claude / Cursor already have memory now?"**
+Those help, but they're opaque, per-vendor, unversioned, and live in someone else's account — you can't diff them, review them in a PR, or move them to another agent. Loom's memory is plain markdown in your git repo: reviewable, portable across any MCP agent, and structured (a typed doc graph, not a flat list of facts). The point isn't "remember things," it's "the project's design and plan live in the repo as reviewable artifacts the AI works from."
+
+**5. "I already keep markdown notes / a NOTES.md for my AI. Why a tool?"**
+Honestly, that IS the idea — you've found the core insight, and if a notes file works for you, keep doing it. Loom is the disciplined version of that habit: typed docs instead of freeform, derived state and staleness so changes propagate instead of silently rotting, step-tracked plans with done-records, and an MCP tool surface so the agent reads/writes through validated operations (it can't corrupt the structure). It's for when the notes-file habit starts to strain.
+
+**6. "Isn't this just a task tracker (Linear/Jira) for AI?"**
+Trackers organize work for *humans* to look at; Loom's plans are consumed by the *AI* as executable context — each step carries the files it touches, what it's blocked by, and which requirement it satisfies, and completing it writes a done-record. The docs double as the AI's working memory across sessions, not a dashboard. Different consumer, different shape.
+
+**7. "Why MCP? Why not just stuff it in the prompt?"**
+MCP is what makes it agent-agnostic and lets the agent *write back* through validated tools (so reducers, link index, and step-validation run) instead of freely editing files. A read+write contract, not just injected context.
+
+**8. Universal fallback (honesty disarms — keep this one loaded):**
+Fair — it's early and one-person, and for a small or short-lived project the ceremony may not pay off. It earns its keep on longer projects with real design decisions you keep having to re-explain. I built it because that re-explaining was my actual daily pain; whether it's yours is exactly what I'm trying to find out.
+
+---
+
+One meta-note: #5 and #8 are your strongest cards *because* they concede ground. The instinct under fire is to defend — resist it. On HN the person who says "yeah, maybe you don't need this" is the one people trust enough to go try it.
+
+Want me to add a couple of these as a short **FAQ section at the bottom of the root README** too? Same content, but it also pre-empts the questions for anyone who lands on the repo from the post — a pure `write quick`, your call.
+
+## Rafa:
+
+This is what I got when I tried to post:
+```
+We're temporarily restricting Show HNs because of a massive influx, mostly by users who aren't yet familiar with the site or its culture.
+
+You're welcome on HN! Take some time to get to know the community, become a good contributor, and then it will be fine to post an occasional Show HN.
+Here are some links to get you started:
+
+https://news.ycombinator.com/newsguidelines.html
+
+https://news.ycombinator.com/newswelcome.html
+
+https://news.ycombinator.com/showhn.html
+```
+
+## AI:
+
+That's a gate, not a verdict — read it that way before anything else. HN throttles Show HN from brand-new accounts, harder during these "influx" clampdowns; it's mechanical and hits everyone who just signed up. It has nothing to do with Loom — the post was never seen, let alone judged. Same discipline we agreed on, pointed at this one: don't let "couldn't post yet" quietly become "rejected again." It isn't.
+
+It is real friction on the channel we picked, though. Honest menu, best first:
+
+**1. Email the mods — this is the move.** HN's mods (hn@ycombinator.com) are famously reasonable and routinely lift the Show HN restriction for a legit solo project if you just ask. Async, 1:1, no crowd, no karma grind — the most introvert-friendly path there is. One honest paragraph: solo dev, built this to scratch my own itch, new to HN, may I post a Show HN. Odds are decent they just enable it. **Want me to draft that email?** You'd only have to send it.
+
+**2. Let the account age + a few genuine comments.** The restriction is explicitly "temporary," and account-newness is the trigger. Comment honestly on a couple of AI-coding-tool threads over a week — discussing tech you actually care about, *not* pitching Loom — and the account matures; Show HN usually opens. Slower and closer to the grind you dislike, so I'd only fall back to this if the mod email goes nowhere.
+
+**3. Don't route around it with a *regular* (non-Show) submission of the repo.** Without the "Show HN" frame, posting your own repo reads *more* like spam, not less — the prefix is the permission slip. Skipping it removes the one thing protecting you.
+
+None of the work is wasted: the cheat-sheet and the three README rewrites are staged and ready for whenever the post goes live — whether that's the mod email this week or the account simply aging out of the restriction. The bar doesn't move: one try, success = a few real comments on the *problem*.
+
+So — want me to draft the two-line mod email now, or park HN here and move to `cross-plan-blocker-validation`?
+
+## Rafa:
+
+draft email
+(im doing cross-plan... in another thread with you)
+
+## AI:
+
+Here's the email. Short, honest, humble, defers to their judgment — that's what gets a yes from HN mods. Send it to **hn@ycombinator.com** (that's the address for the whole team; dang usually answers). Swap in your HN username so they can flip the setting on the right account.
+
+---
+
+**To:** hn@ycombinator.com
+**Subject:** New account — may I post a Show HN?
+
+Hi,
+
+I tried to submit a Show HN and hit the message that new accounts are currently restricted. That's completely fair — I'd rather ask directly than try to route around it.
+
+I'm a solo developer (HN username: **[your-username]**). Over the last few months I built an open-source, document-driven memory and workflow layer for AI coding agents — markdown docs as the database, exposed to any MCP agent. It's a genuine one-person side project that I use to build itself; nothing to sell, no company, no signup. Repo: https://github.com/reslava/loom
+
+Would it be possible to enable a Show HN for my account? I've read the guidelines, and if you'd rather I spend some time commenting and getting a feel for the site first, I completely understand — I just wanted to check whether an honest solo project like this can go through.
+
+Thanks for keeping HN what it is,
+Rafa
+
+---
+
+Three small things:
+- **Fill in your HN username** where marked — it's the one thing they need to enable it for you.
+- **Don't chase it.** Send once, give it a few days. Mods are a small team; a follow-up nudge reads as pushy.
+- If they say "wait and build some standing first," that's a normal answer, not a no — the account will age out of the restriction regardless, and the post's still ready.
+
+That's it — go do cross-plan; this'll keep.
+
+## AI:
+
+Keep it short, human, and un-salesy — the `about` field's real job here is to prove you're a person, not a throwaway account. When a mod glances at your profile to decide the Show HN request, an empty bio reads "drive-by," a filled one reads "real dev." Don't turn it into a Loom ad; one honest line about what you do is plenty.
+
+Two things that genuinely help:
+- **A contact email.** HN only shows your email if you put it in `about`, and having one there is a strong "legit human" signal (it's also how mods/people reach you). Obfuscate it lightly to dodge scrapers.
+- **A plain, specific self-description** — real interests/stack, not a pitch.
+
+Drop-in options (pick one, edit to taste):
+
+**Minimal:**
+```
+Solo developer. TypeScript, dev tooling, and AI-assisted workflows.
+Contact: rafeslava at hotmail dot com
+```
+
+**A touch more (still honest, not promo):**
+```
+Solo dev building open-source side projects — mostly TypeScript, dev
+tooling, and AI-assisted development workflows. Also tinkering with a
+music-theory trainer. Happy to talk shop.
+Contact: rafeslava at hotmail dot com
+```
+
+Notes:
+- **Don't paste the repo link in `about`.** A GitHub URL in your bio right before requesting a Show HN can read as self-promo; let the post carry the link. If you want a link at all, `https://github.com/reslava` (your profile, not the Loom repo) is the neutral version.
+- **Don't mention Loom by name** in the bio — same reason. The project speaks for itself in the post; the profile just needs to say "human who builds things."
+- Skip location/job title unless you want them there — neither helps the Show HN case.
+
+I'd go with the "touch more" version — it's specific enough to feel like a real person without selling anything.
